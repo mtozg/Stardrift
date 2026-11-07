@@ -1050,21 +1050,25 @@ function setLock(a){
 }
 function toggleLock(){
   if (lock){ setLock(null); return; }
+  // 1) nişangâhın tam altındaki gemi ya da gök cismi (asteroitler kilitlenmez, madencilik elle yapılır)
+  const angTo = (p, r) => { tmp.copy(p).sub(rig.position); const d = tmp.length(); return Math.acos(clamp(tmp.dot(fwd) / d, -1, 1)) - Math.asin(clamp((r || 0) / d, 0, 1)); };
   let t = (aim && !aim.mesh && aim.kind !== 'station') ? aim : null;
   if (!t){
-    let bs = 0.5;
-    for (const a of asteroids){ tmp.copy(a.pos).sub(rig.position); const d = tmp.length(); continue; const ang = Math.acos(clamp(tmp.dot(fwd) / d, -1, 1)); if (ang < bs){ bs = ang; t = a; } }
-    for (const n of npcs){ tmp.copy(n.pos).sub(rig.position); const d = tmp.length(); if (d > 2000) continue; const ang = Math.acos(clamp(tmp.dot(fwd) / d, -1, 1)); if (ang < bs){ bs = ang; t = n; } }
+    let bs = 0.12;
+    for (const n of npcs){ if (n.pos.distanceTo(rig.position) > 2400) continue; const a = angTo(n.pos, n.r); if (a < bs){ bs = a; t = n; } }
+    if (!t) for (const b of BODIES){ if (b.kind === 'station' || (b.kind === 'ruin' && !(b.found || save.map || b.hint || b.pos.distanceTo(rig.position) < 3500))) continue; const a = angTo(b.pos, b.r); if (a < bs){ bs = a; t = b; } }
   }
+  // 2) nişanda bir şey yoksa: yakındaki en yakın düşman
   if (!t){
-    let bs = 0.45;
-    for (const b of BODIES){ if (b.kind === 'station') continue; tmp.copy(b.pos).sub(rig.position); const d = tmp.length(); const ang = Math.acos(clamp(tmp.dot(fwd) / d, -1, 1)) - Math.asin(clamp(b.r / d, 0, 1)); if (ang < bs){ bs = ang; t = b; } }
+    let bd = 2000;
+    for (const n of npcs){ if (!n.hostile) continue; const d = n.pos.distanceTo(rig.position); if (d < bd){ bd = d; t = n; } }
   }
-  if (t) setLock(t); else toast('Hedef bulunamadı. Nişanı bir nesneye çevir.');
+  // 3) hiçbiri yoksa hiçbir yere uçma
+  if (t) setLock(t); else toast('Hedef yok. Nişanı bir gemiye ya da gök cismine çevir. Gezegenler için Y tuşu ya da haritaya dokun.', 3200);
 }
 let bodyIdx = -1;
 function lockNextBody(){
-  const list = BODIES.filter(b => b.kind !== 'station' && (b.kind !== 'ruin' || b.found || save.map || b.pos.distanceTo(rig.position) < 3500)).sort((a, b) => a.pos.distanceTo(rig.position) - b.pos.distanceTo(rig.position));
+  const list = BODIES.filter(b => b.kind !== 'station' && (b.kind !== 'ruin' || b.found || save.map || b.hint || b.pos.distanceTo(rig.position) < 3500)).sort((a, b) => a.pos.distanceTo(rig.position) - b.pos.distanceTo(rig.position));
   bodyIdx = (list.indexOf(lock) + 1) % list.length; setLock(list[bodyIdx]);
 }
 function tapLock(x, y){
@@ -1500,7 +1504,7 @@ function drawRadar(c, cx, cy, rr){
     if (!t || !t.pos) continue; const q = pt(t.pos), d = Math.hypot(q.px, q.py); if (d > rr - 5) continue;
     c.strokeStyle = col; c.lineWidth = 1.6; c.beginPath(); c.arc(cx + q.px, cy + q.py, 5, 0, TAU); c.stroke();
   }
-  for (const r of ruins) if (!r.found && (save.map || r.group.position.distanceTo(rig.position) < 3500)) plot(r.group.position, '#5ff0d0', 5, true);
+  for (const r of ruins) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 3500)) plot(r.group.position, '#5ff0d0', 5, true);
   extraPlots(plot);
   for (const b of [PLANET, GIANT, PLANET2, PLANET3]) plot(b.pos, 'rgba(190,205,230,0.8)', 6, true);
   for (const s of STATIONS){ const q = pt(s.pos); let px = q.px, py = q.py; const d = Math.hypot(px, py); if (d > rr - 7){ px = px / d * (rr - 7); py = py / d * (rr - 7); } c.fillStyle = s === STATION ? '#ffb454' : '#8fe9ff'; c.fillRect(cx + px - 3.5, cy + py - 3.5, 7, 7); }
@@ -2154,7 +2158,7 @@ function drawHud(){
     if (known(GIANT.pos)) drawMarker(c, GIANT.pos, '#ffc58a', GIANT.ad, rig.position.distanceTo(GIANT.pos) - GIANT.r, 5000);
     if (known(PLANET2.pos)) drawMarker(c, PLANET2.pos, '#ff9a6a', PLANET2.ad, rig.position.distanceTo(PLANET2.pos) - PLANET2.r, 5000);
     if (known(PLANET3.pos)) drawMarker(c, PLANET3.pos, '#d6ecff', PLANET3.ad, rig.position.distanceTo(PLANET3.pos) - PLANET3.r, 5000);
-    for (const r of ruins){ const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || d < 3500)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
+    for (const r of ruins){ const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 3500)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
     extraMarkers(c);
     { let hc = 0; for (const n of npcs){ if (!n.hostile) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
     drawNpcTags(c);
@@ -5152,7 +5156,7 @@ function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
       if (n.rev > time && !docked && !n.hostile){ n.alertT = 0; if (n.state !== 'attack' || n.tgt !== 'player'){ n.state = 'attack'; n.tgt = 'player'; } n.atkT = time; thinkPirate(n); return; }
       if (n.rev <= time || docked){ n.rev = 0; n.ffW = 0; n.state = n.role === 'patrol' ? 'patrol' : 'idle'; n.tgt = null; n.dest = null; }
     }
-    if (n.sg === 'help' || n.sg === 'esc'){ evNpcThink(n); return; }
+    if (n.sg === 'help' || n.sg === 'esc' || n.sg === 'stay' || n.sg === 'run'){ evNpcThink(n); return; }
     if (n.sg === 'rep'){ n.dest = null; n.state = 'idle'; n.vel.multiplyScalar(0.96); return; }
     _nt(n);
   };
@@ -5206,11 +5210,11 @@ function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
     eskort: { w: 3, title: 'Eskort isteği', offer: 'Bir kargo gemisi teslimat için eşlik istiyor. Yanında kal, korsanlardan koru.',
       go(){ const hm = nearestStationTo(rig.position); let dst = null, bd = 0; for (const s of STATIONS){ if (s === hm) continue; const d = s.pos.distanceTo(rig.position); if (!dst || (d > 1500 && d < bd) || bd < 1500){ dst = s; bd = d; } }
         const tr = spawnNpc('cargo', ahead(220, 60), hm); tr.sg = 'esc'; tr.dst = dst; tr.alertT = 0; SG.n = tr; SG.dst = dst; SG.amb = time + rand(25, 45); SG.far = 0; SG.ps = []; radio(tr.name, dst.ad.split(' ')[0] + "'a gidiyorum. Yanımda kal!", '#7fd8ff'); },
-      tick(dt){ const tr = SG.n; if (npcs.indexOf(tr) < 0) return endEv('Eskort gemisi kaybedildi. Görev başarısız.');
+      tick(dt){ const tr = SG.n; if (npcs.indexOf(tr) < 0) return endEv('Eskort gemisi kaybedildi.');
         if (SG.amb && time > SG.amb){ SG.amb = 0; for (let i = 0; i < 2; i++){ const p = spawnNpc(Math.random() < 0.6 ? 'raider' : 'brute', tr.pos.clone().add(V(rand(-400, 400), rand(-100, 100), rand(-400, 400))), tr.home); p.state = 'attack'; p.tgt = tr; p.atkT = time; SG.ps.push(p); } radio('Telsiz', 'Korsanlar eskort gemisine saldırıyor!', '#ff5a6e'); }
         if (SG.ps.length) for (const p of SG.ps) if (npcs.indexOf(p) >= 0 && p.tgt !== tr){ p.state = 'attack'; p.tgt = tr; p.atkT = time; }
         const dd = tr.pos.distanceTo(SG.dst.pos); if (dd < SG.dst.dock * 0.9){ const r = pay(280, 450); save.kredi += r; persist(); radio(tr.name, 'Ulaştık. Teşekkürler pilot!', '#7be0a4'); despawn(tr); return endEv('Eskort tamamlandı: +' + r + ' kredi'); }
-        SG.far = tr.pos.distanceTo(rig.position) > 2200 ? SG.far + dt : 0; if (SG.far > 25){ despawn(tr); return endEv('Eskortu bıraktın. Görev başarısız.'); }
+        SG.far = tr.pos.distanceTo(rig.position) > 2200 ? SG.far + dt : 0; if (SG.far > 25){ despawn(tr); return endEv('Eskortu bıraktın.'); }
         info('Hedef: ' + SG.dst.ad + ' · kalan ' + Math.round(dd) + ' m'); bar(1 - dd / Math.max(1, SG.d0 || (SG.d0 = dd))); } },
     enkaz: { w: 2, title: 'Düşmüş kargo sinyali', offer: 'Zayıf bir kargo sinyali yakalandı. İçinde cevher olabilir.',
       go(){ const tp = ahead(rand(500, 800), 200); SG.tp = tp; SG.t1 = time + 150; SG.ores = []; for (let i = 0; i < 8; i++){ spawnOre(tp, Math.random() < 0.3 ? 'kristal' : Math.random() < 0.5 ? 'buz' : 'demir'); const o = ores[ores.length - 1]; o.life = 400; SG.ores.push(o); }
@@ -5222,10 +5226,52 @@ function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
         if (SG.hold >= 4){ tr.hull = tr.hullMax; tr.sg = null; const r = pay(120, 200); save.kredi += r; save.rep[tr.home.ad] = (save.rep[tr.home.ad] || 0) + 2; persist(); radio(tr.name, 'Tamam, çalışıyor! Sağ ol.', '#7be0a4'); return endEv('Onarım yapıldı: +' + r + ' kredi'); }
         if (time > SG.t1) return endEv('Çağrı sönümlendi.'); info(d < 140 ? 'Onarılıyor… %' + Math.round(SG.hold / 4 * 100) : 'Gemiye yaklaş · ' + dirTxt(tr.pos)); bar((SG.t1 - time) / 160); } },
     pusu: { w: 1, title: 'Devriye uyarısı', offer: 'Yakında korsan hareketi var. Hazırlıklı ol, saldırabilirler.', one: true,
-      go(){ for (let i = 0; i < 2; i++){ const p = spawnNpc(Math.random() < 0.5 ? 'raider' : 'brute', ahead(rand(700, 1000), 250), STATIONS[0]); p.state = 'attack'; p.tgt = 'player'; p.atkT = time; } radio('Devriye', 'Korsanlar yaklaşıyor, dikkat!', '#ff5a6e'); endEv('', 0, rand(120, 200)); } }
+      go(){ for (let i = 0; i < 2; i++){ const p = spawnNpc(Math.random() < 0.5 ? 'raider' : 'brute', ahead(rand(700, 1000), 250), STATIONS[0]); p.state = 'attack'; p.tgt = 'player'; p.atkT = time; } radio('Devriye', 'Korsanlar yaklaşıyor, dikkat!', '#ff5a6e'); endEv('', 0, rand(120, 200)); } },
+    tuccar: { w: 2, title: 'Gezgin tüccar', offer: 'Bir gezgin tüccar yakınlarda demirledi. Cevherini iyi fiyata alıyor, roket de satıyor.',
+      go(){ const tp = ahead(rand(450, 700), 160), tr = spawnNpc('courier', tp, nearestStationTo(tp)); tr.sg = 'stay'; tr.hold = tp.clone(); tr.name = 'Tüccar ' + ['Rasim', 'Nadir', 'Selvi', 'Orkun', 'Lale'][(Math.random() * 5) | 0]; SG.n = tr; SG.t1 = time + 150; radio(tr.name, 'Mal getiren pilota iyi fiyat! Yanıma gel.', '#ffb454'); },
+      tick(dt){ const tr = SG.n; if (npcs.indexOf(tr) < 0) return endEv('Tüccar gitti.'); const d = tr.pos.distanceTo(rig.position);
+        if (d < 160){ let got = 0; for (const k in cargo){ got += Math.round(cargo[k] * ORE[k].fiyat * 1.35); cargo[k] = 0; }
+          let msg; if (got > 0){ save.kredi += got; msg = 'Kargonu sattın: +' + got + ' kredi (%35 fazla)'; }
+          else if (save.ammoD < DMAX && save.kredi >= 12){ save.kredi -= 12; save.ammoD = DMAX; msg = 'Düz roketler dolduruldu: -12 kredi'; }
+          else msg = 'Satacak bir şeyin yoktu. Tüccar yoluna devam etti.';
+          persist(); tr.sg = null; radio(tr.name, got > 0 ? 'Hayırlı işler pilot!' : 'Bir dahaki sefere!', '#7be0a4'); return endEv(msg); }
+        if (time > SG.t1){ tr.sg = null; return endEv('Tüccar demir aldı.'); } info('Tüccara yaklaş · ' + dirTxt(tr.pos)); bar((SG.t1 - time) / 150); } },
+    anomali: { w: 2, title: 'Bilinmeyen enerji', offer: 'Sensörler garip bir enerji kaynağı yakaladı. Ne olduğunu kimse bilmiyor.',
+      go(){ const tp = ahead(rand(900, 1300), 300); SG.tp = tp; SG.t1 = time + 180; SG.hold = 0; const bc = sprite(glowTexture(110, 255, 220), 90, 0.9); bc.position.copy(tp); scene.add(bc); SG.beacon = bc; },
+      tick(dt){ const d = SG.tp.distanceTo(rig.position); SG.beacon.scale.setScalar(90 + Math.sin(time * 3) * 25); SG.beacon.material.rotation += dt;
+        SG.hold = d < 110 ? SG.hold + dt : Math.max(0, SG.hold - dt); 
+        if (SG.hold >= 3){ const r = Math.random(); let msg;
+          if (r < 0.35){ const v = pay(220, 420); save.kredi += v; msg = 'Enerji çözüldü, veriler satıldı: +' + v + ' kredi'; }
+          else if (r < 0.65){ for (let i = 0; i < 7; i++) spawnOre(SG.tp, 'kristal'); msg = 'Anomali kristale dönüştü. Topla!'; }
+          else if (r < 0.85){ hp.hull = hp.hullMax; hp.shield = hp.shieldMax; laser.heat = 0; laser.over = false; msg = 'Enerji gemiye aktı: gövde ve kalkan doldu.'; }
+          else { save.ammo = AMMO_MAX; save.ammoD = DMAX; msg = 'Eski bir cephane kapsülüymüş: roketler doldu.'; }
+          persist(); burst(SG.tp, 0x6effd8, 40, 70, 1.2);
+          if (Math.random() < 0.35){ for (let i = 0; i < 2; i++){ const p = spawnNpc('raider', SG.tp.clone().add(V(rand(-500, 500), rand(-120, 120), rand(-500, 500))), STATIONS[0]); p.state = 'attack'; p.tgt = 'player'; p.atkT = time; } setTimeout(() => radio('Telsiz', 'Enerji patlaması korsanları da çekti!', '#ff5a6e'), 1500); }
+          return endEv(msg); }
+        if (time > SG.t1) return endEv('Enerji söndü.'); info(d < 110 ? 'Taranıyor… %' + Math.round(SG.hold / 3 * 100) : 'Kaynağın içine gir · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 180); } },
+    aranan: { w: 2, title: 'Aranan korsan', offer: 'Devriye, başına ödül konmuş bir korsanı bu bölgede gördü. Avlamak ister misin?',
+      go(){ const tp = ahead(rand(900, 1200), 300), b = spawnNpc('reaver', tp, STATIONS[0]); b.hullMax = b.hull = Math.round(b.hullMax * 1.6); b.name = 'Aranan ' + ['Kara Deniz', 'Kızıl Diş', 'Sessiz Ok', 'Yaşlı Kurt'][(Math.random() * 4) | 0];
+        const es = spawnNpc('raider', tp.clone().add(V(rand(-80, 80), rand(-30, 30), rand(-80, 80))), STATIONS[0]); SG.n = b; SG.es = es; SG.t1 = time + 240; radio('Devriye', b.name + ' görüldü. Ödülü büyük, dikkatli ol.', '#ffb454'); },
+      tick(dt){ const b = SG.n; if (npcs.indexOf(b) < 0){ const v = pay(380, 620); save.kredi += v; persist(); radio('Devriye', 'Ödül hesabına yatırıldı. İyi avdı pilot.', '#7be0a4'); return endEv('Aranan korsan düştü: +' + v + ' kredi ödül'); }
+        if (time > SG.t1) return endEv('Korsanın izi kayboldu.'); info(b.name + ' · ' + dirTxt(b.pos)); bar(b.hull / b.hullMax); } },
+    sonda: { w: 2, title: 'Kayıp sonda', offer: 'Eski bir keşif sondasının zayıf sinyali geliyor. Verisi hâlâ okunabilir olabilir.',
+      go(){ const tp = ahead(rand(700, 1100), 350); SG.tp = tp; SG.t1 = time + 180; const bc = sprite(glowTexture(127, 216, 255), 40, 0.95); bc.position.copy(tp); scene.add(bc); SG.beacon = bc; },
+      tick(dt){ const d = SG.tp.distanceTo(rig.position); SG.beacon.material.opacity = 0.55 + 0.4 * Math.abs(Math.sin(time * 5));
+        if (d < 90){ const hid = ruins.filter(r => !r.found && !r.hint && !save.map); let msg;
+          if (hid.length){ const r = hid[(Math.random() * hid.length) | 0]; r.hint = true; let nb = PLANET, nd = 1e9; for (const b of [PLANET, GIANT, PLANET2, PLANET3]){ const dd = b.pos.distanceTo(r.group.position); if (dd < nd){ nd = dd; nb = b; } } msg = 'Sonda verisi: ' + nb.ad + ' tarafında ' + (r.gate ? 'bir kapı' : 'bir kalıntı') + ' sinyali. Haritaya işlendi.'; setTimeout(() => radio('Sonda', 'Son kayıt: "Orada bir şey vardı… yayın yapıyordu."', '#5ff0d0'), 1800); }
+          else { const v = pay(150, 260); save.kredi += v; persist(); msg = 'Sondanın parçaları satıldı: +' + v + ' kredi'; }
+          burst(SG.tp, 0x7fd8ff, 24, 50, 1); return endEv(msg, 0, 0); }
+        if (time > SG.t1) return endEv('Sondanın pili bitti.'); info('Sondaya yaklaş · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 180); } },
+    kacak: { w: 2, title: 'Kaçan korsan', offer: 'Bir korsan, çaldığı kristallerle kaçıyor. Yetişirsen yük senin.',
+      go(){ const tp = ahead(rand(380, 520), 120), k = spawnNpc('raider', tp, STATIONS[0]); k.cargo.kristal = 6; k.sg = 'run'; k.name = 'Kaçak ' + k.name.split('-')[1];
+        k.runTo = tp.clone().addScaledVector(tp.clone().sub(rig.position).normalize(), 6000); SG.n = k; SG.t1 = time + 120; radio(k.name, 'Yakalayamazsın beni!', '#ff5a6e'); },
+      tick(dt){ const k = SG.n; if (npcs.indexOf(k) < 0) return endEv('Kaçak düştü. Kristalleri topla!'); const d = k.pos.distanceTo(rig.position);
+        if (d > 2600 || time > SG.t1){ despawn(k); return endEv('Kaçak gözden kayboldu.'); } info('Yakala · ' + dirTxt(k.pos)); bar(1 - d / 2600); } },
   };
   window.evNpcThink = function(n){
     if (n.sg === 'help'){ setDest(n, n.evSt.pos, n.evSt.dock * 0.5); n.state = 'flee'; n.spdMul = 1.3; return; }
+    if (n.sg === 'stay'){ setDest(n, n.hold, 0); n.state = 'esc'; n.spdMul = 0.3; return; }
+    if (n.sg === 'run'){ setDest(n, n.runTo, 0); n.state = 'esc'; n.spdMul = 0.9; return; }
     if (n.sg === 'esc'){ setDest(n, n.dst.pos, n.dst.dock * 0.6); n.state = 'esc'; const d = n.pos.distanceTo(rig.position); n.spdMul = d > 700 ? 0.25 : d > 350 ? 0.6 : 0.95; }
   };
   card.addEventListener('pointerdown', e => e.stopPropagation());
@@ -5238,6 +5284,7 @@ function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
     if (SG && (docked || SG.sys !== curSys)){ endEv('', 0, rand(60, 120)); return; }
     if (paused || docked || (window.__hjOn || $('hyp').classList.contains('on'))) return;
     if (!SG){
+      if (window.__tutOn && time < 360 && !window.__forceEv) return;   // rehber sürerken ilk 6 dakika sinyal gelmez
       nextT -= dt; if (nextT > 0 && !window.__forceEv) return;
       if (!window.__forceEv) for (const q of npcs) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextT = 20; return; }
       let tot = 0; for (const k in EV) tot += EV[k].w; let r = Math.random() * tot, key = 'yardim'; for (const k in EV){ r -= EV[k].w; if (r <= 0){ key = k; break; } }
@@ -5247,6 +5294,48 @@ function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
     if (SG.phase === 'offer'){ const f = 1 - (time - SG.t0) / 28; bar(f); if (f <= 0) endEv('', 0, rand(90, 160)); return; }
     EV[SG.k].tick(dt);
   });
+}
+
+// ---- ilk dakikalar rehberi: isteğe bağlı, her an geçilebilir, bir kez gösterilir
+{
+  const fresh = !save.tut && !save.kredi && !Object.values(save.lv).some(v => v > 0);
+  if (!fresh && !save.tut){ save.tut = 1; persist(); }
+  const css = document.createElement('style'); css.textContent = '#tut{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 100px);z-index:7;width:min(270px,42vw);padding:10px 12px;border:1px solid rgba(255,180,84,.6);border-radius:10px;background:rgba(6,12,24,.88);color:#e8edff;font:600 13px/1.4 var(--font);display:none;box-shadow:0 0 18px rgba(255,180,84,.12)}#tut.on{display:block}#tut .h{display:flex;justify-content:space-between;align-items:center;color:#ffb454;font-size:11px;letter-spacing:.12em;margin-bottom:4px}#tut b{display:block;font-size:14.5px;margin-bottom:3px}#tut .k{color:#7fd8ff}#tut .dots{display:flex;gap:4px;margin-top:8px}#tut .dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.14)}#tut .dots i.d{background:#ffb454}#tut button{font:700 11px var(--font);padding:4px 9px;border-radius:7px;border:1px solid #667;color:#aab;background:none;touch-action:manipulation}#tut.done{border-color:rgba(123,224,164,.7)}body:has(#tut.on) #sig{top:calc(env(safe-area-inset-top,0px) + 250px)}';
+  document.head.appendChild(css);
+  const card = document.createElement('div'); card.id = 'tut'; document.body.appendChild(card);
+  card.addEventListener('pointerdown', e => e.stopPropagation());
+  const touch = matchMedia('(pointer: coarse)').matches, K = (key, btn) => '<span class="k">' + (touch ? btn : key) + '</span>';
+  let lv0 = 0, k0 = 0;
+  const lvSum = () => Object.values(save.lv).reduce((a, b) => a + (b || 0), 0);
+  const STEPS = [
+    { t: 'Uçuş', x: () => K('W', 'İtiş') + ' ile ilerle. Yön için ' + (touch ? 'ekranın sol yarısında parmağını sürükle' : K('A / D', '') + ' ve ' + K('↑ / ↓', '')) + '. ' + K('S', 'Fren') + ' yavaşlatır.', ok: () => vel.length() > 25 },
+    { t: 'Asteroit kır', x: () => 'Kuşaktaki bir kayayı nişangâhın ortasına al, ' + K('Boşluk', 'Lazer') + ' ile ateş et. Lazer menzili yaklaşık ' + Math.round((220 + 40 * save.lv.lazer) * WPN.range) + ' m; uzaksa nişanda "MENZİL DIŞI" yazar.', ok: () => ores.length > 0 || cargoSum() > 0 },
+    { t: 'Cevheri topla', x: () => 'Kırılan kayadan parlayan parçalar saçılır. Yanlarından geç, kendiliğinden kargoya çekilir. (' + cargoSum() + '/3)', ok: () => cargoSum() >= 3 },
+    { t: 'Üsse dön', x: () => 'Sarı işaret Ankora üssünü gösteriyor. Yaklaşınca ' + K('F', 'Üsse bağlan') + ' ile kenetlen.', ok: () => docked },
+    { t: 'Sat', x: () => '<span class="k">Ticaret</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.', enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
+    { t: 'Gemini geliştir', x: () => '<span class="k">Gemi</span> sekmesinden bir geliştirme al, ya da şimdilik ' + '<span class="k">Kalkış</span> de.', enter: () => { lv0 = lvSum(); }, ok: () => lvSum() > lv0 || !docked },
+    { t: 'Gerisi senin', x: () => 'Zorunlu bir şey yok. Gez, kaz, savaş. Arada telsizden sinyaller gelecek; istersen kabul et, istersen yoksay. ' + K('T', 'Kilit') + ' nişandaki hedefe ya da yakındaki düşmana kilitlenir, ' + K('M', 'harita') + ' haritayı açar.', last: true }
+  ];
+  let i = -1, wait = 0, doneT = 0, lastHtml = '';
+  function finish(skip){ save.tut = 1; persist(); window.__tutOn = false; card.classList.remove('on'); if (skip) toast('Rehber kapatıldı. İyi uçuşlar pilot.', 2400); }
+  function render(){ const st = STEPS[i]; const h = '<div class="h"><span>REHBER · ' + (i + 1) + '/' + STEPS.length + '</span>' + (st.last ? '<button data-a="x">Kapat</button>' : '<button data-a="x">Rehberi geç</button>') + '</div><b>' + st.t + '</b><span>' + st.x() + '</span><div class="dots">' + STEPS.map((_, j) => '<i class="' + (j <= i ? 'd' : '') + '"></i>').join('') + '</div>';
+    if (h !== lastHtml){ card.innerHTML = h; lastHtml = h; } }
+  function go(n){ i = n; doneT = 0; card.classList.remove('done'); if (STEPS[i].enter) STEPS[i].enter(); render(); blip(660, 0.06); }
+  card.addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b) finish(!STEPS[i].last); });
+  if (!save.tut){
+    window.__tutOn = true;
+    EXTRA.push(dt => {
+      if (!window.__tutOn) return;
+      if (i < 0){ if (document.getElementById('title') || paused) return; wait += dt; if (wait < 2.5) return; card.classList.add('on'); go(0); return; }
+      const st = STEPS[i];
+      if (st.last){ doneT += dt; if (doneT > 14) finish(false); return; }
+      if (doneT > 0){ doneT += dt; if (doneT > 1.2) go(i + 1); return; }
+      // adımlar sırayla atlanabilir: oyuncu ileri bir adımı zaten yaptıysa
+      if (st.ok()){ doneT = 0.001; card.classList.add('done'); try { if (!(window.__sfx && window.__sfx('toplama', 0.4))) blip(980, 0.08); } catch (e) {} return; }
+      if (i === 1 && cargoSum() >= 3) { go(3); return; }
+      render();
+    });
+  }
 }
 
 // ---- piyasa tablosu artık Ticaret sekmesinde
