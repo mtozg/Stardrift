@@ -17,8 +17,12 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Dört lazer türü (darbe, çift, plazma, madenci) ve dört roket başlığı (standart, ağır, küme, delici).
 - Korsanlar ve 3 boyutlu korsan lideri ile uzay savaşı.
 - Pilot adı ve otomatik kayıt.
-- Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan. Hepsi isteğe bağlı; kabul et ya da yoksay.
-- Kilit (T): nişandaki gemiye ya da gök cismine, nişan boşsa 2 km içindeki en yakın düşmana kilitlenir. Asteroitler elle kazılır.
+- Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan, korsan kampı, terk edilmiş istasyon, göç eden kristaller. Hepsi isteğe bağlı; kabul et ya da yoksay.
+- Kilit (T): nişandaki gemiye ya da gök cismine, nişan boşsa 5 km içindeki en yakın düşmana kilitlenir. Uzak yerler için haritada hedefe dokunulur. Asteroitler elle kazılır.
+- Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
+- Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.
+- Enerji hücresi en çok keşifte çıkar: kalıntılar, kayıp sondalar, bilinmeyen enerji.
+- Kadim yankılar: dört evrendeki 16 kalıntının her biri kayıp bir uygarlığın hikâyesinden bir parça anlatır. 12 kalıntıdan sonra Ankora'da Kadim Kapı haritada belirir, 16'sı bulununca uyanır. Sıra ya da süre yok.
 - İlk açılışta kısa bir rehber çıkar; "Rehberi geç" ile her an kapatılır.
 
 **Ses ve müzik**
@@ -46,7 +50,8 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 ## Teknik
 
 - [three.js](https://threejs.org) (r128) ile 3B. Kopyası `vendor/` içinde, internet olmadan da çalışır.
-- Ses efektleri ve yazı tipleri sayfanın içine gömülü, müzikler ayrı mp3 dosyalarıdır.
+- Ses efektlerinin çoğu ve yazı tipleri sayfanın içine gömülü; yeni efektler `assets/sfx/` klasöründe, müzikler ayrı mp3 dosyalarıdır.
+- `assets/sfx/` içindeki ses efektleri [ElevenLabs](https://elevenlabs.io) ile üretildi.
 
 ## Dosya yapısı
 
