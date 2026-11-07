@@ -1930,7 +1930,7 @@ function drawGlass(c, speed){
 function hurt(n){
   if (docked || n <= 0.5) return;
   hp.regenT = 4; hp.hit = 0.5; let rest = n;
-  if (hp.shield > 0){ const a = Math.min(hp.shield, rest); hp.shield -= a; rest -= a; if (a > 0.5){ shieldFx = 1; shieldX = rand(-0.3, 0.3); shieldY = rand(-0.2, 0.2); } }
+  if (hp.shield > 0){ const a = Math.min(hp.shield, rest); hp.shield -= a; rest -= a; if (a > 0.5 && shieldFx < 0.4){ shieldFx = 1; shieldX = (Math.random() < 0.5 ? -1 : 1) * rand(0.2, 0.36); shieldY = rand(-0.22, 0.12); } }
   if (rest > 0) hp.hull = Math.max(0, hp.hull - rest);
   shake = Math.max(shake, 0.5);
   if (hp.hull <= 0) wreck();
@@ -4584,7 +4584,7 @@ const FB = { list: [], mat: new THREE.ShaderMaterial({
 
 // ---------- 3) canlı kalkan: petek ağı, darbeden yayılan dalga ----------
 function drawShieldFx(c, ox, oy, W, H){
-  const p = clamp(1 - shieldFx, 0, 1), a = 1 - p, hx = ox + shieldX * W, hy = oy + shieldY * H, M = Math.min(W, H), Rm = M * 0.58, wave = Rm * (0.08 + 1.05 * p), s = M * 0.05;
+  const p = clamp(1 - shieldFx, 0, 1), a = 1 - p, hx = ox + shieldX * W, hy = oy + shieldY * H, M = Math.min(W, H), Rm = M * 0.4, wave = Rm * (0.08 + 1.05 * p), s = M * 0.05;
   c.save(); c.globalCompositeOperation = 'lighter';
   let g = c.createRadialGradient(ox, oy, M * 0.3, ox, oy, Math.max(W, H) * 0.72); g.addColorStop(0, 'rgba(90,180,255,0)'); g.addColorStop(1, 'rgba(90,180,255,' + (0.3 * a).toFixed(3) + ')'); c.fillStyle = g; c.fillRect(0, 0, W, H);
   // darbe parlaması
@@ -4596,9 +4596,9 @@ function drawShieldFx(c, ox, oy, W, H){
     const cx = i * s * 1.5, cy = (j + (i & 1) * 0.5) * w3, d = Math.hypot(cx - hx, cy - hy); if (d > Rm) continue;
     const dw = (d - wave) / (Rm * 0.16), L = Math.exp(-dw * dw) * (1 - p * 0.5) + Math.exp(-d * d / (s * s * 9)) * a * 0.9 + 0.06 * a * (1 - d / Rm);
     if (L < 0.04) continue; const k = Math.min(1, L);
-    c.strokeStyle = 'rgba(' + (150 + 100 * k | 0) + ',' + (210 + 40 * k | 0) + ',255,' + (0.75 * k).toFixed(3) + ')';
+    c.strokeStyle = 'rgba(' + (150 + 100 * k | 0) + ',' + (210 + 40 * k | 0) + ',255,' + (0.45 * k).toFixed(3) + ')';
     c.beginPath(); for (let q = 0; q < 6; q++){ const an = q * Math.PI / 3, X = cx + Math.cos(an) * s * 0.93, Y = cy + Math.sin(an) * s * 0.93; q ? c.lineTo(X, Y) : c.moveTo(X, Y); } c.closePath(); c.stroke();
-    if (k > 0.45){ c.fillStyle = 'rgba(120,200,255,' + (0.14 * k).toFixed(3) + ')'; c.fill(); }
+    if (k > 0.45){ c.fillStyle = 'rgba(120,200,255,' + (0.07 * k).toFixed(3) + ')'; c.fill(); }
   }
   // şok halkası
   c.strokeStyle = 'rgba(200,235,255,' + (0.6 * a).toFixed(3) + ')'; c.lineWidth = 2 + 3 * a; c.beginPath(); c.arc(hx, hy, wave, 0, TAU); c.stroke();
@@ -5302,7 +5302,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
 {
   const fresh = !save.tut && !save.kredi && !Object.values(save.lv).some(v => v > 0);
   if (!fresh && !save.tut){ save.tut = 1; persist(); }
-  const css = document.createElement('style'); css.textContent = '#tut{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 100px);z-index:7;width:min(270px,42vw);padding:10px 12px;border:1px solid rgba(255,180,84,.6);border-radius:10px;background:rgba(6,12,24,.88);color:#e8edff;font:600 13px/1.4 var(--font);display:none;box-shadow:0 0 18px rgba(255,180,84,.12)}#tut.on{display:block}#tut .h{display:flex;justify-content:space-between;align-items:center;color:#ffb454;font-size:11px;letter-spacing:.12em;margin-bottom:4px}#tut b{display:block;font-size:14.5px;margin-bottom:3px}#tut .k{color:#7fd8ff}#tut .dots{display:flex;gap:4px;margin-top:8px}#tut .dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.14)}#tut .dots i.d{background:#ffb454}#tut button{font:700 11px var(--font);padding:4px 9px;border-radius:7px;border:1px solid #667;color:#aab;background:none;touch-action:manipulation}#tut.done{border-color:rgba(123,224,164,.7)}body:has(#tut.on) #sig{top:calc(env(safe-area-inset-top,0px) + 250px)}';
+  const css = document.createElement('style'); css.textContent = '#tut{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 100px);z-index:7;width:min(270px,42vw);padding:10px 12px;border:1px solid rgba(255,180,84,.6);border-radius:10px;background:rgba(6,12,24,.88);color:#e8edff;font:600 13px/1.4 var(--font);display:none;box-shadow:0 0 18px rgba(255,180,84,.12)}#tut.on{display:block}#tut .h{display:flex;justify-content:space-between;align-items:center;color:#ffb454;font-size:11px;letter-spacing:.12em;margin-bottom:4px}#tut b{display:block;font-size:14.5px;margin-bottom:3px}#tut .k{color:#7fd8ff}#tut .dots{display:flex;gap:4px;margin-top:8px}#tut .dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.14)}#tut .dots i.d{background:#ffb454}#tut button{font:700 11px var(--font);padding:4px 9px;border-radius:7px;border:1px solid #667;color:#aab;background:none;touch-action:manipulation}#tut.done{border-color:rgba(123,224,164,.7)}body:has(#tut.on) #sig{top:calc(env(safe-area-inset-top,0px) + 250px)}#tut.dim{opacity:.25}body:has(#tut.on) #hint{display:none !important}' + '@media (max-height:520px){#tut{width:min(235px,33vw);top:calc(env(safe-area-inset-top,0px) + 92px);padding:7px 9px;font-size:11.5px;line-height:1.3}#tut b{font-size:13px;margin-bottom:1px}#tut .h{margin-bottom:2px}#tut .dots{margin-top:5px}body:has(#tut.on) #sig{top:calc(env(safe-area-inset-top,0px) + 200px)}' + 'body #cine b{left:34% !important;font-size:11px !important;letter-spacing:.1em !important;padding:0 10px !important}}';
   document.head.appendChild(css);
   const card = document.createElement('div'); card.id = 'tut'; document.body.appendChild(card);
   card.addEventListener('pointerdown', e => e.stopPropagation());
@@ -5329,6 +5329,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     EXTRA.push(dt => {
       if (!window.__tutOn) return;
       if (i < 0){ if (document.getElementById('title') || paused) return; wait += dt; if (wait < 2.5) return; card.classList.add('on'); go(0); return; }
+      card.classList.toggle('dim', overlay === 'map');
       const st = STEPS[i];
       if (st.last){ doneT += dt; if (doneT > 14) finish(false); return; }
       if (doneT > 0){ doneT += dt; if (doneT > 1.2) go(i + 1); return; }
@@ -6318,7 +6319,8 @@ window.__xpal = {
       else if (n.hr.out && time - n.hr.t > 3){ n.hr.out = false; n.hr.t = time; }
       if (n.hr.out){ _a.copy(n.pos).sub(rig.position).normalize(); _l.set(n.strafe, 0.3, 0).applyQuaternion(rig.quaternion); _a.add(_l).setLength(650); setDest(n, rig.position.clone().add(_a), 0); n.spdMul = 1.35; }
     } else if (n.type === 'brute'){
-      setDest(n, rig.position.clone().addScaledVector(vel, 0.6), 45); n.spdMul = 1.1;
+      // yakına gelir ama çarpmaz: oyuncunun 90 m önünde/yanında durur
+      _a.copy(n.pos).sub(rig.position); if (_a.lengthSq() < 1) _a.set(1, 0, 0); _a.setLength(90); setDest(n, rig.position.clone().addScaledVector(vel, 0.4).add(_a), 25); n.spdMul = d < 140 ? 0.7 : 1.1;
     } else if (n.type === 'reaver'){
       // hedefin çevresinde 380 m'de döner
       _a.copy(n.pos).sub(rig.position); if (_a.lengthSq() < 1) _a.set(1, 0, 0); _a.normalize();
@@ -6456,7 +6458,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
 
   // lazer mermisi: her mermide silahın tipine göre ses
   window.__sfxBolt = function(id){
-    if (!okS() || !AC.nb) return; { const nt = AC.currentTime; if (BUF['laser_' + id] && nt - (window.__lbT || 0) < 0.15) return; if (smp('laser_' + id, 0.55, 1 + (Math.random() - 0.5) * 0.1)){ window.__lbT = nt; return; } }
+    if (!okS() || !AC.nb) return; { const nt = AC.currentTime; if (BUF['laser_' + id] && nt - (window.__lbT || 0) < 0.15) return; if (smp('laser_' + id, id === 'madenci' ? 1.3 : 0.55, 1 + (Math.random() - 0.5) * 0.1)){   /* madenci kaydı ~11 dB daha kısık */ window.__lbT = nt; return; } }
     const t = AC.currentTime + 0.04, r = 1 + (Math.random() - 0.5) * 0.12; gk = ({ darbe: 7, cift: 9, plazma: 4, madenci: 5 })[id] || 6; setTimeout(() => { gk = 1; }, 0);
     if (id === 'cift'){ osc(t, 'sawtooth', 1350 * r, 380, 0.09, 0.035, 3200); osc(t + 0.028, 'sawtooth', 1750 * r, 520, 0.09, 0.03, 3200); }
     else if (id === 'plazma'){ osc(t, 'sawtooth', 720 * r, 130, 0.22, 0.06, 1800); osc(t, 'sine', 360 * r, 70, 0.22, 0.06); nz(t, 0.09, 'bandpass', 2600, 1.5, 0.05); }
@@ -6480,7 +6482,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
     else { osc(t, 'sawtooth', 260, 70, 0.5, 0.1, 1200); nz(t, 0.45, 'bandpass', 700, 0.8, 0.22); }
   };
   sfxLaunch = function(){ try { window.__sfxRocket(curW().id); } catch (e) {} };
-  const _sb = sfxBoom; sfxBoom = function(v){ if (!AC || !soundOn || paused) return; if (smp('patlama_std', Math.max(0.06, Math.min(1, v == null ? 1 : v)))) return; _sb(v); };
+  const _sb = sfxBoom; sfxBoom = function(v){ if (!AC || !soundOn || paused) return; if (smp('patlama_std', Math.max(0.22, Math.min(1, (v == null ? 1 : v) * 1.4)))) return;   /* patlama lazerin altında kalmasın */ _sb(v); };
   window.__sfxExpl = function(){
     let id = 'std'; try { id = explW.id; } catch (e) {}
     if (!AC || !soundOn || paused) return; if (smp('patlama_std', 1)) return; gk = 3; setTimeout(() => { gk = 1; }, 0);
@@ -6574,16 +6576,32 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
   const getRaw = k => raw[k] ? Promise.resolve(raw[k]) : (pend['r' + k] || (pend['r' + k] = fetch(MF[k]).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(b => (raw[k] = b)).catch(() => { fail[k] = performance.now(); pend['r' + k] = null; return null; })));
   const getBuf = k => dec[k] ? Promise.resolve(dec[k]) : (pend['d' + k] || (pend['d' + k] = getRaw(k).then(ab => ab ? new Promise(res => { try { AC.decodeAudioData(ab.slice(0), b => res(dec[k] = b), () => res(null)); } catch (e) { res(null); } }) : null).then(b => { pend['d' + k] = null; return b; })));
   let BUS = null, MM = null, cur = null, prevK = null, want = null, lastH = -99, anaUntil = 0, tryT = 0, pre = 0, hooked = false;
+  // parçalar sonunda sönerek bitiyor: düz döngü her turda boşluk ve ani giriş yapar.
+  // Bunun yerine bitişe birkaç saniye kala yeni kopya yumuşakça girer (çapraz geçiş).
+  const xfLen = b => { if (b.__xf != null) return b.__xf; const d = b.getChannelData(0), sr = b.sampleRate, rm = (a, z) => { let q = 0, n = 0; for (let i = Math.max(0, a); i < Math.min(d.length, z); i += 16){ q += d[i] * d[i]; n++; } return Math.sqrt(q / Math.max(1, n)); };
+    const avg = rm(0, d.length), tail = rm(d.length - sr, d.length); return (b.__xf = tail < avg * 0.45 ? Math.min(4, b.duration * 0.1) : 0.3); };
+  function loopPlay(b, out){
+    const XF = xfLen(b), L = { on: true, srcs: [], tm: 0, n: 0, xf: XF };
+    const sched = t0 => {
+      if (!L.on) return; const s = AC.createBufferSource(), lg = AC.createGain(); s.buffer = b; s.connect(lg); lg.connect(out);
+      lg.gain.setValueAtTime(0, t0); lg.gain.linearRampToValueAtTime(1, t0 + Math.min(1.2, XF)); s.start(t0); s.stop(t0 + b.duration + 0.05);
+      L.srcs.push(s); L.n++; s.onended = () => { L.srcs = L.srcs.filter(x => x !== s); try { s.disconnect(); lg.disconnect(); } catch (e) {} };
+      const nt = t0 + b.duration - XF; L.tm = setTimeout(() => sched(nt), Math.max(0, (nt - AC.currentTime - 1.5) * 1000));
+    };
+    sched(AC.currentTime + 0.02);
+    L.stop = () => { L.on = false; clearTimeout(L.tm); for (const s of L.srcs) try { s.stop(); } catch (e) {} };
+    return L;
+  }
   function play(k){
     getBuf(k).then(b => {
       if (!b || want !== k || !AC) return; const t = AC.currentTime, s = AC.createBufferSource(), g = AC.createGain();
-      s.buffer = b; s.loop = true; g.gain.value = 0; s.connect(g); g.connect(BUS); s.start(); g.gain.setTargetAtTime(VOL[k] || 0.5, t, 0.9);
-      if (cur){ const o = cur; o.g.gain.setTargetAtTime(0, t, 0.8); setTimeout(() => { try { o.s.stop(); o.s.disconnect(); } catch (e) {} }, 5000); prevK = o.k; }
-      cur = { k, s, g };
+      g.gain.value = 0; g.connect(BUS); const L = loopPlay(b, g); g.gain.setTargetAtTime(VOL[k] || 0.5, t, 0.9);
+      if (cur){ const o = cur; o.g.gain.setTargetAtTime(0, t, 0.8); setTimeout(() => { try { o.L.stop(); o.g.disconnect(); } catch (e) {} }, 5000); prevK = o.k; }
+      cur = { k, L, g };
       for (const d in dec) if (d !== k && d !== prevK) delete dec[d];
     });
   }
-  window.__musDbg = () => ({ want, cur: cur && cur.k, fm: !!window.__fileMus });
+  window.__musDbg = () => ({ want, cur: cur && cur.k, fm: !!window.__fileMus, kopya: cur && cur.L.n, calan: cur && cur.L.srcs.length, gecis: cur && cur.L.xf });
   setInterval(() => {
     try {
       const tt = document.getElementById('title');
