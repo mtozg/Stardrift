@@ -17,7 +17,7 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Dört lazer türü (darbe, çift, plazma, madenci) ve dört roket başlığı (standart, ağır, küme, delici).
 - Korsanlar ve 3 boyutlu korsan lideri ile uzay savaşı.
 - Pilot adı ve otomatik kayıt.
-- Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan. Hepsi isteğe bağlı; kabul et ya da yoksay.
+- Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan, korsan kampı, terk edilmiş istasyon, göç eden kristaller. Hepsi isteğe bağlı; kabul et ya da yoksay.
 - Kilit (T): nişandaki gemiye ya da gök cismine, nişan boşsa 5 km içindeki en yakın düşmana kilitlenir. Uzak yerler için haritada hedefe dokunulur. Asteroitler elle kazılır.
 - Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
 - Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.

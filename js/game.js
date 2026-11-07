@@ -5259,7 +5259,44 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
         k.runTo = tp.clone().addScaledVector(tp.clone().sub(rig.position).normalize(), 6000); SG.n = k; SG.t1 = time + 120; radio(k.name, 'Yakalayamazsın beni!', '#ff5a6e'); },
       tick(dt){ const k = SG.n; if (npcs.indexOf(k) < 0) return endEv('Kaçak düştü. Kristalleri topla!'); const d = k.pos.distanceTo(rig.position);
         if (d > 2600 || time > SG.t1){ despawn(k); return endEv('Kaçak gözden kayboldu.'); } info('Yakala · ' + dirTxt(k.pos)); bar(1 - d / 2600); } },
+    kamp: { w: 2, title: 'Korsan kampı', offer: 'Bir kuşakta korsan kampı tespit edildi. Muhafızlarını düşürürsen ganimet senin.',
+      go(){ const tp = ahead(rand(1400, 2000), 400); SG.tp = tp; SG.t1 = time + 300; SG.ps = [];
+        const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: 0x5a4038, roughness: 0.8, metalness: 0.4, flatShading: true });
+        for (let k = 0; k < 5; k++){ const b = new THREE.Mesh(new THREE.BoxGeometry(rand(14, 30), rand(8, 16), rand(14, 30)), m); b.position.set(rand(-40, 40), rand(-12, 12), rand(-40, 40)); b.rotation.set(rand(0, 1), rand(0, 3), rand(0, 1)); g.add(b); }
+        g.add(sprite(glowTexture(255, 90, 70), 160, 0.55)); g.position.copy(tp); scene.add(g); SG.beacon = g;
+        const kinds = ['reaver', 'raider', 'raider'].concat(curSys >= 1 ? ['brute'] : []);
+        for (const ty of kinds){ const n = spawnNpc(ty, tp.clone().add(V(rand(-1, 1), rand(-0.3, 0.3), rand(-1, 1)).normalize().multiplyScalar(rand(120, 260))), STATIONS[0]); n.state = 'roam'; n.guard = tp.clone(); SG.ps.push(n); }
+        radio('Devriye', 'Kamp ' + kinds.length + ' gemiyle korunuyor. Dikkatli yaklaş.', '#ffb454'); },
+      tick(dt){ const left = SG.ps.filter(p => npcs.indexOf(p) >= 0).length;
+        if (!left){ const v = pay(300, 520); save.kredi += v; givePart('levha', 2); givePart('devre', 1); for (let i = 0; i < 8; i++) spawnOre(SG.tp, Math.random() < 0.45 ? 'kristal' : 'demir'); persist(); sfxP('kalinti_bul', 0.7); return endEv('Kamp temizlendi: +' + v + ' kredi, +2 levha, +1 devre kartı. Ganimeti topla!'); }
+        if (time > SG.t1) return endEv('Korsanlar kampı taşıdı.'); info('Kalan muhafız: ' + left + ' · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 300); } },
+    istasyon: { w: 2, title: 'Terk edilmiş istasyon', offer: 'Uzun zamandır sessiz bir istasyondan zayıf bir işaret geliyor. İçinde ne kaldığını kimse bilmiyor.',
+      go(){ const tp = ahead(rand(1100, 1600), 400); SG.tp = tp; SG.t1 = time + 240; SG.hold = 0;
+        const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: 0x4d5560, roughness: 0.75, metalness: 0.6, flatShading: true });
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(80, 9, 8, 36, Math.PI * 1.6), m); g.add(ring);
+        const hub = new THREE.Mesh(new THREE.CylinderGeometry(18, 22, 70, 10), m); hub.rotation.x = Math.PI / 2; g.add(hub);
+        for (let k = 0; k < 4; k++){ const a = k * Math.PI / 2 + 0.3, b = new THREE.Mesh(new THREE.BoxGeometry(6, 70, 6), m); b.position.set(Math.cos(a) * 40, Math.sin(a) * 40, 0); b.rotation.z = a + Math.PI / 2; g.add(b); }
+        const lt = sprite(glowTexture(255, 200, 120), 40, 0.8); lt.position.set(0, 0, 40); g.add(lt); SG.lt = lt;
+        g.position.copy(tp); g.rotation.set(rand(-0.6, 0.6), rand(0, 6), rand(-0.6, 0.6)); scene.add(g); SG.beacon = g; },
+      tick(dt){ const d = SG.tp.distanceTo(rig.position); SG.beacon.rotation.y += dt * 0.03; SG.lt.material.opacity = Math.random() < 0.08 ? 0.15 : 0.8;
+        SG.hold = d < 170 ? SG.hold + dt : Math.max(0, SG.hold - dt);
+        if (SG.hold >= 5){ const r = Math.random(); let msg;
+          if (r < 0.4){ const v = pay(250, 450); save.kredi += v; givePart('levha', 2); givePart('hucre', 1); msg = 'Depoda sağlam parçalar vardı: +' + v + ' kredi, +2 levha, +1 enerji hücresi'; }
+          else if (r < 0.7){ givePart('devre', 2); givePart('hucre', 1); msg = 'Kontrol odasından devreler söküldü: +2 devre kartı, +1 enerji hücresi'; setTimeout(() => radio('İstasyon kaydı', ['"Son vardiya: kuşaklardan bir şey geliyor. Kapıları kapatıyoruz."', '"İkmal gemisi gelmedi. Işıkları açık bırakıyoruz, belki biri görür."', '"Mürettebat tahliye edildi. Kaptan kalmayı seçti."'][(Math.random() * 3) | 0], '#c9a7ff'), 1800); }
+          else { const v = pay(120, 220); save.kredi += v; msg = 'Tuzak! İstasyon korsan yemiymiş. (+' + v + ' kredi)'; for (let i = 0; i < 2; i++){ const p = spawnNpc(Math.random() < 0.6 ? 'raider' : 'brute', SG.tp.clone().add(V(rand(-400, 400), rand(-100, 100), rand(-400, 400))), STATIONS[0]); p.state = 'attack'; p.tgt = 'player'; p.atkT = time; } sfxP('yardim', 0.8); }
+          persist(); sfxP('tarayici', 0.8); return endEv(msg); }
+        if (time > SG.t1) return endEv('İşaret kesildi.'); info(d < 170 ? 'Taranıyor… %' + Math.round(SG.hold / 5 * 100) : 'İstasyona yaklaş · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 240); } },
+    goc: { w: 2, title: 'Göç eden kristaller', offer: 'Bir kristal sürüsü yakından geçiyor. Kısa süre sonra uzaklaşacak.',
+      go(){ const tp = ahead(rand(800, 1100), 250), dir = V(rand(-1, 1), rand(-0.2, 0.2), rand(-1, 1)).normalize().multiplyScalar(rand(6, 10)); SG.tp = tp; SG.t1 = time + 160; SG.rk = [];
+        for (let i = 0; i < 12; i++){ const p = tp.clone().add(V(rand(-1, 1), rand(-0.4, 0.4), rand(-1, 1)).multiplyScalar(160)), r = rand(5, 10); const a = mkRock(p, 'kristal', r, dir, Math.round(r / 5 * 2) + 1); SG.rk.push(a); }
+        radio('Tarayıcı', 'Kristal sürüsü: 12 kaya, zengin cevher. Çabuk ol.', '#ff6b8a'); sfxP('tarayici', 0.7); },
+      tick(dt){ const left = SG.rk.filter(a => asteroids.indexOf(a) >= 0); SG.tp.copy(left.length ? left[0].pos : SG.tp);
+        if (!left.length) return endEv('Sürü tükendi. İyi kazı!');
+        if (time > SG.t1){ for (const a of left){ scene.remove(a.mesh); asteroids.splice(asteroids.indexOf(a), 1); } return endEv('Kristal sürüsü uzaklaştı.'); }
+        info('Kalan kristal: ' + left.length + ' · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 160); } }
+
   };
+  window.__sgDbg = () => SG;   // test kancası: etkin sinyalin durumu
   window.evNpcThink = function(n){
     if (n.sg === 'help'){ setDest(n, n.evSt.pos, n.evSt.dock * 0.5); n.state = 'flee'; n.spdMul = 1.3; return; }
     if (n.sg === 'stay'){ setDest(n, n.hold, 0); n.state = 'esc'; n.spdMul = 0.3; return; }
