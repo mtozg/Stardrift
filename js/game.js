@@ -999,7 +999,8 @@ function audioUpdate(speed){
   las.o.frequency.setTargetAtTime(aim && firing ? 240 : 170, t, 0.05);
 }
 $('forcePlay').addEventListener('click', () => { forcePlay = true; resize(); });
-$('snd').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); soundOn = !soundOn; $('snd').textContent = soundOn ? 'Ses' : 'Sessiz'; });
+$('snd').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); if (window.__openSet) window.__openSet(); });
+$('snd').textContent = 'Ayarlar'; $('snd').setAttribute('aria-label', 'Ayarlar');
 
 // ---------- Girdi ----------
 const keys = {};
@@ -4320,7 +4321,7 @@ EXTRA.push(dt => { if (comm.open) vel.multiplyScalar(Math.exp(-2.2 * dt)); });
   });
 }
 
-const A4 = {"p0": "assets/img/a4_p0.webp", "p1": "assets/img/a4_p1.webp", "p2": "assets/img/a4_p2.webp", "p3": "assets/img/a4_p3.webp", "b_comm": "assets/img/a4_b_comm.webp", "b_snd": "assets/img/a4_b_snd.webp", "b_msg": "assets/img/a4_b_msg.webp", "i_trade": "assets/img/a4_i_trade.webp", "i_mk": "assets/img/a4_i_mk.webp", "i_hg": "assets/img/a4_i_hg.webp", "i_wp": "assets/img/a4_i_wp.webp", "i_up": "assets/img/a4_i_up.webp", "i_more": "assets/img/a4_i_more.webp"};
+const A4 = {"p0": "assets/img/a4_p0.webp", "p1": "assets/img/a4_p1.webp", "p2": "assets/img/a4_p2.webp", "p3": "assets/img/a4_p3.webp", "b_comm": "assets/img/a4_b_comm.webp", "b_snd": "assets/img/a4_b_snd.webp", "b_set": "assets/img/a4_b_set.webp", "b_msg": "assets/img/a4_b_msg.webp", "i_trade": "assets/img/a4_i_trade.webp", "i_mk": "assets/img/a4_i_mk.webp", "i_hg": "assets/img/a4_i_hg.webp", "i_wp": "assets/img/a4_i_wp.webp", "i_up": "assets/img/a4_i_up.webp", "i_more": "assets/img/a4_i_more.webp"};
 
 // ---- gezegen çizimleri (sistem başına bir tane), düğme çizimleri
 const PL_DISC = [], PL_GLOW = [[110, 170, 255], [255, 140, 90], [170, 220, 255], [90, 230, 180]];
@@ -4354,9 +4355,9 @@ function plApply(){
   #snd.bi.off{filter:grayscale(1) brightness(.55) drop-shadow(0 2px 4px rgba(0,0,0,.6))}`;
   document.head.appendChild(st);
   const bi = (el, k) => { el.style.setProperty('--bi', 'url(' + A4[k] + ')'); el.classList.add('bi'); };
-  bi($('snd'), 'b_snd'); bi($('msgBtn'), 'b_msg');
+  bi($('snd'), 'b_set'); bi($('msgBtn'), 'b_msg');
   $('bComm').style.setProperty('--bi', 'url(' + A4.b_comm + ')');
-  new MutationObserver(() => $('snd').classList.toggle('off', $('snd').textContent === 'Sessiz')).observe($('snd'), { childList: true, characterData: true, subtree: true });
+  new MutationObserver(() => $('snd').classList.toggle('off', !soundOn)).observe($('snd'), { childList: true, characterData: true, subtree: true });
 }
 
 
@@ -6232,6 +6233,66 @@ window.__xpal = {
   }, true);
 }
 
+// ---- ayarlar paneli: sağ üstteki dişli. Yalnızca oyun sistemi ayarları (ses, müzik, görünüm, rehber)
+{
+  if (save.mute) soundOn = false;
+  const css = document.createElement('style');
+  css.textContent = '#setP{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(3,5,12,.55);backdrop-filter:blur(3px);padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}#setP.on{display:flex}'
+    + '#setP .card{width:min(430px,100%);max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px 16px;touch-action:pan-y;box-shadow:0 10px 40px rgba(0,0,0,.6)}'
+    + '#setP .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}#setP h2{margin:0;font:400 16px var(--disp);letter-spacing:.2em;color:#ffc477}'
+    + '#setP .sect{margin:14px 0 2px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:700}'
+    + '#setP .line{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #18213b;font-size:15px}#setP .line:last-child{border-bottom:0}'
+    + '#setP input[type=range]{width:46%;accent-color:#ffb454}#setP button.act{min-width:96px}#setP .x{font:700 13px var(--font);border:1px solid var(--line);background:none;color:var(--dim);border-radius:8px;padding:6px 12px}';
+  document.head.appendChild(css);
+  const P = document.createElement('div'); P.id = 'setP'; document.body.appendChild(P);
+  const ANA = { sakin: 'Before the Horizon Fades', aksiyon: 'Against the Nebula', gergin: 'Oxygen', destan: 'The Longest Orbit' };
+  const line = (t, d, ctl) => '<div class="line"><span>' + t + (d ? '<span class="dim"><br>' + d + '</span>' : '') + '</span>' + ctl + '</div>';
+  const pct = (v, def) => Math.round((v == null ? def : v) * 100);
+  function render(){
+    P.innerHTML = '<div class="card"><div class="top"><h2>AYARLAR</h2><button class="x" data-set="close">Kapat</button></div>'
+      + '<div class="sect">Ses</div>'
+      + line('Tüm sesler', 'Hepsini tek dokunuşla aç ya da kapat', '<button class="act" data-set="mute">' + (soundOn ? 'Açık' : 'Kapalı') + '</button>')
+      + line('Oyun sesi', 'Lazer, motor, patlama, arayüz', '<input type="range" min="0" max="100" step="5" data-vol="sfxVol" value="' + pct(save.sfxVol, 1) + '">')
+      + '<div class="sect">Müzik</div>'
+      + line('Müzik', 'Sistemine göre değişen arka plan müziği', '<button class="act" data-snd="mus">' + (save.mus === false ? 'Kapalı' : 'Açık') + '</button>')
+      + line('Müzik sesi', '', '<input type="range" min="0" max="100" step="5" data-vol="musVol" value="' + pct(save.musVol, 0.35) + '">')
+      + line('Ana müzik', 'Başlangıç ekranı ve ana tema', '<button class="act" data-ana="1">' + (ANA[save.anaTema] || ANA.sakin) + '</button>')
+      + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
+      + '<div class="sect">Görünüm</div>'
+      + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
+      + '<div class="sect">Rehber</div>'
+      + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
+      + '<div class="sect">Teknik</div>'
+      + line('Ses dosyaları', 'Yüklenen ses efektleri', '<button class="act" data-sfxst="1">' + (window.__sfxStat ? window.__sfxStat() : '0/0') + '</button>')
+      + '</div>';
+  }
+  function open(){ render(); P.classList.add('on'); window.__menuOn = true; }
+  function close(){ P.classList.remove('on'); window.__menuOn = false; persist(); }
+  window.__openSet = open;
+  P.addEventListener('pointerdown', e => e.stopPropagation());
+  P.addEventListener('click', e => {
+    if (e.target === P) return close();
+    const b = e.target.closest('button[data-set]'); if (!b) return; const a = b.dataset.set;
+    if (a === 'close') close();
+    else if (a === 'mute'){ soundOn = !soundOn; save.mute = !soundOn; persist(); b.textContent = soundOn ? 'Açık' : 'Kapalı'; $('snd').classList.toggle('off', !soundOn); }
+    else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
+  });
+  for (const ev of ['keydown', 'keyup']) P.addEventListener(ev, e => e.stopPropagation());
+  window.addEventListener('keydown', e => { if (e.code === 'Escape' && P.classList.contains('on')) close(); else if (e.code === 'KeyO' && !e.repeat){ P.classList.contains('on') ? close() : open(); } });
+  $('snd').classList.toggle('off', !soundOn);
+  // Diğer sekmesinden Ses ve Görünüm bölümleri kalktı: hepsi ayarlar panelinde
+  const _rxS = renderExtras;
+  renderExtras = function(){
+    _rxS(); const e = $('exBox'); if (!e) return;
+    for (const sc of [...e.querySelectorAll(':scope > .sect')]){
+      if (!/^(Ses|Görünüm)$/.test(sc.textContent.trim())) continue;
+      let n = sc.nextElementSibling; while (n && !n.classList.contains('sect')){ const nx = n.nextElementSibling; n.remove(); n = nx; } sc.remove();
+    }
+    if (!e.querySelector('.setHint')) e.insertAdjacentHTML('afterbegin', '<div class="line setHint"><span class="dim">Ses, müzik ve görünüm ayarları sağ üstteki dişli düğmede.</span><button class="act" data-set2="1">Ayarlar</button></div>');
+  };
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button[data-set2]')) open(); });
+}
+
 // ---- ticaret: tek tek satış
 {
   const st = document.createElement('style'); st.textContent = '.tbl button.act{padding:3px 8px;font-size:12px;min-width:0;margin:0}'; document.head.appendChild(st);
@@ -6483,6 +6544,7 @@ function frame(now){
     stick.on = false; sBase.classList.add('hidden'); sKnob.classList.add('hidden'); laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false;
     audioUpdate(0); requestAnimationFrame(frame); return;
   }
+  if (window.__menuOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); renderer.render(scene, camera); drawHud(); requestAnimationFrame(frame); return; }
   update(dt);
   renderer.render(scene, camera);
   drawHud();
