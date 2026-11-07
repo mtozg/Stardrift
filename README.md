@@ -17,6 +17,9 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Dört lazer türü (darbe, çift, plazma, madenci) ve dört roket başlığı (standart, ağır, küme, delici).
 - Korsanlar ve 3 boyutlu korsan lideri ile uzay savaşı.
 - Pilot adı ve otomatik kayıt.
+- Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan. Hepsi isteğe bağlı; kabul et ya da yoksay.
+- Kilit (T): nişandaki gemiye ya da gök cismine, nişan boşsa 2 km içindeki en yakın düşmana kilitlenir. Asteroitler elle kazılır.
+- İlk açılışta kısa bir rehber çıkar; "Rehberi geç" ile her an kapatılır.
 
 **Ses ve müzik**
 - Lazer, roket, patlama, motor, kalkan, yanaşma ve hiperatlama için ayrı ses efektleri.
@@ -26,16 +29,13 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 
 ## Oynamak için
 
-1. Bu depoyu indir ya da klonla.
-2. `index.html` dosyasını tarayıcıda aç.
-
-`muzik_*.mp3` dosyaları `index.html` ile aynı klasörde durmalı. Tarayıcı dosyaları doğrudan açmaya izin vermezse klasörde basit bir sunucu başlat:
+En kolayı GitHub Pages üzerinden açmak. Bilgisayarda oynamak için depoyu indir, klasörde basit bir sunucu başlat:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Sonra `http://localhost:8000` adresine git.
+Sonra `http://localhost:8000` adresine git. Görseller artık ayrı dosyalarda durduğu için `index.html` dosyasına çift tıklayarak açmak bazı tarayıcılarda 3B dokuları bozar; sunucuyla aç.
 
 iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar başlatmaz, başlangıç ekranındaki **BAŞLA** düğmesine bastığında müzik açılır.
 
@@ -45,19 +45,23 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 
 ## Teknik
 
-- Tek dosyalık HTML, CSS ve JavaScript.
-- 3B için [three.js](https://threejs.org) (r128).
-- Ses efektleri sayfanın içine gömülü, müzikler ayrı mp3 dosyalarıdır.
+- [three.js](https://threejs.org) (r128) ile 3B. Kopyası `vendor/` içinde, internet olmadan da çalışır.
+- Ses efektleri ve yazı tipleri sayfanın içine gömülü, müzikler ayrı mp3 dosyalarıdır.
 
-## Dosyalar
+## Dosya yapısı
 
-| Dosya | Ne işe yarar |
-|---|---|
-| `index.html` | Oyunun kendisi |
-| `muzik_ana*.mp3` | Ana müzikler (4 tema) |
-| `muzik_ankora/kizil/buzul/zumrut.mp3` | Evren müzikleri |
-| `muzik_hangar.mp3`, `muzik_savas.mp3` | Hangar ve savaş müzikleri |
+```
+index.html          sayfa, stil, yazı tipleri
+js/game.js          oyunun bütün kodu
+assets/img/         bütün görseller (webp/png/jpg)
+vendor/three.min.js 3B motoru
+muzik_*.mp3         müzikler
+```
 
-## Üretim
+## Yeni görsel eklemek
 
-Oyun, Claude ile birlikte adım adım geliştirildi. Ses efektleri ve müzikler yapay zekâ araçlarıyla üretildi.
+Görseller `assets/img/` içinde, adları kodda nerede kullanıldıklarını söyler: önek koddaki tabloyu, devamı anahtarı gösterir. Örnekler: `a8_i_coin.webp` → `A8.i_coin` (arayüz ikonu), `ck_kasif.webp` → `CK.kasif` (Kaşif kokpiti), `shipx_sahin_f.webp` → `SHIPX.sahin.f`.
+
+- **Var olan bir görseli değiştirmek:** Aynı adla, aynı en-boy oranında ve saydam arka planla üzerine yaz. Kod değişmez.
+- **Yeni görsel:** Dosyayı `assets/img/` içine koy, kodda ilgili tabloya `anahtar: "assets/img/dosya.webp"` satırını ekle.
+- İkonlar için saydam arka planlı kare webp (160×160 yeterli), arka planlar için 2048 genişlik iyi bir ölçü.
