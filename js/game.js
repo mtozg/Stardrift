@@ -3490,7 +3490,7 @@ function buildShip3D(THREE, TEX, S){
   // ---- halkalar / dönel parçalar (istasyonlar) ----
   (S.rings||[]).forEach(r=>{ const pts=[], n=r.n||4, K=28;
     for(let i=0;i<=K;i++){ const a=2*Math.PI*i/K, c=Math.cos(a), sn=Math.sin(a); pts.push(new THREE.Vector2(r.R+r.a*Math.sign(c)*Math.pow(Math.abs(c),2/n), (r.y||0)+r.h*Math.sign(sn)*Math.pow(Math.abs(sn),2/n))); }
-    const g=new THREE.LatheGeometry(pts,r.seg||64); add(g); });
+    const g=new THREE.LatheGeometry(pts,r.seg||64,r.p0||0,r.pl||2*Math.PI); add(g); });   // p0/pl: kırık halka yayları
   (S.lathes||[]).forEach(l=>{ const g=new THREE.LatheGeometry(l.pts.map(p=>new THREE.Vector2(Math.max(0.0001,p[0]),p[1])),l.seg||24); const m=add(g); if(l.x) m.position.x=l.x; if(l.z) m.position.z=l.z; if(l.y) m.position.y=l.y; });
   // ---- kutular / elipsoitler ----
   (S.boxes||[]).forEach(b=>{ const g=new THREE.BoxGeometry(b.sx,b.sy,b.sz); (b.mir===false?[1]:[1,-1]).forEach(sd=>{ const m=add(g); m.position.set(X(b.u),b.y,sd*b.z); if(b.rz) m.rotation.z=b.rz; if(b.ry) m.rotation.y=sd*b.ry; }); });
@@ -5300,7 +5300,8 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
       go(){ const tp = ahead(rand(1400, 2000), 400); SG.tp = tp; SG.t1 = time + 300; SG.ps = [];
         const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: 0x5a4038, roughness: 0.8, metalness: 0.4, flatShading: true });
         for (let k = 0; k < 5; k++){ const b = new THREE.Mesh(new THREE.BoxGeometry(rand(14, 30), rand(8, 16), rand(14, 30)), m); b.position.set(rand(-40, 40), rand(-12, 12), rand(-40, 40)); b.rotation.set(rand(0, 1), rand(0, 3), rand(0, 1)); g.add(b); }
-        g.add(sprite(glowTexture(255, 90, 70), 160, 0.55)); g.position.copy(tp); scene.add(g); SG.beacon = g;
+        { const md = window.__olayModel && window.__olayModel('kamp'); if (md){ for (const c of [...g.children]) g.remove(c); md.scale.setScalar(270); g.add(md); } }
+        g.add(sprite(glowTexture(255, 90, 70), 160, 0.35)); g.position.copy(tp); scene.add(g); SG.beacon = g;
         const kinds = ['reaver', 'raider', 'raider'].concat(curSys >= 1 ? ['brute'] : []);
         for (const ty of kinds){ const n = spawnNpc(ty, tp.clone().add(V(rand(-1, 1), rand(-0.3, 0.3), rand(-1, 1)).normalize().multiplyScalar(rand(120, 260))), STATIONS[0]); n.state = 'roam'; n.guard = tp.clone(); SG.ps.push(n); }
         radio('Devriye', 'Kamp ' + kinds.length + ' gemiyle korunuyor. Dikkatli yaklaş.', '#ffb454'); },
@@ -5313,6 +5314,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
         const ring = new THREE.Mesh(new THREE.TorusGeometry(80, 9, 8, 36, Math.PI * 1.6), m); g.add(ring);
         const hub = new THREE.Mesh(new THREE.CylinderGeometry(18, 22, 70, 10), m); hub.rotation.x = Math.PI / 2; g.add(hub);
         for (let k = 0; k < 4; k++){ const a = k * Math.PI / 2 + 0.3, b = new THREE.Mesh(new THREE.BoxGeometry(6, 70, 6), m); b.position.set(Math.cos(a) * 40, Math.sin(a) * 40, 0); b.rotation.z = a + Math.PI / 2; g.add(b); }
+        { const md = window.__olayModel && window.__olayModel('istasyon'); if (md){ for (const c of [...g.children]) g.remove(c); md.scale.setScalar(300); g.add(md); } }
         const lt = sprite(glowTexture(255, 200, 120), 40, 0.8); lt.position.set(0, 0, 40); g.add(lt); SG.lt = lt;
         g.position.copy(tp); g.rotation.set(rand(-0.6, 0.6), rand(0, 6), rand(-0.6, 0.6)); scene.add(g); SG.beacon = g; },
       tick(dt){ const d = SG.tp.distanceTo(rig.position); SG.beacon.rotation.y += dt * 0.03; SG.lt.material.opacity = Math.random() < 0.08 ? 0.15 : 0.8;
@@ -6454,6 +6456,25 @@ window.__xpal = {
 window.SFXB = window.SFXB || {};
 for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
 const sfxP = (n, v) => { try { return !!(window.__sfx && window.__sfx(n, v)); } catch (e) { return false; } };
+// ---- olay modelleri: terk edilmiş istasyon ve korsan kampı (üst + yan çizimden 3B, istasyonlarla aynı yöntem)
+const OLAYSPEC = {
+  istasyon: { yc: 0.5, zc: 0, sx: 1, gain: 1.05, ta: 0.992, sa: 0.442, top: 'olay_istasyon_top', side: 'olay_istasyon_side',
+    rings: [{ R: 0.425, a: 0.06, h: 0.035, n: 4, p0: 0.6109, pl: 2.3562 }, { R: 0.425, a: 0.06, h: 0.035, n: 4, p0: 3.4907, pl: 2.7053 }],
+    lathes: [{ pts: [[0, -0.15], [0.06, -0.14], [0.075, -0.1], [0.075, 0.1], [0.06, 0.14], [0, 0.15]], seg: 28 }, { pts: [[0.006, 0.15], [0.006, 0.2]], seg: 6 }],
+    boxes: [{ u: 0.5, y: 0, z: 0, sx: 0.78, sy: 0.03, sz: 0.035, mir: false }, { u: 0.5, y: 0, z: 0, sx: 0.78, sy: 0.03, sz: 0.035, mir: false, ry: 0.7854 }, { u: 0.5, y: 0, z: 0, sx: 0.13, sy: 0.12, sz: 0.42, mir: false }] },
+  kamp: { yc: 0.5, zc: 0, sx: 1, gain: 0.95, ta: 1.064, sa: 0.541, top: 'olay_kamp_top', side: 'olay_kamp_side',
+    lathes: [{ pts: Array.from({ length: 25 }, (_, i) => { const t = -1 + 2 * i / 24; return [0.41 * Math.sqrt(Math.max(0, 1 - t * t)) * (1 + 0.04 * Math.sin(i * 2.3)), -0.02 + 0.22 * t]; }), seg: 18 },
+      { pts: [[0, 0.17], [0.09, 0.17], [0.09, 0.185], [0, 0.185]], seg: 24, x: 0.13, z: 0.05 }],
+    boxes: [{ u: 0.25, y: 0.13, z: -0.33, sx: 0.14, sy: 0.08, sz: 0.11, mir: false }, { u: 0.62, y: 0.13, z: -0.36, sx: 0.13, sy: 0.08, sz: 0.1, mir: false }, { u: 0.1, y: 0.06, z: -0.05, sx: 0.09, sy: 0.08, sz: 0.16, mir: false },
+      { u: 0.88, y: 0.06, z: 0.05, sx: 0.09, sy: 0.08, sz: 0.16, mir: false }, { u: 0.5, y: 0.08, z: 0.36, sx: 0.15, sy: 0.08, sz: 0.1, mir: false }] }
+};
+const olayTex = {};
+window.__olayModel = function(key){
+  const S = OLAYSPEC[key]; if (!S || typeof buildShip3D !== 'function' || window.__no3d) return null;
+  const ld = n => olayTex[n] || (olayTex[n] = (() => { const t = new THREE.TextureLoader().load('assets/img/' + n + '.webp'); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; })());
+  const blank = olayTex._b || (olayTex._b = (() => { const t = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1, THREE.RGBAFormat); t.needsUpdate = true; return t; })());
+  try { return buildShip3D(THREE, { top: ld(S.top), side: ld(S.side), f: blank, r: blank, b: blank, ta: S.ta, sa: S.sa }, S); } catch (e) { console.warn('olay modeli', e); return null; }
+};
 // ---- Kadim Kapı: dört evrendeki 16 kalıntı bir hikâye anlatır; hepsi bulununca Ankora'daki son kapı uyanır.
 // Görev değil: sıra yok, süre yok. Kalıntı buldukça hikâye ilerler.
 {
