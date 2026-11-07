@@ -6188,7 +6188,7 @@ window.__xpal = {
   const PN = { levha: 'gövde levhası', devre: 'devre kartı', hucre: 'enerji hücresi' }, PNC = { levha: 'Gövde levhası', devre: 'Devre kartı', hucre: 'Enerji hücresi' };
   if (!save.parts || typeof save.parts !== 'object') save.parts = {}; for (const k in PN) if (!(save.parts[k] > 0)) save.parts[k] = 0;
   window.__dropParts = function(n, by){
-    if (by !== 'player') return; if (n && n.leader){ window.__leaderDrop(n); return; } const brute = /brute/.test((n && (n.skin || n.kind || n.type)) || ''), d = Math.min(1.6, (SYSC.danger || 1) * 0.8 + 0.3), got = [];
+    if (by !== 'player') return; if (n && n.leader){ window.__leaderDrop(n); return; } const brute = !!n && (n.type === 'brute' || n.type === 'reaver')   /* ağır korsanlar (Kurt, Yağmacı) fazladan parça bırakır */, d = Math.min(1.6, (SYSC.danger || 1) * 0.8 + 0.3), got = [];
     const roll = (k, p, a, b) => { if (Math.random() < Math.min(0.95, p * d)){ const c = a + ((Math.random() * (b - a + 1)) | 0) + (brute && k === 'levha' ? 1 : 0); save.parts[k] += c; got.push('+' + c + ' ' + PN[k]); } };
     roll('levha', 0.85, 1, 3); roll('devre', 0.4 + (brute ? 0.2 : 0), 1, 2); roll('hucre', 0.1 + (brute ? 0.15 : 0), 1, 1);
     if (got.length){ persist(); setTimeout(() => toast('Parça toplandı: ' + got.join(', '), 3400), 700); }
@@ -6264,6 +6264,7 @@ window.__xpal = {
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
       + '<div class="sect">Teknik</div>'
       + line('Ses dosyaları', 'Yüklenen ses efektleri', '<button class="act" data-sfxst="1">' + (window.__sfxStat ? window.__sfxStat() : '0/0') + '</button>')
+      + line('Oyun sürümü', 'Güncel sürümü görmüyorsan sayfayı zorla yenile', '<b style="color:#ffc477">' + (window.SD_VERSION || '?') + '</b>')
       + '</div>';
   }
   function open(){ render(); P.classList.add('on'); window.__menuOn = true; }
