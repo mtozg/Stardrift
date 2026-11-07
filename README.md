@@ -50,7 +50,8 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 ## Teknik
 
 - [three.js](https://threejs.org) (r128) ile 3B. Kopyası `vendor/` içinde, internet olmadan da çalışır.
-- Ses efektleri ve yazı tipleri sayfanın içine gömülü, müzikler ayrı mp3 dosyalarıdır.
+- Ses efektlerinin çoğu ve yazı tipleri sayfanın içine gömülü; yeni efektler `assets/sfx/` klasöründe, müzikler ayrı mp3 dosyalarıdır.
+- `assets/sfx/` içindeki ses efektleri [ElevenLabs](https://elevenlabs.io) ile üretildi.
 
 ## Dosya yapısı
 

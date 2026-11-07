@@ -5236,7 +5236,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
           else if (r < 0.65){ for (let i = 0; i < 7; i++) spawnOre(SG.tp, 'kristal'); msg = 'Anomali kristale dönüştü. Topla!'; }
           else if (r < 0.85){ hp.hull = hp.hullMax; hp.shield = hp.shieldMax; laser.heat = 0; laser.over = false; msg = 'Enerji gemiye aktı: gövde ve kalkan doldu.'; }
           else { save.ammo = AMMO_MAX; save.ammoD = DMAX; msg = 'Eski bir cephane kapsülüymüş: roketler doldu.'; }
-          givePart('hucre', 1); msg += ' · +1 enerji hücresi'; persist(); burst(SG.tp, 0x6effd8, 40, 70, 1.2);
+          givePart('hucre', 1); msg += ' · +1 enerji hücresi'; persist(); burst(SG.tp, 0x6effd8, 40, 70, 1.2); sfxP('anomali', 0.9);
           if (Math.random() < 0.35){ for (let i = 0; i < 2; i++){ const p = spawnNpc('raider', SG.tp.clone().add(V(rand(-500, 500), rand(-120, 120), rand(-500, 500))), STATIONS[0]); p.state = 'attack'; p.tgt = 'player'; p.atkT = time; } setTimeout(() => radio('Telsiz', 'Enerji patlaması korsanları da çekti!', '#ff5a6e'), 1500); }
           return endEv(msg); }
         if (time > SG.t1) return endEv('Enerji söndü.'); info(d < 110 ? 'Taranıyor… %' + Math.round(SG.hold / 3 * 100) : 'Kaynağın içine gir · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 180); } },
@@ -5252,7 +5252,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
           if (hid.length){ const r = hid[(Math.random() * hid.length) | 0]; r.hint = true; let nb = PLANET, nd = 1e9; for (const b of [PLANET, GIANT, PLANET2, PLANET3]){ const dd = b.pos.distanceTo(r.group.position); if (dd < nd){ nd = dd; nb = b; } } msg = 'Sonda verisi: ' + nb.ad + ' tarafında ' + (r.gate ? 'bir kapı' : 'bir kalıntı') + ' sinyali. Haritaya işlendi.'; setTimeout(() => radio('Sonda', 'Son kayıt: "Orada bir şey vardı… yayın yapıyordu."', '#5ff0d0'), 1800); }
           else { const v = pay(150, 260); save.kredi += v; persist(); msg = 'Sondanın parçaları satıldı: +' + v + ' kredi'; }
           if (Math.random() < 0.6){ givePart('hucre', 1); msg += ' · +1 enerji hücresi'; } else { givePart('devre', 1); msg += ' · +1 devre kartı'; }
-          burst(SG.tp, 0x7fd8ff, 24, 50, 1); return endEv(msg, 0, 0); }
+          burst(SG.tp, 0x7fd8ff, 24, 50, 1); sfxP('tarayici', 0.8); return endEv(msg, 0, 0); }
         if (time > SG.t1) return endEv('Sondanın pili bitti.'); info('Sondaya yaklaş · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 180); } },
     kacak: { w: 2, title: 'Kaçan korsan', offer: 'Bir korsan, çaldığı kristallerle kaçıyor. Yetişirsen yük senin.',
       go(){ const tp = ahead(rand(380, 520), 120), k = spawnNpc('raider', tp, STATIONS[0]); k.cargo.kristal = 6; k.sg = 'run'; k.name = 'Kaçak ' + k.name.split('-')[1];
@@ -5295,7 +5295,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     acc += dt; if (acc < 1.5 || docked) return; acc = 0;
     for (let i = 0; i < BELTS.length; i++){
       const b = BELTS[i], dm = depthMul(b.c); if (dm <= 1 || seen.has(curSys + ':' + i)) continue;
-      if (rig.position.distanceTo(b.c) < b.r * 1.3){ seen.add(curSys + ':' + i); radio('Tarayıcı', 'Derin kuşak: kayalar ' + (dm >= 2 ? '2 kat' : '1,5 kat') + ' cevher veriyor, kristal daha sık.', '#7fd8ff'); }
+      if (rig.position.distanceTo(b.c) < b.r * 1.3){ seen.add(curSys + ':' + i); radio('Tarayıcı', 'Derin kuşak: kayalar ' + (dm >= 2 ? '2 kat' : '1,5 kat') + ' cevher veriyor, kristal daha sık.', '#7fd8ff'); sfxP('tarayici', 0.7); }
     }
   });
 }
@@ -6314,7 +6314,7 @@ window.__xpal = {
     if (n.state !== 'attack' || n.tgt !== 'player' || n.leader || docked) return;
     const d = n.pos.distanceTo(rig.position), hf = n.hull / n.hullMax;
     // yardım çağrısı: bir kez, can yarının altına inince
-    if (!n.called && hf < 0.5){ n.called = true; if (Math.random() < 0.45){ radio(n.name, 'Sıkıştım! Yardım gelsin!', '#ff5a6e'); help.push({ t: time + rand(6, 10), from: n.pos.clone(), sys: curSys }); } }
+    if (!n.called && hf < 0.5){ n.called = true; if (Math.random() < 0.45){ radio(n.name, 'Sıkıştım! Yardım gelsin!', '#ff5a6e'); sfxP('yardim', 0.8); help.push({ t: time + rand(6, 10), from: n.pos.clone(), sys: curSys }); } }
     if (n.type === 'raider'){
       if (!n.hr) n.hr = { out: false, t: time };
       if (!n.hr.out && time - n.hr.t > rand(4, 6)){ n.hr.out = true; n.hr.t = time; }
@@ -6337,7 +6337,7 @@ window.__xpal = {
       if (n.fireT > 0) return;
       _d.copy(tpos).sub(n.pos); const dist = _d.length(); if (dist > 560 || dist < 1) return;
       _d.divideScalar(dist); _l.set(0, 0, 1).applyQuaternion(n.g.quaternion); if (_l.dot(_d) < 0.85) return;
-      n.fireT = 1.3; const hit = Math.random() < clamp(0.8 - dist / 900, 0.3, 0.7), end = tpos.clone();
+      n.fireT = 1.3; const hit = Math.random() < clamp(0.8 - dist / 900, 0.3, 0.7), end = tpos.clone(); sfxP('agir_atis', clamp(1 - dist / 900, 0.3, 0.9));
       if (!hit) end.add(V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).multiplyScalar(30));
       const from = n.pos.clone().addScaledVector(_l, n.r * 0.9);
       if (near(n.pos, 2500)){ npcBeam(from, end, 0); npcBeam(from.clone().add(V(0, 2, 0)), end, 0); }
@@ -6369,6 +6369,10 @@ window.__xpal = {
   });
 }
 
+// ---- dosyadan ses efektleri (assets/sfx/, ElevenLabs ile üretildi)
+window.SFXB = window.SFXB || {};
+for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
+const sfxP = (n, v) => { try { return !!(window.__sfx && window.__sfx(n, v)); } catch (e) { return false; } };
 // ---- Kadim Kapı: dört evrendeki 16 kalıntı bir hikâye anlatır; hepsi bulununca Ankora'daki son kapı uyanır.
 // Görev değil: sıra yok, süre yok. Kalıntı buldukça hikâye ilerler.
 {
@@ -6409,10 +6413,10 @@ window.__xpal = {
   const _orf = onRuinFound;
   onRuinFound = function(r){
     _orf(r); if (r.gate) return;
-    n = count(); const line = FRAG[Math.max(0, n - 1)];
-    setTimeout(() => { eco.radioT = -9; radio('Yankı ' + n + '/' + TOTAL, line, '#c9a7ff'); }, 6500);
+    sfxP('kalinti_bul', 0.9); n = count(); const line = FRAG[Math.max(0, n - 1)];
+    setTimeout(() => { eco.radioT = -9; radio('Yankı ' + n + '/' + TOTAL, line, '#c9a7ff'); sfxP('yanki', 0.8); }, 6500);
     if (n === SEEN_AT) setTimeout(() => toast('Kadim Kapı Ankora\'da haritaya işlendi. Uyanması için bütün kalıntılar gerekiyor.', 5200), 9500);
-    if (n === TOTAL) setTimeout(() => toast('Bütün yankılar toplandı. Ankora\'daki Kadim Kapı uyandı.', 5200), 9500);
+    if (n === TOTAL) setTimeout(() => { toast('Bütün yankılar toplandı. Ankora\'daki Kadim Kapı uyandı.', 5200); sfxP('kapi_uyan', 0.9); }, 9500);
   };
   // son sahne
   const css = document.createElement('style');
@@ -6435,7 +6439,7 @@ window.__xpal = {
     [...K.querySelectorAll('p')].forEach((p, i) => setTimeout(() => p.classList.add('v'), 1200 + i * 2200));
     setTimeout(() => K.querySelector('button').classList.add('v'), 1200 + (L.length + 1) * 2200);
     K.querySelector('button').onclick = () => { K.classList.remove('vis'); setTimeout(() => { K.classList.remove('on'); window.__menuOn = false; }, 1200); hp.hull = hp.hullMax; hp.shield = hp.shieldMax; };
-    try { if (!(window.__sfx && window.__sfx('hiper', 0.9))) blip(440, 0.4); } catch (e) {}
+    if (!sfxP('kapi_uyan', 1)) blip(440, 0.4);
   }
   EXTRA.push(dt => {
     const on = curSys === 0 && n >= SEEN_AT; g.visible = on; if (!on) return;
@@ -6537,8 +6541,11 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
   window.__LT = {}; window.__sfxErr = 0;
   const loadS = name => { if (!AC || !window.SFXB[name] || BUF[name]) return; const now = performance.now(); if (BUF[name] === null && now - (window.__LT[name] || 0) < 4000) return; BUF[name] = null; window.__LT[name] = now;
     const ok = b => { if (b) BUF[name] = b; }, bad = e => { window.__sfxErr++; window.__sfxMsg = name + ': ' + ((e && (e.message || e.name)) || 'çözülemedi'); };
-    try { const u = window.SFXB[name], bin = atob(u.slice(u.indexOf(',') + 1)), ab = new ArrayBuffer(bin.length), v = new Uint8Array(ab); for (let i = 0; i < bin.length; i++) v[i] = bin.charCodeAt(i);
-      const r = AC.decodeAudioData(ab, ok, bad); if (r && r.then) r.then(ok, bad); } catch (e) { bad(e); } };
+    const dec = ab => { const r = AC.decodeAudioData(ab, ok, bad); if (r && r.then) r.then(ok, bad); };
+    try { const u = window.SFXB[name];
+      if (u.indexOf('data:') !== 0){ fetch(u + '?v=' + (window.SD_VERSION || '')).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); }).then(dec).catch(bad); return; }   // assets/sfx/ dosyası
+      const bin = atob(u.slice(u.indexOf(',') + 1)), ab = new ArrayBuffer(bin.length), v = new Uint8Array(ab); for (let i = 0; i < bin.length; i++) v[i] = bin.charCodeAt(i);
+      dec(ab); } catch (e) { bad(e); } };
   window.__loadS = loadS; window.__sfxStat = () => { let n = 0, t = 0; for (const k in window.SFXB){ t++; if (BUF[k]) n++; } return n + '/' + t; };
   const smp = (name, vol, rate) => { if (!AC) return false; loadS(name); const b = BUF[name]; if (!b) return false; const s = AC.createBufferSource(), g = AC.createGain(); s.buffer = b; s.playbackRate.value = rate || 1; g.gain.value = vol || 1; s.connect(g); g.connect(AC.master); s.start(); return true; };
   window.__playSmp = smp; window.__AC = () => AC;
