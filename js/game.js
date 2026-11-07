@@ -34,8 +34,12 @@ function deviceLandscape(){
   if (typeof window.orientation === 'number') return Math.abs(window.orientation) === 90;
   return null;
 }
+// görüntü kalitesi: 0 performans (1.25), 1 dengeli (1.6, eski), 2 yüksek (cihazın gerçek yoğunluğu, en fazla 2)
+const QCAP = [1.25, 1.6, 2];
+window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); return v >= 0 && v <= 2 && localStorage.getItem('sd_q') !== null ? v : 2; } catch (e) { return 2; } })();
+window.__qCap = () => QCAP[window.__qLevel];
 function resize(){
-  DPR = Math.min(window.devicePixelRatio || 1, 1.6);
+  DPR = Math.min(window.devicePixelRatio || 1, QCAP[window.__qLevel]);
   const vw = window.innerWidth, vh = window.innerHeight, st = $('stage');
   SX = 0; SY = 0; SK = 1; W = vw; H = vh;
   if ((deviceLandscape() === true || vw >= 460) && vw / vh < 1.45){
@@ -3695,7 +3699,7 @@ function hgStart(){
   const stg = $('hgStage'); if (!stg) return;
   if (!hgR){
     try { hgR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return; }
-    hgR.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+    hgR.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__qCap()));
     hgR.outputEncoding = THREE.sRGBEncoding; hgR.toneMapping = THREE.ACESFilmicToneMapping; hgR.toneMappingExposure = 0.62; hgS = new THREE.Scene(); hgC = new THREE.PerspectiveCamera(34, 1.4, 0.1, 60); hgC.position.set(0, 0.9, 14); hgC.lookAt(0, 0, 0);
     hgS.add(new THREE.AmbientLight(0x9aa8c4, 0.95)); const dl = new THREE.DirectionalLight(0xfff1dd, 1.7); dl.position.set(4, 7, 5); hgS.add(dl);
     const rl = new THREE.PointLight(0x58a8ff, 1.6, 40); rl.position.set(-6, 1, -4); hgS.add(rl);
@@ -3842,7 +3846,7 @@ function stationAnim(kind, st, cb){
   const mk = g => { gl.push(g); return g; };
   try {
     if (!XR){
-      XR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); XR.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+      XR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); XR.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__qCap()));
       XR.outputEncoding = THREE.sRGBEncoding; XR.toneMapping = THREE.ACESFilmicToneMapping; XR.toneMappingExposure = 0.62;
     }
     xs = new THREE.Scene(); 
@@ -6163,7 +6167,7 @@ window.__xpal = {
     const own = [], mkd = d => { own.push(d); return d; };
     let sc, cam, im, tun, tun2, rings = [], ship, glow, sky, plan, light, cv, vtx = null;
     try {
-      if (!XR){ XR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); XR.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25)); XR.outputEncoding = THREE.sRGBEncoding; XR.toneMapping = THREE.ACESFilmicToneMapping; XR.toneMappingExposure = 0.62; }
+      if (!XR){ XR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); XR.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__qCap())); XR.outputEncoding = THREE.sRGBEncoding; XR.toneMapping = THREE.ACESFilmicToneMapping; XR.toneMappingExposure = 0.62; }
       XR.toneMapping = THREE.NoToneMapping; sc = new THREE.Scene(); cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 4000);
       // yıldız çizgileri (derinlikte ilerleyen ince kutular)
       const NS = 800, geo = mkd(new THREE.BoxGeometry(1, 1, 1)), smat = mkd(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
@@ -6346,6 +6350,7 @@ window.__xpal = {
       + line('Ana müzik', 'Başlangıç ekranı ve ana tema', '<button class="act" data-ana="1">' + (ANA[save.anaTema] || ANA.sakin) + '</button>')
       + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
       + '<div class="sect">Görünüm</div>'
+      + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
@@ -6363,6 +6368,7 @@ window.__xpal = {
     const b = e.target.closest('button[data-set]'); if (!b) return; const a = b.dataset.set;
     if (a === 'close') close();
     else if (a === 'mute'){ soundOn = !soundOn; save.mute = !soundOn; persist(); b.textContent = soundOn ? 'Açık' : 'Kapalı'; $('snd').classList.toggle('off', !soundOn); }
+    else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
   });
   for (const ev of ['keydown', 'keyup']) P.addEventListener(ev, e => e.stopPropagation());
@@ -6456,6 +6462,24 @@ window.__xpal = {
 window.SFXB = window.SFXB || {};
 for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
 const sfxP = (n, v) => { try { return !!(window.__sfx && window.__sfx(n, v)); } catch (e) { return false; } };
+// ---- görüntü kalitesi: değiştirme ve kasarsa otomatik düşürme
+window.__qSet = (lv, manual) => { window.__qLevel = lv; try { localStorage.setItem('sd_q', String(lv)); if (manual) localStorage.setItem('sd_qm', '1'); } catch (e) {} resize(); };
+{
+  let acc = 0, frames = 0, low = 0, last = performance.now();
+  const tick = now => {
+    const dt = now - last; last = now; acc += dt; frames++;
+    if (acc > 2000){
+      const fps = frames * 1000 / acc; acc = 0; frames = 0;
+      let manual = false; try { manual = localStorage.getItem('sd_qm') === '1'; } catch (e) {}
+      const busy = docked || paused || window.__menuOn || window.__hjOn || document.hidden;
+      if (!busy && !manual && window.__qLevel > 0 && fps < 38 && (window.devicePixelRatio || 1) > QCAP[window.__qLevel - 1]){ if (++low >= 3){ low = 0; window.__qSet(window.__qLevel - 1, false); toast('Oyun akıcı kalsın diye görüntü kalitesi düşürüldü (Ayarlar > Görüntü kalitesi).', 3600); } }
+      else low = 0;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 // ---- olay modelleri: terk edilmiş istasyon ve korsan kampı (üst + yan çizimden 3B, istasyonlarla aynı yöntem)
 const OLAYSPEC = {
   istasyon: { yc: 0.5, zc: 0, sx: 1, gain: 1.05, ta: 0.992, sa: 0.442, top: 'olay_istasyon_top', side: 'olay_istasyon_side',
