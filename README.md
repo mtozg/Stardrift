@@ -18,7 +18,10 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Korsanlar ve 3 boyutlu korsan lideri ile uzay savaşı.
 - Pilot adı ve otomatik kayıt.
 - Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan. Hepsi isteğe bağlı; kabul et ya da yoksay.
-- Kilit (T): nişandaki gemiye ya da gök cismine, nişan boşsa 2 km içindeki en yakın düşmana kilitlenir. Asteroitler elle kazılır.
+- Kilit (T): nişandaki gemiye ya da gök cismine, nişan boşsa 5 km içindeki en yakın düşmana kilitlenir. Uzak yerler için haritada hedefe dokunulur. Asteroitler elle kazılır.
+- Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
+- Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.
+- Enerji hücresi en çok keşifte çıkar: kalıntılar, kayıp sondalar, bilinmeyen enerji.
 - İlk açılışta kısa bir rehber çıkar; "Rehberi geç" ile her an kapatılır.
 
 **Ses ve müzik**
