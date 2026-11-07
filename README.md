@@ -22,6 +22,7 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
 - Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.
 - Enerji hücresi en çok keşifte çıkar: kalıntılar, kayıp sondalar, bilinmeyen enerji.
+- Kadim yankılar: dört evrendeki 16 kalıntının her biri kayıp bir uygarlığın hikâyesinden bir parça anlatır. 12 kalıntıdan sonra Ankora'da Kadim Kapı haritada belirir, 16'sı bulununca uyanır. Sıra ya da süre yok.
 - İlk açılışta kısa bir rehber çıkar; "Rehberi geç" ile her an kapatılır.
 
 **Ses ve müzik**

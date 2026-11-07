@@ -1776,7 +1776,8 @@ function mapContent(c, I, opts){
   if (mapRange > 9000) for (const b of BELTS){ if (!known(b.c)) continue; const p = P(b.c); c.fillStyle = b.rich ? 'rgba(255,107,138,0.12)' : 'rgba(150,160,185,0.1)'; c.beginPath(); c.ellipse(p.x, p.y, Math.max(3, b.r * k), Math.max(2, b.r * k * es), 0, 0, TAU); c.fill(); }
   for (const st of STATIONS){ if (!known(st.pos)) continue; const p = P(st.pos); items.push({ y: p.gy, t: 1, p, obj: st, col: '#' + st.color.toString(16).padStart(6, '0') }); }
   for (const bd of [PLANET, GIANT, MOON, PLANET2, PLANET3]){ if (!known(bd.pos)) continue; const p = P(bd.pos); items.push({ y: p.gy, t: 2, p, obj: bd, name: bd.ad }); }
-  for (const r of ruins){ if (!r.found && !save.map && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
+  for (const r of ruins){ if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
+  { const o = window.__kadimObj && window.__kadimObj(); if (o){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); } }
   for (const n of npcs){ const p = P(n.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 4, p, obj: n }); }
   items.sort((a, b) => a.y - b.y);
   if (opts.hits) mapHits = [];
@@ -2145,6 +2146,7 @@ function drawHud(){
     if (known(PLANET2.pos)) drawMarker(c, PLANET2.pos, '#ff9a6a', PLANET2.ad, rig.position.distanceTo(PLANET2.pos) - PLANET2.r, 5000);
     if (known(PLANET3.pos)) drawMarker(c, PLANET3.pos, '#d6ecff', PLANET3.ad, rig.position.distanceTo(PLANET3.pos) - PLANET3.r, 5000);
     for (const r of ruins){ const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 3500)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
+    { const o = window.__kadimObj && window.__kadimObj(); if (o) drawMarker(c, o.pos, '#c9a7ff', 'Kadim Kapı', rig.position.distanceTo(o.pos)); }
     extraMarkers(c);
     { let hc = 0; for (const n of npcs){ if (!n.hostile) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
     drawNpcTags(c);
@@ -2465,7 +2467,7 @@ const beltAt = i => beltNo(i) + "'" + SUF[i % 9];
 function beltIndexOf(pos){ let bi = -1, bd = 1e9; BELTS.forEach((b, i) => { const d = b.c.distanceTo(pos); if (d < b.r + 700 && d < bd){ bd = d; bi = i; } }); return bi; }
 function pickPirateBelt(){ const w = BELTS.map((b, i) => save.calm[i] ? 0.2 : 1); let tot = w.reduce((a, b) => a + b, 0), r = Math.random() * tot; for (let i = 0; i < w.length; i++){ r -= w[i]; if (r <= 0) return BELTS[i]; } return BELTS[0]; }
 function repMul(st){ return 1 + clamp((save.rep[st.ad] || 0) * 0.02, -0.1, 0.12) + crewSell(); }
-function ruinName(i){ if (i === 4) return 'Kapı → ' + SYS[GATE_TO[curSys]].ad; return (save.rn[i] || 'Kaşif') + ' Kalıntısı ' + ROM[i]; }
+function ruinName(i){ if (i === 9) return 'Kadim Kapı'; if (i === 4) return 'Kapı → ' + SYS[GATE_TO[curSys]].ad; return (save.rn[i] || 'Kaşif') + ' Kalıntısı ' + ROM[i]; }
 function pruneCrew(){ while (save.crew.length > 40){ const k = save.crew.findIndex(c => !c.alive && !c.fav); const j = k >= 0 ? k : save.crew.findIndex(c => !c.fav && !crewActive(c)); if (j < 0) break; save.crew.splice(j, 1); } }
 
 // radyo kuyruğu: art arda ve aralıklı
@@ -6365,6 +6367,96 @@ window.__xpal = {
       radio(r.name, 'Geliyorum, dayan!', '#ff5a6e');
     }
   });
+}
+
+// ---- Kadim Kapı: dört evrendeki 16 kalıntı bir hikâye anlatır; hepsi bulununca Ankora'daki son kapı uyanır.
+// Görev değil: sıra yok, süre yok. Kalıntı buldukça hikâye ilerler.
+{
+  const TOTAL = 16, SEEN_AT = 12, GPOS = V(-600, 2400, -12500);
+  const FRAG = [
+    'Biz buraya yıldızları saymak için geldik. Sayı bitmedi, biz bittik.',
+    'Her kalıntı bir cümle. Hepsini toplayan, hikâyeyi duyar.',
+    'Gemilerimiz ışıktan değil, sabırdan yapılmıştı.',
+    'Dört güneş vardı. Dördünde de aynı şarkıyı söyledik.',
+    'Korsanlar bizden önce de vardı. Onlar alır, biz bırakırdık.',
+    'Kızıl yıldız bizi sınadı, buz bizi bekletti, sis bizi sakladı.',
+    'Bir kapı yaptık: gitmek için değil, dönebilmek için.',
+    'Kapının yeri Ankora\'nın en karanlık köşesinde. Koordinatlar henüz yarım.',
+    'Kapıyı uyutmak zorunda kaldık. Bütün yankılar birleşince uyanır.',
+    'Biz gittik ama sesimiz kuşakların arasında kaldı.',
+    'Seni bekledik, pilot. Adını bilmeden.',
+    'Kapı artık görünüyor: Ankora\'nın kuzeyinde, buzdan soğuk bir yerde.',
+    'Son parçalar en tehlikeli yerlerde. Bunu biz seçmedik, zaman seçti.',
+    'Yankılar birbirini çağırıyor. Duyuyor musun?',
+    'Bir parça kaldı. Sonra kapı seni tanıyacak.',
+    'Hepsi burada. Kapı uyandı. Gel.'
+  ];
+  const ruinsOf = k => k === curSys ? save.ruin : k === 0 ? (HOME && HOME.ruin) : (save.sysd[k] && save.sysd[k].ruin);
+  const count = () => { let n = 0; for (let k = 0; k < 4; k++){ const a = ruinsOf(k); if (a) n += a.filter(i => i < 4).length; } return Math.min(TOTAL, n); };
+  window.__kadimCount = count;
+  // kapının kendisi: büyük, mor, yavaş dönen halkalar
+  const g = new THREE.Group(), mat = new THREE.MeshStandardMaterial({ color: 0x5a4a7c, roughness: 0.45, metalness: 0.85, emissive: 0x1a0c3a, flatShading: true });
+  const r1 = new THREE.Mesh(new THREE.TorusGeometry(170, 11, 12, 64), mat), r2 = new THREE.Mesh(new THREE.TorusGeometry(140, 5, 8, 64), mat);
+  g.add(r1); g.add(r2);
+  for (let k = 0; k < 8; k++){ const a = k * Math.PI / 4, b = new THREE.Mesh(new THREE.BoxGeometry(12, 50, 14), mat); b.position.set(Math.cos(a) * 182, Math.sin(a) * 182, 0); b.rotation.z = a; g.add(b); }
+  const core = new THREE.Mesh(new THREE.CircleGeometry(135, 48), new THREE.MeshBasicMaterial({ color: 0xc9a7ff, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  g.add(core); const glow = sprite(glowTexture(190, 150, 255), 700, 0.3); g.add(glow);
+  g.position.copy(GPOS); g.visible = false; scene.add(g);
+  const obj = { kind: 'ruin', i: 9, gate: true, found: true, group: g, core, pos: g.position, r: 170, ad: 'Kadim Kapı' };
+  let n = count(), lastNear = -99, lastVisit = -99;
+  window.__kadimObj = () => (curSys === 0 && n >= SEEN_AT) ? obj : null;
+  // kalıntı bulununca: hikâyenin sıradaki cümlesi
+  const _orf = onRuinFound;
+  onRuinFound = function(r){
+    _orf(r); if (r.gate) return;
+    n = count(); const line = FRAG[Math.max(0, n - 1)];
+    setTimeout(() => { eco.radioT = -9; radio('Yankı ' + n + '/' + TOTAL, line, '#c9a7ff'); }, 6500);
+    if (n === SEEN_AT) setTimeout(() => toast('Kadim Kapı Ankora\'da haritaya işlendi. Uyanması için bütün kalıntılar gerekiyor.', 5200), 9500);
+    if (n === TOTAL) setTimeout(() => toast('Bütün yankılar toplandı. Ankora\'daki Kadim Kapı uyandı.', 5200), 9500);
+  };
+  // son sahne
+  const css = document.createElement('style');
+  css.textContent = '#kadim{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 45%,rgba(60,30,110,.92),rgba(3,4,12,.98) 70%);opacity:0;transition:opacity 1.2s}#kadim.on{display:flex}#kadim.vis{opacity:1}'
+    + '#kadim h2{margin:0;font:400 20px var(--disp);letter-spacing:.3em;color:#d9c4ff;text-shadow:0 0 18px rgba(170,120,255,.7)}#kadim p{margin:0;max-width:560px;color:#e8e0ff;font:600 16px/1.5 var(--font);opacity:0;transform:translateY(6px);transition:opacity 1.4s,transform 1.4s}#kadim p.v{opacity:1;transform:none}'
+    + '#kadim .rw{color:#ffc477;font-size:14px}#kadim button{margin-top:10px;font:700 14px var(--font);letter-spacing:.2em;padding:10px 30px;border-radius:10px;border:1px solid #c9a7ff;background:rgba(201,167,255,.14);color:#efe6ff;opacity:0;transition:opacity 1s}#kadim button.v{opacity:1}';
+  document.head.appendChild(css);
+  const K = document.createElement('div'); K.id = 'kadim'; document.body.appendChild(K);
+  K.addEventListener('pointerdown', e => e.stopPropagation());
+  function finale(){
+    save.kadimDone = 1; save.kredi += 3000; if (!save.parts) save.parts = {};
+    save.parts.levha = (save.parts.levha || 0) + 6; save.parts.devre = (save.parts.devre || 0) + 4; save.parts.hucre = (save.parts.hucre || 0) + 4; persist();
+    const L = ['Kapının içinde ses yok. Sonra, bütün kalıntılardaki cümleler aynı anda konuşuyor.',
+      '"Biz kaybolmadık, pilot. Dağıldık. Yankılarımızı toplayan, bizi yeniden bir araya getirdi."',
+      '"Bu kapı artık senin. Her geçişinde gemini onaracak, cephaneni dolduracak."',
+      '"Yıldızları saymaya devam et. Biz yarıda bıraktık."',
+      (save.pilot || 'Kaşif') + ' artık bir Yıldız Bekçisi.'];
+    K.innerHTML = '<h2>KADİM KAPI</h2>' + L.map(t => '<p>' + t + '</p>').join('') + '<p class="rw">+3000 kredi · +6 gövde levhası · +4 devre kartı · +4 enerji hücresi</p><button>DEVAM</button>';
+    window.__menuOn = true; K.classList.add('on'); requestAnimationFrame(() => K.classList.add('vis'));
+    [...K.querySelectorAll('p')].forEach((p, i) => setTimeout(() => p.classList.add('v'), 1200 + i * 2200));
+    setTimeout(() => K.querySelector('button').classList.add('v'), 1200 + (L.length + 1) * 2200);
+    K.querySelector('button').onclick = () => { K.classList.remove('vis'); setTimeout(() => { K.classList.remove('on'); window.__menuOn = false; }, 1200); hp.hull = hp.hullMax; hp.shield = hp.shieldMax; };
+    try { if (!(window.__sfx && window.__sfx('hiper', 0.9))) blip(440, 0.4); } catch (e) {}
+  }
+  EXTRA.push(dt => {
+    const on = curSys === 0 && n >= SEEN_AT; g.visible = on; if (!on) return;
+    const awake = n >= TOTAL;
+    r1.rotation.z += dt * (awake ? 0.25 : 0.03); r2.rotation.z -= dt * (awake ? 0.4 : 0.05);
+    core.material.opacity = awake ? 0.35 + 0.15 * Math.sin(time * 2) : 0.06; glow.material.opacity = awake ? 0.45 : 0.15;
+    if (docked) return;
+    const d = rig.position.distanceTo(GPOS);
+    if (d < 175){
+      if (!awake){ if (time - lastNear > 30){ lastNear = time; toast('Kapı uyuyor · ' + n + '/' + TOTAL + ' yankı. Bütün kalıntıları bulunca uyanır.', 3600); } return; }
+      if (!save.kadimDone) finale();
+      else if (time - lastVisit > 60){ lastVisit = time; hp.hull = hp.hullMax; hp.shield = hp.shieldMax; save.ammo = AMMO_MAX; save.ammoD = DMAX; persist(); toast('Kadim Kapı: gemin onarıldı, roketlerin doldu. Hoş geldin, Bekçi.', 3600); }
+    }
+  });
+  // ilerleme: Diğer sekmesinde
+  const _rxK = renderExtras;
+  renderExtras = function(){
+    _rxK(); const e = $('exBox'); if (!e) return; n = count();
+    const txt = save.kadimDone ? 'Kapı açık. Her geçişte onarım ve cephane.' : n >= TOTAL ? 'Kapı uyandı. Ankora\'nın kuzeyinde seni bekliyor.' : n >= SEEN_AT ? 'Kapı haritada görünüyor ama uyuyor.' : 'Dört evrendeki kalıntıları bul. Her biri hikâyeden bir parça anlatır.';
+    e.insertAdjacentHTML('beforeend', '<div class="sect">Kadim yankılar · ' + n + '/' + TOTAL + '</div><div class="line"><span class="dim">' + txt + '</span></div>');
+  };
 }
 
 // ---- ticaret: tek tek satış
