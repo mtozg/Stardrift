@@ -676,10 +676,10 @@ function killNpc(n, by){
 }
 function npcShoot(n, tpos, tgt){
   if (n.fireT > 0) return;
-  _d.copy(tpos).sub(n.pos); const dist = _d.length(); if (dist > 340 || dist < 1) return;
+  _d.copy(tpos).sub(n.pos); const dist = _d.length(); if (dist > 480 || dist < 1) return;
   _d.divideScalar(dist); _l.set(0, 0, 1).applyQuaternion(n.g.quaternion); if (_l.dot(_d) < 0.9) return;
   n.fireT = n.hostile ? 0.55 : 0.45;
-  const hit = Math.random() < clamp(0.85 - dist / 520, 0.3, 0.75), end = tpos.clone();
+  const hit = Math.random() < clamp(0.9 - dist / 640, 0.25, 0.75), end = tpos.clone();
   if (!hit) end.add(V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).multiplyScalar(26));
   const from = n.pos.clone().addScaledVector(_l, n.r * 0.9);
   if (near(n.pos, 2500)) npcBeam(from, end, n.hostile ? 0 : 1);
@@ -1049,7 +1049,9 @@ $('bDock').addEventListener('pointerdown', e => { e.preventDefault(); tryDock();
 const tName = t => t.mesh ? ORE[t.type].ad : t.kind === 'npc' ? t.name : t.ad;
 const tHp = t => t.mesh ? t.hp / t.max : t.kind === 'npc' ? t.hull / t.hullMax : null;
 const tAlive = t => t.mesh ? asteroids.indexOf(t) >= 0 : t.kind === 'npc' ? npcs.indexOf(t) >= 0 : true;
-const lockStand = (t, rngL) => t.mesh ? rngL * 0.8 : t.kind === 'npc' ? 150 : t.kind === 'station' ? t.dock * 0.8 - t.r : t.kind === 'ruin' ? 100 : 650;
+// lazer menzili tek yerden: taban 450 m, her lazer seviyesi +50 m, mermi türü çarpanı
+function laserRange(){ return (450 + 50 * save.lv.lazer) * WPN.range; }
+const lockStand = (t, rngL) => t.mesh ? rngL * 0.8 : t.kind === 'npc' ? rngL * 0.6 : t.kind === 'station' ? t.dock * 0.8 - t.r : t.kind === 'ruin' ? 100 : 650;
 function setLock(a){
   lock = a;
   if (a){ toast('Kilit: ' + tName(a)); blip(700, 0.08); setTimeout(() => blip(940, 0.1), 90); }
@@ -1058,22 +1060,22 @@ function setLock(a){
 const LOCK_SCAN = 5000, LOCK_KEEP = 7000;   // kilit tarama menzili ve hedefin kaybedildiği mesafe (m)
 function toggleLock(){
   if (lock){ setLock(null); return; }
-  // 1) nişangâhın tam altındaki gemi ya da gök cismi (asteroitler kilitlenmez, madencilik elle yapılır)
+  // 1) nişangâhın tam altındaki şey: gemi, kaya ya da gök cismi
   const angTo = (p, r) => { tmp.copy(p).sub(rig.position); const d = tmp.length(); return Math.acos(clamp(tmp.dot(fwd) / d, -1, 1)) - Math.asin(clamp((r || 0) / d, 0, 1)); };
-  let t = (aim && !aim.mesh && aim.kind !== 'station') ? aim : null;
+  let t = (aim && aim.kind !== 'station') ? aim : null;
   if (!t){
     let bs = 0.12;
     for (const n of npcs){ if (n.pos.distanceTo(rig.position) > LOCK_SCAN) continue; const a = angTo(n.pos, n.r); if (a < bs){ bs = a; t = n; } }
+    for (const k of asteroids){ if (k.pos.distanceTo(rig.position) > 2500) continue; const a = angTo(k.pos, k.r); if (a < bs){ bs = a; t = k; } }
     if (!t) for (const b of BODIES){ if (b.kind === 'station' || (b.kind === 'ruin' && !(b.found || save.map || b.hint || b.pos.distanceTo(rig.position) < 3500))) continue; const a = angTo(b.pos, b.r); if (a < bs){ bs = a; t = b; } }
   }
-  // 2) nişanda bir şey yoksa: tarama menzilindeki en yakın düşman
-  if (!t){
-    let bd = LOCK_SCAN;
-    for (const n of npcs){ if (!n.hostile) continue; const d = n.pos.distanceTo(rig.position); if (d < bd){ bd = d; t = n; } }
-  }
-  // 3) hiçbiri yoksa hiçbir yere uçma
-  if (t) setLock(t); else toast('5 km içinde düşman yok. Nişanı bir gemiye ya da gök cismine çevir; uzak yerler için haritayı (M) aç ve hedefe dokun.', 3400);
+  // 2) nişan boşsa: tarama menzilindeki en yakın düşman
+  if (!t){ let bd = LOCK_SCAN; for (const n of npcs){ if (!n.hostile) continue; const d = n.pos.distanceTo(rig.position); if (d < bd){ bd = d; t = n; } } }
+  // 3) düşman da yoksa: 2 km içindeki en yakın kaya (kargo doluysa değil)
+  if (!t && cargoSum() < cargoCap()) t = nearestRock(rig.position, 2000);
+  if (t) setLock(t); else toast(cargoSum() >= cargoCap() ? 'Kargo dolu ve yakında düşman yok. Üsse dönüp sat; uzak yerler için haritayı (M) aç.' : 'Yakında düşman ya da kaya yok. Uzak yerler için haritayı (M) aç ve hedefe dokun.', 3400);
 }
+function nearestRock(p, maxD){ let best = null, bd = maxD; for (const k of asteroids){ const d = k.pos.distanceTo(p) - k.r; if (d < bd){ bd = d; best = k; } } return best; }
 $('bLock').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); toggleLock(); });
 $('bMissile').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); fireMissile(); });
 const taps = {};
@@ -1112,8 +1114,8 @@ function toast(msg, ms){
 }
 const coarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
 $('hint').textContent = coarse
-  ? 'Sol tarafta parmağını sürükle: bakış yönünü çevirir. İtiş: ilerle, Hızlan: uzun yol. Kilit: nişandaki hedefe ya da 5 km içindeki en yakın düşmana kilitlenir, gemi ona gider. Uzak yerler için haritayı aç, hedefe dokun. Kilitliyken Roket güdümlü gider, kilitsizken düz gider. Dash ekranlarına dokun: büyük görünüm.'
-  : 'A/D: sağa sola dön · Yön tuşları: yukarı aşağı · W: itiş · Shift: hızlan · S: fren · Q/E: yan yat · Boşluk: lazer · T: kilitlen (nişan ya da en yakın düşman) · M: harita · R: roket · 1/2/3: ekranları büyüt · F: üsse bağlan';
+  ? 'Sol tarafta parmağını sürükle: bakış yönünü çevirir. İtiş: ilerle, Hızlan: uzun yol. Kilit: nişandaki hedefe, yoksa en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; gemi ona gider. Uzak yerler için haritayı aç, hedefe dokun. Kilitliyken Roket güdümlü gider, kilitsizken düz gider. Dash ekranlarına dokun: büyük görünüm.'
+  : 'A/D: sağa sola dön · Yön tuşları: yukarı aşağı · W: itiş · Shift: hızlan · S: fren · Q/E: yan yat · Boşluk: lazer · T: kilitlen (nişan, düşman ya da kaya) · M: harita · R: roket · 1/2/3: ekranları büyüt · F: üsse bağlan';
 setTimeout(() => { $('hint').style.opacity = 0; }, 16000);
 
 let bumpT = -9, nwT = -9, ramT = -9;
@@ -1208,12 +1210,14 @@ function update(dt){
     // kilitli hedef: gemi hedefe döner, menzile kadar yaklaşır, sonra durur
     let autoThrust = 0, autoBrake = false, autoBoost = false;
     if (lock){
-      if (!tAlive(lock)){ setBanner('HEDEF YOK EDİLDİ', 'ok', 1.8); lock = null; }
+      if (!tAlive(lock)){ const was = lock; lock = null; let nx = null;
+        if (was.mesh && cargoSum() < cargoCap()) nx = nearestRock(was.pos, 900);
+        if (nx){ lock = nx; setBanner('SIRADAKİ KAYA', 'ok', 1.4); } else setBanner(was.mesh && cargoSum() >= cargoCap() ? 'KARGO DOLU' : 'HEDEF YOK EDİLDİ', 'ok', 1.8); }
       else if ((lock.mesh || lock.kind === 'npc') && lock.pos.distanceTo(rig.position) > LOCK_KEEP){ setBanner('HEDEF KAYBEDİLDİ', 'bad', 2.2); lock = null; }
       else {
         tmp.copy(lock.pos).sub(rig.position); const d = tmp.length(), surf = d - lock.r;
         qTmp.copy(rig.quaternion).invert(); tmp2.copy(tmp).normalize().applyQuaternion(qTmp);
-        const ey = Math.atan2(tmp2.x, -tmp2.z), ep = Math.atan2(tmp2.y, Math.hypot(tmp2.x, tmp2.z)), ang = Math.hypot(ey, ep), rngL = (220 + 40 * lvL) * WPN.range;
+        const ey = Math.atan2(tmp2.x, -tmp2.z), ep = Math.atan2(tmp2.y, Math.hypot(tmp2.x, tmp2.z)), ang = Math.hypot(ey, ep), rngL = laserRange();
         const stop = lockStand(lock, rngL) + vel.length() * 0.45;
         if (!(stick.on || Math.abs(yawIn) > 0.05 || Math.abs(pitchIn) > 0.05)){ yawIn = clamp(ey * 2.2, -1, 1); pitchIn = clamp(ep * 2.2, -1, 1); }
         if (surf > stop){ if (ang < 0.5) autoThrust = 1; if (surf > 1200 && ang < 0.15) autoBoost = true; }
@@ -1299,7 +1303,7 @@ function update(dt){
     if (!msgs.station && rig.position.distanceTo(STATION.pos) < 700){ msgs.station = true; toast('Ankora kontrol: Yaklaşma izni verildi. Bağlanmak için hazır ol.', 4200); }
 
     // nişan
-    let bd = 1e9; const maxView = 700;
+    let bd = 1e9; const maxView = Math.max(700, laserRange() + 250);
     for (const a of asteroids){
       tmp.copy(a.pos).sub(rig.position); const d = tmp.length(), dot = tmp.dot(fwd);
       if (dot <= 0 || d - a.r > maxView) continue;
@@ -1314,7 +1318,7 @@ function update(dt){
     }
     let lockOk = true;
     if (lock){ aim = lock; bd = rig.position.distanceTo(lock.pos); tmp.copy(lock.pos).sub(rig.position).normalize(); lockOk = Math.acos(clamp(tmp.dot(fwd), -1, 1)) < 0.9; }
-    const range = (220 + 40 * lvL) * WPN.range, dps = 40 * (1 + 0.55 * lvL);
+    const range = laserRange(), dps = 40 * (1 + 0.55 * lvL);
     const inRange = aim && lockOk && (aim.mesh || (aim.kind === 'npc' && aim.hostile)) && (bd - aim.r) <= range;
     const wantFire = !!(laserOn || keys.Space);
     if (laser.over && laser.heat < 40) laser.over = false;
@@ -2156,7 +2160,7 @@ function drawHud(){
     drawNpcTags(c);
 
     if (aim){
-      const d = rig.position.distanceTo(aim.pos), p = proj(aim.pos), range = (220 + 40 * save.lv.lazer) * WPN.range, ok = d - aim.r <= range, shootable = !!(aim.mesh || (aim.kind === 'npc' && aim.hostile));
+      const d = rig.position.distanceTo(aim.pos), p = proj(aim.pos), range = laserRange(), ok = d - aim.r <= range, shootable = !!(aim.mesh || (aim.kind === 'npc' && aim.hostile));
       const rad = clamp(aim.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2 * 1.2, 16, 140), col = aim === lock ? '#ffb454' : (ok ? ((aim.kind === 'npc' && !aim.hostile) ? '#6cc4ff' : '#ff6b8a') : 'rgba(255,255,255,0.45)');
       c.strokeStyle = col; c.lineWidth = 2; const L = Math.min(12, rad * 0.5);
       for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){
@@ -3809,10 +3813,10 @@ function renderWp(){
 }
 dockLayout = function(){
   const atH = isHome();
-  const ok = ['trade', 'mk', 'up', 'more'].concat(atH ? ['hg', 'wp'] : []);
+  const ok = ['trade', 'mk', 'ct', 'up', 'more'].concat(atH ? ['hg', 'wp'] : []);
   if (!ok.includes(hgTab)) hgTab = 'trade';
   dockEl.dataset.t = hgTab; dockEl.classList.toggle('hgmode', hgTab === 'hg');
-  const tabs = atH ? [['trade', 'Ticaret'], ['hg', 'Hangar'], ['wp', 'Mühimmat'], ['up', 'Gemi'], ['more', 'Diğer']] : [['trade', 'Ticaret'], ['up', 'Gemi'], ['more', 'Diğer']];
+  const tabs = atH ? [['trade', 'Ticaret'], ['ct', 'Görevler'], ['hg', 'Hangar'], ['wp', 'Mühimmat'], ['up', 'Gemi'], ['more', 'Diğer']] : [['trade', 'Ticaret'], ['ct', 'Görevler'], ['up', 'Gemi'], ['more', 'Diğer']];
   $('dtabs').innerHTML = tabs.map(([k, n]) => `<button data-t="${k}" class="${hgTab === k ? 'on' : ''}">${n}</button>`).join('');
   $('dkStat').innerHTML = `<span>Kredi <b>${save.kredi}</b></span><span>Roket <i class="ic rk"></i><b>${save.ammoD}</b> <i class="ic rg"></i><b>${save.ammo}</b></span><span>Gemi <b>${(PSHIPS.find(s => s.id === save.ship) || PSHIPS[0]).ad}</b></span><span><i class="ic cr"></i>Kargo <b>${cargoSum()}/${cargoCap()}</b></span><span><i class="ic hl"></i>Gövde <b>${Math.round(hp.hull)}/${hp.hullMax}</b></span>`;
   if (hgTab === 'hg'){ renderHg(); hgStart(); hgVwMark(); } else if (hgTab === 'trade' || hgTab === 'mk') renderMk(); else if (hgTab === 'ct') renderCt(); else if (hgTab === 'wp') renderWp();
@@ -4313,7 +4317,7 @@ EXTRA.push(dt => { if (comm.open) vel.multiplyScalar(Math.exp(-2.2 * dt)); });
   });
 }
 
-const A4 = {"p0": "assets/img/a4_p0.webp", "p1": "assets/img/a4_p1.webp", "p2": "assets/img/a4_p2.webp", "p3": "assets/img/a4_p3.webp", "b_comm": "assets/img/a4_b_comm.webp", "b_snd": "assets/img/a4_b_snd.webp", "b_set": "assets/img/a4_b_set.webp", "b_msg": "assets/img/a4_b_msg.webp", "i_trade": "assets/img/a4_i_trade.webp", "i_mk": "assets/img/a4_i_mk.webp", "i_hg": "assets/img/a4_i_hg.webp", "i_wp": "assets/img/a4_i_wp.webp", "i_up": "assets/img/a4_i_up.webp", "i_more": "assets/img/a4_i_more.webp"};
+const A4 = {"p0": "assets/img/a4_p0.webp", "p1": "assets/img/a4_p1.webp", "p2": "assets/img/a4_p2.webp", "p3": "assets/img/a4_p3.webp", "b_comm": "assets/img/a4_b_comm.webp", "b_snd": "assets/img/a4_b_snd.webp", "b_set": "assets/img/a4_b_set.webp", "b_msg": "assets/img/a4_b_msg.webp", "i_trade": "assets/img/a4_i_trade.webp", "i_mk": "assets/img/a4_i_mk.webp", "i_hg": "assets/img/a4_i_hg.webp", "i_wp": "assets/img/a4_i_wp.webp", "i_up": "assets/img/a4_i_up.webp", "i_more": "assets/img/a4_i_more.webp", "i_ct": "assets/img/a4_i_ct.webp"};
 
 // ---- gezegen çizimleri (sistem başına bir tane), düğme çizimleri
 const PL_DISC = [], PL_GLOW = [[110, 170, 255], [255, 140, 90], [170, 220, 255], [90, 230, 180]];
@@ -4958,8 +4962,8 @@ const A8 = {"i_coin": "assets/img/a8_i_coin.webp", "i_crate": "assets/img/a8_i_c
 
 { const im = new Image(); im.src = A8.i_logo; window.__logoImg = im; }
 // ---- v77→v78: açılır menü, roket başlıkları, kilit kısıtı, istasyon dekorları
-// kilit yalnızca gemilere
-{ const _sl = setLock; setLock = function(a){ if (a && (a.mesh || a.kind === 'station')){ toast('Kilit yalnızca gemilere atılır.'); return; } _sl(a); }; }
+// istasyonlara kilit atılmaz (kenetlenmek için yaklaşıp F); kayalar ve gemiler kilitlenebilir
+{ const _sl = setLock; setLock = function(a){ if (a && a.kind === 'station'){ toast('İstasyona kilit atılmaz. Yaklaşıp kenetlen.'); return; } _sl(a); }; }
 
 // roket başlıkları
 const WARH = [
@@ -5039,6 +5043,7 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
     hg: '<path d="M12 3l3 7 5 3-5 1-3 7-3-7-5-1 5-3z"/>',
     wp: '<path d="M12 3c3 2 4 6 3 10l-3 3-3-3c-1-4 0-8 3-10z"/><path d="M9 16l-3 3M15 16l3 3"/><circle cx="12" cy="9" r="1"/>',
     up: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+    ct: '<path d="M7 4h10v17H7z"/><path d="M9 9l1.5 1.5L13 8M9 14h6M9 17h6"/>',
     more: '<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>'
   };
   window.__tabIcons = I;
@@ -5393,12 +5398,12 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
   const lvSum = () => Object.values(save.lv).reduce((a, b) => a + (b || 0), 0);
   const STEPS = [
     { t: 'Uçuş', x: () => K('W', 'İtiş') + ' ile ilerle. Yön için ' + (touch ? 'ekranın sol yarısında parmağını sürükle' : K('A / D', '') + ' ve ' + K('↑ / ↓', '')) + '. ' + K('S', 'Fren') + ' yavaşlatır.', ok: () => vel.length() > 25 },
-    { t: 'Asteroit kır', x: () => 'Kuşaktaki bir kayayı nişangâhın ortasına al, ' + K('Boşluk', 'Lazer') + ' ile ateş et. Lazer menzili yaklaşık ' + Math.round((220 + 40 * save.lv.lazer) * WPN.range) + ' m; uzaksa nişanda "MENZİL DIŞI" yazar.', ok: () => ores.length > 0 || cargoSum() > 0 },
+    { t: 'Asteroit kır', x: () => 'Kuşaktaki bir kayayı nişangâhın ortasına al, ' + K('Boşluk', 'Lazer') + ' ile ateş et. Lazer menzili yaklaşık ' + Math.round(laserRange()) + ' m; uzaksa nişanda "MENZİL DIŞI" yazar.', ok: () => ores.length > 0 || cargoSum() > 0 },
     { t: 'Cevheri topla', x: () => 'Kırılan kayadan parlayan parçalar saçılır. Yanlarından geç, kendiliğinden kargoya çekilir. (' + cargoSum() + '/3)', ok: () => cargoSum() >= 3 },
     { t: 'Üsse dön', x: () => 'Sarı işaret Ankora üssünü gösteriyor. Yaklaşınca ' + K('F', 'Üsse bağlan') + ' ile kenetlen.', ok: () => docked },
     { t: 'Sat', x: () => '<span class="k">Ticaret</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.', enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
     { t: 'Gemini geliştir', x: () => '<span class="k">Gemi</span> sekmesinden bir geliştirme al, ya da şimdilik ' + '<span class="k">Kalkış</span> de.', enter: () => { lv0 = lvSum(); }, ok: () => lvSum() > lv0 || !docked },
-    { t: 'Gerisi senin', x: () => 'Zorunlu bir şey yok. Gez, kaz, savaş. Arada telsizden sinyaller gelecek; istersen kabul et, istersen yoksay. ' + K('T', 'Kilit') + ' nişandaki hedefe ya da 5 km içindeki en yakın düşmana kilitlenir. Uzak yerlere gitmek için ' + K('M', 'haritayı') + ' aç, hedefe dokun.', last: true }
+    { t: 'Gerisi senin', x: () => 'Zorunlu bir şey yok. Gez, kaz, savaş. Arada telsizden sinyaller gelecek; istersen kabul et, istersen yoksay. ' + K('T', 'Kilit') + ' nişandaki hedefe, yoksa 5 km içindeki en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; kilitliyken lazer kendiliğinden vurur. Uzak yerlere gitmek için ' + K('M', 'haritayı') + ' aç, hedefe dokun.', last: true }
   ];
   let i = -1, wait = 0, doneT = 0, lastHtml = '';
   function finish(skip){ save.tut = 1; persist(); window.__tutOn = false; card.classList.remove('on'); if (skip) toast('Rehber kapatıldı. İyi uçuşlar pilot.', 2400); }
@@ -6408,15 +6413,15 @@ window.__xpal = {
       if (!n.hr) n.hr = { out: false, t: time };
       if (!n.hr.out && time - n.hr.t > rand(4, 6)){ n.hr.out = true; n.hr.t = time; }
       else if (n.hr.out && time - n.hr.t > 3){ n.hr.out = false; n.hr.t = time; }
-      if (n.hr.out){ _a.copy(n.pos).sub(rig.position).normalize(); _l.set(n.strafe, 0.3, 0).applyQuaternion(rig.quaternion); _a.add(_l).setLength(650); setDest(n, rig.position.clone().add(_a), 0); n.spdMul = 1.35; }
+      if (n.hr.out){ _a.copy(n.pos).sub(rig.position).normalize(); _l.set(n.strafe, 0.3, 0).applyQuaternion(rig.quaternion); _a.add(_l).setLength(800); setDest(n, rig.position.clone().add(_a), 0); n.spdMul = 1.35; }
     } else if (n.type === 'brute'){
       // yakına gelir ama çarpmaz: oyuncunun 90 m önünde/yanında durur
-      _a.copy(n.pos).sub(rig.position); if (_a.lengthSq() < 1) _a.set(1, 0, 0); _a.setLength(90); setDest(n, rig.position.clone().addScaledVector(vel, 0.4).add(_a), 25); n.spdMul = d < 140 ? 0.7 : 1.1;
+      _a.copy(n.pos).sub(rig.position); if (_a.lengthSq() < 1) _a.set(1, 0, 0); _a.setLength(170); setDest(n, rig.position.clone().addScaledVector(vel, 0.4).add(_a), 25); n.spdMul = d < 220 ? 0.7 : 1.1;
     } else if (n.type === 'reaver'){
       // hedefin çevresinde 380 m'de döner
       _a.copy(n.pos).sub(rig.position); if (_a.lengthSq() < 1) _a.set(1, 0, 0); _a.normalize();
-      _l.crossVectors(_a, V(0, 1, 0)).multiplyScalar(0.45 * n.strafe); _a.add(_l).setLength(380);
-      setDest(n, rig.position.clone().add(_a), 40); n.spdMul = d < 250 ? 1.25 : 0.95;
+      _l.crossVectors(_a, V(0, 1, 0)).multiplyScalar(0.45 * n.strafe); _a.add(_l).setLength(520);
+      setDest(n, rig.position.clone().add(_a), 40); n.spdMul = d < 350 ? 1.25 : 0.95;
     }
   };
   const _nsB = npcShoot;
@@ -6424,9 +6429,9 @@ window.__xpal = {
     if (n.type === 'reaver' && tgt === 'player'){
       // ağır, yavaş, uzun menzilli atış
       if (n.fireT > 0) return;
-      _d.copy(tpos).sub(n.pos); const dist = _d.length(); if (dist > 560 || dist < 1) return;
+      _d.copy(tpos).sub(n.pos); const dist = _d.length(); if (dist > 700 || dist < 1) return;
       _d.divideScalar(dist); _l.set(0, 0, 1).applyQuaternion(n.g.quaternion); if (_l.dot(_d) < 0.85) return;
-      n.fireT = 1.3; const hit = Math.random() < clamp(0.8 - dist / 900, 0.3, 0.7), end = tpos.clone(); sfxP('agir_atis', clamp(1 - dist / 900, 0.3, 0.9));
+      n.fireT = 1.3; const hit = Math.random() < clamp(0.85 - dist / 1100, 0.3, 0.7), end = tpos.clone(); sfxP('agir_atis', clamp(1 - dist / 1100, 0.3, 0.9));
       if (!hit) end.add(V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).multiplyScalar(30));
       const from = n.pos.clone().addScaledVector(_l, n.r * 0.9);
       if (near(n.pos, 2500)){ npcBeam(from, end, 0); npcBeam(from.clone().add(V(0, 2, 0)), end, 0); }
@@ -6462,6 +6467,97 @@ window.__xpal = {
 window.SFXB = window.SFXB || {};
 for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
 const sfxP = (n, v) => { try { return !!(window.__sfx && window.__sfx(n, v)); } catch (e) { return false; } };
+// ---- ilerleme: rütbe (XP) + görev panosu. Görevler isteğe bağlı; açık dünya bozulmaz.
+const RANKS = [['Çaylak', 0], ['Pilot', 400], ['Usta Pilot', 1200], ['Kaptan', 2600], ['Komodor', 5000], ['Efsane', 9000]];
+// kapı şartları: gidilen evren → [en düşük rütbe, ücret]. Ankora'ya dönüş serbest.
+const GATE_REQ = { 0: [0, 0], 1: [1, 250], 2: [2, 600], 3: [3, 1200] };
+const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp >= RANKS[i][1]) r = i; return r; };
+{
+  // eski kayıtlar: ilerlemeye göre başlangıç XP'si, daha önce açılan evrenler rütbe şartından muaf
+  if (typeof save.xp !== 'number'){ const lv = Object.values(save.lv).reduce((a, b) => a + (b || 0), 0); save.xp = Math.min(2600, lv * 120 + Math.max(0, save.open.length - 1) * 400); save.openFree = save.open.slice(); persist(); }
+  if (!Array.isArray(save.openFree)) save.openFree = [0];
+  window.__addXp = (n, why) => {
+    n = Math.round(n); if (!(n > 0)) return; const r0 = rankOf(save.xp); save.xp += n; const r1 = rankOf(save.xp); persist();
+    if (r1 > r0){ const bonus = r1 * 200; save.kredi += bonus; persist(); setTimeout(() => { toast('Rütbe atladın: ' + RANKS[r1][0] + ' · +' + bonus + ' kredi', 4200); eco.radioT = -9; radio('Filo', 'Tebrikler ' + (save.pilot || 'pilot') + ', artık ' + RANKS[r1][0] + ' rütbesindesin.', '#ffc477'); sfxP('gelistirme', 0.8); }, 600); }
+  };
+  const addXp = window.__addXp;
+  // ---- görevler
+  if (!save.ct || !Array.isArray(save.ct.offers)) save.ct = { offers: [], active: [], t: 0 };
+  save.ct.active = save.ct.active.filter(c => c.type); save.ct.offers = save.ct.offers.filter(c => c.type);   // eski biçimdeki görevler temizlenir
+  const MAXA = 3;
+  const stNow = () => STATIONS.indexOf(curSt);
+  const T = {
+    teslim: () => { const si = 1 + ((Math.random() * 3) | 0), k = SELLMAP[si], n = Math.round(rand(10, 26) / 2) * 2; return { type: 'teslim', ore: k, n, si, sys: curSys, stAd: STATIONS[si].ad, reward: Math.round(60 + n * ORE[k].fiyat * rand(0.45, 0.7)), xp: n * 4,   /* satış parasının üstüne prim */ txt: n + ' ' + ORE[k].ad.toLowerCase() + ' → ' + STATIONS[si].ad }; },
+    av: () => { const n = 2 + ((Math.random() * 3) | 0) + Math.min(2, rankOf(save.xp)); return { type: 'av', n, reward: Math.round(110 * n * (SYSC.danger || 1)), xp: 45 * n, txt: n + ' korsan gemisi düşür' }; },
+    kaya: () => { const n = 5 * (3 + ((Math.random() * 4) | 0)); return { type: 'kaya', n, reward: 9 * n, xp: 4 * n, txt: n + ' kaya kır' }; },
+    derin: () => ({ type: 'derin', n: 1, reward: 320, xp: 140, txt: 'Üsten 6 km ötedeki bir derin kuşağa git' }),
+    kalinti: () => ({ type: 'kalinti', n: 1, reward: 450, xp: 180, txt: 'Bir kalıntı sinyali bul (herhangi bir evrende)' }),
+    ziyaret: () => { let si = (Math.random() * STATIONS.length) | 0; if (si === stNow()) si = (si + 1) % STATIONS.length; const st = STATIONS[si]; return { type: 'ziyaret', n: 1, si, sys: curSys, stAd: st.ad, reward: 160, xp: 70, txt: st.ad + ' istasyonuna kenetlen' }; }
+  };
+  ctGen = function(){
+    const keys = ['teslim', 'av', 'kaya', 'derin', 'ziyaret'].concat(ruins.some(r => !r.found && !r.gate) ? ['kalinti'] : []), o = [];
+    while (o.length < 3){ const k = keys[(Math.random() * keys.length) | 0]; if (o.some(c => c.type === k)) continue; const c = T[k](); c.id = Date.now() + o.length; c.prog = 0; o.push(c); }
+    save.ct.offers = o; save.ct.t = Date.now(); persist();
+  };
+  const step = (type, amt, test) => {
+    let ch = false;
+    for (const c of save.ct.active.slice()){
+      if (c.type !== type || (test && !test(c))) continue;
+      c.prog = Math.min(c.n, c.prog + amt); ch = true;
+      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += c.reward; persist(); addXp(c.xp); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gelistirme', 0.7); }
+      else if (c.n > 1) toast('Görev: ' + c.txt + ' · ' + c.prog + '/' + c.n, 1800);
+    }
+    if (ch){ persist(); drawTrack(); }
+  };
+  window.__ctStep = step;
+  ctProgress = function(st, k, amt){ const si = STATIONS.indexOf(st); if (!(amt > 0)) return; addXp(amt * ORE[k].fiyat / 6); step('teslim', amt, c => c.si === si && c.ore === k && c.sys === curSys); };
+  ctAct = function(a){
+    const [t, id] = a.split(':'), n = +id;
+    if (t === 'acc'){ const i = save.ct.offers.findIndex(c => c.id === n); if (i < 0 || save.ct.active.length >= MAXA) return; save.ct.active.push(save.ct.offers.splice(i, 1)[0]); }
+    else if (t === 'drop'){ const i = save.ct.active.findIndex(c => c.id === n); if (i >= 0) save.ct.active.splice(i, 1); }
+    persist(); renderCt(); drawTrack();
+  };
+  renderCt = function(){
+    if (!save.ct.offers.length || Date.now() - save.ct.t > 600000) ctGen();
+    const r = rankOf(save.xp), nx = RANKS[r + 1];
+    let h = '<div class="sect" style="margin-top:0">Rütbe</div><div class="line"><span><b>' + RANKS[r][0] + '</b><span class="dim"><br>' + (nx ? save.xp + ' / ' + nx[1] + ' XP · sıradaki: ' + nx[0] : save.xp + ' XP · en üst rütbe') + '</span></span></div>';
+    h += '<div class="dim" style="margin:2px 0 6px">Kazı satışı, korsan avı, kalıntı ve görevler XP kazandırır. Rütbe, uzak kapılardan geçmek için gerekir.</div>';
+    h += '<div class="sect">Aktif görevler (' + save.ct.active.length + '/' + MAXA + ')</div>';
+    h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${c.txt}<br><span class="dim">${c.n > 1 ? c.prog + '/' + c.n + ' · ' : ''}${c.reward} kredi · ${c.xp} XP</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Henüz görev almadın.</div>';
+    h += '<div class="sect">Görev panosu</div>';
+    h += save.ct.offers.map(c => `<div class="ctc"><span>${c.txt}<br><span class="dim">Ödül: ${c.reward} kredi · ${c.xp} XP</span></span><button class="act go" data-ct="acc:${c.id}" ${save.ct.active.length >= MAXA ? 'disabled' : ''}>Al</button></div>`).join('');
+    h += '<div class="dim" style="margin-top:6px">Görevler isteğe bağlı. Pano 10 dakikada bir yenilenir.</div>';
+    $('ctBox').innerHTML = h;
+  };
+  // ilerleme kancaları
+  const _kn = killNpc; killNpc = function(n, by){ const was = npcs.indexOf(n) >= 0, hos = n.hostile; _kn(n, by); if (was && by === 'player' && hos){ addXp(30 * ({ brute: 1.3, reaver: 1.6, leader: 4 }[n.type] || 1) * (SYSC.danger || 1)); step('av', 1); } };
+  const _ba = breakAsteroid; breakAsteroid = function(a, big, noOre){ const r = _ba(a, big, noOre); if (!noOre && a.pos.distanceTo(rig.position) < 2500){ addXp(2); step('kaya', 1); } return r; };
+  const _orf = onRuinFound; onRuinFound = function(r){ _orf(r); if (!r.gate){ addXp(120); step('kalinti', 1); } };
+  const _dl = dockLayout; dockLayout = function(){ _dl(); if (docked && curSt) step('ziyaret', 1, c => c.sys === curSys && STATIONS.indexOf(curSt) === c.si);
+    const ds = $('dkStat'); if (ds && !ds.querySelector('.rnk')){ const r = rankOf(save.xp); ds.insertAdjacentHTML('beforeend', '<span class="rnk">Rütbe <b>' + RANKS[r][0] + '</b></span>'); } };
+  let dT = 0; EXTRA.push(dt => { dT += dt; if (dT < 2 || docked) return; dT = 0; if (depthMul(rig.position) >= 2) step('derin', 1); });
+  // uçarken görev takibi
+  const css = document.createElement('style'); css.textContent = '#ctTrack{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:42%;z-index:3;max-width:min(250px,34vw);font:600 12px/1.35 var(--font);color:#e8edff;pointer-events:none;display:none}#ctTrack.on{display:block}#ctTrack div{background:rgba(6,12,24,.62);border-left:2px solid #ffc477;padding:3px 8px;margin-bottom:3px;border-radius:3px}#ctTrack b{color:#ffc477}@media (max-height:520px){#ctTrack{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 150px);font-size:10.5px}#ctTrack div:nth-child(n+2){display:none}}body:has(#tut.on) #ctTrack,body:has(#sig.on) #ctTrack{display:none}';
+  document.head.appendChild(css);
+  const tr = document.createElement('div'); tr.id = 'ctTrack'; document.body.appendChild(tr);
+  function drawTrack(){ const a = save.ct.active; tr.innerHTML = a.map(c => '<div><b>Görev</b> ' + c.txt + (c.n > 1 ? ' · ' + c.prog + '/' + c.n : '') + '</div>').join(''); tr.classList.toggle('on', a.length > 0 && !docked); }
+  window.__drawTrack = drawTrack;
+  let tT = 0; EXTRA.push(dt => { tT += dt; if (tT > 0.5){ tT = 0; tr.classList.toggle('on', save.ct.active.length > 0 && !docked && !document.getElementById('title')); } });
+  drawTrack();
+  // kapı: rütbe + ücret şartı (daha önce açılmış evrenler rütbeden muaf)
+  const _ga = window.__gateAsk;
+  window.__gateAsk = (dn, yes, no) => {
+    const [rq, fee] = GATE_REQ[dn] || [0, 0], r = rankOf(save.xp), free = save.openFree.includes(dn), rankOk = free || r >= rq, payOk = save.kredi >= fee;
+    _ga(dn, () => { if (!(rankOk && save.kredi >= fee)) return no(); if (fee){ save.kredi -= fee; persist(); } addXp(save.open.includes(dn) ? 0 : 100); yes(); }, no);
+    const q = $('gateQ'), pp = q && q.querySelector('.p p'), yb = q && q.querySelector('button.y');
+    if (pp) pp.innerHTML = (rq || fee) ? 'Şart: ' + (rq ? '<b>' + RANKS[rq][0] + '</b> rütbesi' + (free ? ' (muaf)' : '') : '') + (rq && fee ? ' · ' : '') + (fee ? '<b>' + fee + ' kredi</b> geçiş ücreti' : '') + '<br><span style="color:' + (rankOk && payOk ? '#7be0a4' : '#ff7a8a') + '">' + (rankOk ? (payOk ? 'Geçebilirsin.' : 'Kredin yetmiyor (' + save.kredi + ').') : 'Rütben ' + RANKS[r][0] + '. Görevler ve keşifle XP topla.') + '</span>' : 'Geçmek ücretsiz.';
+    if (yb){ if (!(rankOk && payOk)){ yb.disabled = true; yb.style.opacity = '.45'; yb.textContent = rankOk ? 'Kredi yetersiz' : 'Rütbe yetersiz'; } else if (fee) yb.textContent = 'Atla · ' + fee + ' kredi'; }
+  };
+  // istasyondan hiperatlama da aynı rütbe şartına uyar
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-j]'); if (!b) return; const dn = +b.dataset.j, rq = (GATE_REQ[dn] || [0])[0];
+    if (!save.openFree.includes(dn) && rankOf(save.xp) < rq){ e.stopImmediatePropagation(); e.preventDefault(); toast(SYS[dn].ad + ' için ' + RANKS[rq][0] + ' rütbesi gerekiyor.', 3000); } }, true);
+}
+
 // ---- görüntü kalitesi: değiştirme ve kasarsa otomatik düşürme
 window.__qSet = (lv, manual) => { window.__qLevel = lv; try { localStorage.setItem('sd_q', String(lv)); if (manual) localStorage.setItem('sd_qm', '1'); } catch (e) {} resize(); };
 {
