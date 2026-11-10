@@ -1786,6 +1786,7 @@ function mapContent(c, I, opts){
   for (const bd of [PLANET, GIANT, MOON, PLANET2, PLANET3]){ if (!known(bd.pos)) continue; const p = P(bd.pos); items.push({ y: p.gy, t: 2, p, obj: bd, name: bd.ad }); }
   for (const r of ruins){ if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
   { const o = window.__kadimObj && window.__kadimObj(); if (o){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); } }
+  if (window.__featMap) for (const o of window.__featMap()){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); }
   for (const n of npcs){ const p = P(n.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 4, p, obj: n }); }
   items.sort((a, b) => a.y - b.y);
   if (opts.hits) mapHits = [];
@@ -1817,7 +1818,7 @@ function mapContent(c, I, opts){
     } else if (it.t === 3){
       const pul = 0.6 + 0.4 * Math.sin(time * 3); c.strokeStyle = it.found ? 'rgba(95,240,208,0.4)' : `rgba(95,240,208,${pul})`; c.lineWidth = 1.3;
       { const mi = window.__MI && (it.obj.i === 9 && window.__MI.i_kadim ? window.__MI.i_kadim : it.obj.gate ? window.__MI.i_gate : window.__MI.i_ruin); if (mi && mi.complete && mi.naturalWidth){ const z = big ? 20 : 12; c.save(); c.globalAlpha = it.found ? 0.6 : (0.55 + 0.45 * Math.sin(time * 3)); c.drawImage(mi, p.x - z / 2, p.y - z / 2, z, z); c.restore(); } else { c.beginPath(); c.moveTo(p.x, p.y - 4); c.lineTo(p.x + 4, p.y); c.lineTo(p.x, p.y + 4); c.lineTo(p.x - 4, p.y); c.closePath(); c.stroke(); } }
-      label((it.found ? ruinName(it.obj.i) : 'Sinyal') + ' · ' + dist(it.obj), p.x, p.y, '#5ff0d0');
+      label((it.found ? (it.obj.label || ruinName(it.obj.i)) : 'Sinyal') + ' · ' + dist(it.obj), p.x, p.y, '#5ff0d0');
     } else {
       const n = it.obj; if (big && n.hostile && window.__ic){ window.__ic(c, 'i_foe', p.x - 8, p.y - 8, 16); } const sp = Math.hypot(n.vel.x, n.vel.z); let ang = -Math.PI / 2;
       if (sp > 1){ const rx = n.vel.x * -hz + n.vel.z * hx, fw = n.vel.x * hx + n.vel.z * hz; ang = Math.atan2(-fw * es, rx); }
@@ -6556,6 +6557,92 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   // istasyondan hiperatlama da aynı rütbe şartına uyar
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-j]'); if (!b) return; const dn = +b.dataset.j, rq = (GATE_REQ[dn] || [0])[0];
     if (!save.openFree.includes(dn) && rankOf(save.xp) < rq){ e.stopImmediatePropagation(); e.preventDefault(); toast(SYS[dn].ad + ' için ' + RANKS[rq][0] + ' rütbesi gerekiyor.', 3000); } }, true);
+}
+
+// ---- evrenlere özgü yerler ve doğa olayları (kodla kurulur, görsel gerekmez)
+{
+  const FG = new THREE.Group(); scene.add(FG);
+  let built = -1, marks = [], tickers = [], seen = new Set(), inFog = false;
+  window.__featMap = () => marks.filter(m => seen.has(m.label) || rig.position.distanceTo(m.pos) < 4000);
+  window.__inFog = () => inFog;
+  const at = (o, p) => { o.position.copy(p); return o; };
+  const SM = (c, e, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, emissive: e || 0x000000, roughness: 0.6, metalness: 0.4, flatShading: true }, o || {}));
+  const beltBy = (fn) => BELTS.slice().sort((a, b) => fn(a) - fn(b))[0];
+  const mark = (label, pos, desc) => marks.push({ kind: 'ruin', i: 8, gate: false, found: true, label, pos: pos.clone(), group: { position: pos.clone() }, desc });
+  function clear(){ for (const c of [...FG.children]){ FG.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); } marks = []; tickers = []; inFog = false; storm.on = false; storm.t = rand(150, 260); stormEl.style.opacity = 0; }
+  // Kızıl: güneş fırtınası
+  const storm = { on: false, t: 200, warn: false, left: 0 };
+  const stormEl = document.createElement('div'); stormEl.style.cssText = 'position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity 1.2s;background:radial-gradient(ellipse at 50% 30%,rgba(255,140,40,.05),rgba(255,70,20,.35))'; document.body.appendChild(stormEl);
+  const sheltered = () => { for (const a of asteroids) if (a.r > 16 && a.pos.distanceTo(rig.position) < a.r + 140) return true; for (const b of [...STATIONS, PLANET, GIANT, PLANET2, PLANET3, MOON]) if (b.pos.distanceTo(rig.position) < (b.r || 100) + 500) return true; return false; };
+  function build(k){
+    clear(); built = k;
+    if (k === 0){   // Ankora: eski uydu tarlası, lazerle sökülebilir hurda
+      const b = beltBy(x => -x.c.distanceTo(STATIONS[0].pos) + (x.c.length() > 5000 ? 9e9 : 0)), c = b.c.clone().add(V(b.r + 500, 120, 0));
+      const body = SM(0x8a919c), pan = SM(0x2b4f8a, 0x0a1a40, { metalness: 0.7, roughness: 0.3 });
+      for (let i = 0; i < 9; i++){
+        const g = new THREE.Group(); g.add(new THREE.Mesh(new THREE.BoxGeometry(6, 6, 10), body));
+        for (const sd of [-1, 1]){ const pm = new THREE.Mesh(new THREE.BoxGeometry(16, 0.5, 6), pan); pm.position.x = sd * 12; pm.rotation.x = rand(-0.4, 0.4); g.add(pm); }
+        const dish = new THREE.Mesh(new THREE.ConeGeometry(4, 2, 12, 1, true), body); dish.position.z = 7; dish.rotation.x = Math.PI / 2; g.add(dish);
+        const pos = c.clone().add(V(rand(-260, 260), rand(-80, 80), rand(-260, 260))); g.scale.setScalar(2.2); g.position.copy(pos); g.rotation.set(rand(0, 6), rand(0, 6), rand(0, 6)); scene.add(g); g.add(at(sprite(glowTexture(255, 90, 70), 4, 0.9), V(0, 3.5, 0)));
+        const hpv = 260; asteroids.push({ mesh: g, pos: g.position, r: 22, type: 'demir', hp: hpv, max: hpv, units: 5, salvage: true, vel: V(rand(-1, 1), rand(-1, 1), rand(-1, 1)), spin: V(rand(-0.2, 0.2), rand(-0.2, 0.2), rand(-0.2, 0.2)) });
+      }
+      mark('Eski uydu tarlası', c, 'Eski uydular burada sürükleniyor. Lazerle sökersen demir ve bazen gövde levhası çıkar.');
+    } else if (k === 1){   // Kızıl: lav kayaları akıntısı
+      const b = beltBy(x => -x.c.length()), c0 = b.c.clone(), dir = V(rand(-1, 1), rand(-0.1, 0.1), rand(-1, 1)).normalize(), lav = [];
+      const mt = SM(0x3a1810, 0xff4a10, { emissiveIntensity: 0.55, roughness: 0.9, metalness: 0.1 });
+      for (let i = 0; i < 12; i++){
+        const r = rand(9, 17), m = new THREE.Mesh(tmpl[(Math.random() * tmpl.length) | 0], mt); m.scale.setScalar(r); const p = c0.clone().addScaledVector(dir, rand(-1400, 1400)).add(V(rand(-120, 120), rand(-60, 60), rand(-120, 120)));
+        m.position.copy(p); scene.add(m); m.add(sprite(glowTexture(255, 120, 40), 3.2, 0.7));
+        const a = { mesh: m, pos: m.position, r, type: 'demir', hp: r * r * 0.16 * (SYSC.rock || 1), max: r * r * 0.16 * (SYSC.rock || 1), units: Math.round(r / 3), vel: dir.clone().multiplyScalar(rand(28, 42)), spin: V(rand(-0.6, 0.6), rand(-0.6, 0.6), rand(-0.6, 0.6)), lava: true };
+        asteroids.push(a); lav.push(a);
+      }
+      tickers.push(() => { for (const a of lav) if (a.pos.distanceTo(c0) > 1600){ a.pos.copy(c0).addScaledVector(dir, -1500).add(V(rand(-120, 120), rand(-60, 60), rand(-120, 120))); } });
+      mark('Lav akıntısı', c0, 'Kızgın kayalar hızla akıyor. Bol demir, ama yakalamak zor.');
+    } else if (k === 2){   // Buzul: buz devleri
+      const b = beltBy(x => -x.r), c = b.c.clone();
+      const im = new THREE.MeshStandardMaterial({ color: 0xd4f3ff, emissive: 0x1d4a60, roughness: 0.12, metalness: 0.1, transparent: true, opacity: 0.82, flatShading: true });
+      const spires = [];
+      for (let i = 0; i < 6; i++){
+        const h = rand(180, 380), w = h * rand(0.12, 0.2), m = new THREE.Mesh(new THREE.OctahedronGeometry(1, 0), im); m.scale.set(w, h, w);
+        const p = c.clone().add(V(rand(-1, 1), 0, rand(-1, 1)).normalize().multiplyScalar(rand(150, b.r + 250))); p.y += rand(-60, 60); m.position.copy(p); m.rotation.set(rand(-0.35, 0.35), rand(0, 6), rand(-0.35, 0.35)); FG.add(m);
+        spires.push({ p, w: w * 0.8 + 10, h }); FG.add(at(sprite(glowTexture(150, 220, 255), h * 1.1, 0.18), p.clone()));
+      }
+      for (let i = 0; i < 14; i++){ const s0 = spires[i % spires.length]; mkRock(s0.p.clone().add(V(rand(-1, 1), rand(-0.6, 0.6), rand(-1, 1)).normalize().multiplyScalar(s0.w + rand(40, 110))), 'buz', rand(9, 16), V(0, 0, 0), 6); }
+      tickers.push(() => { for (const s0 of spires){ const dx = rig.position.x - s0.p.x, dz = rig.position.z - s0.p.z, dy = Math.abs(rig.position.y - s0.p.y), d = Math.hypot(dx, dz);
+        if (dy < s0.h * 0.9 && d < s0.w && d > 0.01){ const k2 = s0.w / d; rig.position.x = s0.p.x + dx * k2; rig.position.z = s0.p.z + dz * k2; const n = V(dx / d, 0, dz / d), vn = vel.dot(n); if (vn < 0) vel.addScaledVector(n, -1.6 * vn); shake = Math.max(shake, 0.3); } } });
+      mark('Buz devleri', c, 'Yüzlerce metrelik buz kuleleri. Çevrelerindeki kayalar buz bakımından çok zengin. Çarpma!');
+    } else if (k === 3){   // Zümrüt: kristal monolitler + sis bulutları
+      const mm = new THREE.MeshStandardMaterial({ color: 0x1f5a3f, emissive: 0x18ff9a, emissiveIntensity: 0.35, roughness: 0.25, metalness: 0.3, flatShading: true });
+      const b1 = beltBy(x => x.c.distanceTo(STATIONS[0].pos) * (x.rich ? 0.6 : 1)), c1 = b1.c.clone().add(V(0, 200, 0)), lights = [];
+      for (let i = 0; i < 4; i++){ const a = i / 4 * TAU, m = new THREE.Mesh(new THREE.BoxGeometry(26, 200, 26), mm); m.position.copy(c1).add(V(Math.cos(a) * 160, 0, Math.sin(a) * 160)); m.rotation.y = a; FG.add(m);
+        const pl = new THREE.PointLight(0x40ffa8, 1.4, 700); pl.position.copy(m.position).add(V(0, 120, 0)); FG.add(pl); lights.push(pl); FG.add(at(sprite(glowTexture(80, 255, 170), 160, 0.5), m.position.clone().add(V(0, 110, 0)))); }
+      let ph = 0; tickers.push(dt => { ph += dt; for (const [i, l] of lights.entries()) l.intensity = 0.8 + 0.8 * Math.max(0, Math.sin(ph * 1.4 - i * 0.9)); });
+      mark('Kristal monolitler', c1, 'Dört monolit, ritimle parlıyor. Kimin diktiği bilinmiyor.');
+      const fogs = [];
+      for (let j = 0; j < 3; j++){ const fc = BELTS[(j * 5 + 3) % BELTS.length].c.clone().add(V(rand(-400, 400), rand(-100, 100), rand(-400, 400))), R = 650; fogs.push({ c: fc, R });
+        for (let q = 0; q < 7; q++) FG.add(at(sprite(glowTexture(60, 200, 140), rand(500, 900), 0.16), fc.clone().add(V(rand(-1, 1), rand(-0.4, 0.4), rand(-1, 1)).multiplyScalar(R * 0.6))));
+        mark('Sis bulutu', fc, 'Yoğun sis: içindeyken korsanlar seni göremez.'); }
+      let fw = -99; tickers.push(() => { const was = inFog; inFog = fogs.some(f => f.c.distanceTo(rig.position) < f.R); if (inFog && !was && time - fw > 30){ fw = time; toast('Sisin içindesin: korsanlar seni göremiyor.', 2600); } });
+    }
+  }
+  // sökülen uydudan levha
+  const _ba2 = breakAsteroid; breakAsteroid = function(a, big, noOre){ const r = _ba2(a, big, noOre); if (a.salvage && !noOre && Math.random() < 0.5){ givePart('levha', 1); toast('Uydu söküldü: +1 gövde levhası', 2200); } return r; };
+  // sisteki oyuncuyu korsanlar kaybeder
+  const _thF = thinkPirate; thinkPirate = function(n){ _thF(n); if (inFog && n.tgt === 'player' && n.pos.distanceTo(rig.position) > 220){ n.state = 'roam'; n.tgt = null; } };
+  EXTRA.push(dt => {
+    if (built !== curSys && !window.__hjOn) build(curSys);
+    if (docked) return;
+    for (const f of tickers) f(dt);
+    for (const m of marks){ if (seen.has(curSys + m.label)) continue; if (m.pos.distanceTo(rig.position) < 1800){ seen.add(curSys + m.label); seen.add(m.label); eco.radioT = -9; radio('Tarayıcı', m.label + ': ' + m.desc, '#7fd8ff'); sfxP('tarayici', 0.7); } }
+    // Kızıl güneş fırtınası
+    if (curSys !== 1 || paused || window.__hjOn) return;
+    storm.t -= dt;
+    if (!storm.on && !storm.warn && storm.t < 10){ storm.warn = true; eco.radioT = -9; radio('Gözlemevi', 'Güneş fırtınası geliyor! Büyük bir kayanın, gezegenin ya da istasyonun yanına sığın.', '#ff9a50'); sfxP('yardim', 0.7); }
+    if (!storm.on && storm.t <= 0){ storm.on = true; storm.warn = false; storm.left = 14; stormEl.style.opacity = 1; toast('Güneş fırtınası: kalkan doluyor değil, aşınıyor.', 3000); }
+    if (storm.on){ storm.left -= dt; const safe = sheltered(); stormEl.style.opacity = safe ? 0.45 : 1;
+      if (!safe){ hp.regenT = Math.max(hp.regenT, 1); if (hp.shield > 0) hp.shield = Math.max(0, hp.shield - 4 * dt); else hp.hull = Math.max(10, hp.hull - 1.5 * dt); }
+      if (storm.left <= 0){ storm.on = false; storm.t = rand(240, 420); stormEl.style.opacity = 0; toast('Fırtına geçti.', 2000); } }
+  });
 }
 
 // ---- görüntü kalitesi: değiştirme ve kasarsa otomatik düşürme
