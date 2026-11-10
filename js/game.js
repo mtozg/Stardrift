@@ -1318,13 +1318,13 @@ function update(dt){
     }
     let lockOk = true;
     if (lock){ aim = lock; bd = rig.position.distanceTo(lock.pos); tmp.copy(lock.pos).sub(rig.position).normalize(); lockOk = Math.acos(clamp(tmp.dot(fwd), -1, 1)) < 0.9; }
-    const range = laserRange(), dps = 40 * (1 + 0.55 * lvL);
+    const range = laserRange(), dps = 40 * (1 + 0.55 * lvL) * (window.__perkDmg || 1);
     const inRange = aim && lockOk && (aim.mesh || (aim.kind === 'npc' && aim.hostile)) && (bd - aim.r) <= range;
     const wantFire = !!(laserOn || keys.Space);
     if (laser.over && laser.heat < 40) laser.over = false;
     if (laser.burstT > 0){
       if (!wantFire) laser.burstT = 0;
-      else { laser.burstT -= dt; laser.heat += 34 * WPN.heat * (1 - 0.08 * (save.lv.sogutma || 0)) * dt; if (laser.burstT <= 0) laser.gapT = 0.35; }
+      else { laser.burstT -= dt; laser.heat += 34 * WPN.heat * (1 - 0.08 * (save.lv.sogutma || 0)) * (window.__perkHeat || 1) * dt; if (laser.burstT <= 0) laser.gapT = 0.35; }
     } else {
       if (laser.gapT > 0) laser.gapT -= dt;
       else if (wantFire && !laser.over) laser.burstT = WPN.burst;
@@ -6466,7 +6466,7 @@ window.__xpal = {
 
 // ---- dosyadan ses efektleri (assets/sfx/, ElevenLabs ile üretildi)
 window.SFXB = window.SFXB || {};
-for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
+for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis', 'rutbe', 'gorev_tamam', 'firtina_uyari', 'firtina', 'patron_giris', 'patron_faz', 'patron_olum', 'itibar', 'salvo']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
 const sfxP = (n, v) => { try { return !!(window.__sfx && window.__sfx(n, v)); } catch (e) { return false; } };
 // ---- ilerleme: rütbe (XP) + görev panosu. Görevler isteğe bağlı; açık dünya bozulmaz.
 const RANKS = [['Çaylak', 0], ['Pilot', 400], ['Usta Pilot', 1200], ['Kaptan', 2600], ['Komodor', 5000], ['Efsane', 9000]];
@@ -6479,7 +6479,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   if (!Array.isArray(save.openFree)) save.openFree = [0];
   window.__addXp = (n, why) => {
     n = Math.round(n); if (!(n > 0)) return; const r0 = rankOf(save.xp); save.xp += n; const r1 = rankOf(save.xp); persist();
-    if (r1 > r0){ const bonus = r1 * 200; save.kredi += bonus; persist(); setTimeout(() => { toast('Rütbe atladın: ' + RANKS[r1][0] + ' · +' + bonus + ' kredi', 4200); eco.radioT = -9; radio('Filo', 'Tebrikler ' + (save.pilot || 'pilot') + ', artık ' + RANKS[r1][0] + ' rütbesindesin.', '#ffc477'); sfxP('gelistirme', 0.8); }, 600); }
+    if (r1 > r0){ const bonus = r1 * 200; save.kredi += bonus; persist(); setTimeout(() => { toast('Rütbe atladın: ' + RANKS[r1][0] + ' · +' + bonus + ' kredi', 4200); eco.radioT = -9; radio('Filo', 'Tebrikler ' + (save.pilot || 'pilot') + ', artık ' + RANKS[r1][0] + ' rütbesindesin.', '#ffc477'); sfxP('rutbe', 0.9) || sfxP('gelistirme', 0.8); }, 600); }
   };
   const addXp = window.__addXp;
   // ---- görevler
@@ -6505,13 +6505,13 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     for (const c of save.ct.active.slice()){
       if (c.type !== type || (test && !test(c))) continue;
       c.prog = Math.min(c.n, c.prog + amt); ch = true;
-      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += c.reward; persist(); addXp(c.xp); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gelistirme', 0.7); }
+      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += c.reward; persist(); addXp(c.xp); window.__fac && window.__fac(c.type === 'av' ? 'filo' : 'lonca', 4); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gorev_tamam', 0.8) || sfxP('gelistirme', 0.7); }
       else if (c.n > 1) toast('Görev: ' + c.txt + ' · ' + c.prog + '/' + c.n, 1800);
     }
     if (ch){ persist(); drawTrack(); }
   };
   window.__ctStep = step;
-  ctProgress = function(st, k, amt){ const si = STATIONS.indexOf(st); if (!(amt > 0)) return; addXp(amt * ORE[k].fiyat / 6); step('teslim', amt, c => c.si === si && c.ore === k && c.sys === curSys); };
+  ctProgress = function(st, k, amt){ const si = STATIONS.indexOf(st); if (!(amt > 0)) return; addXp(amt * ORE[k].fiyat / 6); window.__fac && window.__fac('lonca', amt / 12, true); step('teslim', amt, c => c.si === si && c.ore === k && c.sys === curSys); };
   ctAct = function(a){
     const [t, id] = a.split(':'), n = +id;
     if (t === 'acc'){ const i = save.ct.offers.findIndex(c => c.id === n); if (i < 0 || save.ct.active.length >= MAXA) return; save.ct.active.push(save.ct.offers.splice(i, 1)[0]); }
@@ -6568,7 +6568,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   const at = (o, p) => { o.position.copy(p); return o; };
   const SM = (c, e, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, emissive: e || 0x000000, roughness: 0.6, metalness: 0.4, flatShading: true }, o || {}));
   const beltBy = (fn) => BELTS.slice().sort((a, b) => fn(a) - fn(b))[0];
-  const mark = (label, pos, desc) => marks.push({ kind: 'ruin', i: 8, gate: false, found: true, label, pos: pos.clone(), group: { position: pos.clone() }, desc });
+  const mark = (label, pos, desc) => marks.push({ kind: 'ruin', i: 8, gate: false, found: true, r: 80, ad: label, label, pos: pos.clone(), group: { position: pos.clone() }, desc });
   function clear(){ for (const c of [...FG.children]){ FG.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); }); } marks = []; tickers = []; inFog = false; storm.on = false; storm.t = rand(150, 260); stormEl.style.opacity = 0; }
   // Kızıl: güneş fırtınası
   const storm = { on: false, t: 200, warn: false, left: 0 };
@@ -6637,11 +6637,140 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     // Kızıl güneş fırtınası
     if (curSys !== 1 || paused || window.__hjOn) return;
     storm.t -= dt;
-    if (!storm.on && !storm.warn && storm.t < 10){ storm.warn = true; eco.radioT = -9; radio('Gözlemevi', 'Güneş fırtınası geliyor! Büyük bir kayanın, gezegenin ya da istasyonun yanına sığın.', '#ff9a50'); sfxP('yardim', 0.7); }
-    if (!storm.on && storm.t <= 0){ storm.on = true; storm.warn = false; storm.left = 14; stormEl.style.opacity = 1; toast('Güneş fırtınası: kalkan doluyor değil, aşınıyor.', 3000); }
+    if (!storm.on && !storm.warn && storm.t < 10){ storm.warn = true; eco.radioT = -9; radio('Gözlemevi', 'Güneş fırtınası geliyor! Büyük bir kayanın, gezegenin ya da istasyonun yanına sığın.', '#ff9a50'); sfxP('firtina_uyari', 0.8) || sfxP('yardim', 0.7); }
+    if (!storm.on && storm.t <= 0){ storm.on = true; storm.warn = false; storm.left = 14; stormEl.style.opacity = 1; toast('Güneş fırtınası: açıkta kalırsan kalkanın aşınır.', 3000); sfxP('firtina', 0.8); }
     if (storm.on){ storm.left -= dt; const safe = sheltered(); stormEl.style.opacity = safe ? 0.45 : 1;
       if (!safe){ hp.regenT = Math.max(hp.regenT, 1); if (hp.shield > 0) hp.shield = Math.max(0, hp.shield - 4 * dt); else hp.hull = Math.max(10, hp.hull - 1.5 * dt); }
       if (storm.left <= 0){ storm.on = false; storm.t = rand(240, 420); stormEl.style.opacity = 0; toast('Fırtına geçti.', 2000); } }
+  });
+}
+
+// ---- gruplar ve itibar: Yıldız Filosu, Tüccar Loncası, Korsan Birliği (-100..100)
+{
+  if (!save.fac || typeof save.fac !== 'object') save.fac = { filo: 0, lonca: 0, korsan: 0 };
+  for (const k of ['filo', 'lonca', 'korsan']) if (typeof save.fac[k] !== 'number') save.fac[k] = 0;
+  const F = { filo: { ad: 'Yıldız Filosu', col: '#7fd8ff', img: 'fac_filo' }, lonca: { ad: 'Tüccar Loncası', col: '#ffc477', img: 'fac_lonca' }, korsan: { ad: 'Korsan Birliği', col: '#ff6b8a', img: 'fac_korsan' } };
+  const tier = v => v >= 60 ? 'Müttefik' : v >= 30 ? 'Dost' : v > -30 ? 'Tarafsız' : v > -60 ? 'Soğuk' : 'Düşman';
+  const SAY = {
+    filo: { 'Müttefik': 'Seni kendimizden sayıyoruz. Devriyeler çağrına koşar.', 'Dost': 'İyi iş çıkarıyorsun pilot. Başın sıkışırsa devriyeler yardıma gelir.', 'Tarafsız': 'Kayıtların temiz. Öyle kalsın.', 'Soğuk': 'Seni izliyoruz.', 'Düşman': 'Aranıyorsun. Devriyeler görünce ateş açacak.' },
+    lonca: { 'Müttefik': 'Loncanın onur üyesisin: en iyi fiyatlar senin.', 'Dost': 'Malını iyi fiyata alırız.', 'Tarafsız': 'İş iştir.', 'Soğuk': 'Seninle iş yapmak riskli.', 'Düşman': 'Fiyatlarımız sana göre değil.' },
+    korsan: { 'Müttefik': 'Bizdensin. Kimse sana dokunmaz.', 'Dost': 'Haracını ödeyen dostumuzdur. Sana ateş açmayacağız.', 'Tarafsız': 'Yolumuza çıkma.', 'Soğuk': 'Adını bir kenara yazdık.', 'Düşman': 'Başına ödül koyduk.' }
+  };
+  const EFF = {
+    filo: v => v >= 30 ? 'Devriyeler yardımına gelir · korsan ödülü +%' + Math.round(Math.max(0, v) / 2) : v <= -60 ? 'Devriyeler seni görünce saldırır' : v > 0 ? 'Korsan ödülü +%' + Math.round(v / 2) : 'Etkisi yok',
+    lonca: v => 'Satış fiyatı ' + (v >= 0 ? '+' : '−') + '%' + Math.abs(Math.round(clamp(v, -50, 100) / 10)),
+    korsan: v => v >= 30 ? 'Korsanlar sana saldırmaz (sen vurmadıkça; patronlar hariç)' : v <= -60 ? 'Korsanlar ikili gezer' : 'Etkisi yok'
+  };
+  window.__fac = (k, d, quiet) => {
+    const v0 = save.fac[k]; save.fac[k] = clamp(v0 + d, -100, 100); const t0 = tier(v0), t1 = tier(save.fac[k]);
+    if (t0 !== t1){ setTimeout(() => { toast(F[k].ad + ': ' + t1, 3600); eco.radioT = -9; radio(F[k].ad, SAY[k][t1], F[k].col); sfxP('itibar', 0.7); }, 900); persist(); }
+    else if (!quiet) persist();
+  };
+  const fac = window.__fac;
+  // etkiler
+  const _rm = repMul; repMul = st => _rm(st) * (1 + clamp(save.fac.lonca, -50, 100) * 0.001);
+  const _kn = killNpc; killNpc = function(n, by){
+    const was = npcs.indexOf(n) >= 0, hos = n.hostile, role = n.role, lead = n.leader; _kn(n, by); if (!was || by !== 'player') return;
+    if (hos){ fac('filo', lead ? 8 : 2); fac('korsan', lead ? -10 : -3); const ex = Math.round(100 * (SYSC.bounty || 1) * Math.max(0, save.fac.filo) / 200); if (ex > 0){ save.kredi += ex; persist(); } }
+    else if (role === 'patrol'){ fac('filo', -15); fac('korsan', 6); }
+    else { fac('lonca', -10); fac('filo', -6); fac('korsan', 4); }
+  };
+  const _dn = damageNpc; damageNpc = function(n, dmg, by){ const first = by === 'player' && !n.provoked; if (by === 'player') n.provoked = true; _dn(n, dmg, by); if (first && n.hostile && npcs.indexOf(n) >= 0 && save.fac.korsan >= 30){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.truce = 0; } };
+  const _tp = thinkPirate; thinkPirate = function(n){
+    if (save.fac.korsan >= 30 && !n.leader && !n.provoked && !n.sg){ n.truce = time + 5; if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; } }
+    _tp(n);
+  };
+  // istasyon itibarı değişince Lonca da etkilenir
+  let repSum = Object.values(save.rep || {}).reduce((a, b) => a + (b || 0), 0), acc = 0, warned = 0;
+  EXTRA.push(dt => {
+    acc += dt; if (acc < 3) return; acc = 0;
+    const sNow = Object.values(save.rep || {}).reduce((a, b) => a + (b || 0), 0); if (sNow !== repSum){ fac('lonca', (sNow - repSum) * 1.5); repSum = sNow; }
+    if (docked) return;
+    if (save.fac.filo >= 30){ for (const q of npcs) if (q.hostile && q.state === 'attack' && q.tgt === 'player' && q.pos.distanceTo(rig.position) < 900){ eco.alerts.push({ pos: rig.position.clone(), t: time }); break; } }
+    else if (save.fac.filo <= -60){ for (const q of npcs) if (q.role === 'patrol' && !q.escort && q.pos.distanceTo(rig.position) < 900){ q.rev = time + 30; if (time - warned > 40){ warned = time; radio(q.name, 'Aranan pilot tespit edildi! Ateş serbest!', '#ff5a6e'); } } }
+  });
+  const _sr = spawnRole; spawnRole = function(role, initial){ const n = _sr(role, initial); if (role === 'pirate' && n && save.fac.korsan <= -60 && n.type !== 'leader' && Math.random() < 0.5){ const w = spawnNpc('raider', n.pos.clone().add(V(rand(-60, 60), rand(-20, 20), rand(-60, 60))), n.home); w.state = 'roam'; w.wingOf = n; } return n; };
+  // arayüz: Görevler sekmesinde
+  const css = document.createElement('style'); css.textContent = '.facr{display:grid;grid-template-columns:34px 1fr;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px solid #18213b}.facr img,.facr i.fd{width:34px;height:34px;border-radius:50%;display:block}.facr .fb{height:6px;background:#18213b;border-radius:3px;position:relative;margin:4px 0 3px}.facr .fb u{position:absolute;top:0;bottom:0;border-radius:3px}.facr .fb s{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:#556}.facr small{color:var(--dim);font-size:12px}.facb{display:flex;gap:8px;margin-top:8px}.facb button{flex:1;font-size:13px !important}';
+  document.head.appendChild(css);
+  const _rc = renderCt; renderCt = function(){
+    _rc(); const box = $('ctBox'); if (!box) return;
+    let h = '<div class="sect">Gruplar</div>';
+    for (const k in F){ const v = Math.round(save.fac[k]), w = Math.abs(v) / 2;
+      h += '<div class="facr"><img alt="" src="assets/img/' + F[k].img + '.webp" onerror="this.outerHTML=\'<i class=fd style=background:' + F[k].col + '></i>\'"><span><b style="color:' + F[k].col + '">' + F[k].ad + '</b> · ' + tier(v) + ' (' + (v > 0 ? '+' : '') + v + ')<div class="fb"><s></s><u style="background:' + F[k].col + ';' + (v >= 0 ? 'left:50%' : 'right:50%') + ';width:' + w + '%"></u></div><small>' + EFF[k](v) + '</small></span></div>'; }
+    h += '<div class="facb"><button class="act" data-fac="filo" ' + (save.kredi < 300 ? 'disabled' : '') + '>Filoya bağış · 300</button><button class="act" data-fac="korsan" ' + (save.kredi < 300 ? 'disabled' : '') + '>Korsanlara haraç · 300</button></div>';
+    h += '<div class="dim" style="margin-top:6px">Korsan avlamak Filoyu, satış ve yardım Loncayı güçlendirir. Korsanlarla arayı haraçla düzeltebilirsin; ama Filo bunu sevmez.</div>';
+    box.insertAdjacentHTML('beforeend', h);
+  };
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-fac]'); if (!b || b.disabled || save.kredi < 300) return; save.kredi -= 300;
+    if (b.dataset.fac === 'filo'){ fac('filo', 8); toast('Filoya bağış yapıldı: itibar +8', 2400); } else { fac('korsan', 10); fac('filo', -3); toast('Haraç ödendi: Korsan itibarı +10, Filo −3', 2600); }
+    persist(); renderCt(); });
+}
+
+// ---- patron savaşları: her evrenin korsan reisi kendi ininde bekler; aşamalı dövüş, kalıcı ödül
+{
+  if (!Array.isArray(save.boss)) save.boss = [];
+  const BOSS = [
+    { ad: 'Kara Kaptan Dorak', at: [-7200, 600, 5200], perk: 'Lazer hasarı +%10', taunt: 'Benim inime kimse davetsiz giremez!' },
+    { ad: 'Kızıl Kaptan Zerha', at: [6800, -500, -6200], perk: 'Kalkan +25', taunt: 'Ateşle oynuyorsun, küçük pilot.' },
+    { ad: 'Kırağı Hanı Hiem', at: [-6500, 400, -6800], perk: 'Lazer %20 daha az ısınır', taunt: 'Soğuk, sabırlıdır. Ben de öyle.' },
+    { ad: 'Sis Efendisi Verdan', at: [7000, 700, 6000], perk: 'Kargo +10', taunt: 'Sisin içinden kimse geri dönmedi.' }
+  ];
+  function perks(){ const b = save.boss; window.__perkDmg = b.includes(0) ? 1.1 : 1; window.__perkHeat = b.includes(2) ? 0.8 : 1; }
+  perks();
+  const _as = applyShip; applyShip = function(full){ _as(full); if (save.boss.includes(1)){ hp.shieldMax += 25; if (full) hp.shield = hp.shieldMax; } };
+  const _cc = crewCargo; crewCargo = function(){ return _cc() + (save.boss.includes(3) ? 10 : 0); };
+  applyShip(false);
+  const _ld = window.__leaderDrop; window.__leaderDrop = function(n){ if (n.boss == null) _ld(n); };
+  const css = document.createElement('style'); css.textContent = '#bossBar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);transform:translateX(-50%);z-index:5;width:min(460px,56vw);display:none;pointer-events:none;text-align:center;font:700 13px var(--font);letter-spacing:.14em;color:#ffd0d6;text-shadow:0 0 8px #000}#bossBar.on{display:block}#bossBar .b{height:9px;margin-top:4px;border:1px solid rgba(255,107,138,.7);border-radius:5px;background:rgba(20,6,10,.7);position:relative;overflow:hidden}#bossBar .b u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff3b5c,#ff9a6e);transition:width .25s}#bossBar .b s{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}';
+  document.head.appendChild(css);
+  const bar = document.createElement('div'); bar.id = 'bossBar'; bar.innerHTML = '<span></span><div class="b"><u></u><s style="left:33.3%"></s><s style="left:66.6%"></s></div>'; document.body.appendChild(bar);
+  let lair = null, lairSys = -1, lairPos = V(0, 0, 0), mark = null, L = null, guards = [], phase = 1, salvoT = 0, salvoHit = 0;
+  const _fm = window.__featMap; window.__featMap = () => _fm().concat(mark ? [mark] : []);
+  window.__bossDbg = () => ({ L, phase, lairPos, mark });
+  function setLair(k){
+    if (lair){ scene.remove(lair); lair = null; } mark = null; lairSys = k; L = null; guards = []; bar.classList.remove('on');
+    if (save.boss.includes(k) || !BOSS[k]) return;
+    lairPos.set(...BOSS[k].at); for (const b of [PLANET, GIANT, PLANET2, PLANET3, ...STATIONS]) if (b.pos.distanceTo(lairPos) < (b.r || 100) + 1500) lairPos.y += 2600;
+    lair = new THREE.Group(); const md = window.__olayModel && window.__olayModel('kamp'); if (md){ md.scale.setScalar(520); lair.add(md); }
+    const gl = sprite(glowTexture(255, 60, 60), 900, 0.4); lair.add(gl); lair.position.copy(lairPos); lair.rotation.set(0.3, rand(0, 6), 0.2); scene.add(lair);
+    mark = { kind: 'ruin', i: 8, gate: false, found: true, r: 300, ad: 'Korsan ini', label: 'Korsan ini · ' + BOSS[k].ad, pos: lairPos.clone(), group: { position: lairPos.clone() } };
+  }
+  function spawn(k){
+    const dir = rig.position.clone().sub(lairPos).normalize(), p = lairPos.clone().addScaledVector(dir, 420);
+    L = spawnNpc('leader', p, STATION); L.leader = true; L.boss = k; L.name = '★ ' + BOSS[k].ad; L.hull = L.hullMax = Math.round(1700 * (SYSC.hull || 1)); L.state = 'attack'; L.tgt = 'player'; L.atkT = time; L.provoked = true;
+    guards = ['brute', 'raider'].concat(k >= 2 ? ['reaver'] : []).map(ty => { const g = spawnNpc(ty, p.clone().add(V(rand(-120, 120), rand(-50, 50), rand(-120, 120))), STATION); g.state = 'attack'; g.tgt = 'player'; g.atkT = time; g.provoked = true; return g; });
+    phase = 1; salvoT = time + 8; bar.querySelector('span').textContent = BOSS[k].ad.toLocaleUpperCase('tr-TR'); bar.classList.add('on');
+    eco.radioT = -9; radio(BOSS[k].ad, BOSS[k].taunt, '#ff5a6e'); toast('Patron: ' + BOSS[k].ad, 4200); sfxP('patron_giris', 1) || blip(180, 0.5); shake = 0.5;
+  }
+  function despawn(){ for (const n of [L, ...guards]){ const i = npcs.indexOf(n); if (i >= 0){ npcs.splice(i, 1); disposeNpc3(n); scene.remove(n.g); } } L = null; guards = []; bar.classList.remove('on'); }
+  function win(k){
+    save.boss.push(k); const kr = Math.round(1500 * (SYSC.bounty || 1)); save.kredi += kr; givePart('levha', 6); givePart('devre', 4); givePart('hucre', 3); persist(); perks(); applyShip(false);
+    window.__addXp && window.__addXp(400); window.__fac && (window.__fac('filo', 15), window.__fac('korsan', -20));
+    bar.classList.remove('on'); sfxP('patron_olum', 1); shake = 1;
+    setTimeout(() => { toast(BOSS[k].ad + ' düştü! +' + kr + ' kredi · kalıcı ödül: ' + BOSS[k].perk, 6500); eco.radioT = -9; radio('Filo', 'Bütün kanallara: ' + BOSS[k].ad + ' etkisiz! Bu evren artık daha güvenli.', '#7be0a4'); }, 900);
+    if (lair){ const g = lair.children.find(c => c.isSprite); if (g) lair.remove(g); } mark = null;
+  }
+  EXTRA.push(dt => {
+    if (window.__hjOn) return;
+    if (lairSys !== curSys) setLair(curSys);
+    if (lair) lair.rotation.y += dt * 0.01;
+    if (docked || paused || !lair || save.boss.includes(curSys)) return;
+    const dl = rig.position.distanceTo(lairPos);
+    if (!L){ if (dl < 1600) spawn(curSys); return; }
+    if (npcs.indexOf(L) < 0){ const dead = L.hull <= 0; L = null; if (dead) win(curSys); else bar.classList.remove('on'); return; }
+    if (dl > 6500){ despawn(); toast('Reis inine çekildi. Geri döndüğünde seni bekliyor olacak.', 3400); return; }
+    const hf = clamp(L.hull / L.hullMax, 0, 1), d = L.pos.distanceTo(rig.position); bar.querySelector('u').style.width = (hf * 100).toFixed(1) + '%';
+    if (phase === 1 && hf <= 0.66){ phase = 2; setBanner('TAKVİYE GELİYOR', 'bad', 2); radio(BOSS[curSys].ad, 'Adamlarım! Bitirin şunu!', '#ff5a6e'); sfxP('patron_faz', 0.9);
+      for (const ty of ['raider', 'raider']){ const g = spawnNpc(ty, L.pos.clone().add(V(rand(-300, 300), rand(-100, 100), rand(-300, 300))), STATION); g.state = 'attack'; g.tgt = 'player'; g.atkT = time; g.provoked = true; guards.push(g); } }
+    if (phase === 2 && hf <= 0.33){ phase = 3; L.speed *= 1.3; setBanner('REİS ÖFKELENDİ', 'bad', 2); radio(BOSS[curSys].ad, 'Yeter! Seni kendi ellerimle parçalayacağım!', '#ff5a6e'); sfxP('patron_faz', 1); shake = 0.6; }
+    if (phase === 3 && L.fireT > 0.28) L.fireT = 0.28;
+    L.atkT = time; L.state = 'attack'; L.tgt = 'player';
+    // roket salvosu: haber verilir, hareket halindeysen ıskalar
+    if (phase >= 2 && !salvoHit && time > salvoT && d < 1100){ salvoHit = time + 1.5; setBanner('ROKET SALVOSU · HAREKET ET!', 'bad', 1.5); sfxP('salvo', 0.9) || sfxP('agir_atis', 0.9); }
+    if (salvoHit && time > salvoHit){ salvoHit = 0; salvoT = time + (phase === 3 ? 5 : 8);
+      for (let i = 0; i < 5; i++) npcBeam(L.pos.clone().add(V(rand(-20, 20), rand(-10, 10), rand(-20, 20))), rig.position.clone().add(V(rand(-40, 40), rand(-40, 40), rand(-40, 40))), 0);
+      if (vel.length() < 55 && d < 1300){ hurt(24 * (SYSC.dmg || 1)); burst(rig.position, 0xff8a50, 26, 60, 0.8); shake = 0.8; setBanner('SALVO İSABET', 'bad', 1.2); } else setBanner('SALVODAN KAÇTIN', 'ok', 1.2); }
   });
 }
 

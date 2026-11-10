@@ -22,6 +22,8 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Rütbe ve görevler: satış, korsan avı, kaya, kalıntı ve görevler XP verir (Çaylak → Efsane). İstasyonlardaki Görevler sekmesinde isteğe bağlı görevler, en fazla 3 aktif.
 - Kapılar: Kızıl Geçit için Pilot + 250, Buzul Halka için Usta Pilot + 600, Zümrüt Sis için Kaptan + 1200 kredi. Ankora'ya dönüş serbest.
 - Evrenlere özgü yerler: Ankora'da sökülebilir eski uydu tarlası, Kızıl'da lav akıntısı ve güneş fırtınaları, Buzul'da buz devleri, Zümrüt'te kristal monolitler ve korsanlardan saklayan sis bulutları.
+- Gruplar ve itibar: Yıldız Filosu, Tüccar Loncası, Korsan Birliği. Korsan avı Filoyu, satış ve yardım Loncayı güçlendirir; itibar fiyatları, ödülleri ve kimin sana saldıracağını değiştirir.
+- Patron savaşları: her evrende bir korsan reisi kendi ininde bekler. Üç aşamalı dövüş (takviye, roket salvosu, öfke); yenince kalıcı bir ödül kazanılır.
 - Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
 - Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.
 - Enerji hücresi en çok keşifte çıkar: kalıntılar, kayıp sondalar, bilinmeyen enerji.
