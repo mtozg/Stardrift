@@ -1886,7 +1886,7 @@ function radarContent(c, I){
 }
 function drawCockpitImg(c){
   const s = IM.s, my = IM.my || (y => y), mp = (x, y) => [IM.dx + x * s, IM.dy + my(y) * s];
-  if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, 0, 0); k.clearRect(0, 0, W, H);
+  if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, 0, 0); k.clearRect(0, 0, W, H); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
     if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
       const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
       k.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
