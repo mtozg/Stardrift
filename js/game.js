@@ -13,6 +13,11 @@ const FONT = '"Rajdhani","Trebuchet MS","Segoe UI",system-ui,sans-serif';
 
 // ---------- Sahne ----------
 const glc = $('gl'), hud = $('hud'), hctx = hud.getContext('2d');
+// kokpit resmi kendi katmanında bir kez çizilir; üstteki hud2 ekranları ve göstergeleri taşır
+const ckc = document.createElement('canvas'), hud2 = document.createElement('canvas'); ckc.id = 'ckc'; hud2.id = 'hud2';
+for (const cv of [ckc, hud2]){ cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;display:block;z-index:1;pointer-events:none'; }
+hud.after(ckc); ckc.after(hud2);
+const ckx = ckc.getContext('2d'), hctx2 = hud2.getContext('2d');
 const renderer = new THREE.WebGLRenderer({ canvas: glc, antialias: true });
 renderer.setClearColor(0x03050c);
 const scene = new THREE.Scene();
@@ -24,6 +29,7 @@ let LAND = false, Hv = 0, OY = 0, OX = 0, VIEW = { l: 0, r: 0, t: 0, b: 0 }, WIN
 const IMG = { img: null, ok: false, iw: 1600, ih: 672 };
 let SX = 0, SY = 0, SK = 1, IMGMODE = false, SCR = [], paused = false, forcePlay = false;
 const IM = { s: 1, dx: 0, dy: 0 };
+let ckDirty = true, ckSway = '', scrTick = 0;
 function applyCam(extra){
   camera.fov = (baseFov + extra) * (window.__cz || 1) * (window.__cz2 || 1);
   camera.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H);   // bakış merkezini ön camın ortasına kaydırır
@@ -60,7 +66,7 @@ function resize(){
   st.style.transformOrigin = '0 0'; st.style.transform = 'scale(' + SK + ')';
   st.style.left = SX + 'px'; st.style.top = SY + 'px'; st.style.width = W + 'px'; st.style.height = H + 'px';
   renderer.setPixelRatio(DPR); renderer.setSize(W, H, false);
-  hud.width = W * DPR; hud.height = H * DPR;
+  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round(W * DPR); ckc.height = Math.round(H * DPR); ckDirty = true;
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
@@ -1538,7 +1544,7 @@ function layoutCockpit(){
       const q = d.q.map(p => { const vx = cx - p[0], vy = cy - p[1], l = Math.hypot(vx, vy) || 1; return mp(p[0] + vx / l * 2.5, p[1] + vy / l * 2.5); });
       const lw = Math.round((Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[3][0], q[2][1] - q[3][1])) / 2);
       const lh = Math.round((Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1])) / 2);
-      const cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * 1.6); cv.height = Math.round(lh * DPR * 1.6);
+      const cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * SCRK); cv.height = Math.round(lh * DPR * SCRK);
       return { q, lw, lh, cv, g: cv.getContext('2d'), kind: d.kind };
     });
     return;
@@ -1691,6 +1697,7 @@ function quadTri(c, cv, p0, p1, p2, src){
   c.save(); c.beginPath(); c.moveTo(p0[0], p0[1]); c.lineTo(p1[0], p1[1]); c.lineTo(p2[0], p2[1]); c.closePath(); c.clip();
   c.transform(src[0], src[1], src[2], src[3], src[4], src[5]); c.drawImage(cv, 0, 0); c.restore();
 }
+const SCRK = 1.15;   // kokpit ekranlarının iç çözünürlüğü (ekran yoğunluğuna göre)
 function drawQuad(c, sc){
   const [TL, TR, BR, BL] = sc.q, w = sc.cv.width, h = sc.cv.height;
   quadTri(c, sc.cv, TL, TR, BL, [(TR[0] - TL[0]) / w, (TR[1] - TL[1]) / w, (BL[0] - TL[0]) / h, (BL[1] - TL[1]) / h, TL[0], TL[1]]);
@@ -1700,7 +1707,7 @@ function drawQuad(c, sc){
 function scrBase(c, w, h, label){
   c.fillStyle = '#010409'; c.fillRect(0, 0, w, h);
   { const bg = label === 'Radar' ? MONIMG.blue : MONIMG.amber; if (bg){ c.globalAlpha = 0.9; c.drawImage(bg, 0, 0, w, h); c.globalAlpha = 1; } }
-  c.fillStyle = 'rgba(127,216,255,0.045)'; for (let y = 0; y < h; y += 3) c.fillRect(0, y, w, 1);
+  { if (!scrBase.pat){ const pc = document.createElement('canvas'); pc.width = 4; pc.height = 3; const px = pc.getContext('2d'); px.fillStyle = 'rgba(127,216,255,0.045)'; px.fillRect(0, 0, 4, 1); scrBase.pat = c.createPattern(pc, 'repeat'); } c.fillStyle = scrBase.pat; c.fillRect(0, 0, w, h); }
   c.fillStyle = '#5d6a8f'; c.font = fnt(500, 10); c.textAlign = 'left'; c.fillText(label, 8, 13); if (window.__ic) window.__ic(c, label === 'Sistem' ? 'i_crate' : label === 'Radar' ? 'i_foe' : 'i_hull', 12 + c.measureText(label).width, 2, 13);
   return { x: 6, y: 18, w: w - 12, h: h - 24 };
 }
@@ -1861,17 +1868,20 @@ function radarContent(c, I){
 }
 function drawCockpitImg(c){
   const s = IM.s, my = IM.my || (y => y), mp = (x, y) => [IM.dx + x * s, IM.dy + my(y) * s];
+  if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, 0, 0); k.clearRect(0, 0, W, H);
+    if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
+      const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
+      k.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
+      k.drawImage(im, 0, y1, im.naturalWidth, im.naturalHeight - y1, IM.dx, IM.dy + h1, IMG.iw * s, (IMG.ih - IM.R1) * IM.b * s);
+    } else k.drawImage(IMG.img, IM.dx, IM.dy, IMG.iw * s, IMG.ih * s); }
+  { const sw = 'translate(' + sway.x.toFixed(1) + 'px,' + sway.y.toFixed(1) + 'px)'; if (sw !== ckSway){ ckSway = sw; ckc.style.transform = sw; } }
   c.save(); c.translate(sway.x, sway.y);
-  if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
-    const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
-    c.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
-    c.drawImage(im, 0, y1, im.naturalWidth, im.naturalHeight - y1, IM.dx, IM.dy + h1, IMG.iw * s, (IMG.ih - IM.R1) * IM.b * s);
-  } else c.drawImage(IMG.img, IM.dx, IM.dy, IMG.iw * s, IMG.ih * s);
   // ekranlar: içerik önce küçük bir tuvale çizilir, sonra eğik ekran yüzeyine oturtulur
-  SCR.forEach(sc => {
-    const g = sc.g; g.setTransform(DPR * 1.6, 0, 0, DPR * 1.6, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
-    const I = scrBase(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde');
-    (sc.kind === 'bars' ? barsScreen : sc.kind === 'map' ? radarScreen : hullScreen)(g, I);
+  const ui = scrTick++ % Math.max(1, SCR.length);   // her karede tek ekranın içeriği yenilenir (sırayla, ~20 Hz); hepsi her karede yerine oturtulur
+  SCR.forEach((sc, i) => {
+    if (i === ui || !sc.drawn){ sc.drawn = true; const g = sc.g; g.setTransform(DPR * SCRK, 0, 0, DPR * SCRK, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
+      const I = scrBase(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde');
+      (sc.kind === 'bars' ? barsScreen : sc.kind === 'map' ? radarScreen : hullScreen)(g, I); }
     drawQuad(c, sc);
   });
   // panel lambaları: tehlikede kırmızı kristaller hızlı yanıp söner, hızlanırken mavi halka yanar
@@ -2205,6 +2215,8 @@ function drawHud(){
     c.stroke(); c.fillStyle = c.strokeStyle; c.fillRect(ox - 1, oy - 1, 2, 2);
   }
 
+  { const c = hctx2; c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, W, H);
+  if (!IMGMODE && ckx.__img !== null){ ckx.__img = null; ckx.setTransform(1, 0, 0, 1, 0, 0); ckx.clearRect(0, 0, ckc.width, ckc.height); }
   drawCockpit(c);
   if (!docked){ drawRing(c, ox, oy, speed); drawOverlay(c); }
   // hız hissi: kenarlarda kararma ve mavi parıltı
@@ -2212,6 +2224,7 @@ function drawHud(){
     if (sp > 0.02){ const R = Math.hypot(W, H) * 0.6, g = c.createRadialGradient(ox, oy, R * 0.35, ox, oy, R); g.addColorStop(0, 'rgba(10,30,70,0)'); g.addColorStop(1, `rgba(20,60,140,${Math.min(0.5, sp * 0.45)})`); c.fillStyle = g; c.fillRect(0, 0, W, H); } }
   if (shieldFx > 0.02) drawShieldFx(c, ox, oy, W, H);
   if (scrFlash > 0.01){ c.fillStyle = `rgba(255,225,190,${scrFlash * 0.55})`; c.fillRect(0, 0, W, H); }
+  }
 }
 
 // ---------- Çizimler: yüklenince yerlerine takılır (yüklenemezse koddan üretilenler kalır) ----------
