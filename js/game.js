@@ -942,7 +942,7 @@ const PSHIPS = [
   { id: 'kasif', ad: 'Kaşif', fiyat: 0, thr: 1, turn: 1, vmax: 1, hull: 1, shield: 1, cargo: 1, not: 'Dengeli, her işe uygun. Ücretsiz.' },
   { id: 'sahin', ad: 'Şahin', fiyat: 4500, thr: 1.3, turn: 1.3, vmax: 1.15, hull: 0.9, shield: 1.5, cargo: 0.7, not: 'Avcı gemisi: çevik, hızlı, güçlü kalkan. Kargosu küçük.' },
   { id: 'yuk', ad: 'Yük Devi', fiyat: 5000, thr: 0.8, turn: 0.75, vmax: 0.85, hull: 1.7, shield: 1, cargo: 2, not: 'Ağır madenci: iki kat kargo, sağlam gövde. Yavaş.' },
-  { id: 'hayalet', ad: 'Hayalet', fiyat: 7500, thr: 1.15, turn: 1.15, vmax: 1.3, hull: 0.8, shield: 1.2, cargo: 1.2, not: 'Hızlı ve hafif: en yüksek hız. Gövdesi ince.' }
+  { id: 'hayalet', ad: 'Hayalet', fiyat: 7500, thr: 1.4, turn: 1.15, vmax: 1.3, hull: 0.8, shield: 1.2, cargo: 1.2, not: 'Hızlı ve hafif: en yüksek hız. Gövdesi ince.' }
 ];
 const WPNS = [
   { id: 'darbe', ad: 'Darbe Mermisi', fiyat: 0, pvp: 1, mine: 1, range: 1, heat: 1, burst: 0.75, not: 'Standart lazer mermisi. Ücretsiz.' },
@@ -969,7 +969,7 @@ function applyShip(full){ hp.hullMax = Math.round(100 * SHP.hull); hp.shieldMax 
 applyShip(true);
 const mapHead = { x: 0, z: -1 };
 const prevVel = V(0, 0, 0), gAcc = V(0, 0, 0), qTmp = new THREE.Quaternion(), msgs = {};
-let thrustNow = 0, shake = 0, time = 0, spawnT = 0, fullWarn = 0, emptyWarn = -99, firing = false, aim = null;
+let thrustNow = 0, shake = 0, time = 0, spawnT = 0, fullWarn = 0, emptyWarn = -99, emptyWarnN = 0, firing = false, aim = null;
 
 rig.position.set(120, 20, 300);
 { const d = BELTS[0].c.clone().sub(rig.position); rig.lookAt(rig.position.clone().sub(d)); }
@@ -1367,7 +1367,7 @@ function update(dt){
     }
     if (laser.heat >= 100 && !laser.over){ laser.over = true; laser.burstT = 0; setBanner('LAZER AŞIRI ISINDI', 'bad', 2.2); toast('Lazer aşırı ısındı. Soğuyana kadar bekle.'); }
     firing = laser.burstT > 0 && wantFire && !laser.over;
-    if (firing && !inRange && time - emptyWarn > 6){ emptyWarn = time; toast(aim && (aim.mesh || aim.hostile) ? 'Hedef menzil dışında. Lazer menzili ' + Math.round(range) + ' m, biraz yaklaş.' : 'Nişanda hedef yok. Lazer menzili ' + Math.round(range) + ' m.', 2600); }
+    if (firing && !inRange && time - emptyWarn > (emptyWarnN < 2 ? 6 : 60)){ emptyWarn = time; emptyWarnN++; toast(aim && (aim.mesh || aim.hostile) ? 'Hedef menzil dışında. Lazer menzili ' + Math.round(range) + ' m, biraz yaklaş.' : 'Nişanda hedef yok. Lazer menzili ' + Math.round(range) + ' m.', 2600); }
 
     beams.forEach(b => b.visible = false); impact.visible = false;
     if (firing){
@@ -5114,6 +5114,13 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
   #dock.stage:not(.hgmode) #hgVw{display:none}
   #dock.hgmode #hgInfo,#dock.stage #hgInfo{bottom:84px !important}
   @media (max-width:760px){#dock .card,#dock.hgmode .card{width:62vw !important}#undock{left:19vw !important}#hgStage{right:62vw !important}}
+  /* gemi gösterilmeyen istasyonlar (ana istasyon dışı): menü ortada, hangar görseli arkada */
+  #dock:not(.stage){justify-content:center !important;align-items:center !important}
+  #dock:not(.stage) .card{width:min(760px,94vw) !important;height:calc(100% - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) !important;border-radius:16px !important;border-width:1px !important;
+    padding-bottom:84px !important;background:linear-gradient(180deg,rgba(11,17,33,.9),rgba(7,11,22,.93)) !important;box-shadow:0 18px 60px rgba(0,0,0,.6) !important;backdrop-filter:blur(3px)}
+  body:has(#dock:not(.hidden)) #tut{display:none !important}
+  #dock:not(.stage) #undock{left:50% !important;bottom:calc(env(safe-area-inset-bottom,0px) + 26px) !important}
+  @media (max-width:760px){#dock:not(.stage) .card{width:94vw !important}#dock:not(.stage) #undock{left:50% !important}}
   `;
   document.head.appendChild(st);
   const w = document.createElement('div'); w.id = 'dcont';
@@ -5818,6 +5825,8 @@ setTimeout(() => {
   addFlames = function(n){
     if (!n.g || (n.flameG && n.flameG.userData.neo)) return;
     const def = NPC_DEF[n.type]; if (!def) return; const L = def.L;
+    { const m3 = n.g.children.find(c => c.userData && c.userData.m3), T = m3 && window.__thrust && window.__thrust(m3.children[0], 'npc:' + n.type, 0.3);
+      if (T){ if (n.flameG) n.g.remove(n.flameG); const G = new THREE.Group(); G.userData.neo = true; G.userData.T = T; G.userData.s = []; n.g.add(G); n.flameG = G; if (n.eng) n.eng.visible = false; return; } }
     if (n.flameG){ n.g.remove(n.flameG); n.flameG = null; }
     const G = new THREE.Group(); G.userData.neo = true; G.userData.ph = Math.random() * 6;
     const halo = mkS(gw, 0.3), core = mkS(gt, 0.9), t1 = mkS(gw, 0.18), t2 = mkS(gt, 0.09);
@@ -5832,6 +5841,7 @@ setTimeout(() => {
     for (let _q47 = 0; _q47 < npcs.length; _q47++){ const n = npcs[_q47];
       if (!n.g) continue;
       if (!n.flameG || !n.flameG.userData.neo){ if (engineTex && n.visual) addFlames(n); if (!n.flameG || !n.flameG.userData.neo) continue; }
+      if (n.flameG.userData.T){ const d = NPC_DEF[n.type], sp = n.vel ? n.vel.length() : 0; n.flameG.userData.T.set(0.18 + 0.82 * Math.min(1, sp / ((d && d.spd[1]) || 60))); continue; }
       const G = n.flameG, ph = G.userData.ph, f = 0.8 + 0.2 * Math.sin(tt * 21 + ph) * Math.sin(tt * 8.3 + ph * 2);
       for (const [s, o] of G.userData.s) s.material.opacity = o * f;
     }
@@ -6276,7 +6286,7 @@ window.__xpal = {
       for (let i = 0; i < 6; i++){ const r = new THREE.Mesh(rgeo, rmat); r.position.z = -i * 60; sc.add(r); rings.push(r); }
       // gemi: hangar çıkışındaki gibi arkadan
       ship = mkShip(save.ship); const bb = new THREE.Box3().setFromObject(ship), sz = bb.getSize(new THREE.Vector3()), ln = Math.max(sz.x, 0.001);
-      const wrap = new THREE.Group(); ship.scale.multiplyScalar(2.6 / ln); wrap.add(ship); sc.add(wrap); const c2 = new THREE.Box3().setFromObject(wrap).getCenter(new THREE.Vector3()); ship.position.sub(c2); wrap.rotation.y = Math.PI / 2; ship = wrap;
+      const wrap = new THREE.Group(); ship.scale.multiplyScalar(2.6 / ln); wrap.add(ship); sc.add(wrap); const c2 = new THREE.Box3().setFromObject(wrap).getCenter(new THREE.Vector3()); ship.position.sub(c2); window.__thrust && window.__thrust(ship, save.ship, 1); wrap.rotation.y = Math.PI / 2; ship = wrap;
       glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(255, 255, 255), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.8 })); glow.position.set(0, 0, 1.6); sc.add(glow); mkd(glow.material);
       sc.add(new THREE.AmbientLight(0x8d9ab8, 0.55)); light = new THREE.PointLight(0xffffff, 1.2, 40); light.position.set(0, 1.5, 3); sc.add(light);
       const dl = new THREE.DirectionalLight(0xdfe8ff, 0.7); dl.position.set(-6, 8, 10); sc.add(dl);
@@ -6458,7 +6468,7 @@ window.__xpal = {
       tun.visible = false; sc.add(tun);
       core = new THREE.Sprite(mkd(new THREE.SpriteMaterial({ map: glowTexture(255, 255, 255), color: c1.clone().lerp(new THREE.Color(1, 1, 1), 0.5), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }))); core.scale.set(70, 70, 1); core.position.z = -260; sc.add(core);
       ship = mkShip(save.ship); const bb = new THREE.Box3().setFromObject(ship), sz = bb.getSize(new THREE.Vector3()), ln = Math.max(sz.x, 0.001);
-      const wrap = new THREE.Group(); ship.scale.multiplyScalar(2.6 / ln); wrap.add(ship); sc.add(wrap); const c3 = new THREE.Box3().setFromObject(wrap).getCenter(new THREE.Vector3()); ship.position.sub(c3); wrap.rotation.y = Math.PI / 2; ship = wrap;
+      const wrap = new THREE.Group(); ship.scale.multiplyScalar(2.6 / ln); wrap.add(ship); sc.add(wrap); const c3 = new THREE.Box3().setFromObject(wrap).getCenter(new THREE.Vector3()); ship.position.sub(c3); window.__thrust && window.__thrust(ship, save.ship, 1); wrap.rotation.y = Math.PI / 2; ship = wrap;
       eng = new THREE.Sprite(mkd(new THREE.SpriteMaterial({ map: glowTexture(255, 255, 255), color: 0x9fc4ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.85 }))); sc.add(eng);
       sc.add(new THREE.AmbientLight(0x8d9ab8, 0.6)); light = new THREE.PointLight(0x9fc4ff, 1.4, 50); sc.add(light);
       const dl = new THREE.DirectionalLight(0xdfe8ff, 0.7); dl.position.set(-6, 8, 10); sc.add(dl);
@@ -7217,9 +7227,95 @@ window.__olayModel = function(key){
   };
 }
 
+
+// ---- motor alevleri: sıcak çekirdek + renkli dış alev + şok halkaları + meme ışığı (hangar ve sinematikler)
+{
+  const THR = [], uT = { value: 0 };
+  // alev renkleri: gemi başına
+  const NZ = {
+    sahin: { col: [1.0, 0.42, 0.12], core: [1.0, 0.88, 0.65] },
+    yuk: { col: [1.0, 0.5, 0.16], core: [1.0, 0.9, 0.7] },
+    hayalet: { col: [0.62, 0.36, 1.0], core: [0.92, 0.86, 1.0] },
+    kasif: { col: [0.3, 0.62, 1.0], core: [0.85, 0.95, 1.0] },
+    pirate: { col: [1.0, 0.32, 0.12], core: [1.0, 0.8, 0.55] }, trader: { col: [0.45, 0.7, 1.0], core: [0.88, 0.95, 1.0] }, miner: { col: [1.0, 0.62, 0.25], core: [1.0, 0.92, 0.75] },
+    patrol: { col: [0.35, 0.9, 1.0], core: [0.85, 1.0, 1.0] }, boss: { col: [1.0, 0.25, 0.1], core: [1.0, 0.75, 0.5] }
+  };
+  const npcCol = id => { if (!id || id.indexOf('npc:') !== 0) return null; const t = id.slice(4); if (/^boss/.test(t)) return NZ.boss; const d = NPC_DEF[t]; return d ? NZ[d.role] : null; };
+  let geo = null;
+  const mkGeo = () => { const pts = []; for (let i = 0; i <= 24; i++){ const t = i / 24, r = t < 0.06 ? 0.86 + 2.3 * t : Math.pow(1 - t, 0.75) * (1 - 0.22 * t); pts.push(new THREE.Vector2(Math.max(0.0005, r), t)); }
+    const g = new THREE.LatheGeometry(pts, 20); g.rotateZ(Math.PI / 2); g.boundingBox = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3()); g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 0.001); return g; };   // -x yönünde uzanır; kutu hesabına girmez
+  const VS = 'varying vec3 vN; varying vec3 vV; varying float vT; void main(){ vT = uv.y; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }';
+  const FS = 'uniform vec3 uCol; uniform vec3 uCore; uniform float uT; uniform float uP; uniform float uPh; uniform float uIn; varying vec3 vN; varying vec3 vV; varying float vT;' +
+    'void main(){ float f = abs(dot(normalize(vN), normalize(vV))); float t = vT;' +
+    'float body = pow(f, 1.4) * pow(1.0 - t, 1.5); float core = pow(f, 4.0) * pow(max(0.0, 1.0 - t * 1.9), 2.0);' +
+    'float dia = 0.78 + 0.22 * sin(t * 46.0 - uT * 70.0 + uPh); float fl = 0.88 + 0.12 * sin(uT * 53.0 + uPh * 3.0) * sin(uT * 31.0 + uPh);' +
+    'vec3 c = (uCol * body * (uIn > 0.5 ? 1.6 : 1.0) * dia + uCore * core * 2.2) * uP * fl; float a = clamp(max(c.r, max(c.g, c.b)), 0.0, 1.0); gl_FragColor = vec4(c / max(a, 0.001), a); }'   // saydam tuvalde (hangar) koyu iz bırakmasın
+    + '';
+  const mat = (col, core, inner) => new THREE.ShaderMaterial({ uniforms: { uCol: { value: new THREE.Vector3(...col) }, uCore: { value: new THREE.Vector3(...core) }, uT, uP: { value: 1 }, uPh: { value: Math.random() * 6 }, uIn: { value: inner ? 1 : 0 } },
+    vertexShader: VS, fragmentShader: FS, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+  function nozzles(g, id){   // modelin arka yüzündeki meme diskleri (CircleGeometry) bulunur
+    g.updateWorldMatrix(true, true); const inv = new THREE.Matrix4().copy(g.matrixWorld).invert(), gs = new THREE.Vector3().setFromMatrixScale(g.matrixWorld).x, out = [];
+    const bb = new THREE.Box3(), tb = new THREE.Box3();
+    g.traverse(o => { if (!o.isMesh || o.name === 'glow' || !o.geometry) return; if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); tb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); bb.union(tb); });
+    bb.applyMatrix4(inv); const sz = bb.getSize(new THREE.Vector3());
+    g.traverse(o => { if (!o.isMesh || !o.geometry || o.geometry.type !== 'CircleGeometry' || !o.visible && o.name !== 'glow') return;
+      const p = o.getWorldPosition(new THREE.Vector3()).applyMatrix4(inv); if (p.x > bb.min.x + 0.04 * sz.x) return;
+      const r = o.geometry.parameters.radius * new THREE.Vector3().setFromMatrixScale(o.matrixWorld).x / gs;
+      const q = out.find(e => Math.hypot(e.p.y - p.y, e.p.z - p.z) < 0.02 * sz.x); if (q){ q.r = Math.max(q.r, r); q.p.x = Math.min(q.p.x, p.x); } else out.push({ p, r }); });
+    if (!out.length){   // meme diski olmayan modeller: arka %5'lik kesitin ortası
+      const v = new THREE.Vector3(), lim = bb.min.x + 0.05 * sz.x; let n = 0, y0 = 1e9, y1 = -1e9, z0 = 1e9, z1 = -1e9, mx = 1e9;
+      g.traverse(o => { if (!o.isMesh || !o.geometry || !o.geometry.attributes.position || o.geometry.attributes.position.count < 200) return; const a = o.geometry.attributes.position, mw = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld);
+        for (let i = 0; i < a.count; i += 2){ v.fromBufferAttribute(a, i).applyMatrix4(mw); if (v.x > lim) continue; n++; y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); z0 = Math.min(z0, v.z); z1 = Math.max(z1, v.z); mx = Math.min(mx, v.x); } });
+      if (n) out.push({ p: new THREE.Vector3(mx, (y0 + y1) / 2, (z0 + z1) / 2), r: Math.max(0.01 * sz.x, 0.36 * Math.min(y1 - y0, z1 - z0)) });
+    }
+    if (id === 'kasif') out.forEach(e => { e.r *= 1.15; });   // kasifte diskler çekirdek; meme daha geniş
+    g.traverse(o => { if (o.name === 'glow') o.visible = false; });
+    return out;
+  }
+  window.__thrust = function(g, id, power){
+    try {
+      if (!g || g.userData.thr) return g && g.userData.thr;
+      const npc = id && id.indexOf('npc:') === 0, N = NZ[id] || npcCol(id) || NZ.kasif, list = nozzles(g, id); if (!list.length) return null;
+      if (!geo) geo = mkGeo();
+      const parts = [];
+      for (const { p, r } of list){
+        const outer = new THREE.Mesh(geo, mat(N.col, N.core, false)), inner = new THREE.Mesh(geo, mat(N.col, N.core, true));
+        outer.position.copy(p); inner.position.copy(p); outer.frustumCulled = inner.frustumCulled = false; outer.renderOrder = inner.renderOrder = 5;
+        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(Math.round(N.col[0] * 255), Math.round(N.col[1] * 255), Math.round(N.col[2] * 255)), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+        const hot = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(255, 245, 230), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+        halo.position.copy(p); hot.position.copy(p).x -= r * 0.15; halo.renderOrder = hot.renderOrder = 6;
+        [outer, inner, halo, hot].forEach(o => g.add(o)); parts.push({ outer, inner, halo, hot, r, ph: Math.random() * 6 });
+      }
+      const pl = npc ? { intensity: 0 } : new THREE.PointLight(new THREE.Color(...N.col), 0, list[0].r * 30); if (!npc){ pl.position.copy(list[0].p).x -= list[0].r * 3; g.add(pl); }   // ana sahnede NPC'lere ışık yok (performans)
+      const T = { g, parts, pl, p: power == null ? 0.45 : power, cur: power == null ? 0.45 : power, set(v){ this.p = Math.max(0, v); } };
+      g.userData.thr = T; THR.push(T); return T;
+    } catch (e) { console.warn('motor alevi', e); return null; }
+  };
+  let last = performance.now();
+  (function tick(now){
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; uT.value += dt;
+    for (let i = THR.length - 1; i >= 0; i--){
+      const T = THR[i]; if (!T.g.parent){ if (!T.lost) T.lost = now; if (now - T.lost > 3000) THR.splice(i, 1); continue; } T.lost = 0;
+      T.cur += (T.p - T.cur) * (1 - Math.exp(-6 * dt)); const k = T.cur;
+      for (const q of T.parts){
+        const jit = 1 + 0.06 * Math.sin(uT.value * 47 + q.ph) + 0.04 * Math.sin(uT.value * 113 + q.ph * 2);
+        q.outer.scale.set(q.r * (2.2 + 9 * k) * jit, q.r * (0.75 + 0.25 * k), q.r * (0.75 + 0.25 * k)); q.outer.material.uniforms.uP.value = 0.25 + 0.95 * k;
+        q.inner.scale.set(q.r * (1.2 + 3.6 * k) * jit, q.r * 0.5, q.r * 0.5); q.inner.material.uniforms.uP.value = 0.35 + 0.9 * k;
+        q.halo.scale.setScalar(q.r * (3.2 + 3.5 * k) * jit); q.halo.material.opacity = 0.35 + 0.45 * k;
+        q.hot.scale.setScalar(q.r * (1.5 + 1.2 * k)); q.hot.material.opacity = 0.55 + 0.4 * k;
+      }
+      T.pl.intensity = 0.6 + 2.2 * k;
+    }
+    requestAnimationFrame(tick);
+  })(last);
+  // hangar: rölantide motorlar
+  { const _h = hgSet; hgSet = function(id){ _h(id); if (hgM) window.__thrust(hgM, id, 0.4); }; if (typeof hgM !== 'undefined' && hgM) window.__thrust(hgM, save.ship, 0.4); }
+}
 // ---- hangara girerken / çıkarken gemi motorlarında hafif alev
 window.__xFlames = function(ship, isIn){
   try {
+    { const T = window.__thrust && window.__thrust(ship.children[0], save.ship, isIn ? 1 : 0.2);
+      if (T){ ship.userData.fl = (t, inn) => T.set(inn ? (t < 2.4 ? 1 - 0.55 * Math.max(0, (t - 1.2) / 1.2) : 0.45 * Math.max(0, 1 - (t - 2.4) / 1.4)) : Math.min(1, Math.max(0.15, (t - 0.6) / 1.2))); return; } }
     const bb = new THREE.Box3().setFromObject(ship), sz = bb.getSize(new THREE.Vector3()), cn = bb.getCenter(new THREE.Vector3()), W = sz.z, rx = bb.min.x + 0.04;
     const loc = ship.worldToLocal(new THREE.Vector3(rx, cn.y, cn.z)), pts = [[0.1, 0.1], [-0.1, 0.1], [0.1, -0.1], [-0.1, -0.1]].map(([a, b]) => new THREE.Vector3(loc.x, loc.y + b * W * 0.9, loc.z + a * W * 1.45));
     const gt = glowTexture(255, 170, 80), gt2 = glowTexture(255, 235, 200), parts = [];
@@ -7243,7 +7339,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
   const _af = addFlames;
   addFlames = function(n){
     _af(n);
-    if (n.type !== 'leader' || !n.flameG || n.flameG.userData.x4) return;
+    if (n.type !== 'leader' || !n.flameG || n.flameG.userData.x4 || n.flameG.userData.T) return;
     const L = NPC_DEF.leader.L, G0 = n.flameG; G0.userData.x4 = true; G0.visible = false;
     for (const [x, y] of [[0.11, 0.077], [-0.11, 0.077], [0.11, -0.073], [-0.11, -0.073]]){
       const c = G0.clone(); c.visible = true; c.scale.setScalar(0.6); c.position.set(x * L, y * L, -L * 0.54); n.g.add(c);
