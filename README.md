@@ -18,7 +18,12 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Korsanlar ve 3 boyutlu korsan lideri ile uzay savaşı.
 - Pilot adı ve otomatik kayıt.
 - Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan, korsan kampı, terk edilmiş istasyon, göç eden kristaller. Hepsi isteğe bağlı; kabul et ya da yoksay.
-- Kilit (T): nişandaki gemiye ya da gök cismine, nişan boşsa 5 km içindeki en yakın düşmana kilitlenir. Uzak yerler için haritada hedefe dokunulur. Asteroitler elle kazılır.
+- Kilit (T): nişandaki hedefe, nişan boşsa 5 km içindeki en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; kaya kırılınca sıradakine geçer. Uzak yerler için haritada hedefe dokunulur. Lazer menzili 450 m'den başlar.
+- Rütbe ve görevler: satış, korsan avı, kaya, kalıntı ve görevler XP verir (Çaylak → Efsane). İstasyonlardaki Görevler sekmesinde isteğe bağlı görevler, en fazla 3 aktif.
+- Kapılar: Kızıl Geçit için Pilot + 250, Buzul Halka için Usta Pilot + 600, Zümrüt Sis için Kaptan + 1200 kredi. Ankora'ya dönüş serbest.
+- Evrenlere özgü yerler: Ankora'da sökülebilir eski uydu tarlası, Kızıl'da lav akıntısı ve güneş fırtınaları, Buzul'da buz devleri, Zümrüt'te kristal monolitler ve korsanlardan saklayan sis bulutları.
+- Gruplar ve itibar: Yıldız Filosu, Tüccar Loncası, Korsan Birliği. Korsan avı Filoyu, satış ve yardım Loncayı güçlendirir; itibar fiyatları, ödülleri ve kimin sana saldıracağını değiştirir.
+- Patron savaşları: her evrende bir korsan reisi kendi ininde bekler. Üç aşamalı dövüş (takviye, roket salvosu, öfke); yenince kalıcı bir ödül kazanılır.
 - Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
 - Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.
 - Enerji hücresi en çok keşifte çıkar: kalıntılar, kayıp sondalar, bilinmeyen enerji.
