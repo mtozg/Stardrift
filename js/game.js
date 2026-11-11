@@ -328,7 +328,7 @@ const oreGeo = new THREE.OctahedronGeometry(1.5, 0);
 
 let asteroids = [], ores = [];
 const beltTotal = BELTS.reduce((t, b) => t + b.w, 0);
-function pickBelt(){ let r = Math.random() * beltTotal; for (const b of BELTS){ r -= b.w; if (r <= 0) return b; } return BELTS[0]; }
+function pickBelt(){ let r = Math.random() * beltTotal; for (let _q1 = 0; _q1 < BELTS.length; _q1++){ const b = BELTS[_q1]; r -= b.w; if (r <= 0) return b; } return BELTS[0]; }
 // derinlik: üsten uzaklaştıkça kayalar daha çok cevher verir, kristal daha sık çıkar (keşfe çıkmanın karşılığı)
 function depthMul(p){ const d = p.length(); return d > 6000 ? 2 : d > 3000 ? 1.5 : 1; }
 function makeAsteroid(far){
@@ -502,7 +502,7 @@ const msGlowTex = glowTexture(255, 190, 110);
 let missileCd = 0, missileSide = 1;
 function centerTarget(maxAng, maxD){
   let best = null, bs = maxAng;
-  for (const a of asteroids){
+  for (let _q2 = 0; _q2 < asteroids.length; _q2++){ const a = asteroids[_q2];
     tmp.copy(a.pos).sub(rig.position); const d = tmp.length(); if (d > maxD) continue;
     const ang = Math.acos(clamp(tmp.dot(fwd) / d, -1, 1)); if (ang < bs){ bs = ang; best = a; }
   }
@@ -552,7 +552,7 @@ function explodeMissile(pos, hitA){
   shake = Math.max(shake, clamp(1 - pos.distanceTo(rig.position) / 350, 0, 0.8)); (window.__sfxExpl ? window.__sfxExpl() : sfxBoom(1));
   { const dp = pos.distanceTo(rig.position); if (dp < 30) hurt((30 - dp) * 2); }
   const hits = [];
-  for (const a of asteroids){ const d = a.pos.distanceTo(pos), reach = a.r + W.reach; if (d < reach) hits.push([a, a === hitA ? W.direct * 2.4 : W.splash * 2.2 * (1 - d / reach)]); }
+  for (let _q3 = 0; _q3 < asteroids.length; _q3++){ const a = asteroids[_q3]; const d = a.pos.distanceTo(pos), reach = a.r + W.reach; if (d < reach) hits.push([a, a === hitA ? W.direct * 2.4 : W.splash * 2.2 * (1 - d / reach)]); }
   for (const [a, dmg] of hits){
     a.hp -= dmg; tmp.copy(a.pos).sub(pos).normalize(); a.vel.addScaledVector(tmp, 6);
     if (a.hp <= 0) breakAsteroid(a, true);
@@ -582,8 +582,8 @@ function updateMissiles(dt){
     emit(tmp, -m.dir.x * 28 + rand(-6, 6), -m.dir.y * 28 + rand(-6, 6), -m.dir.z * 28 + rand(-6, 6), 0xffc880, 0.3);
     emit(tmp, rand(-3, 3), rand(-3, 3), rand(-3, 3), 0x6b7488, 1.3); }
     let hit = null;
-    for (const a of asteroids) if (a.pos.distanceTo(m.g.position) < a.r * 0.95 + 1.5){ hit = a; break; }
-    if (!hit) for (const n of npcs) if (n.pos.distanceTo(m.g.position) < n.r + 2){ hit = n; break; }
+    for (let _q49 = 0, a; _q49 < asteroids.length && ((a = asteroids[_q49]), true); _q49++) if (a.pos.distanceTo(m.g.position) < a.r * 0.95 + 1.5){ hit = a; break; }
+    if (!hit) for (let _q50 = 0, n; _q50 < npcs.length && ((n = npcs[_q50]), true); _q50++) if (n.pos.distanceTo(m.g.position) < n.r + 2){ hit = n; break; }
     const stop = hit || m.life <= 0 || STATIONS.some(st => m.g.position.distanceTo(st.pos) < st.r) || m.g.position.distanceTo(PLANET.pos) < PLANET.r || m.g.position.distanceTo(GIANT.pos) < GIANT.r;
     if (stop){ scene.remove(m.g); missiles.splice(i, 1); if (m.w) explW = m.w; explodeMissile(m.g.position.clone(), hit); }
   }
@@ -632,7 +632,7 @@ function radio(who, msg, col){
   setTimeout(() => { if (d.parentNode) d.parentNode.removeChild(d); }, 8000);
 }
 const near = (p, r) => p.distanceTo(rig.position) < r;
-function nearestStationTo(pos){ let b = STATIONS[0], bd = 1e9; for (const st of STATIONS){ const d = st.pos.distanceTo(pos); if (d < bd){ bd = d; b = st; } } return b; }
+function nearestStationTo(pos){ let b = STATIONS[0], bd = 1e9; for (let _q4 = 0; _q4 < STATIONS.length; _q4++){ const st = STATIONS[_q4]; const d = st.pos.distanceTo(pos); if (d < bd){ bd = d; b = st; } } return b; }
 function hoverPoint(st){ return st.pos.clone().add(V(rand(-1, 1), rand(-0.3, 0.3), rand(-1, 1)).normalize().multiplyScalar(st.r + rand(120, 260))); }
 function setDest(n, p, arriveR){ if (!n.dest) n.dest = V(0, 0, 0); n.dest.copy(p); n.arriveR = arriveR || 0; }
 
@@ -689,7 +689,7 @@ function killNpc(n, by){
     eco.threat += 0.15; if (near(p, 3500)) radio('Telsiz', n.name + ' kaybedildi.', '#ff5a6e');
     if (by === 'player'){ save.kredi = Math.max(0, save.kredi - 100); persist(); toast('Sivil gemiyi vurdun: -100 kredi ceza', 3200); }
   }
-  disposeNpc3(n); scene.remove(n.g); for (const a of asteroids) if (a.claim === n.id) a.claim = 0;
+  disposeNpc3(n); scene.remove(n.g); for (let _q51 = 0, a; _q51 < asteroids.length && ((a = asteroids[_q51]), true); _q51++) if (a.claim === n.id) a.claim = 0;
 }
 function npcShoot(n, tpos, tgt){
   if (n.fireT > 0) return;
@@ -716,19 +716,24 @@ function npcSteer(n, dt){
     if (d > 0.5){ const f = n.arriveR > 0 ? clamp((d - n.arriveR * 0.2) / (n.arriveR * 2 + 1), 0, 1) : 1; _w.copy(_a).multiplyScalar(spd * f / d); }
   }
   const vlen = n.vel.length();
-  for (const a of asteroids){
-    _a.copy(n.pos).sub(a.pos); const d2 = _a.lengthSq(), R = a.r + n.r + 28 + vlen * 0.9;
-    if (d2 < R * R && d2 > 0.01 && a !== n.tgt){ const d = Math.sqrt(d2); _w.addScaledVector(_a, (1 - d / R) * spd * 2.4 / d); }
+  // engellerden kaçış: düz sayı hesabı (vektör fonksiyonu çağrısı yok), uzak cisimler hemen elenir
+  const px = n.pos.x, py = n.pos.y, pz = n.pos.z, base = n.r + 28 + vlen * 0.9, k0 = spd * 2.4;
+  let wx = 0, wy = 0, wz = 0;
+  for (let ai2 = 0; ai2 < asteroids.length; ai2++){ const a = asteroids[ai2], ap = a.pos, R = a.r + base;
+    const dx = px - ap.x; if (dx > R || dx < -R) continue; const dy = py - ap.y; if (dy > R || dy < -R) continue; const dz = pz - ap.z; if (dz > R || dz < -R) continue;
+    const d2 = dx * dx + dy * dy + dz * dz;
+    if (d2 < R * R && d2 > 0.01 && a !== n.tgt){ const d = Math.sqrt(d2), k = (1 - d / R) * k0 / d; wx += dx * k; wy += dy * k; wz += dz * k; }
   }
-  for (const b of BODIES){
+  for (let bi2 = 0; bi2 < BODIES.length; bi2++){ const b = BODIES[bi2];
     if (b.kind === 'ruin') continue;
     if (b.kind === 'station' && (b === n.home || (n.trade && (b === n.trade.src || b === n.trade.dst)))) continue;
-    _a.copy(n.pos).sub(b.pos); const d2 = _a.lengthSq(), R = b.r + n.r + (b.kind === 'planet' ? 140 : 70) + vlen;
-    if (d2 < R * R && d2 > 0.01){ const d = Math.sqrt(d2); _w.addScaledVector(_a, (1 - d / R) * spd * 2.4 / d); }
+    const bp = b.pos, R = b.r + n.r + (b.kind === 'planet' ? 140 : 70) + vlen, dx = px - bp.x, dy = py - bp.y, dz = pz - bp.z, d2 = dx * dx + dy * dy + dz * dz;
+    if (d2 < R * R && d2 > 0.01){ const d = Math.sqrt(d2), k = (1 - d / R) * k0 / d; wx += dx * k; wy += dy * k; wz += dz * k; }
   }
+  _w.x += wx; _w.y += wy; _w.z += wz;
   if (_w.length() > spd * 1.3) _w.setLength(spd * 1.3);
   n.vel.lerp(_w, 1 - Math.exp(-1.7 * dt)); n.pos.addScaledVector(n.vel, dt);
-  for (const ax of ['x', 'y', 'z']) if (Math.abs(n.pos[ax]) > BOUND){ n.pos[ax] = Math.sign(n.pos[ax]) * BOUND; n.vel[ax] *= -0.5; }
+  for (let ai = 0; ai < 3; ai++){ const ax = AXES[ai]; if (Math.abs(n.pos[ax]) > BOUND){ n.pos[ax] = Math.sign(n.pos[ax]) * BOUND; n.vel[ax] *= -0.5; } }
   if (n.aimAt) _l.copy(n.aimAt); else if (vlen > 3) _l.copy(n.pos).add(n.vel); else return;
   npcDummy.position.copy(n.pos); npcDummy.lookAt(_l); n.g.quaternion.slerp(npcDummy.quaternion, 1 - Math.exp(-2.6 * dt));
 }
@@ -736,7 +741,7 @@ function npcSteer(n, dt){
 // ---- karar verme: her rolün kendi mantığı
 function pickAsteroid(n){
   let best = null, bd = 1e9;
-  for (const a of asteroids){
+  for (let _q7 = 0; _q7 < asteroids.length; _q7++){ const a = asteroids[_q7];
     if (a.claim && a.claimT > time && a.claim !== n.id) continue;
     const d = a.pos.distanceTo(n.pos) + a.pos.distanceTo(n.home.pos) * 0.4; if (d < bd){ bd = d; best = a; }
   }
@@ -749,7 +754,7 @@ function unloadAt(n, st){
 }
 function planTrade(n){
   const def = NPC_DEF[n.type]; let best = null, bs = 0;
-  for (const src of STATIONS) for (const dst of STATIONS){
+  for (let _q52 = 0, src; _q52 < STATIONS.length && ((src = STATIONS[_q52]), true); _q52++) for (let _q8 = 0; _q8 < STATIONS.length; _q8++){ const dst = STATIONS[_q8];
     if (src === dst) continue;
     for (const k in ORE){
       const avail = src.stock[k]; if (avail < 8) continue;
@@ -811,7 +816,7 @@ function thinkPatrol(n){
   if (n.state === 'repair'){ setDest(n, n.home.pos, 120); if (hf > 0.85) n.state = 'patrol'; return; }
   if (hf < 0.3){ n.state = 'repair'; n.tgt = null; return; }
   let tgt = null, bd = 1400;
-  for (const q of npcs){ if (!q.hostile) continue; const d = q.pos.distanceTo(n.pos); if (d < bd){ bd = d; tgt = q; } }
+  for (let _q9 = 0; _q9 < npcs.length; _q9++){ const q = npcs[_q9]; if (!q.hostile) continue; const d = q.pos.distanceTo(n.pos); if (d < bd){ bd = d; tgt = q; } }
   if (tgt){
     if (n.state !== 'engage'){ n.state = 'engage'; if (near(n.pos, 3000)) radio(n.name, 'Korsan tespit edildi, müdahale ediyoruz.', '#7fd8ff'); }
     n.tgt = tgt; n.spdMul = 1.1; _a.copy(tgt.vel).multiplyScalar(clamp(bd / (n.speed * 1.2), 0, 3)); _d.copy(tgt.pos).add(_a); setDest(n, _d, 90); return;
@@ -827,7 +832,7 @@ function thinkPatrol(n){
 function thinkPirate(n){
   const hf = n.hull / n.hullMax;
   if (n.state === 'flee'){ if (time > n.fleeT) n.state = 'roam'; return; }
-  let pn = null; for (const q of npcs){ if (q.role === 'patrol' && q.pos.distanceTo(n.pos) < 450){ pn = q; break; } }
+  let pn = null; for (let _q10 = 0; _q10 < npcs.length; _q10++){ const q = npcs[_q10]; if (q.role === 'patrol' && q.pos.distanceTo(n.pos) < 450){ pn = q; break; } }
   if (hf < 0.35 || (pn && hf < 0.7)){
     n.state = 'flee'; n.fleeT = time + 14; n.tgt = null;
     _a.copy(n.pos).sub(pn ? pn.pos : nearestStationTo(n.pos).pos); if (_a.lengthSq() < 1) _a.set(1, 0, 0); _a.setLength(2500); _d.copy(n.pos).add(_a); setDest(n, _d, 0); n.spdMul = 1.25; return;
@@ -846,7 +851,7 @@ function thinkPirate(n){
     }
   }
   let best = null, bs = -1;
-  for (const q of npcs){
+  for (let _q11 = 0; _q11 < npcs.length; _q11++){ const q = npcs[_q11];
     if (q.hostile || q.role === 'patrol') continue;
     const d = q.pos.distanceTo(n.pos); if (d > 900) continue;
     const sc = (q.load > 0 ? 2 : 1) * (1 - d / 900); if (sc > bs){ bs = sc; best = q; }
@@ -908,10 +913,10 @@ function updateEco(dt){
   const step = eco.t; eco.t = 0;
   eco.alerts = eco.alerts.filter(a => time - a.t < 25);
   eco.growT += step;
-  if (eco.growT > 100 && eco.growth < 4){ eco.growT = 0; eco.growth++; for (const st of STATIONS) st.cap += 60; radio('Ankora', 'Bölge büyüyor: yeni gemiler geliyor.', '#7fd8ff'); }
+  if (eco.growT > 100 && eco.growth < 4){ eco.growT = 0; eco.growth++; for (let _q53 = 0, st; _q53 < STATIONS.length && ((st = STATIONS[_q53]), true); _q53++) st.cap += 60; radio('Ankora', 'Bölge büyüyor: yeni gemiler geliyor.', '#7fd8ff'); }
   eco.threat = clamp(eco.threat + step * 0.004 + step * save.kredi / 4.5e6, 0.6, 4.5);
   for (const r in eco.cool) eco.cool[r] -= step;
-  const cnt = { miner: 0, trader: 0, patrol: 0, pirate: 0 }; for (const n of npcs) cnt[n.role]++;
+  const cnt = { miner: 0, trader: 0, patrol: 0, pirate: 0 }; for (let _q54 = 0, n; _q54 < npcs.length && ((n = npcs[_q54]), true); _q54++) cnt[n.role]++;
   const want = { miner: 3 + (eco.growth >= 2 ? 1 : 0) + (eco.growth >= 4 ? 1 : 0), trader: 3 + (eco.growth >= 1 ? 1 : 0), patrol: 2 + (eco.threat > 2.5 ? 1 : 0), pirate: Math.min(5, Math.floor(eco.threat * SYSC.danger)) };
   for (const role in want) if (cnt[role] < want[role] && eco.cool[role] <= 0){ spawnRole(role, false); eco.cool[role] = role === 'pirate' ? 14 : 8; break; }
 }
@@ -1082,17 +1087,17 @@ function toggleLock(){
   let t = (aim && aim.kind !== 'station') ? aim : null;
   if (!t){
     let bs = 0.12;
-    for (const n of npcs){ if (n.pos.distanceTo(rig.position) > LOCK_SCAN) continue; const a = angTo(n.pos, n.r); if (a < bs){ bs = a; t = n; } }
-    for (const k of asteroids){ if (k.pos.distanceTo(rig.position) > 2500) continue; const a = angTo(k.pos, k.r); if (a < bs){ bs = a; t = k; } }
-    if (!t) for (const b of BODIES){ if (b.kind === 'station' || (b.kind === 'ruin' && !(b.found || save.map || b.hint || b.pos.distanceTo(rig.position) < 3500))) continue; const a = angTo(b.pos, b.r); if (a < bs){ bs = a; t = b; } }
+    for (let _q12 = 0; _q12 < npcs.length; _q12++){ const n = npcs[_q12]; if (n.pos.distanceTo(rig.position) > LOCK_SCAN) continue; const a = angTo(n.pos, n.r); if (a < bs){ bs = a; t = n; } }
+    for (let _q13 = 0; _q13 < asteroids.length; _q13++){ const k = asteroids[_q13]; if (k.pos.distanceTo(rig.position) > 2500) continue; const a = angTo(k.pos, k.r); if (a < bs){ bs = a; t = k; } }
+    if (!t) for (let _q14 = 0; _q14 < BODIES.length; _q14++){ const b = BODIES[_q14]; if (b.kind === 'station' || (b.kind === 'ruin' && !(b.found || save.map || b.hint || b.pos.distanceTo(rig.position) < 3500))) continue; const a = angTo(b.pos, b.r); if (a < bs){ bs = a; t = b; } }
   }
   // 2) nişan boşsa: tarama menzilindeki en yakın düşman
-  if (!t){ let bd = LOCK_SCAN; for (const n of npcs){ if (!n.hostile) continue; const d = n.pos.distanceTo(rig.position); if (d < bd){ bd = d; t = n; } } }
+  if (!t){ let bd = LOCK_SCAN; for (let _q15 = 0; _q15 < npcs.length; _q15++){ const n = npcs[_q15]; if (!n.hostile) continue; const d = n.pos.distanceTo(rig.position); if (d < bd){ bd = d; t = n; } } }
   // 3) düşman da yoksa: 2 km içindeki en yakın kaya (kargo doluysa değil)
   if (!t && cargoSum() < cargoCap()) t = nearestRock(rig.position, 2000);
   if (t) setLock(t); else toast(cargoSum() >= cargoCap() ? 'Kargo dolu ve yakında düşman yok. Üsse dönüp sat; uzak yerler için haritayı (M) aç.' : 'Yakında düşman ya da kaya yok. Uzak yerler için haritayı (M) aç ve hedefe dokun.', 3400);
 }
-function nearestRock(p, maxD){ let best = null, bd = maxD; for (const k of asteroids){ const d = k.pos.distanceTo(p) - k.r; if (d < bd){ bd = d; best = k; } } return best; }
+function nearestRock(p, maxD){ let best = null, bd = maxD; for (let _q16 = 0; _q16 < asteroids.length; _q16++){ const k = asteroids[_q16]; const d = k.pos.distanceTo(p) - k.r; if (d < bd){ bd = d; best = k; } } return best; }
 $('bLock').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); toggleLock(); });
 $('bMissile').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); fireMissile(); });
 const taps = {};
@@ -1136,7 +1141,7 @@ $('hint').textContent = coarse
 setTimeout(() => { $('hint').style.opacity = 0; }, 16000);
 
 let bumpT = -9, nwT = -9, ramT = -9;
-const stationInRange = () => { for (const st of STATIONS) if (rig.position.distanceTo(st.pos) < st.dock) return st; return null; };
+const stationInRange = () => { for (let _q55 = 0, st; _q55 < STATIONS.length && ((st = STATIONS[_q55]), true); _q55++) if (rig.position.distanceTo(st.pos) < st.dock) return st; return null; };
 const nearStation = () => !!stationInRange();
 const SELLMAP = [null, 'demir', 'buz', 'kristal'];
 const stPrice0 = (st, k) => ORE[k].fiyat * (1.5 - 0.9 * clamp(st.stock[k] / st.cap, 0, 1)) * st.bias[k] * (SYSC.px[k] || 1) * (SYSC.pay || 1) * devMul(st, k);
@@ -1193,21 +1198,30 @@ function placeBeam(b, from, to){
   b.quaternion.setFromRotationMatrix(bm); b.position.copy(from); b.scale.set(len, b.userData.w ? b.userData.w : b.userData.wide ? clamp(len * 0.03, 1.2, 4.2) : clamp(len * 0.008, 0.3, 1.4), 1); b.visible = true;
 }
 
+// sık kullanılan cisim listeleri: her karede yeni dizi kurmak yerine aynı diziler güncellenir
+const NEARB = { a: [], b: [],
+  list(){ const a = this.a; let i = 0; const put = (c, r, z, m) => { const e = a[i] || (a[i] = [null, 0, 0, 0]); e[0] = c; e[1] = r; e[2] = z; e[3] = m; i++; };
+    for (let _q56 = 0, st; _q56 < STATIONS.length && ((st = STATIONS[_q56]), true); _q56++) put(st.pos, st.r, st.r + 560, 0.2);
+    put(PLANET.pos, PLANET.r, PLANET.r * 0.7 + 400, 0.28); put(GIANT.pos, GIANT.r, GIANT.r * 0.7 + 400, 0.28); put(PLANET2.pos, PLANET2.r, PLANET2.r * 0.8 + 400, 0.28); put(PLANET3.pos, PLANET3.r, PLANET3.r * 0.8 + 400, 0.28); put(moonMesh.position, MOON.r, MOON.r + 350, 0.3);
+    a.length = i; return a; },
+  bodies(){ if (!this.b.length) this.b = [[PLANET.pos, PLANET.r], [moonMesh.position, MOON.r], [GIANT.pos, GIANT.r], [PLANET2.pos, PLANET2.r], [PLANET3.pos, PLANET3.r]]; return this.b; }   // konum vektörleri yerinde güncellenir, dizi bir kez kurulur
+};
+const _gl = V(0, 0, 0), _gr = V(0, 0, 0), _end = V(0, 0, 0), _qi = new THREE.Quaternion(), _rp = { px: 0, py: 0, y: 0 }, AXES = ['x', 'y', 'z'];
 function update(dt){
   time += dt;
-  for (const st of STATIONS){
+  for (let _q17 = 0; _q17 < STATIONS.length; _q17++){ const st = STATIONS[_q17];
     st.group.rotation.y += dt * 0.12 * (st.scale < 1 ? -1 : 1);
     st.lights.forEach((l, i) => l.material.color.setHex((Math.floor(time * 2) + i) % 6 === 0 ? 0xffe0a0 : st.dim));
     for (const k in ORE) st.stock[k] = Math.max(0, st.stock[k] - st.use[k] * dt);
   }
   sky.position.copy(rig.position);
-  for (const f of EXTRA) f(dt);
+  for (let _q57 = 0, f; _q57 < EXTRA.length && ((f = EXTRA[_q57]), true); _q57++) f(dt);
   planetMesh.rotation.y += dt * 0.01; cloudMesh.rotation.y += dt * 0.014; giantMesh.rotation.y += dt * 0.006;
   moonAng += dt * 0.01;
   moonMesh.position.set(PLANET.pos.x + Math.cos(moonAng) * 2300, PLANET.pos.y + Math.sin(moonAng * 1.7) * 300, PLANET.pos.z + Math.sin(moonAng) * 2300);
-  for (const a of asteroids){ a.pos.addScaledVector(a.vel, dt); a.mesh.rotation.x += a.spin.x * dt; a.mesh.rotation.y += a.spin.y * dt; a.mesh.rotation.z += a.spin.z * dt; if (a.heat > 0){ a.heat -= dt; if (a.heat <= 0) a.mesh.material = astMat[a.type]; } }
+  for (let _q18 = 0; _q18 < asteroids.length; _q18++){ const a = asteroids[_q18]; a.pos.addScaledVector(a.vel, dt); a.mesh.rotation.x += a.spin.x * dt; a.mesh.rotation.y += a.spin.y * dt; a.mesh.rotation.z += a.spin.z * dt; if (a.heat > 0){ a.heat -= dt; if (a.heat <= 0) a.mesh.material = astMat[a.type]; } }
   updateEco(dt);
-  for (const r of ruins){ r.group.rotation.y += dt * 0.05; r.core.rotation.y += dt; r.core.scale.setScalar(1 + 0.15 * Math.sin(time * 2 + r.i)); }
+  for (let _q19 = 0; _q19 < ruins.length; _q19++){ const r = ruins[_q19]; r.group.rotation.y += dt * 0.05; r.core.rotation.y += dt; r.core.scale.setScalar(1 + 0.15 * Math.sin(time * 2 + r.i)); }
 
   fwd.set(0, 0, -1).applyQuaternion(rig.quaternion);
   const lvM = save.lv.motor, lvL = save.lv.lazer;
@@ -1259,11 +1273,8 @@ function update(dt){
     tmp.copy(vel).addScaledVector(fwd, -vf).multiplyScalar(Math.exp(-(boosting ? 1.4 : 0.6) * dt));   // yana kayma kendiliğinden azalır
     vel.copy(tmp).addScaledVector(fwd, vf);
     { // istasyon ve gezegenlere yaklaşırken yaklaşma hızı yumuşakça sınırlanır
-      const near = [];
-      for (const st of STATIONS) near.push([st.pos, st.r, st.r + 560, 0.2]);
-      near.push([PLANET.pos, PLANET.r, PLANET.r * 0.7 + 400, 0.28], [GIANT.pos, GIANT.r, GIANT.r * 0.7 + 400, 0.28], [PLANET2.pos, PLANET2.r, PLANET2.r * 0.8 + 400, 0.28], [PLANET3.pos, PLANET3.r, PLANET3.r * 0.8 + 400, 0.28], [moonMesh.position, MOON.r, MOON.r + 350, 0.3]);
-      let slow = 0;
-      for (const [c, rad, zone, mul] of near){
+      const near = NEARB.list(); let slow = 0;
+      for (let ni = 0; ni < near.length; ni++){ const nb = near[ni], c = nb[0], rad = nb[1], zone = nb[2], mul = nb[3];
         tmp.copy(c).sub(rig.position); const dc = tmp.length(), surf = dc - rad; if (surf > zone || dc < 1) continue;
         tmp.divideScalar(dc); const vr = vel.dot(tmp), lim = Math.max(3, surf * mul);
         if (vr > lim){ vel.addScaledVector(tmp, -(vr - lim) * (1 - Math.exp(-4.4 * dt))); slow = Math.max(slow, clamp(1 - surf / zone, 0, 1)); }
@@ -1288,7 +1299,7 @@ function update(dt){
       if (d < rad && d > 0.001){ tmp.divideScalar(d); rig.position.copy(c).addScaledVector(tmp, rad); const vn = vel.dot(tmp); if (vn < 0){ vel.addScaledVector(tmp, -vn); vel.multiplyScalar(0.92); if (time - bumpT > 1.5){ bumpT = time; toast('Yaklaşma sınırı: gemi yavaşlatıldı.', 1500); } } }
     };
     { let warn = null;
-      for (const n of npcs){
+      for (let _q20 = 0; _q20 < npcs.length; _q20++){ const n = npcs[_q20];
         tmp.copy(rig.position).sub(n.pos); const d = tmp.length(), rr = n.r + 9; if (d > rr + 170) continue;
         tmp.divideScalar(d || 1); tmp2.copy(vel).sub(n.vel); const cl = -tmp2.dot(tmp);
         if (d < rr){
@@ -1299,19 +1310,19 @@ function update(dt){
       if (warn && time - nwT > 0.8){ nwT = time; setBanner('ÇARPIŞMA UYARISI', 'bad', 0.9); if (!(window.__warnSnd && window.__warnSnd())) blip(880, 0.05); }
     }
     hazard = false;
-    for (const a of asteroids){
+    for (let _q21 = 0; _q21 < asteroids.length; _q21++){ const a = asteroids[_q21];
       const d2 = a.pos.distanceToSquared(rig.position), hz = a.r + 150;
       if (d2 < hz * hz) hazard = true;
       if (d2 < (a.r + 8) * (a.r + 8)) bounce(a.pos, a.r * 0.9 + 4);
     }
-    for (const st of STATIONS){ if (rig.position.distanceTo(st.pos) < st.r + 170) hazard = true; softStop(st.pos, st.r + 4); }
-    for (const [c, rad] of [[PLANET.pos, PLANET.r], [moonMesh.position, MOON.r], [GIANT.pos, GIANT.r], [PLANET2.pos, PLANET2.r], [PLANET3.pos, PLANET3.r]]){
+    for (let _q22 = 0; _q22 < STATIONS.length; _q22++){ const st = STATIONS[_q22]; if (rig.position.distanceTo(st.pos) < st.r + 170) hazard = true; softStop(st.pos, st.r + 4); }
+    for (const nb of NEARB.bodies()){ const c = nb[0], rad = nb[1];
       if (rig.position.distanceTo(c) < rad + 500) hazard = true;
       softStop(c, rad + 25);
     }
 
     // keşif
-    for (const r of ruins){
+    for (let _q23 = 0; _q23 < ruins.length; _q23++){ const r = ruins[_q23];
       if (!r.found && r.group.position.distanceTo(rig.position) < 260){
         r.found = true; save.ruin.push(r.i); persist(); onRuinFound(r); blip(520, 0.2); setTimeout(() => blip(780, 0.25), 150); setTimeout(() => blip(1040, 0.3), 320);
         burst(r.group.position, 0x5ff0d0, 40, 70, 1.4);
@@ -1321,13 +1332,13 @@ function update(dt){
 
     // nişan
     let bd = 1e9; const maxView = Math.max(700, laserRange() + 250);
-    for (const a of asteroids){
+    for (let _q24 = 0; _q24 < asteroids.length; _q24++){ const a = asteroids[_q24];
       tmp.copy(a.pos).sub(rig.position); const d = tmp.length(), dot = tmp.dot(fwd);
       if (dot <= 0 || d - a.r > maxView) continue;
       const perp = Math.sqrt(Math.max(0, d * d - dot * dot));
       if (perp < a.r * 1.15 + d * 0.03 && d < bd){ bd = d; aim = a; }
     }
-    for (const n of npcs){
+    for (let _q25 = 0; _q25 < npcs.length; _q25++){ const n = npcs[_q25];
       tmp.copy(n.pos).sub(rig.position); const d = tmp.length(), dot = tmp.dot(fwd);
       if (dot <= 0 || d - n.r > maxView) continue;
       const perp = Math.sqrt(Math.max(0, d * d - dot * dot));
@@ -1353,10 +1364,10 @@ function update(dt){
 
     beams.forEach(b => b.visible = false); impact.visible = false;
     if (firing){
-      const gl = rig.localToWorld(GUN_TIP[0].clone()), gr = rig.localToWorld(GUN_TIP[1].clone());
+      const gl = rig.localToWorld(_gl.copy(GUN_TIP[0])), gr = rig.localToWorld(_gr.copy(GUN_TIP[1]));
       let end;
       if (inRange){
-        end = aim.pos.clone().addScaledVector(tmp.copy(rig.position).sub(aim.pos).normalize(), aim.r * 0.9);
+        end = _end.copy(aim.pos).addScaledVector(tmp.copy(rig.position).sub(aim.pos).normalize(), aim.r * 0.9);
         if (aim.mesh) aim.hp -= dps * WPN.mine * dt; else damageNpc(aim, dps * WPN.pvp * dt, 'player'); shake = Math.max(shake, 0.12);
         impact.visible = true; impact.position.copy(end); impact.scale.setScalar(rand(5, 8)); impact.material.rotation = rand(0, TAU);
         tmp.copy(end).sub(aim.pos).normalize();
@@ -1368,7 +1379,7 @@ function update(dt){
         if (aim.mesh){ aim.heat = 0.25; aim.mesh.material = hotMat(aim.type); }
         if (aim.mesh && aim.hp <= 0){ shake = Math.max(shake, 0.4); breakAsteroid(aim, false); aim = null; }
         else if (aim && aim.kind === 'npc' && npcs.indexOf(aim) < 0){ shake = Math.max(shake, 0.4); aim = null; }
-      } else end = rig.position.clone().addScaledVector(fwd, range);
+      } else end = _end.copy(rig.position).addScaledVector(fwd, range);
       fireBolts(dt, gl, gr, end);
     }
 
@@ -1458,7 +1469,7 @@ function proj(pos){
 }
 function drawNpcTags(c){
   c.save(); c.textAlign = 'center'; c.font = `600 11px ${FONT}`;
-  for (const n of npcs){
+  for (let _q26 = 0; _q26 < npcs.length; _q26++){ const n = npcs[_q26];
     if (n.hostile) continue;
     const d = rig.position.distanceTo(n.pos); if (d > 650 && n !== lock) continue;
     const p = proj(n.pos); if (p.behind || p.x < VIEW.l + 8 || p.x > VIEW.r - 8 || p.y < VIEW.t + 8 || p.y > VIEW.b - 8) continue;
@@ -1486,26 +1497,26 @@ function drawMarker(c, pos, color, label, dist, maxTxt){
   }
 }
 function drawRadar(c, cx, cy, rr){
-  const qi = rig.quaternion.clone().invert(), RANGE = boosting ? 2400 : 1000, k = rr / RANGE;
+  const qi = _qi.copy(rig.quaternion).invert(), RANGE = boosting ? 2400 : 1000, k = rr / RANGE;
   c.save(); c.beginPath(); c.arc(cx, cy, rr, 0, TAU); c.fillStyle = 'rgba(4,10,20,0.92)'; c.fill(); c.clip();
   c.strokeStyle = 'rgba(70,110,170,0.4)'; c.lineWidth = 1;
   for (const f of [0.34, 0.67]){ c.beginPath(); c.arc(cx, cy, rr * f, 0, TAU); c.stroke(); }
   c.fillStyle = 'rgba(255,180,84,0.11)'; c.beginPath(); c.moveTo(cx, cy); c.arc(cx, cy, rr, -Math.PI / 2 - 0.55, -Math.PI / 2 + 0.55); c.closePath(); c.fill();
   c.strokeStyle = 'rgba(255,180,84,0.4)'; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.sin(-0.55) * rr, cy - Math.cos(0.55) * rr); c.moveTo(cx, cy); c.lineTo(cx + Math.sin(0.55) * rr, cy - Math.cos(0.55) * rr); c.stroke();
-  const pt = pos => { tmp.copy(pos).sub(rig.position).applyQuaternion(qi); return { px: tmp.x * k, py: tmp.z * k, y: tmp.y }; };
+  const pt = pos => { tmp.copy(pos).sub(rig.position).applyQuaternion(qi); _rp.px = tmp.x * k; _rp.py = tmp.z * k; _rp.y = tmp.y; return _rp; };
   const plot = (pos, col, size, rim) => {
     const q = pt(pos); let px = q.px, py = q.py; const d = Math.hypot(px, py);
     if (d > rr - 4){ if (!rim) return; px = px / d * (rr - 6); py = py / d * (rr - 6); }
     c.fillStyle = col; c.beginPath(); c.arc(cx + px, cy + py, size / 2, 0, TAU); c.fill();
   };
   // kayalar: sönük noktalar, yalnızca yakın olanlar
-  for (const a of asteroids){
+  for (let _q27 = 0; _q27 < asteroids.length; _q27++){ const a = asteroids[_q27];
     const q = pt(a.pos), d = Math.hypot(q.px, q.py); if (d > rr - 3) continue;
     c.fillStyle = a.type === 'kristal' ? 'rgba(255,120,160,0.55)' : a.type === 'buz' ? 'rgba(130,210,255,0.4)' : 'rgba(150,165,190,0.38)';
     c.fillRect(cx + q.px - 1, cy + q.py - 1, 2, 2);
   }
   // gemiler: düşman kırmızı üçgen, dost mavi nokta (yakınlarsa)
-  for (const n of npcs){
+  for (let _q28 = 0; _q28 < npcs.length; _q28++){ const n = npcs[_q28];
     const q = pt(n.g.position), d = Math.hypot(q.px, q.py); if (d > rr - 3) continue;
     if (n.hostile){ c.fillStyle = '#ff5a6e'; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 4.5); c.lineTo(cx + q.px - 3.5, cy + q.py + 3); c.lineTo(cx + q.px + 3.5, cy + q.py + 3); c.closePath(); c.fill(); }
     else if (d < rr * 0.75){ c.fillStyle = '#6cc4ff'; c.beginPath(); c.arc(cx + q.px, cy + q.py, 2.6, 0, TAU); c.fill(); }
@@ -1515,10 +1526,10 @@ function drawRadar(c, cx, cy, rr){
     if (!t || !t.pos) continue; const q = pt(t.pos), d = Math.hypot(q.px, q.py); if (d > rr - 5) continue;
     c.strokeStyle = col; c.lineWidth = 1.6; c.beginPath(); c.arc(cx + q.px, cy + q.py, 5, 0, TAU); c.stroke();
   }
-  for (const r of ruins) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 3500)) plot(r.group.position, '#5ff0d0', 5, true);
+  for (let _q58 = 0, r; _q58 < ruins.length && ((r = ruins[_q58]), true); _q58++) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 3500)) plot(r.group.position, '#5ff0d0', 5, true);
   extraPlots(plot);
   for (const b of [PLANET, GIANT, PLANET2, PLANET3]) plot(b.pos, 'rgba(190,205,230,0.8)', 6, true);
-  for (const s of STATIONS){ const q = pt(s.pos); let px = q.px, py = q.py; const d = Math.hypot(px, py); if (d > rr - 7){ px = px / d * (rr - 7); py = py / d * (rr - 7); } c.fillStyle = s === STATION ? '#ffb454' : '#8fe9ff'; c.fillRect(cx + px - 3.5, cy + py - 3.5, 7, 7); }
+  for (let _q29 = 0; _q29 < STATIONS.length; _q29++){ const s = STATIONS[_q29]; const q = pt(s.pos); let px = q.px, py = q.py; const d = Math.hypot(px, py); if (d > rr - 7){ px = px / d * (rr - 7); py = py / d * (rr - 7); } c.fillStyle = s === STATION ? '#ffb454' : '#8fe9ff'; c.fillRect(cx + px - 3.5, cy + py - 3.5, 7, 7); }
   c.restore();
   c.strokeStyle = '#2a3a66'; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, rr, 0, TAU); c.stroke();
   c.fillStyle = '#fff'; c.beginPath(); c.moveTo(cx, cy - 5); c.lineTo(cx - 4, cy + 4); c.lineTo(cx + 4, cy + 4); c.closePath(); c.fill();
@@ -1799,14 +1810,14 @@ function mapContent(c, I, opts){
   c.restore();
   const items = [];
   // kuşaklar: gerçek asteroitler
-  for (const a of asteroids){ const p = P(a.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 0, p, col: (ORE[a.type] || ORE.demir).css, sz: a.type === 'kristal' ? 1.8 : 1.2 }); }
-  if (mapRange > 9000) for (const b of BELTS){ if (!known(b.c)) continue; const p = P(b.c); c.fillStyle = b.rich ? 'rgba(255,107,138,0.12)' : 'rgba(150,160,185,0.1)'; c.beginPath(); c.ellipse(p.x, p.y, Math.max(3, b.r * k), Math.max(2, b.r * k * es), 0, 0, TAU); c.fill(); }
-  for (const st of STATIONS){ if (!known(st.pos)) continue; const p = P(st.pos); items.push({ y: p.gy, t: 1, p, obj: st, col: '#' + st.color.toString(16).padStart(6, '0') }); }
+  for (let _q30 = 0; _q30 < asteroids.length; _q30++){ const a = asteroids[_q30]; const p = P(a.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 0, p, col: (ORE[a.type] || ORE.demir).css, sz: a.type === 'kristal' ? 1.8 : 1.2 }); }
+  if (mapRange > 9000) for (let _q31 = 0; _q31 < BELTS.length; _q31++){ const b = BELTS[_q31]; if (!known(b.c)) continue; const p = P(b.c); c.fillStyle = b.rich ? 'rgba(255,107,138,0.12)' : 'rgba(150,160,185,0.1)'; c.beginPath(); c.ellipse(p.x, p.y, Math.max(3, b.r * k), Math.max(2, b.r * k * es), 0, 0, TAU); c.fill(); }
+  for (let _q32 = 0; _q32 < STATIONS.length; _q32++){ const st = STATIONS[_q32]; if (!known(st.pos)) continue; const p = P(st.pos); items.push({ y: p.gy, t: 1, p, obj: st, col: '#' + st.color.toString(16).padStart(6, '0') }); }
   for (const bd of [PLANET, GIANT, MOON, PLANET2, PLANET3]){ if (!known(bd.pos)) continue; const p = P(bd.pos); items.push({ y: p.gy, t: 2, p, obj: bd, name: bd.ad }); }
-  for (const r of ruins){ if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
+  for (let _q33 = 0; _q33 < ruins.length; _q33++){ const r = ruins[_q33]; if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
   { const o = window.__kadimObj && window.__kadimObj(); if (o){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); } }
   if (window.__featMap) for (const o of window.__featMap()){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); }
-  for (const n of npcs){ const p = P(n.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 4, p, obj: n }); }
+  for (let _q34 = 0; _q34 < npcs.length; _q34++){ const n = npcs[_q34]; const p = P(n.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 4, p, obj: n }); }
   items.sort((a, b) => a.y - b.y);
   if (opts.hits) mapHits = [];
   const placed = [];
@@ -1908,12 +1919,13 @@ function drawGlass(c, speed){
   // hız çizgileri
   if (speed > 50){
     const al = clamp((speed - 50) / 300, 0, 0.9), maxR = Math.hypot(W, H) * 0.6;
-    c.lineWidth = 1.6;
-    streaks.forEach(s => {
+    c.lineWidth = 1.6; c.strokeStyle = 'rgb(190,215,255)';
+    for (let si = 0; si < streaks.length; si++){ const s = streaks[si];
       const t = (time * 1.6 * s.s + s.o) % 1, r0 = (0.12 + t * 0.9) * maxR, r1 = r0 + (40 + speed * 0.6) * t;
-      c.strokeStyle = `rgba(190,215,255,${al * t})`; c.beginPath();
+      c.globalAlpha = al * t; c.beginPath();
       c.moveTo(ox + Math.cos(s.a) * r0, oy + Math.sin(s.a) * r0); c.lineTo(ox + Math.cos(s.a) * r1, oy + Math.sin(s.a) * r1); c.stroke();
-    });
+    }
+    c.globalAlpha = 1;
   }
   if (false && speedImg && speed > 90){
     const al = clamp((speed - 90) / 400, 0, 0.85) + (boosting ? 0.1 : 0), sz = Math.max(W, H) * (1.25 + 0.05 * Math.sin(time * 6)), jx = (Math.random() - 0.5) * 3;
@@ -2175,15 +2187,15 @@ function drawHud(){
         c.beginPath(); c.arc(p.x, p.y, 7, 0, TAU); c.moveTo(p.x - 13, p.y); c.lineTo(p.x - 7, p.y); c.moveTo(p.x + 7, p.y); c.lineTo(p.x + 13, p.y); c.moveTo(p.x, p.y - 7); c.lineTo(p.x, p.y - 12); c.stroke();
       }
     }
-    for (const st of STATIONS) if (known(st.pos)) drawMarker(c, st.pos, '#' + st.color.toString(16).padStart(6, '0'), st.ad.split(' ')[0], Math.max(0, rig.position.distanceTo(st.pos) - st.r));
+    for (let _q59 = 0, st; _q59 < STATIONS.length && ((st = STATIONS[_q59]), true); _q59++) if (known(st.pos)) drawMarker(c, st.pos, '#' + st.color.toString(16).padStart(6, '0'), st.ad.split(' ')[0], Math.max(0, rig.position.distanceTo(st.pos) - st.r));
     if (known(PLANET.pos)) drawMarker(c, PLANET.pos, '#7fd8ff', PLANET.ad, rig.position.distanceTo(PLANET.pos) - PLANET.r, 5000);
     if (known(GIANT.pos)) drawMarker(c, GIANT.pos, '#ffc58a', GIANT.ad, rig.position.distanceTo(GIANT.pos) - GIANT.r, 5000);
     if (known(PLANET2.pos)) drawMarker(c, PLANET2.pos, '#ff9a6a', PLANET2.ad, rig.position.distanceTo(PLANET2.pos) - PLANET2.r, 5000);
     if (known(PLANET3.pos)) drawMarker(c, PLANET3.pos, '#d6ecff', PLANET3.ad, rig.position.distanceTo(PLANET3.pos) - PLANET3.r, 5000);
-    for (const r of ruins){ const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 3500)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
+    for (let _q35 = 0; _q35 < ruins.length; _q35++){ const r = ruins[_q35]; const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 3500)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
     { const o = window.__kadimObj && window.__kadimObj(); if (o) drawMarker(c, o.pos, '#c9a7ff', 'Kadim Kapı', rig.position.distanceTo(o.pos)); }
     extraMarkers(c);
-    { let hc = 0; for (const n of npcs){ if (!n.hostile) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
+    { let hc = 0; for (let _q36 = 0; _q36 < npcs.length; _q36++){ const n = npcs[_q36]; if (!n.hostile) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
     drawNpcTags(c);
 
     if (aim){
@@ -2256,7 +2268,7 @@ loadArt(FX2.trail, t => { trailTex = t; });
 loadArt(FX2.rboom, t => { rboomTex = t; });
 loadArt(FX2.ring, t => { ringTex2 = t; });
 loadArt(FX2.shield, t => { shieldTex = t; });
-loadArt(FX2.engine, t => { engineTex = t; for (const n of npcs) if (n.visual) addFlames(n); });
+loadArt(FX2.engine, t => { engineTex = t; for (let _q60 = 0, n; _q60 < npcs.length && ((n = npcs[_q60]), true); _q60++) if (n.visual) addFlames(n); });
 loadArt(FX2.ebolt, t => { eboltMat.map = t; eboltMat.needsUpdate = true; });
 loadArt(FX2.damage, t => { damageTex = t; });
 loadArt(FX2.pickup, t => { pickupTex = t; });
@@ -2458,7 +2470,7 @@ function npc3D(skin, L){
 function disposeNpc3(n){ n.g.traverse(o => { if (o.userData && o.userData.m3){ o.traverse(q => { if (q.geometry) q.geometry.dispose(); if (q.material && q.material.isShaderMaterial) q.material.dispose(); }); } }); }
 function dressNpcs(skin){
   const sd = SHIPS[skin], tt = shipTex[skin];
-  for (const n of npcs){
+  for (let _q37 = 0; _q37 < npcs.length; _q37++){ const n = npcs[_q37];
     const def = NPC_DEF[n.type];
     if (def.skin !== skin || n.visual) continue;
     n.visual = true; n.parts.forEach(p => n.g.remove(p));
@@ -2543,7 +2555,7 @@ killNpc = function(n, by){
   const rec = crewRec(n.cid), p = n.pos.clone();
   let thanker = null;
   if (n.hostile && by === 'player'){
-    for (const c of npcs) if (!c.hostile && c.role !== 'patrol' && c !== n && (c.state === 'flee' || c.alertT > 0) && c.pos.distanceTo(p) < 1200){ thanker = c; break; }
+    for (let _q61 = 0, c; _q61 < npcs.length && ((c = npcs[_q61]), true); _q61++) if (!c.hostile && c.role !== 'patrol' && c !== n && (c.state === 'flee' || c.alertT > 0) && c.pos.distanceTo(p) < 1200){ thanker = c; break; }
   }
   _killNpc(n, by);
   if (rec) rec.alive = false;
@@ -2589,7 +2601,7 @@ const greeted = {};
 let gT = 0;
 EXTRA.push(dt => {
   gT -= dt; if (gT > 0) return; gT = 1;
-  for (const n of npcs){
+  for (let _q38 = 0; _q38 < npcs.length; _q38++){ const n = npcs[_q38];
     if (n.hostile || !n.cid) continue;
     const rec = crewRec(n.cid); if (!rec || rec.fav < 1) continue;
     if (n.pos.distanceTo(rig.position) < 650 && time - (greeted[rec.id] || -999) > 150){
@@ -2603,15 +2615,15 @@ EXTRA.push(dt => {
 // kayıt: dünya durumu
 function saveWorld(){
   if (curSys !== 0) return;
-  const st = {}; for (const s of STATIONS) st[s.ad] = { demir: Math.round(s.stock.demir), buz: Math.round(s.stock.buz), kristal: Math.round(s.stock.kristal) };
+  const st = {}; for (let _q62 = 0, s; _q62 < STATIONS.length && ((s = STATIONS[_q62]), true); _q62++) st[s.ad] = { demir: Math.round(s.stock.demir), buz: Math.round(s.stock.buz), kristal: Math.round(s.stock.kristal) };
   save.world = { t: Date.now(), growth: eco.growth, threat: +eco.threat.toFixed(2), kills: eco.kills, st };
   persist();
 }
 const W0 = save.world;
 if (W0){
-  eco.growth = clamp(W0.growth | 0, 0, 4); for (const s of STATIONS) s.cap = 400 + 60 * eco.growth;
+  eco.growth = clamp(W0.growth | 0, 0, 4); for (let _q63 = 0, s; _q63 < STATIONS.length && ((s = STATIONS[_q63]), true); _q63++) s.cap = 400 + 60 * eco.growth;
   eco.threat = clamp(W0.threat || 1, 0.6, 4.5); eco.kills = W0.kills | 0;
-  for (const s of STATIONS) if (W0.st && W0.st[s.ad]) for (const k in s.stock){ const v = W0.st[s.ad][k]; if (typeof v === 'number') s.stock[k] = clamp(v, 0, s.cap); }
+  for (let _q64 = 0, s; _q64 < STATIONS.length && ((s = STATIONS[_q64]), true); _q64++) if (W0.st && W0.st[s.ad]) for (const k in s.stock){ const v = W0.st[s.ad][k]; if (typeof v === 'number') s.stock[k] = clamp(v, 0, s.cap); }
 }
 let swT = 0;
 EXTRA.push(dt => { swT += dt; if (swT > 10){ swT = 0; saveWorld(); } });
@@ -2626,13 +2638,13 @@ function applyAway(){
   const dur = mins < 60 ? Math.round(mins) + ' dakika' : mins > 720 ? '12 saatten fazla' : (mins / 60).toFixed(1).replace('.', ',') + ' saat';
   const f = Math.min(1, m / 120);
   const before = STATIONS.map(s => Object.assign({}, s.stock));
-  for (const s of STATIONS){
+  for (let _q39 = 0; _q39 < STATIONS.length; _q39++){ const s = STATIONS[_q39];
     for (const k in s.stock) s.stock[k] = clamp(Math.round(s.stock[k] + rand(-0.3, 0.3) * s.cap * f), 5, s.cap);
     let bk = null, bv = 0;
     for (const k in s.stock){ const r = s.stock[k] / s.cap, dv = Math.abs(r - 0.5); if (dv > bv){ bv = dv; bk = k; } }
     if (bk){ const r = s.stock[bk] / s.cap; if (r < 0.2) news.push([s.ad.split(' ')[0], ORE[bk].ad + ' sıkıntısı var, fiyat yükseldi.', '#ffb454']); else if (r > 0.8) news.push([s.ad.split(' ')[0], 'Depolar ' + ORE[bk].ad.toLowerCase() + ' dolu, fiyat düştü.', '#7fd8ff']); }
   }
-  if (m >= 45 && eco.growth < 4){ eco.growth++; for (const s of STATIONS) s.cap += 60; news.push(['Ankora', 'Bölge büyüdü: trafik arttı.', '#7fd8ff']); }
+  if (m >= 45 && eco.growth < 4){ eco.growth++; for (let _q65 = 0, s; _q65 < STATIONS.length && ((s = STATIONS[_q65]), true); _q65++) s.cap += 60; news.push(['Ankora', 'Bölge büyüdü: trafik arttı.', '#7fd8ff']); }
   if (m >= 20){ const cand = BELTS.map((b, i) => i).filter(i => !save.calm[i]); if (cand.length){ const i = cand[(Math.random() * cand.length) | 0]; eco.threat = Math.min(4.5, eco.threat + 0.3); news.push(['Telsiz', beltAt(i) + ' korsan hareketi arttı.', '#ff5a6e']); } }
   if (m >= 60){ const cl = Object.keys(save.calm).filter(i => save.calm[i]); if (cl.length && Math.random() < 0.3){ const i = +cl[(Math.random() * cl.length) | 0]; save.calm[i] = false; save.kb[i] = 0; news.push(['Telsiz', beltAt(i) + ' yeni bir çete toplandı.', '#ff5a6e']); } }
   if (m >= 30){
@@ -2653,8 +2665,8 @@ let rumT = 45;
 EXTRA.push(dt => {
   rumT -= dt; if (rumT > 0) return; rumT = rand(90, 160);
   const opts = [];
-  for (const s of STATIONS) for (const k in s.stock) if (s.stock[k] / s.cap < 0.18) opts.push(s.ad + ': ' + ORE[k].ad.toLowerCase() + ' stoğu tükenmek üzere, getirene iyi fiyat.');
-  const seen = new Set(); for (const n of npcs) if (n.hostile){ const bi = beltIndexOf(n.pos); if (bi >= 0 && !seen.has(bi)){ seen.add(bi); opts.push(beltAt(bi) + ' korsan kampı görüldü.'); } }
+  for (let _q66 = 0, s; _q66 < STATIONS.length && ((s = STATIONS[_q66]), true); _q66++) for (const k in s.stock) if (s.stock[k] / s.cap < 0.18) opts.push(s.ad + ': ' + ORE[k].ad.toLowerCase() + ' stoğu tükenmek üzere, getirene iyi fiyat.');
+  const seen = new Set(); for (let _q67 = 0, n; _q67 < npcs.length && ((n = npcs[_q67]), true); _q67++) if (n.hostile){ const bi = beltIndexOf(n.pos); if (bi >= 0 && !seen.has(bi)){ seen.add(bi); opts.push(beltAt(bi) + ' korsan kampı görüldü.'); } }
   const hid = ruins.filter(r => !r.found);
   if (hid.length){ const r = hid[(Math.random() * hid.length) | 0]; let nb = null, nd = 1e9; for (const b of [PLANET, GIANT, PLANET2, PLANET3]){ const d = b.pos.distanceTo(r.group.position); if (d < nd){ nd = d; nb = b; } } { const what = r.gate ? 'bir sıçrama kapısı sinyali' : 'eski bir kalıntı sinyali'; opts.push(nb.ad + ' tarafında ' + what + ' yakalandı.'); opts.push(nb.ad + ' tarafında ' + what + ' yakalandı.'); } }
   { const trs = save.crew.filter(c => c.alive && (c.role === 'trader' || c.role === 'miner')); if (trs.length){ const c = trs[(Math.random() * trs.length) | 0], s = STATIONS[(Math.random() * STATIONS.length) | 0], k = Object.keys(ORE)[(Math.random() * 3) | 0]; opts.push({ who: c.name, msg: s.ad.split(' ')[0] + ': ' + ORE[k].ad.toLowerCase() + ' için ' + stPrice(s, k) + ' kredi ödüyorlar.' }); } }
@@ -2781,14 +2793,14 @@ function applyWorld(k){
   const tc = new THREE.Color(S.tint[0], S.tint[1], S.tint[2]), ts = new THREE.Color(1, 1, 1).lerp(tc, 0.5);
   for (const m of MV) tintObj(m.o, tc);
   tintObj(moonMesh, tc);
-  for (const st of STATIONS) st.group.traverse(o => { if (o.isMesh && o.material && o.material.type === 'MeshBasicMaterial' && o.material.map) tintObj(o, ts); });
+  for (let _q68 = 0, st; _q68 < STATIONS.length && ((st = STATIONS[_q68]), true); _q68++) st.group.traverse(o => { if (o.isMesh && o.material && o.material.type === 'MeshBasicMaterial' && o.material.map) tintObj(o, ts); });
   const dome = sky.children.find(c => c.isMesh); if (dome) dome.material.color.setRGB(S.sky[0], S.sky[1], S.sky[2]);
   SYSC.kr = S.kr; SYSC.ice = S.ice; SYSC.danger = S.danger; SYSC.px = S.px; SYSC.hull = S.hull || 1; SYSC.bounty = S.bounty || 1; SYSC.dmg = S.dmg || 1; SYSC.rock = S.rock || 1; SYSC.pay = S.pay || 1;
 }
 function clearWorld(){
-  for (const a of asteroids) scene.remove(a.mesh); asteroids.length = 0;
-  for (const o of ores) scene.remove(o.mesh); ores.length = 0;
-  for (const n of npcs){ disposeNpc3(n); scene.remove(n.g); } npcs.length = 0;
+  for (let _q69 = 0, a; _q69 < asteroids.length && ((a = asteroids[_q69]), true); _q69++) scene.remove(a.mesh); asteroids.length = 0;
+  for (let _q70 = 0, o; _q70 < ores.length && ((o = ores[_q70]), true); _q70++) scene.remove(o.mesh); ores.length = 0;
+  for (let _q40 = 0; _q40 < npcs.length; _q40++){ const n = npcs[_q40]; disposeNpc3(n); scene.remove(n.g); } npcs.length = 0;
   eco.alerts = []; for (const r in eco.cool) eco.cool[r] = 2; lock = null;
 }
 function enterSystem(k){
@@ -2842,7 +2854,7 @@ function renderJump(){
 { let tT = 0;
   EXTRA.push(dt => {
     tT -= dt; if (tT > 0 || docked) return; tT = 1;
-    for (const n of npcs) if (n.hostile && n.pos.distanceTo(rig.position) < 1100 && time - (n.tauntT || -999) > 240){
+    for (let _q71 = 0, n; _q71 < npcs.length && ((n = npcs[_q71]), true); _q71++) if (n.hostile && n.pos.distanceTo(rig.position) < 1100 && time - (n.tauntT || -999) > 240){
       n.tauntT = time; const L = ['Kargonu bırak, pilot!', 'Burası bizim kuşak.', 'Seni radarımda tutuyorum.', 'Son uyarı: geri dön.'];
       eco.radioT = -9; radio(n.name, L[(Math.random() * L.length) | 0], '#ff5a6e'); break;
     }
@@ -2958,7 +2970,7 @@ EXTRA.push(dt => {
   const _thPa = thinkPatrol;
   thinkPatrol = function(n){
     if (!n.escort) return _thPa(n);
-    let host = false; for (const q of npcs) if (q.hostile && q.pos.distanceTo(n.pos) < 1400){ host = true; break; }
+    let host = false; for (let _q72 = 0, q; _q72 < npcs.length && ((q = npcs[_q72]), true); _q72++) if (q.hostile && q.pos.distanceTo(n.pos) < 1400){ host = true; break; }
     if (host || n.state === 'repair' || n.hull < n.hullMax * 0.3) return _thPa(n);
     const d = n.pos.distanceTo(rig.position);
     if (d > 2200) n.pos.copy(rig.position).add(V(rand(-300, 300), rand(-60, 60), rand(200, 400)).applyQuaternion(rig.quaternion));
@@ -3015,7 +3027,7 @@ function spawnCache(){
     if (docked || save.cb <= 0){ scanT = 0; return; }
     if (scanT < 0){ scanT += dt; if (scanT > 0) scanT = 0; return; }
     if (scanT === 0){
-      for (const n of npcs) if (n.role === 'patrol' && !n.escort && n.pos.distanceTo(rig.position) < 450){ scanTgt = n; scanT = 0.001; eco.radioT = -9; radio(n.name, 'Rutin tarama! Uzaklaş.', '#ffb454'); toast('Devriye taraması başladı: uzaklaş!', 2800); break; }
+      for (let _q73 = 0, n; _q73 < npcs.length && ((n = npcs[_q73]), true); _q73++) if (n.role === 'patrol' && !n.escort && n.pos.distanceTo(rig.position) < 450){ scanTgt = n; scanT = 0.001; eco.radioT = -9; radio(n.name, 'Rutin tarama! Uzaklaş.', '#ffb454'); toast('Devriye taraması başladı: uzaklaş!', 2800); break; }
       return;
     }
     scanT += dt;
@@ -3115,7 +3127,7 @@ function exAct(a){
     const id = +a.slice(5); if (save.hired.length >= 2 || save.kredi < HIRE || save.hired.includes(id)) return;
     save.kredi -= HIRE; save.hired.push(id); persist(); const c = crewRec(id); liveSay(c ? c.name : 'Mürettebat', 'Katıldım, kaptan. Uçuşa hazırım.', '#7be0a4'); renderDock();
   } else if (a.indexOf('fire:') === 0){
-    const id = +a.slice(5); save.hired = save.hired.filter(x => x !== id); for (const n of npcs) if (n.cid === id) n.escort = false; persist(); renderDock();
+    const id = +a.slice(5); save.hired = save.hired.filter(x => x !== id); for (let _q74 = 0, n; _q74 < npcs.length && ((n = npcs[_q74]), true); _q74++) if (n.cid === id) n.escort = false; persist(); renderDock();
   }
 }
 // =====================  /ÜS + KAÇAK + MÜRETTEBAT + OLAYLAR  =====================
@@ -3137,7 +3149,7 @@ function setCockpit(id){
 const smokeTx = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 31); g.addColorStop(0, 'rgba(60,60,64,0.55)'); g.addColorStop(0.5, 'rgba(45,45,50,0.25)'); g.addColorStop(1, 'rgba(30,30,34,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
 const emberTx = glowTexture(255, 140, 50);
 EXTRA.push(dt => {
-  for (const n of npcs){
+  for (let _q41 = 0; _q41 < npcs.length; _q41++){ const n = npcs[_q41];
     if (!n.dmgSp || n.hull <= 0) continue;
     const d = n.pos.distanceTo(rig.position); if (d > 700 || fx.length > 140) continue;
     const sev = 1 - clamp(n.hull / (n.hullMax * 0.5), 0, 1);
@@ -4076,7 +4088,7 @@ function civTint(n){ if (!n.civ) return; n.g.traverse(o => { if (o.material && o
 function removeNpcQuiet(n){
   const i = npcs.indexOf(n); if (i < 0) return; npcs.splice(i, 1);
   if (lock === n) lock = null; if (comm.open && comm.n === n) commClose();
-  disposeNpc3(n); scene.remove(n.g); for (const a of asteroids) if (a.claim === n.id) a.claim = 0;
+  disposeNpc3(n); scene.remove(n.g); for (let _q75 = 0, a; _q75 < asteroids.length && ((a = asteroids[_q75]), true); _q75++) if (a.claim === n.id) a.claim = 0;
 }
 function spawnVisitor(){
   const civ = CIVS[(Math.random() * CIVS.length) | 0], st = STATIONS[(Math.random() * STATIONS.length) | 0];
@@ -4142,7 +4154,7 @@ function commTarget(){
   if (docked || comm.open) return null;
   if (lock && lock.kind === 'npc' && npcs.indexOf(lock) >= 0 && lock.pos.distanceTo(rig.position) < 1400) return lock;
   let best = null, bd = 1e9;
-  for (const n of npcs){ const d = n.pos.distanceTo(rig.position), lim = n.visitor ? 1400 : 900; if (d < lim && d < bd){ bd = d; best = n; } }
+  for (let _q42 = 0; _q42 < npcs.length; _q42++){ const n = npcs[_q42]; const d = n.pos.distanceTo(rig.position), lim = n.visitor ? 1400 : 900; if (d < lim && d < bd){ bd = d; best = n; } }
   return best;
 }
 function sellPrices(k){
@@ -4172,7 +4184,7 @@ function commRoot(n){
   }
   if (n.role === 'patrol'){
     return { say: '"Devriye ' + (fr ? 'sana selam, dostum' : 'dinliyor') + '. Bildirecek var mı?"', opts: [
-      { t: 'Tehlike var mı?', f: () => { let b = null, bd = 1e9; for (const q of npcs) if (q.hostile){ const d = q.pos.distanceTo(rig.position); if (d < bd){ bd = d; b = q; } } return { say: b && bd < 4000 ? '"En yakın korsan ' + Math.round(bd) + ' m uzakta. Dikkatli ol."' : '"Çevre sakin görünüyor."', opts: [{ t: 'Geri', f: () => commRoot(n) }, close] }; } },
+      { t: 'Tehlike var mı?', f: () => { let b = null, bd = 1e9; for (let _q76 = 0, q; _q76 < npcs.length && ((q = npcs[_q76]), true); _q76++) if (q.hostile){ const d = q.pos.distanceTo(rig.position); if (d < bd){ bd = d; b = q; } } return { say: b && bd < 4000 ? '"En yakın korsan ' + Math.round(bd) + ' m uzakta. Dikkatli ol."' : '"Çevre sakin görünüyor."', opts: [{ t: 'Geri', f: () => commRoot(n) }, close] }; } },
       { t: 'Destek çağır', f: () => { if (time < comm.helpT) return { say: '"Birimler zaten yolda."', opts: [close] }; comm.helpT = time + 60; eco.alerts.push({ pos: rig.position.clone(), t: time }); return { say: '"Anlaşıldı. Birimler konumuna yönlendirildi."', opts: [close] }; } }, close] };
   }
   if (n.role === 'miner'){
@@ -4244,7 +4256,7 @@ function devInfo(){ return { T: [0, 200, 600, 1400], N: ['Kamp', 'Rafineri', 'Al
 function devKey(st){ return curSys + ':' + STATIONS.indexOf(st); }
 function devAmt(st){ if (!save.dev) save.dev = {}; return save.dev[devKey(st)] || 0; }
 function devLv(st){ const T = devInfo().T, a = devAmt(st); let l = 1; for (let i = 1; i < T.length; i++) if (a >= T[i]) l = i + 1; return l; }
-function devTotal(){ let t = 0; for (const st of STATIONS) t += devLv(st) - 1; return t; }
+function devTotal(){ let t = 0; for (let _q77 = 0, st; _q77 < STATIONS.length && ((st = STATIONS[_q77]), true); _q77++) t += devLv(st) - 1; return t; }
 function devMul(st, k){ const i = STATIONS.indexOf(st); return i > 0 && SELLMAP[i] === k && devLv(st) >= 2 ? 1.12 : 1; }
 function devAccepts(st, k){ const i = STATIONS.indexOf(st), l = devLv(st); return l >= 4 || (l >= 3 && devInfo().SEC[i] === k); }
 function devPair(st){ const i = STATIONS.indexOf(st); if (i < 1 || devLv(st) < 3) return 0; const p = SELLMAP[i], s = devInfo().SEC[i]; return Math.min(cargo[p], cargo[s]) * ORE[s].fiyat * 0.5; }
@@ -4326,7 +4338,7 @@ EXTRA.push(dt => { if (comm.open) vel.multiplyScalar(Math.exp(-2.2 * dt)); });
     const tg = { l: 0, r: 0, t: 0, b: 0 };
     if (!docked){
       camera.getWorldQuaternion(_q); _q.invert();
-      for (const n of npcs){
+      for (let _q43 = 0; _q43 < npcs.length; _q43++){ const n = npcs[_q43];
         _cwA.copy(n.pos).sub(rig.position); const d = _cwA.length(), rr = n.r + 9; if (d > rr + 170) continue;
         _v.copy(_cwA).divideScalar(d || 1);         // yaklaşma hızı: göreli hızın bakış çizgisi üzerindeki bileşeni
         const closing = tmp2.copy(vel).sub(n.vel).dot(_v);
@@ -4428,7 +4440,7 @@ const A5 = {"em0": "assets/img/a5_em0.webp", "em1": "assets/img/a5_em1.webp", "e
     const R = 200;
     if (lock && lock.kind === 'npc' && npcs.indexOf(lock) >= 0 && lock.pos.distanceTo(rig.position) < R) return lock;
     let best = null, bd = 1e9;
-    for (const n of npcs){ const d = n.pos.distanceTo(rig.position); if (d < R && d < bd){ bd = d; best = n; } }
+    for (let _q44 = 0; _q44 < npcs.length; _q44++){ const n = npcs[_q44]; const d = n.pos.distanceTo(rig.position); if (d < R && d < bd){ bd = d; best = n; } }
     return best;
   };
 }
@@ -5216,7 +5228,7 @@ function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
       if (!n.ffW){ n.ffW = time; if (time - (window.__ffT || -99) > 5){ window.__ffT = time; toast('Dost gemiye ateş ettin! Tekrarlarsan karşılık verirler.', 3400); } radio(n.name, 'Ateş etme, dostuz! Bir daha olursa karşılık veririm.', '#ffb454'); }
       else if (time - n.ffW > 1.3 && !(n.rev > time)){
         n.rev = time + 45; radio(n.name, 'Seni uyardım! Savunma moduna geçtim!', '#ff5a6e'); eco.alerts.push({ pos: rig.position.clone(), t: time });
-        for (const q of npcs) if (q.role === 'patrol' && !q.hostile && q.pos.distanceTo(n.pos) < 3500) q.rev = time + 45;
+        for (let _q78 = 0, q; _q78 < npcs.length && ((q = npcs[_q78]), true); _q78++) if (q.role === 'patrol' && !q.hostile && q.pos.distanceTo(n.pos) < 3500) q.rev = time + 45;
       }
       if (n.rev > time) n.rev = time + 45;
     }
@@ -5250,7 +5262,7 @@ function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
   EXTRA.push(dt => {
     let tz = 1, on = false;
     if (!docked && !paused){
-      let best = null, bd = 1e9; for (const s of STATIONS){ const d = rig.position.distanceTo(s.pos); if (d < bd){ bd = d; best = s; } }
+      let best = null, bd = 1e9; for (let _q45 = 0; _q45 < STATIONS.length; _q45++){ const s = STATIONS[_q45]; const d = rig.position.distanceTo(s.pos); if (d < bd){ bd = d; best = s; } }
       const R = best.dock * 2.6, p = clamp(1 - bd / R, 0, 1), e = p * p * (3 - 2 * p);
       tz = 1 - 0.32 * e; on = p > 0.3;
       if (on){ const n = best.ad + (bd < best.dock ? ' · kenetlenebilirsin' : ' · yaklaşıyorsun'); if (n !== lastN){ lab.textContent = n; lastN = n; } }
@@ -5283,7 +5295,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
         SG.n = tr; SG.ps = ps; SG.tp = tp; SG.t1 = time + 160; radio(tr.name, 'Korsanlar peşimde! Yardım edin!', '#ffb454'); },
       tick(dt){ const tr = SG.n; if (npcs.indexOf(tr) < 0) return endEv('Ticaret gemisi kaybedildi.'); if (!SG.ps.some(p => npcs.indexOf(p) >= 0)){ const r = pay(170, 300); save.kredi += r; save.rep[tr.evSt.ad] = (save.rep[tr.evSt.ad] || 0) + 3; persist(); radio(tr.name, 'Kurtardın bizi! Sağ ol pilot.', '#7be0a4'); endEv('Yardım tamamlandı: +' + r + ' kredi'); return; } if (time > SG.t1) return endEv('Çağrı sönümlendi.'); info('Korsanları etkisiz hale getir · ' + dirTxt(tr.pos)); bar((SG.t1 - time) / 160); } },
     eskort: { w: 3, title: 'Eskort isteği', offer: 'Bir kargo gemisi teslimat için eşlik istiyor. Yanında kal, korsanlardan koru.',
-      go(){ const hm = nearestStationTo(rig.position); let dst = null, bd = 0; for (const s of STATIONS){ if (s === hm) continue; const d = s.pos.distanceTo(rig.position); if (!dst || (d > 1500 && d < bd) || bd < 1500){ dst = s; bd = d; } }
+      go(){ const hm = nearestStationTo(rig.position); let dst = null, bd = 0; for (let _q46 = 0; _q46 < STATIONS.length; _q46++){ const s = STATIONS[_q46]; if (s === hm) continue; const d = s.pos.distanceTo(rig.position); if (!dst || (d > 1500 && d < bd) || bd < 1500){ dst = s; bd = d; } }
         const tr = spawnNpc('cargo', ahead(220, 60), hm); tr.sg = 'esc'; tr.dst = dst; tr.alertT = 0; SG.n = tr; SG.dst = dst; SG.amb = time + rand(25, 45); SG.far = 0; SG.ps = []; radio(tr.name, dst.ad.split(' ')[0] + "'a gidiyorum. Yanımda kal!", '#7fd8ff'); },
       tick(dt){ const tr = SG.n; if (npcs.indexOf(tr) < 0) return endEv('Eskort gemisi kaybedildi.');
         if (SG.amb && time > SG.amb){ SG.amb = 0; for (let i = 0; i < 2; i++){ const p = spawnNpc(Math.random() < 0.6 ? 'raider' : 'brute', tr.pos.clone().add(V(rand(-400, 400), rand(-100, 100), rand(-400, 400))), tr.home); p.state = 'attack'; p.tgt = tr; p.atkT = time; SG.ps.push(p); } radio('Telsiz', 'Korsanlar eskort gemisine saldırıyor!', '#ff5a6e'); }
@@ -5401,7 +5413,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     if (!SG){
       if (window.__tutOn && time < 360 && !window.__forceEv) return;   // rehber sürerken ilk 6 dakika sinyal gelmez
       nextT -= dt; if (nextT > 0 && !window.__forceEv) return;
-      if (!window.__forceEv) for (const q of npcs) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextT = 20; return; }
+      if (!window.__forceEv) for (let _q79 = 0, q; _q79 < npcs.length && ((q = npcs[_q79]), true); _q79++) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextT = 20; return; }
       let tot = 0; for (const k in EV) tot += EV[k].w; let r = Math.random() * tot, key = 'yardim'; for (const k in EV){ r -= EV[k].w; if (r <= 0){ key = k; break; } }
       if (window.__forceEv){ key = window.__forceEv; window.__forceEv = null; }
       SG = { k: key, phase: 'offer', sys: curSys, t0: time }; const ev = EV[key]; show(ev.title, ev.offer, [['ok', ev.one ? 'Tamam' : 'Kabul'], ['no', 'Yoksay', 'n']]); if (!(window.__sfx && window.__sfx('sinyal', 0.6))){ blip(880, 0.12); setTimeout(() => blip(1180, 0.14), 140); } return;
@@ -5507,7 +5519,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     if (!on) return;
     M.t += dt; const sys = curSys, sc = SC[sys] || SC[0], root = (ROOT[sys] || 45);
     if (M.t > M.next){ M.next = M.t + 9; M.chord = (M.chord + 1) % 4; const r = root + PROG[M.chord]; M.vs.forEach((o, i) => { const n = r + sc[(M.chord + i * 2) % sc.length] + (i > 1 ? 12 : 0); o.frequency.setTargetAtTime(mf(n), now, 1.6); }); }
-    let hostile = false; if (!docked) for (const q of npcs) if (q.hostile && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
+    let hostile = false; if (!docked) for (let _q80 = 0, q; _q80 < npcs.length && ((q = npcs[_q80]), true); _q80++) if (q.hostile && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
     M.ten += ((hostile ? 1 : 0) - M.ten) * Math.min(1, dt * 0.6); M.lp.frequency.setTargetAtTime(700 + M.ten * 1500, now, 0.5);
     M.bell -= dt; if (M.bell <= 0){ M.bell = rand(3, 8) / (1 + M.ten); const o = AC.createOscillator(), eg = AC.createGain(), n = root + PROG[M.chord < 0 ? 0 : M.chord] + sc[(Math.random() * sc.length) | 0] + 24; o.type = 'triangle'; o.frequency.value = mf(n); eg.gain.setValueAtTime(0.0001, now); eg.gain.exponentialRampToValueAtTime(0.09, now + 0.02); eg.gain.exponentialRampToValueAtTime(0.0001, now + 3); o.connect(eg); eg.connect(M.g); eg.connect(M.dl); o.start(now); o.stop(now + 3.1); }
     M.pulse -= dt; if (M.ten > 0.25 && M.pulse <= 0){ M.pulse = 0.62; const o = AC.createOscillator(), eg = AC.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(72, now); o.frequency.exponentialRampToValueAtTime(38, now + 0.25); eg.gain.setValueAtTime(0.22 * M.ten, now); eg.gain.exponentialRampToValueAtTime(0.0001, now + 0.3); o.connect(eg); eg.connect(M.g); o.start(now); o.stop(now + 0.32); }
@@ -5784,7 +5796,7 @@ setTimeout(() => {
   let tt = 0;
   EXTRA.push(dt => {
     tt += dt;
-    for (const n of npcs){
+    for (let _q47 = 0; _q47 < npcs.length; _q47++){ const n = npcs[_q47];
       if (!n.g) continue;
       if (!n.flameG || !n.flameG.userData.neo){ if (engineTex && n.visual) addFlames(n); if (!n.flameG || !n.flameG.userData.neo) continue; }
       const G = n.flameG, ph = G.userData.ph, f = 0.8 + 0.2 * Math.sin(tt * 21 + ph) * Math.sin(tt * 8.3 + ph * 2);
@@ -5931,7 +5943,7 @@ setTimeout(() => {
   let gT = 0;
   EXTRA.push(dt => {
     gT += dt; if (gT < 20) return; gT = 0;
-    for (const s of STATIONS){ if (s.isBase) continue; let tr = 0; for (const n of npcs) if (!n.hostile && n.pos && n.pos.distanceTo(s.pos) < 1800) tr++; devAdd(s, 0.6 + 0.3 * Math.min(tr, 6)); }
+    for (let _q48 = 0; _q48 < STATIONS.length; _q48++){ const s = STATIONS[_q48]; if (s.isBase) continue; let tr = 0; for (let _q81 = 0, n; _q81 < npcs.length && ((n = npcs[_q81]), true); _q81++) if (!n.hostile && n.pos && n.pos.distanceTo(s.pos) < 1800) tr++; devAdd(s, 0.6 + 0.3 * Math.min(tr, 6)); }
   });
 }
 
@@ -5992,7 +6004,7 @@ setTimeout(() => {
   // istasyon durumu: ticaretten çıktı, Diğer sekmesinde salt okunur
   devHtml = () => '';
   const statusHtml = s => {
-    const I = devInfo(), l = devLv(s); let tr = 0; for (const n of npcs) if (!n.hostile && n.pos && n.pos.distanceTo(s.pos) < 1800) tr++;
+    const I = devInfo(), l = devLv(s); let tr = 0; for (let _q82 = 0, n; _q82 < npcs.length && ((n = npcs[_q82]), true); _q82++) if (!n.hostile && n.pos && n.pos.distanceTo(s.pos) < 1800) tr++;
     let h = '<div class="line" style="display:block"><div style="display:flex;align-items:center;gap:10px"><img class="db" src="' + window.DEVI[l - 1] + '"><div style="flex:1"><b>' + I.N[l - 1] + '</b><div class="dim">Seviye ' + l + '/4 · gemi trafiği: ' + (tr >= 5 ? 'yoğun' : tr >= 2 ? 'orta' : 'sakin') + '</div></div></div><div class="dim" style="margin-top:6px">Bu istasyonu herkes kullanır; kendi kendine büyür. Büyüdükçe yeni tesisler açılır.</div></div>';
     for (const k in FAC){ const F = FAC[k], v = facLv(s, k); h += '<div class="line fac"><span><b>' + F.n + '</b><span class="dim"><br>' + (v ? F.d[v - 1] : 'Henüz yok · seviye ' + ({ rep: 2, mkt: 3, dep: 4 }[k]) + '\'te açılır') + '</span></span><span class="dim">' + (v ? 'Sv. ' + v : '—') + '</span></div>'; }
     return h;
@@ -6792,7 +6804,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   // Kızıl: güneş fırtınası
   const storm = { on: false, t: 200, warn: false, left: 0 };
   const stormEl = document.createElement('div'); stormEl.style.cssText = 'position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity 1.2s;background:radial-gradient(ellipse at 50% 30%,rgba(255,140,40,.05),rgba(255,70,20,.35))'; document.body.appendChild(stormEl);
-  const sheltered = () => { for (const a of asteroids) if (a.r > 16 && a.pos.distanceTo(rig.position) < a.r + 140) return true; for (const b of [...STATIONS, PLANET, GIANT, PLANET2, PLANET3, MOON]) if (b.pos.distanceTo(rig.position) < (b.r || 100) + 500) return true; return false; };
+  const sheltered = () => { for (let _q83 = 0, a; _q83 < asteroids.length && ((a = asteroids[_q83]), true); _q83++) if (a.r > 16 && a.pos.distanceTo(rig.position) < a.r + 140) return true; for (const b of [...STATIONS, PLANET, GIANT, PLANET2, PLANET3, MOON]) if (b.pos.distanceTo(rig.position) < (b.r || 100) + 500) return true; return false; };
   let satT = null;
   const satTex = () => satT || (satT = (() => { const L = u => { const t = new THREE.TextureLoader().load(u); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; }; return { top: L('assets/img/olay_sat_top.webp'), side: L('assets/img/olay_sat_side.webp') }; })());
   function build(k){
@@ -6906,8 +6918,8 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     acc += dt; if (acc < 3) return; acc = 0;
     const sNow = Object.values(save.rep || {}).reduce((a, b) => a + (b || 0), 0); if (sNow !== repSum){ fac('lonca', (sNow - repSum) * 1.5); repSum = sNow; }
     if (docked) return;
-    if (save.fac.filo >= 30){ for (const q of npcs) if (q.hostile && q.state === 'attack' && q.tgt === 'player' && q.pos.distanceTo(rig.position) < 900){ eco.alerts.push({ pos: rig.position.clone(), t: time }); break; } }
-    else if (save.fac.filo <= -60){ for (const q of npcs) if (q.role === 'patrol' && !q.escort && q.pos.distanceTo(rig.position) < 900){ q.rev = time + 30; if (time - warned > 40){ warned = time; radio(q.name, 'Aranan pilot tespit edildi! Ateş serbest!', '#ff5a6e'); } } }
+    if (save.fac.filo >= 30){ for (let _q84 = 0, q; _q84 < npcs.length && ((q = npcs[_q84]), true); _q84++) if (q.hostile && q.state === 'attack' && q.tgt === 'player' && q.pos.distanceTo(rig.position) < 900){ eco.alerts.push({ pos: rig.position.clone(), t: time }); break; } }
+    else if (save.fac.filo <= -60){ for (let _q85 = 0, q; _q85 < npcs.length && ((q = npcs[_q85]), true); _q85++) if (q.role === 'patrol' && !q.escort && q.pos.distanceTo(rig.position) < 900){ q.rev = time + 30; if (time - warned > 40){ warned = time; radio(q.name, 'Aranan pilot tespit edildi! Ateş serbest!', '#ff5a6e'); } } }
   });
   const _sr = spawnRole; spawnRole = function(role, initial){ const n = _sr(role, initial); if (role === 'pirate' && n && save.fac.korsan <= -60 && n.type !== 'leader' && Math.random() < 0.5){ const w = spawnNpc('raider', n.pos.clone().add(V(rand(-60, 60), rand(-20, 20), rand(-60, 60))), n.home); w.state = 'roam'; w.wingOf = n; } return n; };
   // arayüz: Görevler sekmesinde
@@ -7148,7 +7160,7 @@ window.__olayModel = function(key){
     if (cur && npcs.indexOf(cur) < 0){ cur = null; nextL = 1200 + rand(0, 900); return; }
     if (cur){ if (cur.pos.distanceTo(rig.position) > 7000){ const i = npcs.indexOf(cur); if (i >= 0){ npcs.splice(i, 1); scene.remove(cur.g); } cur = null; nextL = 600; } return; }
     nextL -= dt; if (nextL > 0 && !window.__forceLeader) return; window.__forceLeader = false;
-    for (const q of npcs) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextL = 30; return; }
+    for (let _q86 = 0, q; _q86 < npcs.length && ((q = npcs[_q86]), true); _q86++) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextL = 30; return; }
     const set = NAMES[Math.min(2, Math.max(0, curSys - 1))] || ['Kara Kaptan Dorak', 'Gece Baronu Vask'], nm = set[(Math.random() * set.length) | 0];
     const dir = V(0, 0, -1).applyQuaternion(rig.quaternion), pos = rig.position.clone().addScaledVector(dir, rand(1100, 1500)).add(V(rand(-250, 250), rand(-120, 120), rand(-250, 250)));
     const L = spawnNpc('leader', pos, STATION); L.leader = true; L.name = '★ ' + nm; L.hull = L.hullMax = Math.round(1100 * (SYSC.hull || 1)); L.state = 'attack'; L.tgt = 'player'; L.atkT = time;
@@ -7293,7 +7305,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
       MU.bus.gain.setTargetAtTime(on ? (docked ? 0.5 : 0.85) * hyp : 0, now, 0.8);
       if (!on) return;
       const sys = Math.min(3, Math.max(0, curSys | 0)), u = U[sys];
-      let hostile = false; if (!docked) for (const q of npcs) if (q.hostile && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
+      let hostile = false; if (!docked) for (let _q87 = 0, q; _q87 < npcs.length && ((q = npcs[_q87]), true); _q87++) if (q.hostile && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
       tenS += ((hostile ? 1 : 0) - tenS) * 0.08;
       MU.pad.frequency.setTargetAtTime(u.lp + tenS * 900, now, 0.6);
       if (sys !== curU){ curU = sys; chIdx = -1; nextCh = 0; MU.dl.delayTime.setTargetAtTime(u.dl, now, 0.5); MU.lg.gain.setTargetAtTime(u.wob * 300, now, 1); }
@@ -7370,7 +7382,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
       if (tt && !hooked){ hooked = true; tt.addEventListener('pointerdown', () => initAudio(), true); const go = document.getElementById('titleGo'); if (go) go.addEventListener('click', () => { initAudio(); anaUntil = performance.now() + 4500; }); }
       if (!AC || !AC.nb) return;
       const inTitle = tt && !tt.classList.contains('off');
-      let hostile = false; if (!docked && !inTitle) for (const q of npcs) if (q.hostile){ const d = q.pos.distanceTo(rig.position); if (q.state === 'attack' ? d < 1200 : d < 600){ hostile = true; break; } }
+      let hostile = false; if (!docked && !inTitle) for (let _q88 = 0, q; _q88 < npcs.length && ((q = npcs[_q88]), true); _q88++) if (q.hostile){ const d = q.pos.distanceTo(rig.position); if (q.state === 'attack' ? d < 1200 : d < 600){ hostile = true; break; } }
       if (hostile) lastH = performance.now();
       let k; if (inTitle || performance.now() < anaUntil) k = 'ana'; else if (docked) k = 'hangar'; else if (performance.now() - lastH < 8000) k = 'savas'; else k = save.uzayAna ? 'ana' : ['ankora', 'kizil', 'buzul', 'zumrut'][Math.min(3, Math.max(0, curSys | 0))];
       if (k === 'ana' && save.anaTema && MF['ana_' + save.anaTema]) k = 'ana_' + save.anaTema;
