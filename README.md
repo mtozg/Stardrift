@@ -10,6 +10,8 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Dört evren: Ankora, Kızıl, Buzul ve Zümrüt. Her birinin kendi atmosferi, istasyonları ve müziği var.
 - Evrenler arası hiperatlama.
 - Ana istasyonlar tünel ve hangar görünümüyle yanaşma ve kalkış animasyonuna sahip.
+- Gezegenler düz haritalardan kaplanmış, güneşle aydınlanan dönen 3B küreler: her evrenin ana gezegeni ayrı (okyanus, volkanik, buzul, orman). Kızıl gezegende lav, Zümrüt gezegende biyolüminesans gece tarafında parlar.
+- Kalıntılar (kırık halkalar ve kule) ile oyuncunun üssü üst + yan çizimden kurulmuş 3B modeller. Kızıl Geçit'teki demir kayaların çatlaklarından lav parlar.
 
 **Oynanış**
 - Madencilik, kargo taşıma ve ticaret.
@@ -24,6 +26,9 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Evrenlere özgü yerler: Ankora'da sökülebilir eski uydu tarlası, Kızıl'da lav akıntısı ve güneş fırtınaları, Buzul'da buz devleri, Zümrüt'te kristal monolitler ve korsanlardan saklayan sis bulutları.
 - Gruplar ve itibar: Yıldız Filosu, Tüccar Loncası, Korsan Birliği. Korsan avı Filoyu, satış ve yardım Loncayı güçlendirir; itibar fiyatları, ödülleri ve kimin sana saldıracağını değiştirir.
 - Patron savaşları: her evrende bir korsan reisi kendi ininde bekler. Üç aşamalı dövüş (takviye, roket salvosu, öfke); yenince kalıcı bir ödül kazanılır.
+- Sıçramalar: istasyondan hiperatlamada kokpitin içinden geri sayım, camda ışık çizgisi, ışın patlaması ve beyaz flaş; kapıdan geçişte yıldızlar ışık çizgilerine döner, gidilen evrenin renginde dönen bir tünelden geçilir.
+- Ayarlar > Kokpit görünümü: Klasik, Dengeli, Geniş cam (varsayılan; pencere büyür, gösterge paneli küçülür).
+- Ayarlar > Parlama efekti: motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek görüntü kalitesinde; oyun kasarsa kalite düşünce kendiliğinden kapanır).
 - Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
 - Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.
 - Enerji hücresi en çok keşifte çıkar: kalıntılar, kayıp sondalar, bilinmeyen enerji.
@@ -54,7 +59,7 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 
 ## Teknik
 
-- [three.js](https://threejs.org) (r128) ile 3B. Kopyası `vendor/` içinde, internet olmadan da çalışır.
+- [three.js](https://threejs.org) (r128) ile 3B. Kopyası ve parlama (bloom) eklentileri `vendor/` içinde, internet olmadan da çalışır.
 - Ses efektlerinin çoğu ve yazı tipleri sayfanın içine gömülü; yeni efektler `assets/sfx/` klasöründe, müzikler ayrı mp3 dosyalarıdır.
 - `assets/sfx/` içindeki ses efektleri [ElevenLabs](https://elevenlabs.io) ile üretildi.
 
