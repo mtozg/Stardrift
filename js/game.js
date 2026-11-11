@@ -65,7 +65,7 @@ function resize(){
   DPR = DPR * SK;
   st.style.transformOrigin = '0 0'; st.style.transform = 'scale(' + SK + ')';
   st.style.left = SX + 'px'; st.style.top = SY + 'px'; st.style.width = W + 'px'; st.style.height = H + 'px';
-  renderer.setPixelRatio(DPR); renderer.setSize(W, H, false);
+  renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); if (window.__bloomResize) window.__bloomResize();
   hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round(W * DPR); ckc.height = Math.round(H * DPR); ckDirty = true;
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
@@ -6586,6 +6586,7 @@ window.__xpal = {
       + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
       + '<div class="sect">Görünüm</div>'
       + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
+      + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
@@ -6604,6 +6605,7 @@ window.__xpal = {
     const b = e.target.closest('button[data-set]'); if (!b) return; const a = b.dataset.set;
     if (a === 'close') close();
     else if (a === 'mute'){ soundOn = !soundOn; save.mute = !soundOn; persist(); b.textContent = soundOn ? 'Açık' : 'Kapalı'; $('snd').classList.toggle('off', !soundOn); }
+    else if (a === 'bloom'){ window.__bloomPref = !window.__bloomPref; try { localStorage.setItem('sd_bloom', window.__bloomPref ? '1' : '0'); } catch (e) {} b.textContent = window.__bloomPref ? 'Açık' : 'Kapalı'; }
     else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
@@ -7401,6 +7403,25 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
   }, 400);
 }
 
+// ---- parlama (bloom): parlak şeyler (motor, lazer, patlama, kapı, güneş) etrafa ışık saçar. Yalnızca Yüksek kalitede.
+window.__bloomPref = (() => { try { return localStorage.getItem('sd_bloom') !== '0'; } catch (e) { return true; } })();
+let BLOOM = null;
+const bloomWanted = () => window.__bloomPref && window.__qLevel === 2 && !!THREE.UnrealBloomPass && !window.__noBloom;
+function bloomBuild(){
+  try {
+    const sz = renderer.getDrawingBufferSize(new THREE.Vector2()); let rt;
+    if (renderer.capabilities.isWebGL2 && THREE.WebGLMultisampleRenderTarget){ rt = new THREE.WebGLMultisampleRenderTarget(sz.x, sz.y, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat }); rt.samples = 4; }
+    const comp = new THREE.EffectComposer(renderer, rt); comp.setPixelRatio(DPR); comp.setSize(W, H);
+    comp.addPass(new THREE.RenderPass(scene, camera));
+    const bp = new THREE.UnrealBloomPass(new THREE.Vector2(W, H), 0.5, 0.35, 0.9); comp.addPass(bp);
+    BLOOM = { comp, bp };
+  } catch (e) { console.warn('bloom', e); window.__noBloom = true; BLOOM = null; }
+}
+window.__bloomResize = () => { if (BLOOM){ BLOOM.comp.setPixelRatio(DPR); BLOOM.comp.setSize(W, H); } };
+function renderMain(){
+  if (bloomWanted()){ if (!BLOOM) bloomBuild(); if (BLOOM){ BLOOM.comp.render(); return; } }
+  renderer.setRenderTarget(null); renderer.render(scene, camera);
+}
 let frameAmmo = -1;
 function frame(now){
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -7408,10 +7429,10 @@ function frame(now){
     stick.on = false; sBase.classList.add('hidden'); sKnob.classList.add('hidden'); laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false;
     audioUpdate(0); requestAnimationFrame(frame); return;
   }
-  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); renderer.render(scene, camera); drawHud(); requestAnimationFrame(frame); return; }
+  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); renderMain(); drawHud(); requestAnimationFrame(frame); return; }
   update(dt);
   if (window.__hjOn && !window.__hjFade){ requestAnimationFrame(frame); return; }   // sıçrama sahnesi ekranı tamamen kapatırken ana sahne çizilmez (akıcılık)
-  renderer.render(scene, camera);
+  renderMain();
   drawHud();
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
   $('bLock').classList.toggle('on', !!lock);

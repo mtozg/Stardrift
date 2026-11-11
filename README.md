@@ -26,6 +26,7 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Patron savaşları: her evrende bir korsan reisi kendi ininde bekler. Üç aşamalı dövüş (takviye, roket salvosu, öfke); yenince kalıcı bir ödül kazanılır.
 - Sıçramalar: istasyondan hiperatlamada kokpitin içinden geri sayım, camda ışık çizgisi, ışın patlaması ve beyaz flaş; kapıdan geçişte yıldızlar ışık çizgilerine döner, gidilen evrenin renginde dönen bir tünelden geçilir.
 - Ayarlar > Kokpit görünümü: Klasik, Dengeli, Geniş cam (varsayılan; pencere büyür, gösterge paneli küçülür).
+- Ayarlar > Parlama efekti: motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek görüntü kalitesinde; oyun kasarsa kalite düşünce kendiliğinden kapanır).
 - Derin kuşaklar: üsten uzaklaştıkça kayalar 1,5-2 kat cevher verir, kristal daha sık çıkar.
 - Korsanların dövüş tarzları farklı: Akbaba vur-kaç yapar, Kurt dibine girer, Yağmacı uzaktan ağır atış yapar. Bazen ikili gelir, sıkışınca yardım çağırır.
 - Enerji hücresi en çok keşifte çıkar: kalıntılar, kayıp sondalar, bilinmeyen enerji.
@@ -56,7 +57,7 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 
 ## Teknik
 
-- [three.js](https://threejs.org) (r128) ile 3B. Kopyası `vendor/` içinde, internet olmadan da çalışır.
+- [three.js](https://threejs.org) (r128) ile 3B. Kopyası ve parlama (bloom) eklentileri `vendor/` içinde, internet olmadan da çalışır.
 - Ses efektlerinin çoğu ve yazı tipleri sayfanın içine gömülü; yeni efektler `assets/sfx/` klasöründe, müzikler ayrı mp3 dosyalarıdır.
 - `assets/sfx/` içindeki ses efektleri [ElevenLabs](https://elevenlabs.io) ile üretildi.
 
