@@ -170,6 +170,13 @@ function buildOutpost(st){
   for (let i = 0; i < 12; i++){ const a = i / 12 * TAU, l = new THREE.Mesh(new THREE.SphereGeometry(2.3, 8, 8), new THREE.MeshBasicMaterial({ color: st.color })); l.position.set(Math.cos(a) * 62, 6.5, -Math.sin(a) * 62); g.add(l); lights.push(l); }
   g.add(new THREE.PointLight(st.color, 1.4, 500)); g.add(sprite(glowTexture((st.color >> 16) & 255, (st.color >> 8) & 255, st.color & 255), 260, 0.5));
   g.scale.setScalar(st.scale); g.position.copy(st.pos); scene.add(g); st.group = g; st.lights = lights;
+  if (st.isBase){
+    const swap = () => { const md = window.__olayModel && window.__olayModel('us'); if (!md) return false;
+      g.children.slice().forEach(ch => { if (ch.isMesh && !lights.includes(ch)) ch.visible = false; else if (ch.isSprite) ch.material.opacity = 0.15; });
+      lights.forEach((l, i) => { const a = i / lights.length * TAU; l.position.set(Math.sin(a) * 70, 10, Math.cos(a) * 70); });
+      md.scale.setScalar(210); g.add(md); return true; };
+    if (!swap()) setTimeout(swap, 0);
+  }
 }
 STATIONS.slice(1).forEach(buildOutpost);
 
@@ -2330,8 +2337,22 @@ function img3(key, cb){ const im = new Image(); im.onload = () => cb(im); im.src
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; t.needsUpdate = true;
     const m = astMat[type]; m.map = t; if (type !== 'kristal') m.bumpMap = t; m.bumpScale = bump; m.color.setRGB(col[0], col[1], col[2]); if (type === 'buz'){ m.emissiveMap = t; m.emissive.setHex(0x9ab8d0); m.emissiveIntensity = 0.42; } m.needsUpdate = true;
     hotCache = {}; asteroids.forEach(a => { if (a.heat > 0) a.mesh.material = astMat[a.type]; });
+    if (type === 'demir'){ ROCKT.d = null; rockSys(); }
   });
 });
+// Kızıl Geçit'te demir kayalar lav kayasına döner (çatlaklar karanlıkta parlar)
+const ROCKT = {};
+loadArt('assets/img/a3_tlav.webp', t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 1); ROCKT.lav = t; rockSys(); });
+loadArt('assets/img/a3_tlav_glow.webp', t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 1); ROCKT.glow = t; rockSys(); });
+function rockSys(){
+  const m = astMat.demir; if (!m.map) return;
+  if (!ROCKT.d) ROCKT.d = { map: m.map, col: m.color.clone() };
+  const lava = curSys === 1 && ROCKT.lav && ROCKT.glow, want = lava ? ROCKT.lav : ROCKT.d.map; if (m.map === want) return;
+  m.map = want; m.bumpMap = want;
+  if (lava){ m.color.setRGB(1.1, 1.0, 0.95); m.emissiveMap = ROCKT.glow; m.emissive.setHex(0xffffff); m.emissiveIntensity = 1.3; }
+  else { m.color.copy(ROCKT.d.col); m.emissiveMap = null; m.emissive.setHex(0x000000); m.emissiveIntensity = 1; }
+  m.needsUpdate = true; hotCache = {};
+}
 const STSPEC3D = {"ice": {"len": 1, "yc": 0.498, "zc": 0.0, "u0": 0.02, "u1": 0.976, "infer": 1, "gain": 1.0, "hull": {"TOP": [[0.02, 0.0537], [0.0333, 0.0859], [0.0467, 0.13], [0.06, 0.1637], [0.0733, 0.2007], [0.0867, 0.2337], [0.1, 0.253], [0.1133, 0.2626], [0.1267, 0.2644], [0.14, 0.2656], [0.1533, 0.2656], [0.1667, 0.2652], [0.18, 0.2619], [0.1933, 0.2548], [0.2067, 0.2419], [0.22, 0.23], [0.2333, 0.2196], [0.2467, 0.2133], [0.26, 0.2063], [0.2733, 0.2004], [0.2867, 0.193], [0.3, 0.1733], [0.3133, 0.153], [0.3267, 0.1352], [0.34, 0.1289], [0.3533, 0.1241], [0.3667, 0.1156], [0.38, 0.1011], [0.3933, 0.0837], [0.4067, 0.0678], [0.42, 0.0611], [0.4333, 0.0578], [0.4467, 0.0578], [0.46, 0.0578], [0.4733, 0.0581], [0.4867, 0.0585], [0.5, 0.0589], [0.5133, 0.0589], [0.5267, 0.0585], [0.54, 0.0581], [0.5533, 0.0578], [0.5667, 0.0578], [0.58, 0.0578], [0.5933, 0.0578], [0.6067, 0.06], [0.62, 0.0622], [0.6333, 0.0674], [0.6467, 0.07], [0.66, 0.07], [0.6733, 0.07], [0.6867, 0.07], [0.7, 0.07], [0.7133, 0.07], [0.7267, 0.07], [0.74, 0.07], [0.7533, 0.07], [0.7667, 0.07], [0.78, 0.0411], [0.7933, 0.0359], [0.8067, 0.0278], [0.82, 0.0193], [0.8333, 0.0137], [0.8467, 0.0115], [0.86, 0.01], [0.8733, 0.01], [0.8867, 0.0115], [0.9, 0.0141], [0.9133, 0.0167], [0.9267, 0.0178], [0.94, 0.0178], [0.9533, 0.0174], [0.9667, 0.0152], [0.98, 0.013]], "BOT": [[0.02, -0.11], [0.0333, -0.1585], [0.0467, -0.2111], [0.06, -0.2489], [0.0733, -0.2537], [0.0867, -0.2544], [0.1, -0.2544], [0.1133, -0.2541], [0.1267, -0.2522], [0.14, -0.2489], [0.1533, -0.2441], [0.1667, -0.2407], [0.18, -0.2389], [0.1933, -0.2389], [0.2067, -0.2389], [0.22, -0.2389], [0.2333, -0.24], [0.2467, -0.2411], [0.26, -0.2422], [0.2733, -0.2422], [0.2867, -0.2396], [0.3, -0.2344], [0.3133, -0.2274], [0.3267, -0.223], [0.34, -0.2159], [0.3533, -0.2037], [0.3667, -0.1841], [0.38, -0.1619], [0.3933, -0.1441], [0.4067, -0.1156], [0.42, -0.0907], [0.4333, -0.0685], [0.4467, -0.0644], [0.46, -0.0644], [0.4733, -0.0644], [0.4867, -0.0644], [0.5, -0.0644], [0.5133, -0.0644], [0.5267, -0.0626], [0.54, -0.06], [0.5533, -0.0574], [0.5667, -0.0567], [0.58, -0.0567], [0.5933, -0.0567], [0.6067, -0.0581], [0.62, -0.06], [0.6333, -0.06], [0.6467, -0.06], [0.66, -0.0526], [0.6733, -0.0093], [0.6867, 0.0374], [0.7, 0.05], [0.7133, 0.05], [0.7267, 0.05], [0.74, 0.05], [0.7533, 0.0467], [0.7667, 0.0126], [0.78, -0.0215], [0.7933, -0.0244], [0.8067, -0.0215], [0.82, -0.0159], [0.8333, -0.0104], [0.8467, -0.0078], [0.86, -0.0078], [0.8733, -0.0078], [0.8867, -0.0078], [0.9, -0.0111], [0.9133, -0.0144], [0.9267, -0.0178], [0.94, -0.0178], [0.9533, -0.0174], [0.9667, -0.0156], [0.98, -0.0137]], "HW": [[0.02, 0.0278], [0.0333, 0.0865], [0.0467, 0.1694], [0.06, 0.2511], [0.0733, 0.2891], [0.0867, 0.3065], [0.1, 0.3194], [0.1133, 0.3328], [0.1267, 0.3485], [0.14, 0.3613], [0.1533, 0.3706], [0.1667, 0.3804], [0.18, 0.3902], [0.1933, 0.4002], [0.2067, 0.4046], [0.22, 0.4072], [0.2333, 0.4102], [0.2467, 0.4143], [0.26, 0.4222], [0.2733, 0.4315], [0.2867, 0.4389], [0.3, 0.4444], [0.3133, 0.4469], [0.3267, 0.4489], [0.34, 0.4489], [0.3533, 0.4483], [0.3667, 0.4457], [0.38, 0.4422], [0.3933, 0.4393], [0.4067, 0.4383], [0.42, 0.4383], [0.4333, 0.4385], [0.4467, 0.4409], [0.46, 0.4443], [0.4733, 0.4496], [0.4867, 0.4528], [0.5, 0.455], [0.5133, 0.455], [0.5267, 0.4537], [0.54, 0.4426], [0.5533, 0.4293], [0.5667, 0.415], [0.58, 0.4089], [0.5933, 0.402], [0.6067, 0.3959], [0.62, 0.3891], [0.6333, 0.3846], [0.6467, 0.3776], [0.66, 0.3711], [0.6733, 0.3646], [0.6867, 0.3596], [0.7, 0.3507], [0.7133, 0.338], [0.7267, 0.3215], [0.74, 0.31], [0.7533, 0.2985], [0.7667, 0.293], [0.78, 0.2733], [0.7933, 0.2533], [0.8067, 0.2257], [0.82, 0.2093], [0.8333, 0.1948], [0.8467, 0.1813], [0.86, 0.1685], [0.8733, 0.1535], [0.8867, 0.1304], [0.9, 0.1026], [0.9133, 0.0665], [0.9267, 0.0456], [0.94, 0.0306], [0.9533, 0.0259], [0.9667, 0.0213], [0.98, 0.0183]], "NN": [[0, 2.6], [1, 2.6]]}, "N": 64, "M": 32, "ta": 1.0267, "sa": 0.5511, "boxes": [{"u": 0.7033, "y": 0, "z": -0.2911, "sx": 0.425, "sy": 0.05, "sz": 0.058, "mir": false, "ry": 0.5503}, {"u": 0.7444, "y": 0, "z": 0.2311, "sx": 0.3932, "sy": 0.05, "sz": 0.058, "mir": false, "ry": -0.7454}, {"u": 0.2389, "y": 0, "z": 0.2533, "sx": 0.3851, "sy": 0.05, "sz": 0.058, "mir": false, "ry": -2.3766}, {"u": 0.7822, "y": 0.02, "z": -0.4311, "sx": 0.15, "sy": 0.004, "sz": 0.065, "mir": false, "ry": -0.7854}, {"u": 0.9222, "y": 0.02, "z": -0.2911, "sx": 0.15, "sy": 0.004, "sz": 0.065, "mir": false, "ry": -0.733}, {"u": 0.9289, "y": 0.02, "z": 0.2644, "sx": 0.15, "sy": 0.004, "sz": 0.065, "mir": false, "ry": 0.7854}, {"u": 0.7889, "y": 0.02, "z": 0.42, "sx": 0.15, "sy": 0.004, "sz": 0.065, "mir": false, "ry": 0.6981}, {"u": 0.0778, "y": 0.02, "z": 0.2644, "sx": 0.15, "sy": 0.004, "sz": 0.065, "mir": false, "ry": -0.7854}, {"u": 0.2111, "y": 0.02, "z": 0.4089, "sx": 0.15, "sy": 0.004, "sz": 0.065, "mir": false, "ry": -0.6981}], "lathes": [{"pts": [[0.014, 0], [0.01, 0.09], [0.004, 0.17]], "seg": 8, "x": -0.004, "y": 0.062, "z": 0}, {"pts": [[0.018, 0], [0.014, -0.08], [0.008, -0.17]], "seg": 8, "x": -0.004, "y": -0.07, "z": 0}]}, "ankora": {"yc": 0.504, "zc": 0.0, "sx": 0.82, "gain": 1.0, "ta": 0.9911, "sa": 0.4556, "rings": [{"R": 0.375, "a": 0.049, "h": 0.046, "n": 4}], "lathes": [{"pts": [[0.0, -0.09], [0.06, -0.085], [0.075, -0.06], [0.075, 0.06], [0.06, 0.085], [0.0, 0.09]], "seg": 28}, {"pts": [[0.004, 0.09], [0.004, 0.27]], "seg": 6}, {"pts": [[0.004, -0.09], [0.004, -0.22]], "seg": 6}], "boxes": [{"u": 0.6414213562373096, "y": 0, "z": 0.1414213562373095, "sx": 0.27, "sy": 0.035, "sz": 0.04, "mir": false, "ry": -0.7853981633974483}, {"u": 0.3585786437626905, "y": 0, "z": 0.14142135623730953, "sx": 0.27, "sy": 0.035, "sz": 0.04, "mir": false, "ry": -2.356194490192345}, {"u": 0.35857864376269044, "y": 0, "z": -0.1414213562373095, "sx": 0.27, "sy": 0.035, "sz": 0.04, "mir": false, "ry": -3.9269908169872414}, {"u": 0.6414213562373094, "y": 0, "z": -0.14142135623730953, "sx": 0.27, "sy": 0.035, "sz": 0.04, "mir": false, "ry": -5.497787143782138}, {"u": 0.9, "y": 0, "z": -0.37, "sx": 0.2, "sy": 0.004, "sz": 0.15, "mir": false, "ry": 0.7853981633974483}, {"u": 0.09999999999999998, "y": 0, "z": 0.37, "sx": 0.2, "sy": 0.004, "sz": 0.15, "mir": false, "ry": 0.7853981633974483}]}, "demirhan": {"yc": 0.4559, "zc": 0.0, "u0": 0.03333333333333333, "u1": 0.9533333333333334, "hull": {"TOP": [[0.0333, 0.0861], [0.0533, 0.085], [0.0733, 0.085], [0.0933, 0.0861], [0.1133, 0.0883], [0.1333, 0.115], [0.1533, 0.1528], [0.1733, 0.1572], [0.1933, 0.1572], [0.2133, 0.1572], [0.2333, 0.1572], [0.2533, 0.1706], [0.2733, 0.1706], [0.2933, 0.1706], [0.3133, 0.1706], [0.3333, 0.1706], [0.3533, 0.1639], [0.3733, 0.1639], [0.3933, 0.1639], [0.4133, 0.1628], [0.4333, 0.1628], [0.4533, 0.1628], [0.4733, 0.205], [0.4933, 0.205], [0.5133, 0.205], [0.5333, 0.1928], [0.5533, 0.1928], [0.5733, 0.175], [0.5933, 0.1472], [0.6133, 0.1483], [0.6333, 0.175], [0.6533, 0.1661], [0.6733, 0.1483], [0.6933, 0.1483], [0.7133, 0.1494], [0.7333, 0.1494], [0.7533, 0.1494], [0.7733, 0.1494], [0.7933, 0.1494], [0.8133, 0.1483], [0.8333, 0.1406], [0.8533, 0.1306], [0.8733, 0.0906], [0.8933, -0.0128], [0.9133, -0.015], [0.9333, -0.015], [0.9533, -0.015]], "BOT": [[0.0333, 0.075], [0.0533, 0.0461], [0.0733, 0.0461], [0.0933, -0.0117], [0.1133, -0.1239], [0.1333, -0.1294], [0.1533, -0.135], [0.1733, -0.1394], [0.1933, -0.1483], [0.2133, -0.1483], [0.2333, -0.1506], [0.2533, -0.1483], [0.2733, -0.1439], [0.2933, -0.1428], [0.3133, -0.1428], [0.3333, -0.1394], [0.3533, -0.1394], [0.3733, -0.1394], [0.3933, -0.1639], [0.4133, -0.1639], [0.4333, -0.1639], [0.4533, -0.1639], [0.4733, -0.1639], [0.4933, -0.1639], [0.5133, -0.1639], [0.5333, -0.1639], [0.5533, -0.1639], [0.5733, -0.1639], [0.5933, -0.1639], [0.6133, -0.165], [0.6333, -0.1639], [0.6533, -0.1639], [0.6733, -0.1639], [0.6933, -0.1639], [0.7133, -0.1639], [0.7333, -0.1639], [0.7533, -0.1639], [0.7733, -0.1639], [0.7933, -0.1639], [0.8133, -0.1783], [0.8333, -0.1783], [0.8533, -0.1783], [0.8733, -0.1306], [0.8933, -0.115], [0.9133, -0.1028], [0.9333, -0.095], [0.9533, -0.095]], "HW": [[0.0333, 0.0078], [0.0533, 0.0094], [0.0733, 0.0094], [0.0933, 0.0094], [0.1133, 0.1417], [0.1333, 0.1567], [0.1533, 0.1678], [0.1733, 0.1772], [0.1933, 0.3972], [0.2133, 0.3972], [0.2333, 0.3972], [0.2533, 0.3972], [0.2733, 0.3972], [0.2933, 0.3972], [0.3133, 0.3972], [0.3333, 0.3817], [0.3533, 0.3817], [0.3733, 0.3817], [0.3933, 0.3883], [0.4133, 0.3883], [0.4333, 0.3883], [0.4533, 0.3717], [0.4733, 0.3711], [0.4933, 0.3711], [0.5133, 0.3711], [0.5333, 0.3717], [0.5533, 0.3833], [0.5733, 0.3839], [0.5933, 0.3839], [0.6133, 0.385], [0.6333, 0.3922], [0.6533, 0.3922], [0.6733, 0.3917], [0.6933, 0.3917], [0.7133, 0.3917], [0.7333, 0.3917], [0.7533, 0.3917], [0.7733, 0.385], [0.7933, 0.385], [0.8133, 0.385], [0.8333, 0.38], [0.8533, 0.2], [0.8733, 0.1606], [0.8933, 0.0078], [0.9133, 0.0078], [0.9333, 0.0061], [0.9533, 0.0061]], "NN": [[0, 6], [1, 6]]}, "N": 48, "M": 32, "ta": 1.0011, "sa": 0.5422, "gain": 1.0}, "kristal": {"yc": 0.596, "zc": 0.0, "sx": 1.0, "gain": 1.0, "ta": 0.9222, "sa": 0.43, "rings": [{"R": 0.295, "a": 0.048, "h": 0.052, "n": 3.5}], "lathes": [{"pts": [[0.0, -0.22], [0.07, -0.12], [0.115, -0.03], [0.115, 0.06], [0.075, 0.15], [0.0, 0.22]], "seg": 6}], "boxes": [{"u": 0.935, "y": 0, "z": -0.01, "sx": 0.13, "sy": 0.004, "sz": 0.075, "mir": false}, {"u": 0.065, "y": 0, "z": -0.01, "sx": 0.13, "sy": 0.004, "sz": 0.075, "mir": false}]}};
 // istasyonlar: üstten + iki yandan çizim, çapraz düzlemler
 [['Ankora İstasyonu', 'ankora', 240], ['Demirhan Üssü', 'demirhan', 200], ['Buzul Durağı', 'ice', 220], ['Kristal Kapısı', 'kristal', 200]].forEach(([ad, key, w]) => {
@@ -2353,8 +2374,8 @@ const STSPEC3D = {"ice": {"len": 1, "yc": 0.498, "zc": 0.0, "u0": 0.02, "u1": 0.
       st.group.add(wg); return;
     } catch (e) { console.log('ist3d hata', e); } }
     const mk = (tex, pw, ph) => new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, color: 0xe6eaf2 }));
-    const art = new THREE.Group(), tp = mk(top, w, w * {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.1367, "fog1": 1.0938, "fog2": 1.168}[key + '_top']); tp.rotation.x = -Math.PI / 2; art.add(tp);
-    const hs = {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.1367, "fog1": 1.0938, "fog2": 1.168}[key + '_side'], s1 = mk(side, w, w * hs), s2 = mk(side, w, w * hs); s2.rotation.y = Math.PI / 2; art.add(s1); art.add(s2);
+    const art = new THREE.Group(), tp = mk(top, w, w * {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.0, "fog1": 1.0, "fog2": 1.0}[key + '_top']); tp.rotation.x = -Math.PI / 2; art.add(tp);
+    const hs = {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.0, "fog1": 1.0, "fog2": 1.0}[key + '_side'], s1 = mk(side, w, w * hs), s2 = mk(side, w, w * hs); s2.rotation.y = Math.PI / 2; art.add(s1); art.add(s2);
     st.group.children.slice().forEach(ch => { if (ch.isMesh) ch.visible = false; else if (ch.isSprite) ch.material.opacity = 0.1; });
     st.group.add(art);
   };
@@ -2366,16 +2387,25 @@ loadArt(A3.harabe, t => {
   ruins.forEach(r => {
     if (r.gate) return;
     r.group.children.slice().forEach(ch => { if (ch.isMesh) ch.visible = false; else if (ch.isSprite) ch.material.opacity = 0.3; });
+    const md = window.__olayModel && window.__olayModel('kalinti');
+    if (md){
+      md.scale.setScalar(250); md.rotation.set(rand(-0.5, 0.5), rand(0, TAU), rand(-0.5, 0.5)); r.group.add(md);
+      const gl = sprite(glowTexture(80, 255, 220), 90, 0.55); gl.position.copy(V(0, 12, 0).applyEuler(md.rotation)); r.group.add(gl);
+      const pl = new THREE.PointLight(0x5fffe0, 1.1, 260); pl.position.copy(gl.position); r.group.add(pl);
+      let ph = rand(0, 6); EXTRA.push(dt => { ph += dt; const k = 0.5 + 0.5 * Math.sin(ph * 1.3); gl.material.opacity = 0.35 + 0.3 * k; pl.intensity = 0.7 + 0.7 * k; });
+      return;
+    }
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, alphaTest: 0.4, depthWrite: true, fog: false })); sp.scale.set(230, 230 * 1.0781, 1); r.group.add(sp);
   });
 });
-// yeni gezegenler: yuvarlak çizimler, kameraya dönük
-[[PLANET2, 'mars', [255, 150, 100]], [PLANET3, 'buzay', [170, 210, 255]]].forEach(([P, key, glow]) => {
-  loadArt(A3[key], t => {
-    ARTIMG[key] = t.image;
-    const g = sprite(glowTexture(glow[0], glow[1], glow[2]), P.r * 3.3, 0.32); g.position.copy(P.pos); scene.add(g);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, alphaTest: 0.3, depthWrite: true, fog: false })); sp.scale.set(P.r * 2.04, P.r * 2.04 * {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.1367, "fog1": 1.0938, "fog2": 1.168}[key], 1); sp.position.copy(P.pos); scene.add(sp);
-  });
+// yeni gezegenler: düz haritadan dönen küreler (güneşle aydınlanır)
+[[PLANET2, 'mars', 'pmap_mars', 0xff9a64], [PLANET3, 'buzay', 'pmap_buzay', 0xaad2ff]].forEach(([P, key, mk, glow]) => {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(P.r, 64, 48), new THREE.MeshStandardMaterial({ color: 0x8a8a8a, roughness: 0.95, metalness: 0 }));
+  m.position.copy(P.pos); m.rotation.z = key === 'mars' ? 0.42 : -0.2; m.userData.noTint = true; scene.add(m);
+  atmosphere(P.r * 1.05, glow, P.pos);
+  loadArt('assets/img/' + mk + '.webp', t => { t.anisotropy = 4; m.material.map = t; m.material.color.setScalar(key === 'mars' ? 0.88 : 0.7); m.material.needsUpdate = true; });
+  loadArt(A3[key], t => { ARTIMG[key] = t.image; });
+  const sp = key === 'mars' ? 0.008 : 0.012; EXTRA.push(dt => { m.rotation.y += dt * sp; });
 });
 // kuyruklu yıldız: gökyüzünde, kuyruğu hep Güneş'in tersine bakar
 img3('comet', im => {
@@ -2401,7 +2431,7 @@ img3('comet', im => {
       sp.position.copy(b.c).add(V(rand(-1, 1), rand(-0.3, 0.3), rand(-1, 1)).multiplyScalar(b.r * 0.55)); scene.add(sp); fogs.push({ sp, base: b.rich ? 0.85 : 0.65 });
     } });
   };
-  [0, 1, 2].forEach(i => { const key = 'fog' + i; loadArt(A3[key], t => { tex[i] = { t, r: {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.1367, "fog1": 1.0938, "fog2": 1.168}[key] }; if (tex.filter(Boolean).length === 3) mkFog(); }); });
+  [0, 1, 2].forEach(i => { const key = 'fog' + i; loadArt(A3[key], t => { tex[i] = { t, r: {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.0, "fog1": 1.0, "fog2": 1.0}[key] }; if (tex.filter(Boolean).length === 3) mkFog(); }); });
   EXTRA.push(dt => { for (const f of fogs){ const d = f.sp.position.distanceTo(rig.position); f.sp.material.opacity = f.base * clamp((d - 70) / 260, 0, 1); } });
 }
 
@@ -2777,7 +2807,7 @@ function collectMovers(){
   }
 }
 function tintObj(o, tc){
-  const m = o.material; if (!m || Array.isArray(m)) return;
+  const m = o.material; if (!m || Array.isArray(m) || o.userData.noTint) return;
   const tgt = m.uniforms && m.uniforms.c ? m.uniforms.c.value : m.color; if (!tgt) return;
   if (!o.userData.c0) o.userData.c0 = tgt.clone();
   tgt.copy(o.userData.c0).multiply(tc);
@@ -4365,25 +4395,28 @@ EXTRA.push(dt => { if (comm.open) vel.multiplyScalar(Math.exp(-2.2 * dt)); });
 
 const A4 = {"p0": "assets/img/a4_p0.webp", "p1": "assets/img/a4_p1.webp", "p2": "assets/img/a4_p2.webp", "p3": "assets/img/a4_p3.webp", "b_comm": "assets/img/a4_b_comm.webp", "b_snd": "assets/img/a4_b_snd.webp", "b_set": "assets/img/a4_b_set.webp", "b_msg": "assets/img/a4_b_msg.webp", "i_trade": "assets/img/a4_i_trade.webp", "i_mk": "assets/img/a4_i_mk.webp", "i_hg": "assets/img/a4_i_hg.webp", "i_wp": "assets/img/a4_i_wp.webp", "i_up": "assets/img/a4_i_up.webp", "i_more": "assets/img/a4_i_more.webp", "i_ct": "assets/img/a4_i_ct.webp"};
 
-// ---- gezegen çizimleri (sistem başına bir tane), düğme çizimleri
-const PL_DISC = [], PL_GLOW = [[110, 170, 255], [255, 140, 90], [170, 220, 255], [90, 230, 180]];
-let plSprite = null, plGlow = null;
+// ---- ana gezegen: sistem başına bir düz harita, dönen kürede (disk çizimi harita simgesi ve sıçrama ekranı için)
+const PL_DISC = [], PL_MAP = [], PL_GLOWMAP = [], PL_GLOW = [[110, 170, 255], [255, 140, 90], [170, 220, 255], [90, 230, 180]];
+const PL_CLOUD = [[1, 1, 1, 0.92], [0.55, 0.45, 0.4, 0.0], [0.9, 0.95, 1, 0.35], [0.75, 0.95, 0.8, 0.45]];
+let plAtmo = null;
+planetMesh.userData.noTint = true; cloudMesh.userData.noTint = true;
 function plApply(){
-  const t = PL_DISC[curSys]; if (!t) return;
-  if (!plSprite){
-    plSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: true, fog: false }));
-    plGlow = sprite(glowTexture(110, 170, 255), PLANET.r * 3.1, 0.3);
-    scene.add(plGlow); scene.add(plSprite);
-    planetMesh.visible = false; cloudMesh.visible = false;
-    scene.children.forEach(o => { if (o.isMesh && o !== planetMesh && o !== cloudMesh && o.position.distanceTo(PLANET.pos) < 0.5) o.visible = false; });
-    PLANET.disc = true;
-  }
-  plSprite.material.map = t; plSprite.material.color.setRGB(1, 1, 1); plSprite.material.needsUpdate = true;
-  plSprite.scale.set(PLANET.r * 2, PLANET.r * 2, 1); plSprite.position.copy(PLANET.pos); plGlow.position.copy(PLANET.pos);
-  const g = PL_GLOW[curSys] || PL_GLOW[0]; plGlow.material.map = glowTexture(g[0], g[1], g[2]); plGlow.material.needsUpdate = true;
-  ARTIMG.veyra = t.image; window.__plT = t;
+  const k = curSys, mp = PL_MAP[k], m = planetMesh.material;
+  if (mp && m.map !== mp){ m.map = mp; m.needsUpdate = true; }
+  const gm = PL_GLOWMAP[k] || null;
+  if (m.emissiveMap !== gm){ m.emissiveMap = gm; m.emissive.setHex(gm ? 0xffffff : 0x000000); m.emissiveIntensity = gm ? 1.6 : 0; m.needsUpdate = true; }
+  m.color.setScalar([0.9, 0.95, 0.72, 0.95][k] || 0.9);
+  const cc = PL_CLOUD[k] || PL_CLOUD[0]; cloudMesh.visible = cc[3] > 0; cloudMesh.material.color.setRGB(cc[0], cc[1], cc[2]); cloudMesh.material.opacity = cc[3];
+  if (!plAtmo) plAtmo = scene.children.find(o => o.isMesh && o.material && o.material.uniforms && o.material.uniforms.c && o.position.distanceTo(PLANET.pos) < 0.5);
+  const g = PL_GLOW[k] || PL_GLOW[0]; if (plAtmo){ plAtmo.material.uniforms.c.value.setRGB(g[0] / 255, g[1] / 255, g[2] / 255); plAtmo.userData.noTint = true; }
+  rockSys();
+  PLANET.disc = true; const t = PL_DISC[k]; if (t){ ARTIMG.veyra = t.image; window.__plT = t; }
 }
-['p0', 'p1', 'p2', 'p3'].forEach((k, i) => loadArt(A4[k], t => { t.encoding = THREE.sRGBEncoding; PL_DISC[i] = t; if (i === curSys) plApply(); }));
+['p0', 'p1', 'p2', 'p3'].forEach((k, i) => {
+  loadArt(A4[k], t => { t.encoding = THREE.sRGBEncoding; PL_DISC[i] = t; if (i === curSys) plApply(); });
+  loadArt('assets/img/pmap_' + i + '.webp', t => { t.anisotropy = 4; PL_MAP[i] = t; if (i === curSys) plApply(); });
+  if (i === 1 || i === 3) loadArt('assets/img/pmap_' + i + '_glow.webp', t => { PL_GLOWMAP[i] = t; if (i === curSys) plApply(); });
+});
 { const _aw = applyWorld; applyWorld = function(k){ _aw(k); plApply(); }; }
 
 {
@@ -7028,6 +7061,13 @@ window.__qSet = (lv, manual) => { window.__qLevel = lv; try { localStorage.setIt
 
 // ---- olay modelleri: terk edilmiş istasyon ve korsan kampı (üst + yan çizimden 3B, istasyonlarla aynı yöntem)
 const OLAYSPEC = {
+  kalinti: { yc: 0.277, zc: 0, sx: 1, gain: 1.1, ta: 0.9729, sa: 0.5056, top: 'olay_kalinti_top', side: 'olay_kalinti_side',
+    rings: [{ R: 0.2275, a: 0.0225, h: 0.018, n: 4, y: -0.002, p0: -3.037, pl: 0.279, seg: 6 }, { R: 0.2275, a: 0.0225, h: 0.018, n: 4, y: -0.002, p0: -2.723, pl: 1.676, seg: 26 }, { R: 0.2275, a: 0.0225, h: 0.018, n: 4, y: -0.002, p0: -0.838, pl: 0.803, seg: 12 }, { R: 0.2275, a: 0.0225, h: 0.018, n: 4, y: -0.002, p0: 0.07, pl: 1.99, seg: 31 }, { R: 0.2275, a: 0.0225, h: 0.018, n: 4, y: -0.002, p0: 2.164, pl: 1.047, seg: 16 }, { R: 0.3275, a: 0.0275, h: 0.021, n: 4, y: 0.001, p0: -1.815, pl: 0.803, seg: 12 }, { R: 0.3275, a: 0.0275, h: 0.021, n: 4, y: 0.001, p0: -0.908, pl: 5.201, seg: 83 }, { R: 0.4475, a: 0.0325, h: 0.024, n: 4, y: 0.004, p0: -1.815, pl: 0.908, seg: 14 }, { R: 0.4475, a: 0.0325, h: 0.024, n: 4, y: 0.004, p0: -0.663, pl: 3.002, seg: 48 }, { R: 0.4475, a: 0.0325, h: 0.024, n: 4, y: 0.004, p0: 2.443, pl: 1.885, seg: 30 }],
+    lathes: [{ pts: [[0.001, -0.02], [0.18, -0.02], [0.18, 0.012], [0.15, 0.012], [0.15, 0.022], [0.001, 0.022]], seg: 48 }, { pts: [[0.001, -0.01], [0.05, -0.01], [0.05, 0.03], [0.044, 0.03], [0.044, 0.07], [0.039, 0.07], [0.039, 0.11], [0.034, 0.11], [0.032, 0.14], [0.027, 0.14], [0.025, 0.18], [0.021, 0.19], [0.019, 0.23], [0.016, 0.24], [0.014, 0.27], [0.011, 0.28], [0.008, 0.31], [0.005, 0.32], [0.003, 0.35], [0.0005, 0.37]], seg: 16 }] },
+  us: { yc: 0.407, zc: 0, sx: 1, gain: 1.05, ta: 1.0016, sa: 0.4912, top: 'olay_us_top', side: 'olay_us_side',
+    rings: [{ R: 0.3425, a: 0.0575, h: 0.04, n: 4, seg: 96 }],
+    lathes: [{ pts: [[0.001, -0.13], [0.07, -0.13], [0.085, -0.11], [0.1, -0.1], [0.1, 0.1], [0.115, 0.105], [0.115, 0.12], [0.08, 0.13], [0.001, 0.13]], seg: 32 }, { pts: [[0.012, 0.13], [0.012, 0.21], [0.004, 0.24]], seg: 8 }],
+    boxes: [{ u: 0.5000, y: 0, z: 0.2000, sx: 0.2, sy: 0.035, sz: 0.05, mir: false, ry: -1.5708 }, { u: 0.6414, y: 0, z: 0.1414, sx: 0.19, sy: 0.02, sz: 0.025, mir: false, ry: -0.7854 }, { u: 0.5000, y: 0, z: 0.4300, sx: 0.08, sy: 0.05, sz: 0.07, mir: false, ry: -1.5708 }, { u: 0.7000, y: 0, z: 0.0000, sx: 0.2, sy: 0.035, sz: 0.05, mir: false, ry: 0.0000 }, { u: 0.6414, y: 0, z: -0.1414, sx: 0.19, sy: 0.02, sz: 0.025, mir: false, ry: 0.7854 }, { u: 0.9300, y: 0, z: 0.0000, sx: 0.08, sy: 0.05, sz: 0.07, mir: false, ry: 0.0000 }, { u: 0.5000, y: 0, z: -0.2000, sx: 0.2, sy: 0.035, sz: 0.05, mir: false, ry: 1.5708 }, { u: 0.3586, y: 0, z: -0.1414, sx: 0.19, sy: 0.02, sz: 0.025, mir: false, ry: 2.3562 }, { u: 0.5000, y: 0, z: -0.4300, sx: 0.08, sy: 0.05, sz: 0.07, mir: false, ry: 1.5708 }, { u: 0.3000, y: 0, z: -0.0000, sx: 0.2, sy: 0.035, sz: 0.05, mir: false, ry: 3.1416 }, { u: 0.3586, y: 0, z: 0.1414, sx: 0.19, sy: 0.02, sz: 0.025, mir: false, ry: 3.9270 }, { u: 0.0700, y: 0, z: -0.0000, sx: 0.08, sy: 0.05, sz: 0.07, mir: false, ry: 3.1416 }, { u: 0.830, y: 0, z: -0.320, sx: 0.2, sy: 0.006, sz: 0.13, mir: false, ry: 0.785 }, { u: 0.170, y: 0, z: 0.310, sx: 0.2, sy: 0.006, sz: 0.13, mir: false, ry: 0.785 }, { u: 0.820, y: 0, z: 0.310, sx: 0.2, sy: 0.006, sz: 0.13, mir: false, ry: -0.785 }] },
   istasyon: { yc: 0.5, zc: 0, sx: 1, gain: 1.05, ta: 0.992, sa: 0.442, top: 'olay_istasyon_top', side: 'olay_istasyon_side',
     rings: [{ R: 0.425, a: 0.06, h: 0.035, n: 4, p0: 0.6109, pl: 2.3562 }, { R: 0.425, a: 0.06, h: 0.035, n: 4, p0: 3.4907, pl: 2.7053 }],
     lathes: [{ pts: [[0, -0.15], [0.06, -0.14], [0.075, -0.1], [0.075, 0.1], [0.06, 0.14], [0, 0.15]], seg: 28 }, { pts: [[0.006, 0.15], [0.006, 0.2]], seg: 6 }],

@@ -10,6 +10,8 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Dört evren: Ankora, Kızıl, Buzul ve Zümrüt. Her birinin kendi atmosferi, istasyonları ve müziği var.
 - Evrenler arası hiperatlama.
 - Ana istasyonlar tünel ve hangar görünümüyle yanaşma ve kalkış animasyonuna sahip.
+- Gezegenler düz haritalardan kaplanmış, güneşle aydınlanan dönen 3B küreler: her evrenin ana gezegeni ayrı (okyanus, volkanik, buzul, orman). Kızıl gezegende lav, Zümrüt gezegende biyolüminesans gece tarafında parlar.
+- Kalıntılar (kırık halkalar ve kule) ile oyuncunun üssü üst + yan çizimden kurulmuş 3B modeller. Kızıl Geçit'teki demir kayaların çatlaklarından lav parlar.
 
 **Oynanış**
 - Madencilik, kargo taşıma ve ticaret.
