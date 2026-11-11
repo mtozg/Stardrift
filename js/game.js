@@ -38,6 +38,15 @@ function deviceLandscape(){
 const QCAP = [1.25, 1.6, 2];
 window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); return v >= 0 && v <= 2 && localStorage.getItem('sd_q') !== null ? v : 2; } catch (e) { return 2; } })();
 window.__qCap = () => QCAP[window.__qLevel];
+// kokpit oranı: pencere (üst) büyür, gösterge paneli (alt) küçülür. 0 klasik, 1 dengeli, 2 geniş cam
+const CKB = [1, 0.85, 0.72];
+window.__ckLevel = (() => { try { const v = localStorage.getItem('sd_ck'); return v === null ? 2 : Math.max(0, Math.min(2, +v || 0)); } catch (e) { return 2; } })();
+window.__ckSet = lv => { window.__ckLevel = lv; try { localStorage.setItem('sd_ck', String(lv)); } catch (e) {} resize(); };
+function ckMapping(){
+  const K = IMG.cfg; if (!K || !K.defs) return { R1: 0, a: 1, b: 1 };
+  const R1 = Math.min(...K.defs.map(d => Math.min(...d.q.map(p => p[1])))) - 8, b = CKB[window.__ckLevel] || 1;
+  return { R1, b, a: (IMG.ih - (IMG.ih - R1) * b) / R1 };   // üst bölge a kat uzar, alt bölge b kat kısalır, toplam yükseklik aynı
+}
 function resize(){
   DPR = Math.min(window.devicePixelRatio || 1, QCAP[window.__qLevel]);
   const vw = window.innerWidth, vh = window.innerHeight, st = $('stage');
@@ -1518,10 +1527,11 @@ function layoutCockpit(){
   OX = W / 2; IMGMODE = false; $('toast').style.top = ''; { const hs = $('hint').style; hs.top = ''; hs.fontSize = ''; hs.maxWidth = ''; }
   if (LAND && IMG.ok){
     const s0 = Math.max(W / IMG.iw, H / IMG.ih) * 1.04, s = IMG.cfg ? s0 : Math.max(s0, H / 582 * 1.02, Math.min(s0 * 1.45, W / 1000)), dx = (W - IMG.iw * s) / 2, dy = H - (IMG.cfg ? IMG.ih : 582) * s;
-    IM.s = s; IM.dx = dx; IM.dy = dy; IMGMODE = true; WINS = [];
-    const mp = (x, y) => [dx + x * s, dy + y * s], K = IMG.cfg, c0 = mp(800, K ? 215 : 265), a0 = mp(K ? 250 : 340, K ? 30 : 150), b0 = mp(K ? 1350 : 1260, K ? 392 : 385);
+    const CK = ckMapping(); IM.s = s; IM.dx = dx; IM.dy = dy; IM.R1 = CK.R1; IM.a = CK.a; IM.b = CK.b; IMGMODE = true; WINS = [];
+    const my = y => CK.R1 ? (y <= CK.R1 ? y * CK.a : CK.R1 * CK.a + (y - CK.R1) * CK.b) : y; IM.my = my;
+    const mp = (x, y) => [dx + x * s, dy + my(y) * s], K = IMG.cfg, c0 = mp(800, K ? 215 : 265), a0 = mp(K ? 250 : 340, K ? 30 : 150), b0 = mp(K ? 1350 : 1260, K ? 392 : 385);
     { const hs = $('hint').style; hs.top = '5px'; hs.fontSize = '10.5px'; hs.maxWidth = Math.round(W * 0.5) + 'px'; hs.lineHeight = '1.25'; }
-    $('toast').style.top = Math.max(6, Math.round(dy + 74 * s - 17)) + 'px';
+    $('toast').style.top = Math.max(6, Math.round(dy + my(74) * s - 17)) + 'px';
     OX = c0[0]; OY = c0[1]; VIEW = { l: a0[0], t: a0[1], r: b0[0], b: b0[1] }; Hv = mp(0, 393)[1];
     SCR = SCR_DEF.map(d => {
       const cx = d.q.reduce((t, p) => t + p[0], 0) / 4, cy = d.q.reduce((t, p) => t + p[1], 0) / 4;
@@ -1850,9 +1860,13 @@ function radarContent(c, I){
   c.restore();
 }
 function drawCockpitImg(c){
-  const s = IM.s, mp = (x, y) => [IM.dx + x * s, IM.dy + y * s];
+  const s = IM.s, my = IM.my || (y => y), mp = (x, y) => [IM.dx + x * s, IM.dy + my(y) * s];
   c.save(); c.translate(sway.x, sway.y);
-  c.drawImage(IMG.img, IM.dx, IM.dy, IMG.iw * s, IMG.ih * s);
+  if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
+    const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
+    c.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
+    c.drawImage(im, 0, y1, im.naturalWidth, im.naturalHeight - y1, IM.dx, IM.dy + h1, IMG.iw * s, (IMG.ih - IM.R1) * IM.b * s);
+  } else c.drawImage(IMG.img, IM.dx, IM.dy, IMG.iw * s, IMG.ih * s);
   // ekranlar: içerik önce küçük bir tuvale çizilir, sonra eğik ekran yüzeyine oturtulur
   SCR.forEach(sc => {
     const g = sc.g; g.setTransform(DPR * 1.6, 0, 0, DPR * 1.6, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
@@ -3989,6 +4003,7 @@ tryDock = function(){
   stationAnim('in', st, () => { try { _tryDock(); } finally { dockBusy = false; } });
 };
 const _undock = undock;
+window.__undockQuick = () => _undock();   // istasyon animasyonu olmadan hemen kalkış (hiperatlama için)
 undock = function(){ if (dockBusy || !docked) return; dockBusy = true; stationAnim('out', curSt, () => { try { _undock(); } finally { dockBusy = false; } }); };
 
 function showAwayCard(dur, items){
@@ -4712,8 +4727,12 @@ function drawShieldFx(c, ox, oy, W, H){
     busy = true; const gate = !!window.__gj2, to = FXC[k] || FXC[0], from = gate ? to : (FXC[curSys] || FXC[0]);
     hy.classList.add('on'); cv.width = innerWidth >> 1; cv.height = innerHeight >> 1; const x = cv.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, cv.width, cv.height);
     let t0 = performance.now(), done = false, last = t0;
-    if (window.__sfx && window.__sfx(gate ? 'gecit_cekim' : 'hiper', 0.9)){} else if (window.__sfxWarp) window.__sfxWarp(gate ? 'gate' : 'hyper'); else { blip(140, 0.7); setTimeout(() => blip(420, 0.5), 500); }
     let used3 = false;
+    { const jf = () => { try { _es(k); } catch (e) { console.error(e); } if (window.__afterJump){ const fn = window.__afterJump; window.__afterJump = null; try { fn(); } catch (e) { console.error(e); } } };
+      const fx = gate ? window.__hyperGate : window.__hyperCockpit;
+      try { if (fx) used3 = fx({ k, gate, from, to, jump: jf, end: () => { busy = false; } }); } catch (e) { console.error(e); used3 = false; } }
+    if (used3){ hy.classList.remove('on'); return; }
+    if (window.__sfx && window.__sfx(gate ? 'gecit_cekim' : 'hiper', 0.9)){} else if (window.__sfxWarp) window.__sfxWarp(gate ? 'gate' : 'hyper'); else { blip(140, 0.7); setTimeout(() => blip(420, 0.5), 500); }
     try { if (window.__hyper3d){ used3 = window.__hyper3d({ k, gate, from, to, jump: () => { try { _es(k); } catch (e) { console.error(e); } if (window.__afterJump){ const fn = window.__afterJump; window.__afterJump = null; try { fn(); } catch (e) { console.error(e); } } }, end: () => { busy = false; } }); } } catch (e) { console.error(e); used3 = false; }
     if (used3){ hy.classList.remove('on'); return; }
     const SF = window.__SF || (window.__SF = Array.from({ length: 900 }, () => ({ z: 1, a: 0, r: 0.1 })));
@@ -6250,11 +6269,12 @@ window.__xpal = {
       const arr = sm((s - 0.25) / 1.3); if (sky) sky.material.opacity = t > TJ ? arr : 0; if (plan) plan.material.opacity = t > TJ ? arr : 0;
       if (sky) sky.rotation.y += dt * 0.02;
       XR.render(sc, cam);
-      if (!outT && t >= TE - 0.45){ outT = true; host.style.transition = 'opacity .9s'; host.style.opacity = '0'; }
+      if (!outT && t >= TE - 0.45){ outT = true; window.__hjFade = true; host.style.transition = 'opacity .9s'; host.style.opacity = '0'; }
       if (window.__ht !== undefined || t < TE + 0.9) requestAnimationFrame(step); else done();
     };
     function smat0(){}
-    const done = () => { if (stop) return; stop = true; XR.toneMapping = THREE.ACESFilmicToneMapping; window.__hjOn = false; try { if (cv && cv.parentNode === host) host.removeChild(cv); fl.remove(); } catch (e) {} host.style.display = 'none'; host.style.opacity = '0';
+    window.__hjFade = false;
+    const done = () => { if (stop) return; stop = true; window.__hjFade = false; XR.toneMapping = THREE.ACESFilmicToneMapping; window.__hjOn = false; try { if (cv && cv.parentNode === host) host.removeChild(cv); fl.remove(); } catch (e) {} host.style.display = 'none'; host.style.opacity = '0';
       own.forEach(d => { try { d.dispose && d.dispose(); } catch (e) {} }); try { sc.traverse(x => { if (x.geometry && x !== sky) x.geometry.dispose && 0; }); } catch (e) {}
       try { o.end(); } catch (e) { console.error(e); } };
     requestAnimationFrame(step);
@@ -6262,6 +6282,185 @@ window.__xpal = {
   };
 }
 
+
+
+// ---------- sıçrama efektleri v2 ----------
+// A) istasyondan hiperatlama: kokpitin içinden geri sayım, camda tek ışık çizgisi, ışın patlaması, beyaz flaş
+// B) kapıdan geçiş: arkadan görünüm, yıldızlar çizgiye döner, flaş, dönen bulut tüneli
+{
+  const sm = t => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; };
+  const css = document.createElement('style');
+  css.textContent = '#hcPanel{position:fixed;left:50%;transform:translateX(-50%);z-index:5;width:min(560px,62vw);pointer-events:none;opacity:0;transition:opacity .35s;font-family:var(--font)}#hcPanel.on{opacity:1}'
+    + '#hcPanel .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 14px;border:2px solid rgba(255,120,60,.9);background:repeating-linear-gradient(-45deg,rgba(255,105,45,.22) 0 9px,rgba(255,105,45,.06) 9px 18px);box-shadow:0 0 22px rgba(255,100,40,.25) inset}'
+    + '#hcPanel .l b{display:block;font:700 15px var(--disp);letter-spacing:.18em;color:#ff8f55;text-shadow:0 0 8px rgba(255,110,40,.7)}#hcPanel .l span{font-size:11px;letter-spacing:.2em;color:#ffb38a}'
+    + '#hcPanel .tm{font:700 34px/1 ui-monospace,Menlo,Consolas,monospace;color:#ffd0b0;text-shadow:0 0 12px rgba(255,110,40,.85);letter-spacing:.06em}'
+    + '#hcPanel .eng{font:700 18px var(--disp);letter-spacing:.28em;color:#ffd0b0;text-align:center;width:100%;text-shadow:0 0 12px rgba(255,110,40,.85)}'
+    + '#hcPanel .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:5px}#hcPanel .seg i{height:16px;border:1px solid rgba(255,120,60,.7);background:rgba(255,105,45,.08);font:700 9px/16px var(--font);letter-spacing:.14em;color:#ffb38a;text-align:left;padding-left:5px;font-style:normal;transition:background .2s}#hcPanel .seg i.on{background:rgba(255,105,45,.75);color:#2a0d00}'
+    + '#hcWhite{position:fixed;inset:0;z-index:61;background:#fff;opacity:0;pointer-events:none}';
+  document.head.appendChild(css);
+  const panel = document.createElement('div'); panel.id = 'hcPanel'; document.body.appendChild(panel);
+  const white = document.createElement('div'); white.id = 'hcWhite'; document.body.appendChild(white);
+  // dokular
+  let TX = null;
+  const texs = () => TX || (TX = {
+    streak: canvasTex(1024, 64, (g, w, h) => { const lg = g.createLinearGradient(0, 0, w, 0); lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.35, 'rgba(190,215,255,0.5)'); lg.addColorStop(0.5, 'rgba(255,255,255,1)'); lg.addColorStop(0.65, 'rgba(190,215,255,0.5)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = lg; for (let y = 0; y < h; y++){ const k = Math.exp(-Math.pow((y - h / 2) / (h * 0.09), 2)); g.globalAlpha = k; g.fillRect(0, y, w, 1); } }),
+    rays: canvasTex(1024, 1024, (g, w, h) => { const cx = w / 2, cy = h / 2; g.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 260; i++){ const a = Math.random() * TAU, L = (0.25 + Math.pow(Math.random(), 0.6) * 0.75) * w * 0.5, wd = 0.004 + Math.random() * 0.02, r = Math.random();
+        const col = r < 0.5 ? [255, 255, 255] : r < 0.8 ? [150, 185, 255] : [255, 190, 130], gr = g.createRadialGradient(cx, cy, 0, cx, cy, L);
+        gr.addColorStop(0, 'rgba(' + col + ',0.9)'); gr.addColorStop(0.5, 'rgba(' + col + ',0.35)'); gr.addColorStop(1, 'rgba(' + col + ',0)');
+        g.fillStyle = gr; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a - wd) * L, cy + Math.sin(a - wd) * L); g.lineTo(cx + Math.cos(a + wd) * L, cy + Math.sin(a + wd) * L); g.closePath(); g.fill(); }
+      const cg = g.createRadialGradient(cx, cy, 0, cx, cy, w * 0.18); cg.addColorStop(0, 'rgba(255,255,255,1)'); cg.addColorStop(0.4, 'rgba(200,220,255,0.45)'); cg.addColorStop(1, 'rgba(150,180,255,0)'); g.fillStyle = cg; g.fillRect(0, 0, w, h); }),
+    glow: glowTexture(255, 255, 255)
+  });
+  const addMat = (map, col) => new THREE.MeshBasicMaterial({ map, color: col || 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, fog: false, side: THREE.DoubleSide });
+  const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut' };
+  const envTex = {}; const energy = k => envTex[k] || (envTex[k] = (() => { const t = new THREE.TextureLoader().load('assets/img/gate_' + VK[k] + '_enerji.webp'); t.encoding = THREE.sRGBEncoding; return t; })());
+
+  // ---- A) kokpitten hiperatlama
+  window.__hyperCockpit = function(o){
+    if (window.__hcOn) return false;
+    const T = texs(); energy(o.k);
+    if (docked && window.__undockQuick) window.__undockQuick();
+    vel.set(0, 0, 0); window.__hcOn = true; lock = null;
+    const D = 30, G = new THREE.Group(); G.position.z = -D; camera.add(G);
+    const mk = (map, col, ro) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), addMat(map, col)); m.renderOrder = 990 + ro; m.frustumCulled = false; G.add(m); return m; };
+    const neb = mk(energy(o.k), 0xffffff, 0), rays = mk(T.rays, 0xffffff, 1), rays2 = mk(T.rays, 0xffd2b0, 2), streak = mk(T.streak, 0xffffff, 3), core = mk(T.glow, 0xdfe8ff, 4);
+    const tilt = -0.09; streak.rotation.z = tilt;
+    const ST = [['SÜRÜCÜ ISINIYOR', 0], ['ROTA HESAPLANIYOR', 1.15], ['HAZIR', 2.35]], CT = 3.2, TJ = 6.4, TE = TJ + 1.3;
+    panel.style.top = Math.max(8, Math.round(VIEW.t + 6)) + 'px';
+    panel.innerHTML = '<div class="top"><div class="l"><b>SIÇRAMA SÜRÜCÜSÜ</b><span class="st">SÜRÜCÜ ISINIYOR</span></div><div class="tm">03:20</div></div><div class="seg"><i>ENERJİ</i><i>ROTA</i><i>KALKAN</i><i>SÜRÜCÜ</i></div>';
+    panel.classList.add('on'); const stEl = panel.querySelector('.st'), tmEl = panel.querySelector('.tm'), segs = [...panel.querySelectorAll('.seg i')];
+    sfxP('sicrama_isinma', 0.9) || blip(140, 0.6);
+    const fov0 = camera.fov, T0 = performance.now(); let jumped = false, engaged = false, burstSnd = false, boomSnd = false, stop = false;
+    const step = now => {
+      if (stop) return; const t = window.__ht !== undefined ? window.__ht : (now - T0) / 1000;
+      // geri sayım paneli
+      if (t < CT){ const left = Math.max(0, CT - t), s0 = Math.floor(left), cs = Math.floor((left - s0) * 100); tmEl.textContent = String(s0).padStart(2, '0') + ':' + String(cs).padStart(2, '0');
+        let lab = ST[0][0]; for (const q of ST) if (t >= q[1]) lab = q[0]; stEl.textContent = lab; segs.forEach((e, i) => e.classList.toggle('on', t > (i + 1) * CT / 4.4)); }
+      else if (!engaged){ engaged = true; panel.querySelector('.top').innerHTML = '<div class="eng">SÜRÜCÜ DEVREDE</div>'; segs.forEach(e => e.classList.add('on')); }
+      if (t > CT + 0.7) panel.classList.remove('on');
+      // kamera: ısınırken titreme artar
+      const hH = D * Math.tan(camera.fov * Math.PI / 360), q = t - (CT + 0.6), sh = t < CT ? 0.004 * t / CT : t < TJ ? 0.004 + 0.02 * sm(q / 2.6) : 0;
+      camera.rotation.z = (Math.random() - 0.5) * sh; camera.rotation.x = (Math.random() - 0.5) * sh * 0.5;
+      // ışık çizgisi
+      const a1 = sm(q / 0.45), a2 = sm((q - 0.45) / 1.9);
+      streak.material.opacity = q > 0 ? Math.min(1, a1 * 1.2) : 0; streak.scale.set(hH * (0.15 + 3.2 * a1 + 2 * a2), hH * (0.05 + 0.08 * a2), 1);
+      core.material.opacity = q > 0 ? a1 * 0.9 : 0; core.scale.setScalar(hH * (0.12 + 0.7 * a1 + 2.4 * a2));
+      // ışın patlaması ve arkada varış yerinin bulutları
+      rays.material.opacity = a2 * 0.95; rays.scale.setScalar(hH * (0.3 + 5.2 * a2)); rays.rotation.z = tilt + q * 0.05;
+      rays2.material.opacity = a2 * 0.55; rays2.scale.setScalar(hH * (0.5 + 4.2 * a2)); rays2.rotation.z = -q * 0.08 + 1.3;
+      neb.material.opacity = sm((q - 0.8) / 1.6) * 0.8; neb.scale.setScalar(hH * (2.2 + 1.6 * a2)); neb.rotation.z = q * 0.15;
+      if (q > 0 && !burstSnd){ burstSnd = true; sfxP('sicrama_patlama', 1); }
+      if (t < TJ){ camera.fov = fov0 + 10 * sm((q - 0.5) / 2.2); camera.updateProjectionMatrix(); }
+      // beyaz flaş ve sıçrama
+      white.style.opacity = String(t < TJ - 0.55 ? 0 : t < TJ ? sm((t - (TJ - 0.55)) / 0.55) : Math.max(0, 1 - (t - TJ - 0.15) / 1.0));
+      if (!boomSnd && t >= TJ - 0.25){ boomSnd = true; sfxP('gecit_atlama', 0.9); }
+      if (!jumped && t >= TJ){ jumped = true; G.visible = false; camera.fov = fov0; camera.rotation.set(0, 0, 0); applyCam(0);
+        try { o.jump(); } catch (e) { console.error(e); }
+        // varış: hangarda değil uzayda, istasyondan dışarı bakarak
+        docked = false; $('dock').classList.add('hidden'); { const away = rig.position.clone().sub(STATION.pos).normalize(); rig.lookAt(rig.position.clone().sub(away)); } vel.set(0, 0, 0); scrFlash = 0;
+        setTimeout(() => sfxP('gecit_varis', 0.85), 250); }
+      if (window.__ht !== undefined || t < TE) requestAnimationFrame(step); else finish();
+    };
+    function finish(){ if (stop) return; stop = true; camera.remove(G); G.traverse(m => { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); });
+      camera.rotation.set(0, 0, 0); camera.fov = fov0; applyCam(0); white.style.opacity = 0; panel.classList.remove('on'); window.__hcOn = false; try { o.end(); } catch (e) { console.error(e); } }
+    requestAnimationFrame(step);
+    return true;
+  };
+
+  // ---- B) kapıdan geçiş
+  const TUN_FS = 'uniform float t; uniform vec3 c1; uniform vec3 c2; uniform float op; varying vec2 vUv;\n' + GLN +
+    'void main(){ float a = vUv.x * 6.2831853, z = vUv.y; float sw = t * 0.35 + z * 3.0;\n' +
+    ' vec3 p = vec3(cos(a + sw) * 1.5, sin(a + sw) * 1.5, z * 9.0 + t * 1.9);\n' +
+    ' vec3 w = vec3(n3(p * 1.2 + t * 0.12), n3(p * 1.2 + 5.2), n3(p * 1.2 + 9.1)) - 0.5;\n' +
+    ' float d = fbm(p * 0.85 + w * 1.9); float cl = smoothstep(0.28, 0.82, d);\n' +
+    ' float fil = pow(fbm(vec3(cos(a) * 3.0, sin(a) * 3.0, z * 24.0 + t * 6.0)), 3.0) * 1.6;\n' +
+    ' vec3 col = mix(c2, c1, cl) * (0.25 + 1.1 * cl) + c1 * fil * 0.45 + mix(c1, vec3(1.0), 0.45) * (pow(z, 5.0) * 1.4 + pow(1.0 - abs(z - 0.92) * 4.0, 3.0) * 0.0);\n' +
+    ' gl_FragColor = vec4(col, op * smoothstep(0.0, 0.06, z)); }';
+  window.__hyperGate = function(o){
+    if (typeof mkShip !== 'function') return false;
+    let host = $('hjmp'); if (!host){ host = document.createElement('div'); host.id = 'hjmp'; host.style.cssText = 'position:fixed;inset:0;z-index:60;background:#000;display:none;opacity:0;pointer-events:all;overflow:hidden'; document.body.appendChild(host); }
+    const own = [], mkd = d => { own.push(d); return d; };
+    let sc, cam, im, tun, core, ship, eng, light, sky, plan, cv;
+    const tint = new THREE.Color(o.to[0] / 255, o.to[1] / 255, o.to[2] / 255), blue = new THREE.Color(0.42, 0.66, 1.0), TUNC = { 0: [0.25, 0.55, 1.0], 1: [1.0, 0.42, 0.16], 2: [0.45, 0.85, 1.0], 3: [0.2, 1.0, 0.62] }[o.k] || [0.3, 0.6, 1.0], c1 = new THREE.Color(...TUNC), c2 = c1.clone().multiplyScalar(0.1);   // tünel gidilen evrenin renginde
+    const NS = 1500, stars = [];
+    try {
+      if (!XR){ XR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); XR.outputEncoding = THREE.sRGBEncoding; }
+      XR.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__qCap ? window.__qCap() : 1.25)); XR.toneMapping = THREE.NoToneMapping;
+      sc = new THREE.Scene(); cam = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.1, 4000);
+      im = new THREE.InstancedMesh(mkd(new THREE.BoxGeometry(1, 1, 1)), mkd(new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })), NS); im.frustumCulled = false; sc.add(im);
+      const cc = new THREE.Color();
+      for (let i = 0; i < NS; i++){ const a = Math.random() * TAU, r = 1.6 + Math.pow(Math.random(), 0.75) * 55; stars.push({ x: Math.cos(a) * r, y: Math.sin(a) * r * 0.75, z: 10 - Math.random() * 600, w: 0.03 + Math.random() * 0.09 });
+        cc.setRGB(0.75 + Math.random() * 0.25, 0.85 + Math.random() * 0.15, 1); im.setColorAt(i, cc); }
+      const tg = mkd(new THREE.CylinderGeometry(16, 16, 700, 56, 1, true)); tg.rotateX(-Math.PI / 2); tg.translate(0, 0, -340);
+      tun = new THREE.Mesh(tg, mkd(new THREE.ShaderMaterial({ uniforms: { t: { value: 0 }, c1: { value: c1 }, c2: { value: c2 }, op: { value: 0 } }, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }', fragmentShader: TUN_FS, transparent: true, depthWrite: false, side: THREE.BackSide })));
+      tun.visible = false; sc.add(tun);
+      core = new THREE.Sprite(mkd(new THREE.SpriteMaterial({ map: glowTexture(255, 255, 255), color: c1.clone().lerp(new THREE.Color(1, 1, 1), 0.5), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }))); core.scale.set(70, 70, 1); core.position.z = -260; sc.add(core);
+      ship = mkShip(save.ship); const bb = new THREE.Box3().setFromObject(ship), sz = bb.getSize(new THREE.Vector3()), ln = Math.max(sz.x, 0.001);
+      const wrap = new THREE.Group(); ship.scale.multiplyScalar(2.6 / ln); wrap.add(ship); sc.add(wrap); const c3 = new THREE.Box3().setFromObject(wrap).getCenter(new THREE.Vector3()); ship.position.sub(c3); wrap.rotation.y = Math.PI / 2; ship = wrap;
+      eng = new THREE.Sprite(mkd(new THREE.SpriteMaterial({ map: glowTexture(255, 255, 255), color: 0x9fc4ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.85 }))); sc.add(eng);
+      sc.add(new THREE.AmbientLight(0x8d9ab8, 0.6)); light = new THREE.PointLight(0x9fc4ff, 1.4, 50); sc.add(light);
+      const dl = new THREE.DirectionalLight(0xdfe8ff, 0.7); dl.position.set(-6, 8, 10); sc.add(dl);
+      if (window.__skyT){ const sg = mkd(new THREE.SphereGeometry(1500, 40, 28)); sg.scale(-1, 1, 1); sky = new THREE.Mesh(sg, mkd(new THREE.MeshBasicMaterial({ map: window.__skyT, transparent: true, opacity: 0, depthWrite: false }))); sc.add(sky); }
+      if (window.__plT){ plan = new THREE.Sprite(mkd(new THREE.SpriteMaterial({ map: window.__plT, transparent: true, depthWrite: false, fog: false, opacity: 0 }))); plan.scale.set(520, 520, 1); plan.position.set(-380, 70, -1000); sc.add(plan); }
+      cv = XR.domElement; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none'; host.insertBefore(cv, host.firstChild);
+      XR.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
+    } catch (e) { console.warn('hyperGate', e); try { if (cv && cv.parentNode === host) host.removeChild(cv); } catch (er) {} return false; }
+    const fl = document.createElement('div'); fl.style.cssText = 'position:absolute;inset:0;opacity:0;pointer-events:none;z-index:2;background:#fff'; host.appendChild(fl);
+    host.style.transition = 'opacity .35s'; host.style.display = 'block'; void host.offsetWidth; host.style.opacity = '1'; window.__hjOn = true;
+    const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3(), bg = new THREE.Color(), black = new THREE.Color(0, 0, 0);
+    const TJ = 2.4, TX = 5.9, TE = 7.4, T0 = performance.now(); let lastT = T0, jumped = false, stop = false, outT = false, s1 = false, s2 = false, s3 = false, s4 = false;
+    sfxP('gecit_cekim', 0.9);
+    const vAt = t => t < 0.5 ? 10 + 60 * t : t < 1.4 ? 40 + 230 * sm((t - 0.5) / 0.9) : t < TJ ? 270 + 1500 * Math.pow((t - 1.4) / (TJ - 1.4), 2) : t < TX - 0.6 ? 0 : t < TX ? 1600 * sm((t - (TX - 0.6)) / 0.6) : 1600 * Math.exp(-(t - TX) * 3.2) + 8;
+    const step = now => {
+      if (stop) return; const t = window.__ht !== undefined ? window.__ht : (now - T0) / 1000, dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+      const v = vAt(t), vn = Math.min(1, v / 1600), inTun = t >= TJ && t < TX;
+      // yıldız çizgileri
+      im.visible = !inTun || t > TX - 0.6; const len = Math.max(0.12, Math.min(260, v * 0.06));
+      for (let i = 0; i < NS; i++){ const q = stars[i]; q.z += v * dt; if (q.z - len > 14){ const a = Math.random() * TAU, r = 1.6 + Math.pow(Math.random(), 0.75) * 55; q.x = Math.cos(a) * r; q.y = Math.sin(a) * r * 0.75; q.z = -600 - Math.random() * 60; }
+        sv.set(q.w * (1 + vn * 0.5), q.w * (1 + vn * 0.5), len); pv.set(q.x, q.y, q.z - len / 2); m4.compose(pv, q0, sv); im.setMatrixAt(i, m4); }
+      im.instanceMatrix.needsUpdate = true; im.material.opacity = 0.55 + 0.45 * vn;
+      // arka plan tonu: önce varış renginde ton, sonra mavi-beyaz
+      const tn = t < TJ ? sm((t - 0.6) / 0.6) * (1 - sm((t - 1.6) / 0.6)) : 0, tb = t < TJ ? sm((t - 1.5) / 0.8) : 0;
+      bg.copy(black).lerp(tint, tn * 0.55).lerp(blue, tb * 0.35); XR.setClearColor(bg, 1);
+      // tünel
+      tun.visible = inTun || (t >= TX && t < TX + 0.4); tun.material.uniforms.t.value = t; tun.material.uniforms.op.value = t < TJ ? 0 : t < TX ? Math.min(1, (t - TJ) / 0.4) : Math.max(0, 1 - (t - TX) / 0.4);
+      core.material.opacity = tun.visible ? 1 * tun.material.uniforms.op.value : 0; core.scale.setScalar(80 + 12 * Math.sin(t * 2.2)); tun.rotation.z += dt * 0.15;
+      // gemi: geçişte uzakta küçük görünür, kamera ona yetişir
+      let sz0 = 0; if (t >= TJ && t < TJ + 2.2) sz0 = 1 - sm((t - TJ) / 2.2);
+      const surge = t < TJ ? Math.pow(vn, 1.3) * 2.2 : 0, shk = (t < TJ ? vn * vn * 0.05 : inTun ? 0.012 : 0);
+      ship.position.set(Math.sin(t * 0.9) * 0.25 * (inTun ? 1 : 0) + (Math.random() - 0.5) * shk, Math.sin(t * 1.3) * 0.12 + (Math.random() - 0.5) * shk, -surge - sz0 * 46);
+      ship.rotation.z = Math.sin(t * 1.1) * (inTun ? 0.09 : 0.04);
+      eng.position.set(ship.position.x, ship.position.y, ship.position.z + 1.5); eng.scale.setScalar(1.1 + 1.6 * vn + (inTun ? 0.6 + 0.25 * Math.sin(t * 9) : 0)); eng.material.color.copy(inTun ? c1.clone().lerp(new THREE.Color(1, 1, 1), 0.35) : new THREE.Color(0.75, 0.85, 1));
+      light.position.set(ship.position.x, ship.position.y + 1.5, ship.position.z + 3); light.color.copy(inTun ? c1 : bg.clone().lerp(new THREE.Color(1, 1, 1), 0.6)); light.intensity = 1 + 2.5 * vn + (inTun ? 1 : 0);
+      cam.fov = 54 + 44 * Math.pow(vn, 1.2) + (inTun ? 6 : 0); cam.updateProjectionMatrix();
+      cam.position.set((Math.random() - 0.5) * shk * 3, 1.25 + (Math.random() - 0.5) * shk * 3, 6.2 + 2.2 * vn); cam.lookAt(0, 0.1, -6);
+      // flaşlar
+      const f1 = t < TJ - 0.35 ? 0 : t < TJ ? sm((t - (TJ - 0.35)) / 0.35) : Math.max(0, 1 - (t - TJ) / 0.5), f2 = t < TX - 0.25 ? 0 : t < TX ? sm((t - (TX - 0.25)) / 0.25) * 0.95 : Math.max(0, 0.95 - (t - TX) / 0.6);
+      fl.style.opacity = String(Math.max(f1, f2));
+      if (!jumped && t >= TJ - 0.03){ jumped = true; try { o.jump(); } catch (e) { console.error(e); }
+        try { const pm = window.__skyGroup && window.__skyGroup.children.find(c => c.isMesh), sk = SYS[o.k] && SYS[o.k].sky; if (sky && pm && pm.material.map){ sky.material.map = pm.material.map; sky.material.needsUpdate = true; } if (sky && sk) sky.material.color.setRGB(sk[0], sk[1], sk[2]); if (plan && PL_DISC[o.k]){ plan.material.map = PL_DISC[o.k]; plan.material.needsUpdate = true; } } catch (e) {} }
+      // varış
+      const arr = sm((t - TX) / 1.0); if (sky) sky.material.opacity = t > TX ? arr : 0; if (plan) plan.material.opacity = t > TX ? arr : 0; if (sky) sky.rotation.y += dt * 0.02;
+      // sesler
+      if (!s1 && t >= TJ - 0.15){ s1 = true; sfxP('gecit_atlama', 1); }
+      if (!s2 && t >= TJ + 0.2){ s2 = true; sfxP('hiper_tunel', 0.85); }
+      if (!s3 && t >= TX - 0.35){ s3 = true; sfxP('hiper_cikis', 0.9); }
+      if (!s4 && t >= TX + 0.3){ s4 = true; sfxP('gecit_varis', 0.8); }
+      XR.render(sc, cam);
+      if (!outT && t >= TE - 0.5){ outT = true; window.__hjFade = true; host.style.transition = 'opacity .7s'; host.style.opacity = '0'; }
+      if (window.__ht !== undefined || t < TE + 0.7) requestAnimationFrame(step); else done();
+    };
+    window.__hjFade = false;
+    const done = () => { if (stop) return; stop = true; window.__hjFade = false; XR.toneMapping = THREE.ACESFilmicToneMapping; window.__hjOn = false; try { if (cv && cv.parentNode === host) host.removeChild(cv); fl.remove(); } catch (e) {} host.style.display = 'none'; host.style.opacity = '0';
+      own.forEach(d => { try { d.dispose && d.dispose(); } catch (e) {} }); try { o.end(); } catch (e) { console.error(e); } };
+    requestAnimationFrame(step);
+    return true;
+  };
+}
 
 // ---- parça ve cevher simgeleri (kodla çizilir)
 {
@@ -6361,6 +6560,7 @@ window.__xpal = {
       + line('Ana müzik', 'Başlangıç ekranı ve ana tema', '<button class="act" data-ana="1">' + (ANA[save.anaTema] || ANA.sakin) + '</button>')
       + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
       + '<div class="sect">Görünüm</div>'
+      + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
@@ -6379,6 +6579,7 @@ window.__xpal = {
     const b = e.target.closest('button[data-set]'); if (!b) return; const a = b.dataset.set;
     if (a === 'close') close();
     else if (a === 'mute'){ soundOn = !soundOn; save.mute = !soundOn; persist(); b.textContent = soundOn ? 'Açık' : 'Kapalı'; $('snd').classList.toggle('off', !soundOn); }
+    else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
   });
@@ -6471,7 +6672,7 @@ window.__xpal = {
 
 // ---- dosyadan ses efektleri (assets/sfx/, ElevenLabs ile üretildi)
 window.SFXB = window.SFXB || {};
-for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis', 'rutbe', 'gorev_tamam', 'firtina_uyari', 'firtina', 'patron_giris', 'patron_faz', 'patron_olum', 'itibar', 'salvo']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
+for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis', 'rutbe', 'gorev_tamam', 'firtina_uyari', 'firtina', 'patron_giris', 'patron_faz', 'patron_olum', 'itibar', 'salvo', 'sicrama_isinma', 'sicrama_patlama', 'hiper_tunel', 'hiper_cikis']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
 const sfxP = (n, v) => { try { return !!(window.__sfx && window.__sfx(n, v)); } catch (e) { return false; } };
 // ---- ilerleme: rütbe (XP) + görev panosu. Görevler isteğe bağlı; açık dünya bozulmaz.
 const RANKS = [['Çaylak', 0], ['Pilot', 400], ['Usta Pilot', 1200], ['Kaptan', 2600], ['Komodor', 5000], ['Efsane', 9000]];
@@ -7182,8 +7383,9 @@ function frame(now){
     stick.on = false; sBase.classList.add('hidden'); sKnob.classList.add('hidden'); laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false;
     audioUpdate(0); requestAnimationFrame(frame); return;
   }
-  if (window.__menuOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); renderer.render(scene, camera); drawHud(); requestAnimationFrame(frame); return; }
+  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); renderer.render(scene, camera); drawHud(); requestAnimationFrame(frame); return; }
   update(dt);
+  if (window.__hjOn && !window.__hjFade){ requestAnimationFrame(frame); return; }   // sıçrama sahnesi ekranı tamamen kapatırken ana sahne çizilmez (akıcılık)
   renderer.render(scene, camera);
   drawHud();
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
