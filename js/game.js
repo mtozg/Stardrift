@@ -2761,7 +2761,7 @@ const SYS = [
   { ad: 'Buzul Halka', not: 'Buz bol ve ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
   { ad: 'Zümrüt Sis', not: 'Kristal çok zengin, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
 ];
-const GATE_TO = [1, 2, 3, 0], JC = 150;
+const GATE_TO = [1, 2, 3, 0, 0, 0], JC = 150;
 const LORE_S = {
   1: ['Duvarda kurum: "Ocaklar sönmeden son kuşak burada yandı."', 'Pas dolu cephanelik. Not: "Ateş, korkunun mimarıdır."', 'Eriyik bir çekirdek. Not: "Kızıl yıldız bizi tavlayıp güçlendirdi."', 'Haritanın kenarında: "Geçit sadece geri dönenlere açılır."'],
   2: ['Buza gömülü günlük: "Sessizlik de bir sinyaldir."', 'Donmuş cephanelik. Not: "Soğuk, hiçbir şeyi unutmaz."', 'Kırağılı çekirdek. Not: "Isı, yalnızca hareketin adıdır."', 'Buzdaki harita: "Her halka bir kapıya çıkar."'],
@@ -2799,7 +2799,7 @@ const SYSST = {}; let MV = null, HOME = null;
 const SYSF = ['ruin', 'rn', 'map', 'calm', 'kb'];
 function lay(p, k, seed){
   if (k === 0) return p.clone();
-  const A = [0, 2.1, 4.2, 1.0][k], S = [1, 0.93, 1.08, 0.97][k], M = k === 2 ? -1 : 1;
+  const A = [0, 2.1, 4.2, 1.0, 3.1, 5.3][k] || 0, S = [1, 0.93, 1.08, 0.97, 1.04, 0.95][k] || 1, M = k === 2 || k === 5 ? -1 : 1;
   const rr = n => { const t = Math.sin(n * 12.9898 + k * 78.233) * 43758.5453; return t - Math.floor(t); };
   const x = p.x * S * M, z = p.z * S, c = Math.cos(A), s = Math.sin(A);
   return V(x * c + z * s + (rr(seed) - 0.5) * 700, p.y * S + (rr(seed + 9) - 0.5) * 200, -x * s + z * c + (rr(seed + 19) - 0.5) * 700);
@@ -4760,11 +4760,11 @@ function drawShieldFx(c, ox, oy, W, H){
 
 // ---------- 5) istasyona göre hangar arka planı ----------
 {
-  const HG = [null, A6.h1, A6.h2, A6.h3]; let last = -9;
+  const HG = [null, A6.h1, A6.h2, A6.h3]; let last = -9; const HGS = { 4: 'assets/img/a6_h_lonca.webp', 5: 'assets/img/a6_h_kara.webp' };
   EXTRA.push(dt => {
     if (!docked) { last = -9; return; }
-    const kk = xstk(curSt)[0], i = ['ankora','demirhan','ice','kristal'].indexOf(kk); if (i === last) return; last = i;
-    $('dock').style.setProperty('--hg', 'url(' + (HG[i] || A3.hangar) + ')');
+    const kk = xstk(curSt)[0], i0 = ['ankora','demirhan','ice','kristal'].indexOf(kk), hs = curSt === STATIONS[0] && HGS[curSys], i = hs ? 100 + curSys : i0; if (i === last) return; last = i;
+    $('dock').style.setProperty('--hg', 'url(' + (hs || HG[i0] || A3.hangar) + ')');
   });
 }
 
@@ -4781,7 +4781,7 @@ function drawShieldFx(c, ox, oy, W, H){
 
 // ---------- 7) sıçrama / kapı geçişi: evrenin rengine göre kodla çizilen efekt ----------
 {
-  const FXC = [[110, 190, 255], [255, 98, 54], [130, 226, 255], [72, 255, 166]];
+  const FXC = [[110, 190, 255], [255, 98, 54], [130, 226, 255], [72, 255, 166], [255, 196, 96], [255, 60, 90]];
   const st = document.createElement('style'); st.textContent = '#hyp{position:fixed;inset:0;z-index:60;background:#000;opacity:0;pointer-events:none;transition:opacity .25s;overflow:hidden}#hyp.on{opacity:1;pointer-events:auto}#hyp canvas{position:absolute;inset:0;width:100%;height:100%}'; document.head.appendChild(st);
   const hy = document.createElement('div'); hy.id = 'hyp'; hy.innerHTML = '<canvas></canvas>'; document.body.appendChild(hy);
   const cv = hy.querySelector('canvas');
@@ -5290,7 +5290,7 @@ window.__xProps = function(xs, mk, SK, OW, OH, LEN){
 };
 
 // ======== v79 ========
-function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
+function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === ({ lonca: 4, korsan: 5 }[save.side] ?? -1)); }
 
 // ---- dost ateşi: önce uyarı, devam edersen karşılık
 {
@@ -6327,7 +6327,7 @@ window.__xpal = {
       if (window.__skyT){ const sg = mkd(new THREE.SphereGeometry(1500, 40, 28)); sg.scale(-1, 1, 1); sky = new THREE.Mesh(sg, mkd(new THREE.MeshBasicMaterial({ map: window.__skyT, transparent: true, opacity: 0, depthWrite: false, color: new THREE.Color(1.18, 1.18, 1.28) }))); sc.add(sky); }
       if (window.__plT){ plan = new THREE.Sprite(mkd(new THREE.SpriteMaterial({ map: window.__plT, transparent: true, depthWrite: false, fog: false, opacity: 0 }))); plan.scale.set(520, 520, 1); plan.position.set(-380, 70, -1000); sc.add(plan); }
       // gidilen evrenin enerji girdabı: gemi ona doğru çekilip içine dalar
-      { const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut' }[o.k]; if (VK){ const vt = mkd(new THREE.TextureLoader().load('assets/img/gate_' + VK + '_enerji.webp')); vt.encoding = THREE.sRGBEncoding;
+      { const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut', 4: 'lonca', 5: 'korsan' }[o.k]; if (VK){ const vt = mkd(new THREE.TextureLoader().load('assets/img/gate_' + VK + '_enerji.webp')); vt.encoding = THREE.sRGBEncoding;
         vtx = new THREE.Mesh(mkd(new THREE.CircleGeometry(14, 72)), mkd(new THREE.MeshBasicMaterial({ map: vt, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))); vtx.position.z = -120; sc.add(vtx); } }
       cv = XR.domElement; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none'; host.insertBefore(cv, host.firstChild);
       XR.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
@@ -6417,7 +6417,7 @@ window.__xpal = {
     glow: glowTexture(255, 255, 255)
   });
   const addMat = (map, col) => new THREE.MeshBasicMaterial({ map, color: col || 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, fog: false, side: THREE.DoubleSide });
-  const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut' };
+  const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut', 4: 'lonca', 5: 'korsan' };
   const envTex = {}; const energy = k => envTex[k] || (envTex[k] = (() => { const t = new THREE.TextureLoader().load('assets/img/gate_' + VK[k] + '_enerji.webp'); t.encoding = THREE.sRGBEncoding; return t; })());
 
   // ---- A) kokpitten hiperatlama
@@ -6768,7 +6768,7 @@ window.__xpal = {
   const _spR = spawnRole;
   spawnRole = function(role, initial){
     const n = _spR(role, initial);
-    if (role === 'pirate' && n && Math.random() < [0.3, 0.45, 0.4, 0.5][curSys] && n.type !== 'leader'){
+    if (role === 'pirate' && n && Math.random() < ([0.3, 0.45, 0.4, 0.5, 0.2, 0.6][curSys] || 0.3) && n.type !== 'leader'){
       const w = spawnNpc('raider', n.pos.clone().add(V(rand(-60, 60), rand(-20, 20), rand(-60, 60))), n.home); w.state = 'roam'; w.wingOf = n;
     }
     return n;
@@ -7566,7 +7566,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
       const inTitle = tt && !tt.classList.contains('off');
       let hostile = false; if (!docked && !inTitle) for (let _q88 = 0, q; _q88 < npcs.length && ((q = npcs[_q88]), true); _q88++) if (q.hostile){ const d = q.pos.distanceTo(rig.position); if (q.state === 'attack' ? d < 1200 : d < 600){ hostile = true; break; } }
       if (hostile) lastH = performance.now();
-      let k; if (inTitle || performance.now() < anaUntil) k = 'ana'; else if (docked) k = 'hangar'; else if (performance.now() - lastH < 8000) k = 'savas'; else k = save.uzayAna ? 'ana' : ['ankora', 'kizil', 'buzul', 'zumrut'][Math.min(3, Math.max(0, curSys | 0))];
+      let k; if (inTitle || performance.now() < anaUntil) k = 'ana'; else if (docked) k = 'hangar'; else if (performance.now() - lastH < 8000) k = 'savas'; else k = save.uzayAna ? 'ana' : (['ankora', 'kizil', 'buzul', 'zumrut', 'ankora', 'kizil'][curSys | 0] || 'ankora');
       if (k === 'ana' && save.anaTema && MF['ana_' + save.anaTema]) k = 'ana_' + save.anaTema;
       const on = soundOn && save.mus !== false && (!paused || k.indexOf('ana') === 0) && AC.state === 'running';
       if (!BUS){ if (!on) return; BUS = AC.createGain(); BUS.gain.value = 0; MM = AC.createGain(); MM.connect(AC.destination); BUS.connect(MM); }
@@ -8146,5 +8146,84 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-side]'); if (!b || b.disabled) return; const to = b.dataset.side;
     if (b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Emin misin?'; setTimeout(() => { if (b.isConnected){ b.dataset.sure = ''; b.textContent = 'Geç'; } }, 3500); return; }
     doSwitch(to); });
+}
+
+// =====================  iki yeni ev sistemi: Lonca Pazarı (4) ve Kara Liman (5)  =====================
+{
+  SYS.push(
+    { ad: 'Lonca Pazarı', home: 'lonca', not: 'Tüccar Loncasının evi. Fiyatlar yüksek, ortalık sakin. Zorluk: ★ · Cevher satış fiyatları %25 daha yüksek · Kristal biraz daha bol',
+      names: { st: ['Lonca Pazarı', 'Altın Rıhtım', 'Kervan Durağı', 'Takas Kapısı'], pl: ['Sarnıç', 'Kehribar', 'Tuzla', 'Akik'], moon: 'Pul' },
+      tint: [1.22, 1.05, 0.78], sky: [1.32, 1.16, 0.95], kr: 1.2, ice: 0.9, danger: 0.7, px: { kristal: 1.2 }, rock: 1, pay: 1.25, hull: 1, bounty: 1, dmg: 1, intro: 'Altın ışıklı rıhtımlar, durmayan kervanlar. Lonca Pazarı seni bekliyor.' },
+    { ad: 'Kara Liman', home: 'korsan', not: 'Korsan Birliğinin saklı sığınağı. Devriye yok ama herkes silahlı. Zorluk ★★ · Düşman gemileri %40 daha dayanıklı · Korsan ödülleri %60 daha yüksek · Demir bol',
+      names: { st: ['Kara Liman', 'Hurda Rıhtımı', 'Kaçak Durağı', 'Sis Kapısı'], pl: ['Kurum', 'Zehir', 'Pas', 'Kül'], moon: 'Kemik' },
+      tint: [1.28, 0.74, 0.72], sky: [1.2, 0.86, 0.9], kr: 0.9, ice: 0.6, danger: 1.5, px: { demir: 0.9 }, rock: 1.3, pay: 1.2, hull: 1.4, bounty: 1.6, dmg: 1.2, intro: 'Kurum, pas ve sessizlik. Kara Liman haritada yok; ama sen buradasın.' }
+  );
+  LORE_S[4] = LORE_S[1]; LORE_S[5] = LORE_S[1];
+  PL_GLOW[4] = [255, 196, 110]; PL_GLOW[5] = [255, 90, 70];
+  PL_CLOUD[4] = [1, 0.95, 0.85, 0.35]; PL_CLOUD[5] = [0.45, 0.4, 0.38, 0.55];
+  for (const i of [4, 5]){
+    loadArt('assets/img/a4_p' + i + '.webp', t => { t.encoding = THREE.sRGBEncoding; PL_DISC[i] = t; if (i === curSys) plApply(); });
+    loadArt('assets/img/pmap_' + i + '.webp', t => { t.anisotropy = 4; PL_MAP[i] = t; if (i === curSys) plApply(); });
+  }
+  loadArt('assets/img/pmap_5_glow.webp', t => { PL_GLOWMAP[5] = t; if (curSys === 5) plApply(); });
+  // ana istasyonun görünümü: sisteme göre (üst + yan çizimden 3B)
+  const SPEC = {
+    lonca: { yc: 0.5, zc: 0, sx: 1, gain: 1.05, ta: 0.9881, sa: 0.4819, top: 'olay_lonca_top', side: 'olay_lonca_side',
+      rings: [{ R: 0.285, a: 0.03, h: 0.035, n: 4, seg: 96 }],
+      lathes: [{ pts: [[0.001, -0.175], [0.035, -0.142], [0.07, -0.12], [0.1, -0.1], [0.118, -0.08], [0.13, -0.06], [0.142, -0.03], [0.142, 0.03], [0.13, 0.06], [0.118, 0.08], [0.1, 0.1], [0.07, 0.12], [0.035, 0.142], [0.001, 0.175]], seg: 40 },
+        { pts: [[0.006, 0.17], [0.006, 0.25], [0.002, 0.27]], seg: 8 }, { pts: [[0.006, -0.17], [0.006, -0.24]], seg: 8 }],
+      boxes: [0, 1, 2, 3].map(q => { const a = q * Math.PI / 2; return { u: 0.5 + Math.cos(a) * 0.215, y: 0, z: Math.sin(a) * 0.215, sx: 0.15, sy: 0.03, sz: 0.035, mir: false, ry: -a }; })
+        .concat([...Array(8)].map((_, q) => { const a = q * Math.PI / 4 + Math.PI / 8; return { u: 0.5 + Math.cos(a) * 0.39, y: 0, z: Math.sin(a) * 0.39, sx: 0.17, sy: 0.05, sz: 0.06, mir: false, ry: -a }; })) },
+    kara: { yc: 0.5, zc: 0, sx: 1, gain: 1.15, ta: 0.9937, sa: 0.4451, top: 'olay_kara_top', side: 'olay_kara_side',
+      rings: [[-2.9, 1.3], [-1.35, 1.6], [0.5, 1.2], [1.95, 1.0]].map(([p0, pl]) => ({ R: 0.385, a: 0.05, h: 0.045, n: 3, p0, pl, seg: 32 })),
+      lathes: [{ pts: Array.from({ length: 15 }, (_, i) => { const t = -1 + 2 * i / 14; return [0.2 * Math.sqrt(Math.max(0, 1 - t * t)) * (1 + 0.08 * Math.sin(i * 2.7)), 0.11 * t]; }), seg: 11 },
+        { pts: [[0.001, 0.09], [0.06, 0.09], [0.06, 0.13], [0.001, 0.14]], seg: 8 }],
+      boxes: [...Array(6)].map((_, q) => { const a = q * Math.PI / 3 + 0.3; return { u: 0.5 + Math.cos(a) * 0.29, y: 0.01, z: Math.sin(a) * 0.29, sx: 0.2, sy: 0.015, sz: 0.018, mir: false, ry: -a }; })
+        .concat([[0.12, -0.33, 0.6], [0.83, 0.22, -0.9], [0.3, 0.37, 2.4]].map(([u, z, ry]) => ({ u, y: 0, z, sx: 0.2, sy: 0.07, sz: 0.08, mir: false, ry }))) }
+  };
+  const tex = {}, ld = n => tex[n] || (tex[n] = (() => { const t = new THREE.TextureLoader().load('assets/img/' + n + '.webp?v=' + (window.SD_VERSION || '')); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; })());
+  const blank = (() => { const t = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1, THREE.RGBAFormat); t.needsUpdate = true; return t; })();
+  const MOD = {};
+  const model = k => { if (MOD[k] !== undefined) return MOD[k]; const S = SPEC[k];
+    try { const m = buildShip3D(THREE, { top: ld(S.top), side: ld(S.side), f: blank, r: blank, b: blank, ta: S.ta, sa: S.sa }, S); m.scale.setScalar(k === 'kara' ? 300 : 280); m.visible = false; STATION.group.add(m); MOD[k] = m;
+      const gl = sprite(glowTexture(k === 'kara' ? 255 : 255, k === 'kara' ? 90 : 200, k === 'kara' ? 60 : 110), 340, 0.35); gl.visible = false; STATION.group.add(gl); m.userData.gl = gl; return m; } catch (e) { console.warn('ev istasyonu', e); MOD[k] = null; return null; } };
+  function stSkin(){
+    const want = curSys === 4 ? 'lonca' : curSys === 5 ? 'kara' : null, g = STATION.group, m = want ? model(want) : null, mine = new Set();
+    for (const k in MOD) if (MOD[k]){ mine.add(MOD[k]); mine.add(MOD[k].userData.gl); MOD[k].visible = MOD[k] === m; MOD[k].userData.gl.visible = MOD[k] === m; }
+    for (const c of g.children){ if (mine.has(c)) continue;
+      if (m){ if (c.userData.__v0 === undefined) c.userData.__v0 = c.visible; c.visible = false; }
+      else if (c.userData.__v0 !== undefined){ c.visible = c.userData.__v0; delete c.userData.__v0; } }
+  }
+  EXTRA.push(() => { if ((curSys === 4 || curSys === 5) && STATION.group.children.some(c => c.visible && c.userData.__v0 === undefined && !Object.values(MOD).some(m => m && (m === c || m.userData.gl === c)))) stSkin(); });
+  { const _aw = applyWorld; applyWorld = function(k){ _aw(k); try { stSkin(); } catch (e) { console.warn(e); } }; }
+  EXTRA.push(dt => { for (const k in MOD){ const m = MOD[k]; if (m && m.visible) m.rotation.y += dt * (k === 'kara' ? 0.02 : 0.03); } });
+  // ev sistemleri haritada: taraf evi açık; diğer taraflar itibarla açılır
+  const HOMEOF = { lonca: 4, korsan: 5 };
+  const openSys = (k, why) => { if (!save.open.includes(k)){ save.open.push(k); persist(); if (why){ toast(why, 4200); eco.radioT = -9; radio(SYS[k].ad, 'Koordinatlar gönderildi. Hiperatlama ile gelebilirsin.', k === 4 ? '#ffc477' : '#ff6b8a'); } } };
+  window.__homeSys = () => HOMEOF[save.side] ?? 0;
+  if (HOMEOF[save.side] !== undefined) openSys(HOMEOF[save.side]);
+  let accT = 0;
+  EXTRA.push(dt => { accT += dt; if (accT < 4) return; accT = 0;
+    if (save.fac.lonca >= 30) openSys(4, 'Lonca Pazarı koordinatları açıldı (Lonca ile Dost oldun).');
+    if (save.fac.korsan >= 30) openSys(5, 'Kara Liman koordinatları açıldı (Korsanlarla Dost oldun).'); });
+  // taraf seçilince: evi aç; yeni pilot doğrudan evinde başlar
+  { const S = window.__SIDE; let lastSide = save.side;
+    EXTRA.push(() => { if (save.side === lastSide) return; const was = lastSide; lastSide = save.side; const h = HOMEOF[save.side];
+      if (h === undefined) return; openSys(h);
+      const fresh = !was && (save.xp || 0) < 60 && curSys === 0;
+      if (fresh) setTimeout(() => { try { enterSystem(h);
+          docked = false; curSt = null; $('dock').classList.add('hidden'); { const away = rig.position.clone().sub(STATION.pos).normalize(); rig.lookAt(rig.position.clone().sub(away)); } vel.set(0, 0, 0); scrFlash = 0;
+          $('stick') && 0; sBase && sBase.classList.add('hidden'); } catch (e) { console.warn(e); } }, 900);
+      else toast('Evin: ' + SYS[h].ad + ' · İstasyondan Hiperatlama ile gidebilirsin.', 5000);
+    }); }
+  // ana istasyonlar düşmana kapısını kapatır
+  const KEEP = { 0: 'filo', 4: 'lonca', 5: 'korsan' };
+  const _td = tryDock;
+  tryDock = function(){
+    if (!docked && nearStation()){ const st = stationInRange(), f = KEEP[curSys];
+      if (st === STATIONS[0] && f && save.fac[f] <= -60){ const ad = { filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' }[f];
+        toast(st.ad + ' kapılarını sana kapattı: ' + ad + ' seni düşman sayıyor.', 3600); eco.radioT = -9; radio(st.ad, 'Yanaşma reddedildi. Uzak dur.', '#ff5a6e'); return; } }
+    return _td.apply(this, arguments);
+  };
 }
 })();
