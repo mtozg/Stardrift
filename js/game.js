@@ -841,13 +841,17 @@ function npcSteer(n, dt){
   }
   for (let bi2 = 0; bi2 < BODIES.length; bi2++){ const b = BODIES[bi2];
     if (b.kind === 'ruin') continue;
-    if (b.kind === 'station' && (b === n.home || (n.trade && (b === n.trade.src || b === n.trade.dst)))) continue;
-    const bp = b.pos, R = b.r + n.r + (b.kind === 'planet' ? 140 : 70) + vlen, dx = px - bp.x, dy = py - bp.y, dz = pz - bp.z, d2 = dx * dx + dy * dy + dz * dz;
+    if (b.off) continue;
+    const own_ = b.kind === 'station' && (b === n.home || (n.trade && (b === n.trade.src || b === n.trade.dst)));
+    const bp = b.pos, R = b.r + n.r + (own_ ? 10 : b.kind === 'planet' ? 140 : 70) + (own_ ? 0 : vlen), dx = px - bp.x, dy = py - bp.y, dz = pz - bp.z, d2 = dx * dx + dy * dy + dz * dz;
     if (d2 < R * R && d2 > 0.01){ const d = Math.sqrt(d2), k = (1 - d / R) * k0 / d; wx += dx * k; wy += dy * k; wz += dz * k; }
   }
   _w.x += wx; _w.y += wy; _w.z += wz;
   if (_w.length() > spd * 1.3) _w.setLength(spd * 1.3);
   n.vel.lerp(_w, 1 - Math.exp(-1.7 * dt)); n.pos.addScaledVector(n.vel, dt);
+  // katı engeller: gemiler istasyon ve gezegenlerin içinden geçemez (yüzeye itilir, içe doğru hız silinir)
+  for (let bi3 = 0; bi3 < BODIES.length; bi3++){ const b = BODIES[bi3]; if (b.kind === 'ruin' || b.off) continue; const R = b.r * (b.kind === 'station' ? 0.92 : 1) + n.r, dx = n.pos.x - b.pos.x, dy = n.pos.y - b.pos.y, dz = n.pos.z - b.pos.z, d2 = dx * dx + dy * dy + dz * dz;
+    if (d2 < R * R && d2 > 0.01){ const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, nz = dz / d; n.pos.set(b.pos.x + nx * R, b.pos.y + ny * R, b.pos.z + nz * R); const vn = n.vel.x * nx + n.vel.y * ny + n.vel.z * nz; if (vn < 0){ n.vel.x -= nx * vn; n.vel.y -= ny * vn; n.vel.z -= nz * vn; } } }
   for (let ai = 0; ai < 3; ai++){ const ax = AXES[ai]; if (Math.abs(n.pos[ax]) > BOUND){ n.pos[ax] = Math.sign(n.pos[ax]) * BOUND; n.vel[ax] *= -0.5; } }
   if (n.aimAt) _l.copy(n.aimAt); else if (vlen > 3) _l.copy(n.pos).add(n.vel); else return;
   npcDummy.position.copy(n.pos); npcDummy.lookAt(_l); n.g.quaternion.slerp(npcDummy.quaternion, 1 - Math.exp(-2.6 * dt));
@@ -1410,7 +1414,7 @@ function update(dt){
       tmp.copy(rig.position).sub(c); const d = tmp.length();
       if (d < rad && d > 0.001){
         tmp.divideScalar(d); rig.position.copy(c).addScaledVector(tmp, rad);
-        const vn = vel.dot(tmp); if (vn < 0){ vel.addScaledVector(tmp, -1.5 * vn); shake = Math.min(1, 0.25 + -vn / 60); burst(rig.position, 0xffd9a0, 8, 40, 0.5); hurt(Math.min(70, Math.max(0, (-vn - 30) * 0.35))); }
+        const vn = vel.dot(tmp); if (vn < 0){ vel.addScaledVector(tmp, -1.08 * vn); vel.multiplyScalar(0.8); shake = Math.min(1, 0.25 + -vn / 60); burst(rig.position, 0xffd9a0, 8, 40, 0.5); hurt(Math.min(70, Math.max(0, (-vn - 30) * 0.35))); }
       }
     };
     const softStop = (c, rad) => {
@@ -1423,7 +1427,7 @@ function update(dt){
         tmp.divideScalar(d || 1); tmp2.copy(vel).sub(n.vel); const cl = -tmp2.dot(tmp);
         if (d < rr){
           rig.position.copy(n.pos).addScaledVector(tmp, rr);
-          if (cl > 0 && time - ramT > 0.6){ ramT = time; const dmg = clamp((cl - 6) * 0.9, 3, 55); hurt(dmg); shake = Math.min(1, 0.3 + cl / 60); burst(rig.position, 0xffd9a0, 10, 45, 0.5); vel.addScaledVector(tmp, cl * 1.2); n.vel.addScaledVector(tmp, -cl * 0.5); setBanner('ÇARPIŞMA! -' + Math.round(dmg), 'bad', 1.4); blip(110, 0.25); }
+          if (cl > 0 && time - ramT > 0.6){ ramT = time; const dmg = clamp((cl - 6) * 0.9, 3, 55); hurt(dmg); shake = Math.min(1, 0.3 + cl / 60); burst(rig.position, 0xffd9a0, 10, 45, 0.5); vel.addScaledVector(tmp, cl * 1.02); vel.multiplyScalar(0.75); n.vel.addScaledVector(tmp, -cl * 0.12); setBanner('ÇARPIŞMA! -' + Math.round(dmg), 'bad', 1.4); blip(110, 0.25); }
         } else if (cl > 22 && d - rr < Math.min(140, cl * 2.2)) warn = n;
       }
       if (warn && time - nwT > 5){ nwT = time; setBanner('ÇARPIŞMA UYARISI', 'bad', 1.2); blip(420, 0.035); }
