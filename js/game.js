@@ -8698,29 +8698,44 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // ---- yetenek penceresi: dal sekmeleri, kademe şeritleri, bağlantılı düğümler, alt bilgi panelleri (uçarken de açılır)
   const PAR = { kargo: ['kazi'], menzil: ['cekim'], damar: ['kargo', 'menzil'], kalkan: ['sogut'], roket: ['nisan'], avci: ['roket', 'kalkan'],
     isin: ['itki'], kapi: ['hiz'], dayan: ['isin', 'kapi'], kacak: ['pazar'], diplo: ['tamir'], tuccar: ['kacak', 'diplo'] };
+  // ---- yetenek çizimleri (Stardrift'e özgü): dolu siluetler, dal renginde vurgu parçaları (.a), çizgiler (.l), küçük yıldız parıltıları
+  const SPK = (x, y, k) => `<path class='s' d='M${x} ${y - k}Q${x} ${y} ${x + k} ${y}Q${x} ${y} ${x} ${y + k}Q${x} ${y} ${x - k} ${y}Q${x} ${y} ${x} ${y - k}Z'/>`;
   const IC = {
-    kazi: "<path d='M4 20l6-6'/><path d='M10 14l3-8 5 5-8 3z'/><path d='M15 4l5 5'/><circle cx='5' cy='19' r='.6'/>",
-    cekim: "<path d='M6 4v7a6 6 0 0 0 12 0V4'/><path d='M6 4h3v7a3 3 0 0 0 6 0V4h3'/><path d='M12 20v2M9 19l-1 2M15 19l1 2'/>",
-    kargo: "<rect x='3' y='12' width='8' height='8'/><rect x='13' y='12' width='8' height='8'/><rect x='8' y='4' width='8' height='8'/><path d='M7 12v3M17 12v3M12 4v3'/>",
-    menzil: "<path d='M3 12h15'/><path d='M14 8l4 4-4 4'/><path d='M21 6v12'/><circle cx='5' cy='12' r='1.6'/>",
-    damar: "<path d='M12 2l4 6-4 6-4-6z'/><path d='M4 22c3-4 6-6 8-8 2 2 5 4 8 8'/><path d='M8 8h8'/>",
-    nisan: "<circle cx='12' cy='12' r='7'/><circle cx='12' cy='12' r='2.5'/><path d='M12 2v4M12 18v4M2 12h4M18 12h4'/>",
-    sogut: "<path d='M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9'/><path d='M10 4.5l2 1.5 2-1.5M10 19.5l2-1.5 2 1.5'/>",
-    kalkan: "<path d='M12 3l7 3v5c0 5-3.2 8-7 10-3.8-2-7-5-7-10V6z'/><path d='M9 12a3 3 0 1 0 3-3'/><path d='M12 7v2.5h2.5'/>",
-    roket: "<path d='M12 2c3 3 4 7 3 12H9C8 9 9 5 12 2z'/><path d='M9 14l-3 3 3 1M15 14l3 3-3 1'/><path d='M11 18l1 4 1-4'/><circle cx='12' cy='8' r='1.5'/>",
-    avci: "<path d='M12 3l2.4 5 5.6.6-4.2 3.8 1.2 5.6L12 15l-5 3 1.2-5.6L4 8.6 9.6 8z'/><circle cx='12' cy='11' r='1.4'/>",
-    itki: "<path d='M5 9h9l5 3-5 3H5z'/><path d='M5 9L3 7M5 15l-2 2'/><path d='M2 12h-0M1 10.5h2M1 13.5h2'/>",
-    hiz: "<path d='M4 17a8 8 0 1 1 16 0'/><path d='M12 17l5-6'/><circle cx='12' cy='17' r='1.4'/><path d='M7 12l1 1M12 9v1.5M17 12l-1 1'/>",
-    isin: "<path d='M2 7l8 5-8 5'/><path d='M10 12h12'/><circle cx='10' cy='12' r='2.2'/><path d='M17 9l3 3-3 3'/>",
-    kapi: "<circle cx='12' cy='12' r='8'/><circle cx='12' cy='12' r='4.5'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3'/>",
-    dayan: "<path d='M4 6l8-3 8 3v6c0 4-3 7-8 9-5-2-8-5-8-9z'/><path d='M4 11h16M12 3v18'/>",
-    pazar: "<path d='M12 3v18M6 21h12'/><path d='M4 7h16'/><path d='M4 7l-2.5 6h5zM20 7l-2.5 6h5z'/>",
-    tamir: "<path d='M14.5 4a4 4 0 0 0-4.8 5.3L3 16l3 3 6.7-6.7A4 4 0 0 0 20 7.5l-2.6 2.6-2.8-.7-.7-2.8z'/>",
-    kacak: "<rect x='3' y='8' width='18' height='12'/><path d='M3 8l3-4h12l3 4'/><path d='M8 14c2-2 6-2 8 0-2 2-6 2-8 0z'/><path d='M5 18L19 10'/>",
-    diplo: "<path d='M2 12l4-4 4 2 4-2 4 2 4 4'/><path d='M6 8v6l4 4M18 10v4l-5 5'/><path d='M10 12l3 3'/>",
-    tuccar: "<path d='M6 2h9l4 4v16H6z'/><path d='M15 2v4h4'/><path d='M9 10h7M9 13h7'/><circle cx='13' cy='18' r='2'/>"
+    kazi: "<path d='M2.5 21.5l1.6-6 4.6-2.2 4 2.6-.8 5.6z'/><path class='a' d='M6.2 16.6l1.5-.7.7 1.4-1.6.6zM9.3 18.3l1.2.4-.3 1.3-1.3-.3z'/><path d='M13.2 10.6l5.6-5.6 3 3-5.6 5.6z'/><path d='M12 12l2.1-2.1 1.9 1.9-2.1 2.1z'/><path class='a' d='M11.6 12.4l-3.4 3.2.9.9 3.4-3.2z'/>" + SPK(18, 15, 1.4) + SPK(5, 6, 1.1),
+    cekim: "<path d='M5 7.5Q12 1.5 19 7.5l-2 1.8H7z'/><path class='a' opacity='.45' d='M7.5 9.3h9l3.5 12H4z'/><path d='M12 12.5l2.4 2.6-2.4 2.8-2.4-2.8z'/><path class='a' d='M10.8 6.5h2.4v1.2h-2.4z'/>" + SPK(4, 3.5, 1.2) + SPK(20.5, 13, 1),
+    kargo: "<path d='M2.5 13.5h8.5v8H2.5zM13 13.5h8.5v8H13zM7.7 5h8.6v8H7.7z'/><path class='a' d='M5.9 13.5h1.7v8H5.9zM16.4 13.5h1.7v8h-1.7zM11.1 5h1.8v8h-1.8z'/>" + SPK(4.5, 6.5, 1.3) + SPK(20, 8, 1),
+    menzil: "<path d='M2 10.5h4l2-1.5h3v6H8l-2-1.5H2z'/><path class='a' d='M11 11h10v2H11z'/><circle class='l' cx='19.5' cy='12' r='3.2'/><circle class='a' cx='19.5' cy='12' r='1'/>" + SPK(6, 4.5, 1.3) + SPK(13, 19.5, 1.1),
+    damar: "<path d='M2.5 21.5l2.5-5 5 1.5 4-3 7 6.5z'/><path class='a' d='M9.5 16.5L11 6l2.2 8.3zM12.8 15l3.2-9.5 1 9zM7.4 17.5l-1-6 2.5 5.6z'/>" + SPK(5, 5, 1.3) + SPK(19.5, 8, 1.1),
+    nisan: "<circle class='l' cx='12' cy='12' r='7.5'/><circle class='l' cx='12' cy='12' r='3.6'/><path d='M11.2 1.8h1.6v5h-1.6zM11.2 17.2h1.6v5h-1.6zM1.8 11.2h5v1.6h-5zM17.2 11.2h5v1.6h-5z'/><circle class='a' cx='12' cy='12' r='1.5'/>" + SPK(19.5, 4.5, 1.2),
+    sogut: "<path d='M11 2h2v20h-2z'/><path d='M3.3 6.7l1-1.7 17.3 10-1 1.7zM20.7 6.7l-1-1.7-17.3 10 1 1.7z'/><path class='a' d='M12 7.5l3.2 1.8v3.7L12 16.5l-3.2-1.8V9.3z'/>" + SPK(4, 20, 1.2) + SPK(20, 20.5, 1),
+    kalkan: "<path d='M12 2l8 3.3v5.8c0 5.2-3.4 8.8-8 10.9-4.6-2.1-8-5.7-8-10.9V5.3z'/><path class='a' d='M12 5l5.2 2.2v4c0 3.6-2.2 6-5.2 7.6z'/>" + SPK(3, 19, 1.3) + SPK(21, 19, 1.1),
+    roket: "<path d='M12 1.5c3.4 3.2 4.6 7.6 3.6 12.5H8.4C7.4 9.1 8.6 4.7 12 1.5z'/><path d='M8.6 11.5l-3.3 3.8 3.4.6zM15.4 11.5l3.3 3.8-3.4.6z'/><circle class='a' cx='12' cy='7.5' r='1.6'/><path class='a' d='M9.8 14.8h4.4l-1.1 4.5-1.1 3-1.1-3z'/>" + SPK(4, 5, 1.3) + SPK(20, 4, 1),
+    avci: "<path fill-rule='evenodd' d='M12 3.5a7 7 0 0 0-7 7c0 2.3 1 3.7 2.3 4.6v2.7h9.4v-2.7c1.3-.9 2.3-2.3 2.3-4.6a7 7 0 0 0-7-7zM9.2 9.4a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm5.6 0a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z'/><path d='M8.5 18.6h7v2h-7z'/><path class='a' d='M11.3 13.6h1.4l-.7 1.7z'/>" + SPK(3.5, 4, 1.3) + SPK(20.5, 20, 1.1),
+    itki: "<path d='M4 8h9l4 2v4l-4 2H4z'/><path class='a' d='M17 10.2l5-1.2-2 3 2 3-5-1.2z'/><path d='M5.5 5.5h4v2.5h-4zM5.5 16h4v2.5h-4z'/>" + SPK(3, 12, 1.2) + SPK(21, 4.5, 1),
+    hiz: "<path d='M13 6l8 6-8 6-2.5-6z'/><path class='a' d='M2 8.5h8v1.5H2zM4 11.2h7v1.6H4zM2 14h8v1.5H2z'/>" + SPK(5, 4.5, 1.3) + SPK(18, 20, 1.1),
+    isin: "<path d='M2.5 6l7 6-7 6z' opacity='.55'/><path d='M9 5.5c1.6 1.8 1.6 11.2 0 13h1.8c1.6-1.8 1.6-11.2 0-13z'/><path class='a' d='M11 11.2h10.5v1.6H11z'/><circle class='a' cx='21' cy='12' r='1.6'/>" + SPK(17, 5.5, 1.3) + SPK(16, 19, 1),
+    kapi: "<path fill-rule='evenodd' d='M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19zm0 3.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12z'/><circle class='a' cx='12' cy='12' r='3.8' opacity='.85'/><path d='M11 1.5h2v2.5h-2zM11 20h2v2.5h-2zM1.5 11h2.5v2H1.5zM20 11h2.5v2H20z'/>" + SPK(12, 12, 1.6),
+    dayan: "<path d='M3 5.5L12 2l9 3.5v6.5c0 5-3.6 8.4-9 10-5.4-1.6-9-5-9-10z'/><path class='a' d='M5.5 7.2L12 4.8v7.4H5.5zM12 12.2h6.5c-.3 3.5-2.8 6-6.5 7.2z'/>" + SPK(20.5, 20.5, 1.2),
+    pazar: "<path d='M11.2 3h1.6v16h-1.6zM6.5 19h11v2.5h-11zM3.5 6h17v1.6h-17z'/><path class='a' d='M2 13.5h6.5a3.25 3.25 0 0 1-6.5 0zM15.5 13.5H22a3.25 3.25 0 0 1-6.5 0z'/><path class='l' d='M5.25 7.6l-3 5.9M5.25 7.6l3 5.9M18.75 7.6l-3 5.9M18.75 7.6l3 5.9'/>" + SPK(12, 1.5, 1),
+    tamir: "<path d='M15.5 2.5a5 5 0 0 0-5.3 6.6L2.5 16.8l4.7 4.7 7.7-7.7a5 5 0 0 0 6.6-5.3l-3.2 3.2-3.4-.8-.8-3.4z'/><circle class='a' cx='5.2' cy='18.8' r='1.2'/>" + SPK(20.5, 20, 1.3) + SPK(4, 4, 1.1),
+    kacak: "<path d='M2.5 9l2.5-4h14l2.5 4v12h-19z'/><path class='a' d='M5.5 14.5c3.6-3.4 9.4-3.4 13 0-3.6 3.4-9.4 3.4-13 0z'/><circle cx='12' cy='14.5' r='1.6'/><path d='M2.5 8.6h19v1.4h-19z' opacity='.6'/>" + SPK(20.5, 2.5, 1.2),
+    diplo: "<path d='M2 6.5h10a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 12 14.5H7l-3.5 3v-3H2A1.5 1.5 0 0 1 .5 13V8A1.5 1.5 0 0 1 2 6.5z' transform='translate(1 0)'/><path class='a' d='M12.5 10.5h9a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H20v3l-3.5-3h-4a1.5 1.5 0 0 1-1.5-1.5v-5a1.5 1.5 0 0 1 1.5-1.5z' transform='translate(-1 0)'/>" + SPK(19, 4.5, 1.3),
+    tuccar: "<path d='M5 2h10l4 4v13.5H5z'/><path class='l' d='M8 8.5h8M8 11.5h8M8 14.5h5'/><circle class='a' cx='16.5' cy='19' r='3'/><path class='a' d='M15 21.5l-.8 2.3 2.3-1 2.3 1-.8-2.3z'/>" + SPK(3, 5, 1.2)
   };
-  const NSHP = "<path d='M50 4 L90 24 L90 66 L50 96 L10 66 L10 24 Z'/>";
+  // dal amblemleri (başlık ve sekmeler) ve dala özgü rozet biçimleri
+  const BEM = {
+    kazi: "<path d='M3 21l2-6 5-2 4 3-1 5z'/><path class='a' d='M11 14L13.5 3l3 10.5zM15.5 15l3.5-9 1.5 9.5z'/>" + SPK(6, 6, 1.6),
+    savas: "<circle class='l' cx='12' cy='12' r='8'/><path d='M12 3.5c2.4 2.2 3.2 5.3 2.6 8.8H9.4C8.8 8.8 9.6 5.7 12 3.5z'/><path class='a' d='M10 12.3h4l-1 4.2-1 2.5-1-2.5z'/>" + SPK(19.5, 19, 1.4),
+    pilot: "<path d='M12 2l3 8 7 3-7 2-3 7-3-7-7-2 7-3z'/><circle class='a' cx='12' cy='12.5' r='2'/>",
+    ticaret: "<ellipse cx='12' cy='17.5' rx='7' ry='2.8'/><ellipse cx='12' cy='13' rx='7' ry='2.8' opacity='.8'/><ellipse class='a' cx='12' cy='8.5' rx='7' ry='2.8'/>" + SPK(20.5, 4, 1.4)
+  };
+  const BSHAPE = {
+    kazi: "<path d='M50 4 L90 25 L90 70 L50 96 L10 70 L10 25 Z'/>",
+    savas: "<path d='M14 8 H86 Q90 8 90 12 V48 Q90 78 50 96 Q10 78 10 48 V12 Q10 8 14 8 Z'/>",
+    pilot: "<path d='M50 3 L80 20 L96 50 L80 80 L50 97 L20 80 L4 50 L20 20 Z'/>",
+    ticaret: "<path d='M32 5 H68 L94 31 V69 L68 95 H32 L6 69 V31 Z'/>"
+  };
+  const TIER = t => `<svg class='te' viewBox='0 0 40 44'><path d='M20 1 L38 11 L38 33 L20 43 L2 33 L2 11 Z'/>${[0, 1, 2].slice(0, t).map(i => `<path class='c' d='M10 ${30 - i * 7} L20 ${24 - i * 7} L30 ${30 - i * 7} L30 ${33 - i * 7} L20 ${27 - i * 7} L10 ${33 - i * 7} Z'/>`).join('')}</svg>`;
   let skSel = null, skTab = 0;
   function skOpen(tab){
     let w = $('skModal'); if (!w){ w = document.createElement('div'); w.id = 'skModal'; document.body.appendChild(w);
@@ -8735,14 +8750,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   }
   const RESET = () => 300 + 100 * Object.values(save.sk).reduce((a, b) => a + b, 0);
   const nodeHtml = (q, bc) => { const l = SL(q.id), lock = inBr(q.b) < TNEED[q.t];
-    return '<div class="nd' + (l ? ' has' : '') + (l >= q.m ? ' max' : '') + (lock ? ' lk' : '') + (skSel === q.id ? ' sel' : '') + '" data-skn="' + q.id + '"><svg class="sh" viewBox="0 0 100 100">' + NSHP + '</svg><svg class="ic" viewBox="0 0 24 24">' + IC[q.id] + '</svg><small>' + l + '/' + q.m + '</small><em>' + q.n + '</em></div>'; };
+    return '<div class="nd' + (l ? ' has' : '') + (l >= q.m ? ' max' : '') + (lock ? ' lk' : '') + (skSel === q.id ? ' sel' : '') + '" data-skn="' + q.id + '"><svg class="sh" viewBox="0 0 100 100">' + BSHAPE[q.b] + '</svg><svg class="sic" viewBox="0 0 24 24">' + IC[q.id] + '</svg><small>' + l + '/' + q.m + '</small><em>' + q.n + '</em></div>'; };
   function skRender(){
     const w = $('skModal'); if (!w) return; const L = levelOf(save.xp || 0), [b, bn, bc] = BR[skTab], bsp = inBr(b);
     const list = SKL.filter(x => x.b === b); if (!skSel || !list.some(q => q.id === skSel)) skSel = list[0].id;
-    let h = '<div class="bx" style="--bc:' + bc + '"><div class="tabs"><button class="ar" data-skt="p">‹</button>' + BR.map((x, i) => '<button data-skt="' + i + '" class="' + (i === skTab ? 'on' : '') + '" style="--tc:' + x[2] + '">' + x[1] + '<i>' + inBr(x[0]) + '</i></button>').join('') + '<button class="ar" data-skt="n">›</button><button class="x" data-skx="1">✕</button></div>';
-    h += '<div class="body"><div class="tree"><div class="th">' + bn.toLocaleUpperCase('tr-TR') + '</div><svg class="ln"></svg>';
+    let h = '<div class="bx" style="--bc:' + bc + '"><div class="tabs"><button class="ar" data-skt="p">‹</button>' + BR.map((x, i) => '<button data-skt="' + i + '" class="' + (i === skTab ? 'on' : '') + '" style="--tc:' + x[2] + '"><svg class="bi" viewBox="0 0 24 24">' + BEM[x[0]] + '</svg>' + x[1] + '<i>' + inBr(x[0]) + '</i></button>').join('') + '<button class="ar" data-skt="n">›</button><button class="x" data-skx="1">✕</button></div>';
+    h += '<div class="body"><div class="tree"><div class="th"><svg class="bi" viewBox="0 0 24 24">' + BEM[b] + '</svg>' + bn.toLocaleUpperCase('tr-TR') + '</div><svg class="ln"></svg>';
     for (const t of [1, 2, 3]){ const lock = bsp < TNEED[t];
-      h += '<div class="row t' + t + (lock ? ' lk' : '') + '"><span class="rl">' + ['', 'I', 'II', 'III'][t] + (lock ? '<b>' + bsp + '/' + TNEED[t] + '</b>' : '') + '</span>' + list.filter(q => q.t === t).map(q => nodeHtml(q, bc)).join('') + '</div>'; }
+      h += '<div class="row t' + t + (lock ? ' lk' : '') + '"><span class="rl">' + TIER(t) + '<i>' + ['', 'I', 'II', 'III'][t] + '</i>' + (lock ? '<b>' + bsp + '/' + TNEED[t] + '</b>' : '') + '</span>' + list.filter(q => q.t === t).map(q => nodeHtml(q, bc)).join('') + '</div>'; }
     const q = SKL.find(x => x.id === skSel), l = SL(q.id), lock = bsp < TNEED[q.t], can = save.sp > 0 && l < q.m && !lock;
     const need = TNEED[q.t], prog = need ? Math.min(1, bsp / need) : 1;
     h += '</div><div class="side"><div class="sp"><img src="' + badge(L) + '"><span>YETENEK PUANI<b>' + save.sp + '</b></span></div>'
@@ -8813,8 +8828,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #skModal .row.lk .nd{opacity:.42}
   #skModal .nd{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;cursor:pointer;width:72px}
   #skModal .nd .sh{width:56px;height:56px;fill:#0d1626;stroke:rgba(200,215,235,.4);stroke-width:3;transition:transform .15s}
-  #skModal .nd .ic{position:absolute;top:13px;width:28px;height:28px;fill:none;stroke:#7d8ca6;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-  #skModal .nd.has .sh{fill:color-mix(in srgb,var(--bc) 22%,#0d1626);stroke:var(--bc)}#skModal .nd.has .ic{stroke:#f2f6fb}
+  #skModal .nd .sic{position:absolute;top:13px;width:28px;height:28px;fill:none;stroke:#7d8ca6;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  #skModal .nd.has .sh{fill:color-mix(in srgb,var(--bc) 22%,#0d1626);stroke:var(--bc)}#skModal .nd.has .sic{stroke:#f2f6fb}
   #skModal .nd.max .sh{fill:color-mix(in srgb,var(--bc) 45%,#0d1626)}
   #skModal .nd.sel .sh{stroke:#fff;stroke-width:5;transform:scale(1.08)}
   #skModal .nd small{margin-top:2px;font-size:10.5px;font-weight:600;color:#c9d4e6;background:rgba(0,0,0,.45);padding:0 6px;border-radius:3px}#skModal .nd.has small{color:var(--bc)}
@@ -8829,8 +8844,19 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #skModal .bt{display:flex;gap:6px;padding:0 10px 9px}#skModal .bt .act{flex:1}
   #skModal .ft{font-size:10.5px;color:#7f8fa8;line-height:1.35}
   @media (max-height:500px){#skModal{padding:6px}#skModal .tabs{margin-bottom:6px}#skModal .tabs button{padding:5px 2px;font-size:10px;letter-spacing:.12em}#skModal .th{padding:3px 0;font-size:10.5px}
-    #skModal .nd{width:64px}#skModal .nd .sh{width:42px;height:42px}#skModal .nd .ic{top:9px;width:22px;height:22px}#skModal .nd em{font-size:9.5px}#skModal .nd small{font-size:9.5px}
+    #skModal .nd{width:64px}#skModal .nd .sh{width:42px;height:42px}#skModal .nd .sic{top:9px;width:22px;height:22px}#skModal .nd em{font-size:9.5px}#skModal .nd small{font-size:9.5px}
     #skModal .side{gap:5px}#skModal .sp{padding:4px 8px}#skModal .sp img{width:30px;height:30px}#skModal .sp b{font-size:18px}#skModal .ph{padding:4px 8px}#skModal .pn p{padding:4px 8px;font-size:11px}#skModal .bt{padding:0 8px 6px}#skModal .ft{display:none}}
+  #skModal .bi{width:16px;height:16px;vertical-align:-3px;margin-right:6px;fill:currentColor}#skModal .bi .a{fill:currentColor;opacity:.6}#skModal .bi .l{fill:none;stroke:currentColor;stroke-width:1.6}#skModal .bi .s{fill:currentColor}
+  #skModal .th .bi{width:18px;height:18px;vertical-align:-4px}
+  #skModal .row .rl{display:flex;flex-direction:column;align-items:center;gap:1px;top:50%;transform:translateY(-50%);left:10px}#skModal .row .rl i{font-style:normal;font-size:9.5px;letter-spacing:.2em}
+  #skModal .te{width:26px;height:28px;fill:rgba(10,18,32,.8);stroke:rgba(200,215,235,.35);stroke-width:1.5}#skModal .te .c{fill:var(--bc);stroke:none}#skModal .row.lk .te .c{fill:#4c5a72}
+  #skModal .nd .sh{fill:#0b1422;stroke:rgba(190,205,228,.38)}
+  #skModal .nd .sic{fill:#7d8ca6;stroke:none;top:12px;width:32px;height:32px}#skModal .nd .sic .a{fill:#56647d}#skModal .nd .sic .l{fill:none;stroke:#7d8ca6;stroke-width:1.4}#skModal .nd .sic .s{fill:#a9b8d0;opacity:.75}
+  #skModal .nd.has .sh{fill:color-mix(in srgb,var(--bc) 26%,#0b1422)}#skModal .nd.has .sic{fill:#f2f6fb}#skModal .nd.has .sic .a{fill:var(--bc)}#skModal .nd.has .sic .l{stroke:#f2f6fb}#skModal .nd.has .sic .s{fill:#fff;opacity:1}
+  #skModal .nd.max .sh{fill:color-mix(in srgb,var(--bc) 55%,#0b1422)}#skModal .nd.max .sic .a{fill:#fff}
+  #skModal .nd.sel .sic{fill:#fff}
+  #skModal .nd .sh{width:66px;height:66px}#skModal .nd .sic{top:14px;width:38px;height:38px}#skModal .nd{width:84px}
+  @media (max-height:500px){#skModal .nd .sh{width:56px;height:56px}#skModal .nd .sic{top:12px;width:32px;height:32px}#skModal .nd{width:72px}#skModal .te{width:20px;height:22px}}
   @media (max-width:640px){#skModal .body{flex-direction:column}#skModal .side{width:auto}}`;
   document.head.appendChild(st);
 }
