@@ -5226,7 +5226,7 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
   const dc = $('dcont'), openMap = {}, SPEC = {
     cargoList: { rules: [['ore', 'Cevher satışı', el => !!el.querySelector('img.oi')], ['dev', 'İstasyon gelişimi', el => !!el.querySelector('img.db')], ['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)]], def: 'ore' },
     hgBox: { rules: [['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)], ['ships', 'Gemiler', () => true]], def: 'ships' },
-    wpBox: { sect: true, def: 's0' }, upgrades: { sect: true, def: 's0' }, exBox: { sect: true, def: '' }, jumpBox: { sect: true, def: '' }
+    wpBox: { sect: true, def: ['Lazer'] }, upgrades: { sect: true, def: ['Gemi geliştirme'] }, exBox: { sect: true, def: ['Kendi üssün'] }, jumpBox: { sect: true, def: ['Hiperatlama'] }, ctBox: { sect: true, def: ['Aktif görevler', 'Görev panosu'] }
   };
   for (const id of ['exBox', 'jumpBox']){ const e = $(id); if (e && e.parentNode !== dc) dc.appendChild(e); }
   const obs = {};
@@ -5237,24 +5237,25 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
     c.querySelectorAll(':scope > .acch:not(.sect)').forEach(h => h.remove());
     const kids = [...c.children]; let cur = null; const groups = []; let gi = 0;
     if (spec.sect){
-      for (const k of kids){ if (k.classList.contains('sect')){ cur = { key: 's' + gi++, title: k.textContent.replace(/·.*$/, '').trim(), head: k, items: [] }; groups.push(cur); } else if (cur) cur.items.push(k); }
+      for (const k of kids){ if (k.classList.contains('sect')){ const t = (k.dataset.t0 || (k.dataset.t0 = k.textContent)).replace(/[·(].*$/, '').trim(); cur = { key: t, title: t, head: k, items: [] }; groups.push(cur); } else if (cur) cur.items.push(k); }
     } else {
       for (const k of kids){ const r = spec.rules.find(r => r[2](k)), key = r ? r[0] : (cur ? cur.key : spec.rules[spec.rules.length - 1][0]); if (!cur || cur.key !== key){ cur = { key, title: (spec.rules.find(r => r[0] === key) || [])[1], items: [] }; groups.push(cur); } cur.items.push(k); }
     }
-    if (openMap[c.id] === undefined) openMap[c.id] = spec.def;
-    const open = openMap[c.id];
+    if (!openMap[c.id]) openMap[c.id] = new Set();
+    const open = openMap[c.id], seen = openMap[c.id + ':s'] || (openMap[c.id + ':s'] = new Set()), defs = [].concat(spec.def || []);
+    for (const g of groups) if (!seen.has(g.key)){ seen.add(g.key); if (defs.some(d => String(g.key).indexOf(d) === 0) || (!spec.sect && defs.length === 0)) open.add(g.key); }   // ilk görüşte varsayılan açıklar
     for (const g of groups){
       let head = g.head; if (!head){ head = document.createElement('div'); head.textContent = g.title; g.items[0].parentNode.insertBefore(head, g.items[0]); }
-      head.classList.add('acch'); head.dataset.k = g.key; head.dataset.c = c.id; head.classList.add('op');
-      for (const it of g.items) it.classList.remove('accx');   // v2 menü: tüm bölümler açık
+      const on = open.has(g.key); head.classList.add('acch'); head.dataset.k = g.key; head.dataset.c = c.id; head.classList.toggle('op', on);
+      for (const it of g.items) it.classList.toggle('accx', !on);
     }
-    if (c.id === 'cargoList'){ const sa = $('sellAll'); if (sa) sa.classList.remove('accx'); }
+    if (c.id === 'cargoList'){ const sa = $('sellAll'); if (sa) sa.classList.toggle('accx', !open.has('ore')); }
     c._seen = true;
     obs[c.id].observe(c, { childList: true });
   }
   for (const id in SPEC){ const c = $(id); if (!c) continue; obs[id] = new MutationObserver(() => accApply(c)); obs[id].observe(c, { childList: true }); accApply(c); }
   dc.addEventListener('click', e => {
-    if (e.target.closest('.acch')) return;
+    const h = e.target.closest('.acch'); if (h){ const id = h.dataset.c, k = h.dataset.k, o = openMap[id]; if (o){ o.has(k) ? o.delete(k) : o.add(k); accApply($(id)); } return; }
     const t = e.target.closest('.wpc > h4'); if (t){ const card = t.parentNode; const was = card.classList.contains('op'); card.parentNode.querySelectorAll('.wpc.op').forEach(x => x.classList.remove('op')); if (!was) card.classList.add('op'); }
   });
   // pilot adı satırı: yalnızca Diğer sekmesinde
@@ -7017,7 +7018,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     _rc(); const box = $('ctBox'); if (!box) return;
     let h = '<div class="sect">Gruplar</div>';
     for (const k in F){ const v = Math.round(save.fac[k]), w = Math.abs(v) / 2;
-      h += '<div class="facr"><img alt="" src="assets/img/' + F[k].img + '.webp" onerror="this.outerHTML=\'<i class=fd style=background:' + F[k].col + '></i>\'"><span><b style="color:' + F[k].col + '">' + F[k].ad + '</b> · ' + tier(v) + ' (' + (v > 0 ? '+' : '') + v + ')<div class="fb"><s></s><u style="background:' + F[k].col + ';' + (v >= 0 ? 'left:50%' : 'right:50%') + ';width:' + w + '%"></u></div><small>' + EFF[k](v) + '</small></span></div>'; }
+      h += '<div class="facr"><img alt="" src="assets/img/' + F[k].img + '.webp?v=' + (window.SD_VERSION || '') + '" onerror="this.outerHTML=\'<i class=fd style=background:' + F[k].col + '></i>\'"><span><b style="color:' + F[k].col + '">' + F[k].ad + '</b> · ' + tier(v) + ' (' + (v > 0 ? '+' : '') + v + ')<div class="fb"><s></s><u style="background:' + F[k].col + ';' + (v >= 0 ? 'left:50%' : 'right:50%') + ';width:' + w + '%"></u></div><small>' + EFF[k](v) + '</small></span></div>'; }
     h += '<div class="facb"><button class="act" data-fac="filo" ' + (save.kredi < 300 ? 'disabled' : '') + '>Filoya bağış · 300</button><button class="act" data-fac="korsan" ' + (save.kredi < 300 ? 'disabled' : '') + '>Korsanlara haraç · 300</button></div>';
     h += '<div class="dim" style="margin-top:6px">Korsan avlamak Filoyu, satış ve yardım Loncayı güçlendirir. Korsanlarla arayı haraçla düzeltebilirsin; ama Filo bunu sevmez.</div>';
     box.insertAdjacentHTML('beforeend', h);
@@ -7677,8 +7678,24 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #dock .sect,html body #dock .acch{border:0 !important;border-image:none !important;border-bottom:1px solid var(--v2l) !important;border-radius:0 !important;background:none !important;box-shadow:none !important;
     margin:18px 0 8px !important;padding:0 0 6px !important;font:600 11px/1.2 var(--font) !important;letter-spacing:.2em;text-transform:uppercase;color:var(--v2d) !important;cursor:default;text-shadow:none !important}
   html body #dock .acch::after,html body #dock .acch::before{display:none !important;content:none !important}
+
+  /* açılır bölüm başlıkları: dokunulabilir şerit + ok */
+  html body #dock .acch{display:flex !important;align-items:center;justify-content:space-between;cursor:pointer !important;margin:10px 0 4px !important;padding:11px 12px !important;
+    background:rgba(255,255,255,.04) !important;border:1px solid rgba(220,235,245,.1) !important;border-left:2px solid rgba(143,227,255,.55) !important;border-radius:3px !important;
+    font:600 12px/1.2 var(--font) !important;letter-spacing:.2em !important;color:#e9f1f7 !important;user-select:none}
+  html body #dock .acch::after{content:"" !important;display:block !important;width:7px;height:7px;border-right:1.6px solid #e9f1f7;border-bottom:1.6px solid #e9f1f7;transform:rotate(-45deg);transition:transform .2s;margin-right:4px;flex:0 0 auto}
+  html body #dock .acch.op::after{transform:rotate(45deg)}
+  html body #dock .acch.op{background:rgba(143,227,255,.07) !important}
+  html body #dock .acch:active{background:rgba(255,255,255,.09) !important}
+  /* satır içinde başlık belirgin, açıklama küçük ve soluk */
+  html body #dock .line > span:first-child,html body #dock .ctc > span:first-child{font-size:14px !important;font-weight:600 !important;color:#e9f1f7 !important;line-height:1.35}
+  html body #dock .line .dim,html body #dock .ctc .dim,html body #dock .wpc p{font-size:12px !important;font-weight:400 !important;color:#8ea2b6 !important;letter-spacing:.01em}
+  html body #dock #dcont > div > .dim,html body #dock #dcont > .dim,html body #dock .card div.dim:not(.line *):not(.ctc *){font-size:11.5px !important;color:#7d90a4 !important;font-style:normal}
+  html body #dock .line b{font-weight:600}
   html body #dock .pilotRow{display:flex !important;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);color:var(--v2t);font-size:13px}
   html body #dock:not([data-t="more"]) .pilotRow{display:none !important}
+  html body #dock .pilotRow.accx,html body #dock #dcont .accx{display:none !important}
+  html body #dock .facr img{width:44px !important;height:47px !important;object-fit:contain}
   html body #dock .pilotRow input{flex:1;padding:6px 10px !important;font-size:13px !important}
   html body #dock .hgstat{border:0 !important;border-image:none !important;background:none !important;box-shadow:none !important;padding:4px 0 !important;margin:6px 0 !important}
   html body #dock .hgstat i{background:rgba(255,255,255,.1) !important;border:0 !important;border-image:none !important;height:3px !important;border-radius:2px !important;box-shadow:none !important}
