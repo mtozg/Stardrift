@@ -2182,7 +2182,7 @@ function drawRing(c, ox, oy, speed){
   let txt = null, kind = 'ok';
   if (banner && time < banner.until){ txt = banner.text; kind = banner.kind; } else if (lock){ txt = 'HEDEF KİLİTLİ'; }
   if (txt){
-    const bw = 190, bh = 22, bx = ox - bw / 2, by = Math.min(VIEW.b + 8, H - 60);
+    const bw = 190, bh = 22, bx = ox - bw / 2, by = oy + R * 0.42;
     if (!(window.__hzDraw && window.__hzDraw(c, kind, txt, ox, by))){
     c.fillStyle = kind === 'bad' ? 'rgba(255,60,80,0.92)' : 'rgba(127,216,255,0.92)'; c.fillRect(bx, by, bw, bh);
     c.strokeStyle = 'rgba(4,18,26,0.45)'; c.lineWidth = 2; c.beginPath();
@@ -7986,6 +7986,49 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #stage #bBrake.btn,html body #bBrake.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 66.5px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 70px) !important;width:56px !important;height:56px !important}
   html body #bLaser.btn{font-size:8.5px !important}
   html body .btn:not(#bDock)::before{width:42% !important;height:42% !important}
+  `;
+  document.head.appendChild(st);
+}
+
+// =====================  v3.3: bildirim düzeni — her tür bildirim hep aynı yerde  =====================
+//  ÜST ORTA: kısa sistem bildirimi (tek tek, sırayla)   SOL ÜST: telsiz (en çok 3 satır)
+//  SOL SÜTUN: rehber → sinyal kartı → görev takibi (alt alta, üst üste binmez)
+//  ORTA (nişangâh altı): kritik uyarı ve kenetlenme   ALT ORTA: konum/durum satırı
+{
+  // 1) sistem bildirimleri: kuyruk, aynı mesaj tekrar etmez
+  const TQ = []; let tBusy = false, tCur = '', tTimer = null;
+  const tShow = () => {
+    if (!TQ.length){ tBusy = false; tCur = ''; return; }
+    const [msg, ms] = TQ.shift(); tBusy = true; tCur = msg;
+    const t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(tTimer); tTimer = setTimeout(() => { t.classList.remove('on'); setTimeout(tShow, 220); }, Math.min(ms || 2400, TQ.length ? 1800 : 6000));
+  };
+  toast = function(msg, ms){
+    if (msg === tCur || TQ.some(q => q[0] === msg)) return;
+    TQ.push([msg, ms]); while (TQ.length > 3) TQ.shift();
+    if (!tBusy) tShow();
+  };
+  // 2) sol sütun: rehber, sinyal, görev takibi tek kapta
+  const col = document.createElement('div'); col.id = 'leftCol'; document.body.appendChild(col);
+  const adopt = () => { for (const id of ['radio', 'tut', 'sig', 'ctTrack']){ const e = $(id); if (e && e.parentNode !== col) col.appendChild(e); } };
+  adopt(); setTimeout(adopt, 0); setTimeout(adopt, 1500);
+  // 3) telsiz: en çok 3 satır
+  { const box = $('radio'); if (box) new MutationObserver(() => { while (box.children.length > 3) box.removeChild(box.children[0]); }).observe(box, { childList: true }); }
+  const st = document.createElement('style');
+  st.textContent = `
+  html body #toast{top:calc(env(safe-area-inset-top,0px) + 10px) !important;left:50% !important;transform:translateX(-50%) !important;max-width:min(460px,52vw) !important;text-align:center;z-index:8 !important}
+  body:has(#bossBar[style*="block"]) #toast{top:calc(env(safe-area-inset-top,0px) + 54px) !important}
+  html body #radio{max-width:100% !important;gap:3px !important}
+  html body #hint{display:none !important}
+  html body #sig button,html body #sig button.n{border:1px solid rgba(220,235,245,.32) !important;border-image:none !important;border-radius:999px !important;background:rgba(255,255,255,.04) !important;color:#e9f1f7 !important;font:600 12px var(--font) !important;letter-spacing:.06em;padding:6px 10px !important;text-shadow:none !important}
+  html body #sig button:not(.n){background:#e9f1f7 !important;color:#0a1220 !important;border-color:transparent !important}
+  html body #sig b{color:#e9f1f7 !important;letter-spacing:.06em}
+  #leftCol{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 70px);width:min(250px,30vw);z-index:7;display:flex;flex-direction:column;gap:8px;pointer-events:none;overflow:hidden}
+  #leftCol > *{position:relative !important;left:auto !important;top:auto !important;right:auto !important;bottom:auto !important;transform:none !important;width:100% !important;max-width:100% !important;margin:0 !important;flex:0 0 auto}
+  #leftCol > #tut,#leftCol > #sig{pointer-events:auto}
+  html body #sig{background:var(--v2bg) !important;border:1px solid var(--v2l) !important;border-left:2px solid rgba(143,227,255,.7) !important;border-radius:4px !important;box-shadow:0 8px 24px rgba(0,0,0,.4) !important}
+  body:has(#dock:not(.hidden)) #leftCol{display:none}
+  @media (max-height:520px){#leftCol{top:calc(env(safe-area-inset-top,0px) + 6px);width:min(240px,28vw);gap:6px}}
   `;
   document.head.appendChild(st);
 }
