@@ -1724,7 +1724,7 @@ function quadTri(c, cv, p0, p1, p2, src){
   c.save(); c.beginPath(); c.moveTo(p0[0], p0[1]); c.lineTo(p1[0], p1[1]); c.lineTo(p2[0], p2[1]); c.closePath(); c.clip();
   c.transform(src[0], src[1], src[2], src[3], src[4], src[5]); c.drawImage(cv, 0, 0); c.restore();
 }
-const SCRK = 1.15;   // kokpit ekranlarının iç çözünürlüğü (ekran yoğunluğuna göre)
+const SCRK = 1.8;   // kokpit ekranlarının iç çözünürlüğü (ekran yoğunluğuna göre)
 function drawQuad(c, sc){
   const [TL, TR, BR, BL] = sc.q, w = sc.cv.width, h = sc.cv.height;
   quadTri(c, sc.cv, TL, TR, BL, [(TR[0] - TL[0]) / w, (TR[1] - TL[1]) / w, (BL[0] - TL[0]) / h, (BL[1] - TL[1]) / h, TL[0], TL[1]]);
@@ -2105,7 +2105,6 @@ function mapScreen(c, I){
   else { c.fillStyle = '#5d6a8f'; c.fillText('Hedef yok', cx, yy); }
 }
 function overlayRect(k){
-  if (W < 900 || H < 500) return { x: W * 0.16, y: H * 0.06, w: W * 0.68, h: H * 0.66 };   // küçük ekran: büyütülen panel ortada ve geniş
   const h = H * 0.5, y = H * 0.13;
   return k === 'bars' ? { x: W * 0.07, y, w: W * 0.25, h } : k === 'map' ? { x: W * 0.31, y, w: W * 0.38, h } : { x: W * 0.68, y, w: W * 0.25, h };
 }
@@ -2149,7 +2148,7 @@ function drawOverlay(c){
   let o = OVL[overlay];
   if (!o || o.cv.width !== cvw || o.cv.height !== cvh){ const cv = document.createElement('canvas'); cv.width = cvw; cv.height = cvh; o = OVL[overlay] = { cv, g: cv.getContext('2d') }; }
   const g = o.g; g.setTransform(DPR * 1.6 / L.s, 0, 0, DPR * 1.6 / L.s, 0, 0); g.clearRect(0, 0, r.w, r.h);
-  g.fillStyle = 'rgba(5,11,22,0.96)'; g.strokeStyle = 'rgba(150,220,230,0.6)'; g.lineWidth = 2; rrect(g, 2, 2, r.w - 4, r.h - 4, 10); g.fill(); g.stroke(); if (window.__drawFr) window.__drawFr(g, r.w, r.h);
+  g.fillStyle = 'rgba(5,11,22,0.72)'; g.strokeStyle = 'rgba(150,220,230,0.6)'; g.lineWidth = 2; rrect(g, 2, 2, r.w - 4, r.h - 4, 10); g.fill(); g.stroke(); if (window.__drawFr) window.__drawFr(g, r.w, r.h);
   g.fillStyle = 'rgba(150,220,230,0.07)'; for (let yy = 8; yy < r.h; yy += 3) g.fillRect(6, yy, r.w - 12, 1);
   g.textAlign = 'left'; g.fillStyle = '#7fd8ff'; g.font = fnt(700, 15); g.fillText(overlay === 'bars' ? 'Sistem' : overlay === 'map' ? 'Harita' : 'Gövde ve kalkan', 16, 26);
   g.fillStyle = 'rgba(150,220,230,0.55)'; g.font = fnt(500, 10); g.textAlign = 'right'; g.fillText(overlay === 'map' ? 'Nesneye dokun: kilitlen · boşluğa: yakınlaştır · dışına: kapat' : 'Kapatmak için dışına dokun', r.w - 14, 26);
@@ -7910,6 +7909,37 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   /* gelişim ve parça ikonları */
   html body .db{width:56px !important;height:56px !important;opacity:.95}
   html body img.pi{filter:none !important}
+  `;
+  document.head.appendChild(st);
+}
+
+// =====================  v3.1: çizgi ikonlar (kokpit ekranları, harita, karşılama kartı), düğme düzeltmeleri  =====================
+{
+  const SRC = {"i_coin":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='6' stroke-width='1.1'/><path d='M14.2 9.6a3 3 0 1 0 0 4.8' /></svg>","i_foe":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l2.2 6.5L20 12l-5.8 2.5L12 21l-2.2-6.5L4 12l5.8-2.5z'/><circle cx='12' cy='12' r='1.6' fill='%23aebfd0' stroke='none'/></svg>","i_st":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><ellipse cx='12' cy='12' rx='9' ry='4'/><path d='M12 4v16'/><rect x='10' y='9.5' width='4' height='5' rx='.8' fill='%23aebfd0' stroke='none'/></svg>","i_crate":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 7.5l8-4 8 4v9l-8 4-8-4z'/><path d='M4 7.5l8 4 8-4M12 11.5v9' stroke-width='1.2'/></svg>","i_hull":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z'/><path d='M12 7.5l3 1.3v2.7c0 2.3-1.3 4.2-3 5-1.7-.8-3-2.7-3-5V8.8z' fill='%23aebfd0' stroke='none'/></svg>","i_pl":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='6.5'/><path d='M3 14.5c3 1.6 15 -1 18-5' stroke-width='1.3'/></svg>","i_gate":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z'/><circle cx='12' cy='12' r='3.2' fill='%23aebfd0' stroke='none'/></svg>","i_ruin":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebfd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 20V9l3-3 2 2v12M14 20v-7l2-2 3 3v6M3 20h18'/></svg>"}, LIM = {};
+  for (const k in SRC){ const im = new Image(); im.src = SRC[k]; LIM[k] = im; }
+  const _ic = window.__ic;
+  window.__ic = (c, k, x, y, s) => { const im = LIM[k]; if (im && im.complete && im.naturalWidth){ c.drawImage(im, x, y, s, s); return; } if (_ic) _ic(c, k, x, y, s); };
+  if (window.__MI) for (const k of ['i_st', 'i_gate', 'i_ruin']) if (LIM[k]) window.__MI[k] = LIM[k];
+  ckDirty = true;
+  const st = document.createElement('style');
+  st.textContent = `
+  html body #awayCard .tl{background:rgba(255,255,255,.03) !important;border:1px solid rgba(220,235,245,.14) !important;border-radius:4px !important}
+  html body #awayCard .tl i{background:var(--c) !important;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
+  html body #awayCard .tl.m i{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='6' stroke-width='1.1'/><path d='M14.2 9.6a3 3 0 1 0 0 4.8' /></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='6' stroke-width='1.1'/><path d='M14.2 9.6a3 3 0 1 0 0 4.8' /></svg>")}
+  html body #awayCard .tl.r i{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l2.2 6.5L20 12l-5.8 2.5L12 21l-2.2-6.5L4 12l5.8-2.5z'/><circle cx='12' cy='12' r='1.6' fill='white' stroke='none'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l2.2 6.5L20 12l-5.8 2.5L12 21l-2.2-6.5L4 12l5.8-2.5z'/><circle cx='12' cy='12' r='1.6' fill='white' stroke='none'/></svg>")}
+  html body #awayCard .tl.g i{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><ellipse cx='12' cy='12' rx='9' ry='4'/><path d='M12 4v16'/><rect x='10' y='9.5' width='4' height='5' rx='.8' fill='white' stroke='none'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><ellipse cx='12' cy='12' rx='9' ry='4'/><path d='M12 4v16'/><rect x='10' y='9.5' width='4' height='5' rx='.8' fill='white' stroke='none'/></svg>")}
+  html body #awayCard h3{font:600 15px var(--font) !important;letter-spacing:.32em !important;color:#e9f1f7 !important;text-shadow:none !important;background:none !important;-webkit-text-fill-color:#e9f1f7 !important}
+  /* beyaz (alınabilir) düğmelerde parça ikonları koyu */
+  html body button.act.go img,html body button.act.buy img,html body button.act.go .pi,html body button.act.buy .pi{filter:brightness(0) !important;opacity:.85}
+  /* düğmeler sağ kenara daha yakın: çentik payının yalnızca bir kısmı */
+  html body #stage #bLaser.btn,html body #bLaser.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 6px) !important}
+  html body #stage #bThrust.btn,html body #bThrust.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 88px) !important}
+  html body #stage #bLock.btn,html body #bLock.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 139px) !important}
+  html body #stage #bMissile.btn,html body #bMissile.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 190px) !important}
+  html body #stage #bBoost.btn,html body #bBoost.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 22px) !important}
+  html body #stage #bBrake.btn,html body #bBrake.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 78px) !important}
+  html body #stage #snd.btn,html body #snd.btn,html body #stage #msgBtn.btn,html body #msgBtn.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 6px) !important}
+  html body #stage #bComm.btn,html body #bComm.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 42px) !important}
   `;
   document.head.appendChild(st);
 }
