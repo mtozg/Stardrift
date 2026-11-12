@@ -355,10 +355,16 @@ for (let i = 0; i < 4; i++){
   smoothNormals(g); iceT.push(g);
 }
 const prismGeo = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.17, -0.44), new THREE.Vector2(0.17, 0.26), new THREE.Vector2(0.001, 0.5)], 6);
+// kristal sivrisi: dipte koyu kan kırmızısı, uca doğru açılan pembe-beyaz ışık (renk köşelere işlenir)
+const gemGeo = (() => { const g = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.15, -0.46), new THREE.Vector2(0.17, -0.1), new THREE.Vector2(0.16, 0.3), new THREE.Vector2(0.001, 0.5)], 6).toNonIndexed(), p = g.attributes.position, c = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++){ const t = Math.min(1, Math.max(0, (p.getY(i) + 0.5))), f = (i % 3 === 0 ? 1 : 0.86); c[i * 3] = (0.3 + 0.7 * t) * f; c[i * 3 + 1] = (0.01 + 0.78 * Math.pow(t, 2.2)) * f; c[i * 3 + 2] = (0.04 + 0.74 * Math.pow(t, 2.2)) * f; }
+  g.setAttribute('color', new THREE.BufferAttribute(c, 3)); g.computeVertexNormals(); return g; })();
+const gemGlowTex = glowTexture(255, 60, 70);
 const icicleGeo = new THREE.ConeGeometry(1, 1, 5); icicleGeo.rotateX(Math.PI); icicleGeo.translate(0, -0.5, 0);
 const lumpGeo = new THREE.IcosahedronGeometry(1, 1), boxGeo = new THREE.BoxGeometry(1, 1, 1), pipeGeo = new THREE.CylinderGeometry(1, 1, 1, 8);
 const gemMat = {
-  kristal: new THREE.MeshStandardMaterial({ color: 0xff2a40, emissive: 0x8a0014, emissiveIntensity: 0.9, roughness: 0.1, metalness: 0.25, flatShading: true, transparent: true, opacity: 0.93 }),
+  kristal: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0x3a0008, emissiveIntensity: 0.8, roughness: 0.08, metalness: 0.35, flatShading: true, transparent: true, opacity: 0.94 }),
+  kristalIc: new THREE.MeshBasicMaterial({ color: 0xff5a6a, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false }),
   icicle: new THREE.MeshStandardMaterial({ color: 0xe2f6ff, emissive: 0x2e7aa6, emissiveIntensity: 0.6, roughness: 0.05, metalness: 0.1, flatShading: true, transparent: true, opacity: 0.85 }),
   snow: new THREE.MeshStandardMaterial({ color: 0xf4fbff, emissive: 0x4a6a80, emissiveIntensity: 0.35, roughness: 0.85, metalness: 0 }),
   titan: new THREE.MeshStandardMaterial({ color: 0xd8ccff, emissive: 0x6a4ad8, emissiveIntensity: 1.0, roughness: 0.15, metalness: 0.4, flatShading: true }),
@@ -371,13 +377,17 @@ function rockMesh(type, r){
   const up = new THREE.Vector3(0, 1, 0);
   let m;
   if (type === 'kristal'){
-    m = new THREE.Mesh(pick(facetT), astMat.kristal); m.scale.setScalar(r * 0.8);
-    const ax = new THREE.Vector3(rand(-0.3, 0.3), 1, rand(-0.3, 0.3)).normalize(), n = 10 + ((Math.random() * 6) | 0);
+    // referans: kızıl damarlı kayadan fışkıran, uçları ışıyan büyük kristal kümesi
+    m = new THREE.Mesh(pick(facetT), astMat.kristal); m.scale.setScalar(r * 0.85);
+    const ax = new THREE.Vector3(rand(-0.25, 0.25), 1, rand(-0.25, 0.25)).normalize(), n = 16 + ((Math.random() * 7) | 0);
     for (let i = 0; i < n; i++){
-      const big = i === 0, d = big ? ax.clone() : ax.clone().add(new THREE.Vector3(rand(-1, 1), rand(-0.6, 0.9), rand(-1, 1)).multiplyScalar(1.15)).normalize();
-      const L = big ? rand(2.4, 2.9) : rand(0.8, 1.9), w = big ? rand(2.6, 3.2) : rand(1.4, 2.4);
-      add(m, prismGeo, gemMat.kristal, w, L, w, d.clone().multiplyScalar(0.55 + L * 0.42), new THREE.Quaternion().setFromUnitVectors(up, d));
+      const main = i < 3, d = main ? ax.clone().add(new THREE.Vector3(rand(-0.25, 0.25), 0, rand(-0.25, 0.25))).normalize() : ax.clone().multiplyScalar(i < 12 ? 0.9 : 0.1).add(new THREE.Vector3(rand(-1, 1), rand(-0.5, 0.8), rand(-1, 1))).normalize();
+      const L = (main ? rand(2.0, 2.6) * (i === 0 ? 1.15 : 0.85) : i < 12 ? rand(0.8, 1.6) : rand(0.4, 0.7)) * 0.85, w = main ? rand(2.2, 2.8) : i < 12 ? rand(1.3, 2.1) : rand(0.9, 1.3);
+      const q = new THREE.Quaternion().setFromUnitVectors(up, d), pos = d.clone().multiplyScalar(0.5 + L * 0.42);
+      add(m, gemGeo, gemMat.kristal, w, L, w, pos, q);
+      if (main) add(m, gemGeo, gemMat.kristalIc, w * 0.45, L * 0.9, w * 0.45, pos, q);
     }
+    const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: gemGlowTex, color: 0xff3a4a, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })); gl.scale.setScalar(4.2); gl.position.copy(ax).multiplyScalar(1.4); m.add(gl);
   } else if (type === 'buz'){
     m = new THREE.Mesh(pick(iceT), astMat.buz); m.scale.setScalar(r);
     const n = 16 + ((Math.random() * 8) | 0);
@@ -2438,7 +2448,7 @@ const A3 = {"ice_top": "assets/img/a3_ice_top.webp", "ice_side": "assets/img/a3_
 const MONIMG = {};
 function img3(key, cb){ const im = new Image(); im.onload = () => cb(im); im.src = A3[key]; }
 // kaya dokuları
-[['demir', 'tdemir', [1.2, 1.12, 1.05], 1.1, [2, 1]], ['buz', 'tbuz', [1.0, 1.05, 1.15], 0.7, [2, 1]], ['kristal', 'tkristal', [1.1, 1.05, 1.08], 0.9, [2, 1]]].forEach(([type, key, col, bump, rep]) => {
+[['demir', 'tdemir', [1.2, 1.12, 1.05], 1.1, [2, 1]], ['buz', 'tbuz', [1.0, 1.05, 1.15], 0.7, [2, 1]], ['kristal', 'tkristal', [1.35, 0.9, 0.92], 0.9, [2, 1]]].forEach(([type, key, col, bump, rep]) => {
   loadArt(A3[key], t => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; t.needsUpdate = true;
     const m = astMat[type]; m.map = t; m.bumpMap = t; m.bumpScale = bump; m.color.setRGB(col[0], col[1], col[2]); if (type === 'buz'){ m.emissiveMap = t; m.emissive.setHex(0x9ab8d0); m.emissiveIntensity = 0.42; } m.needsUpdate = true;
