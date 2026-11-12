@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 if (typeof THREE === 'undefined'){
-  document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;inset:0;z-index:99999;background:#03050c;color:#e8edff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;font:600 17px/1.4 Saira SC,system-ui,sans-serif"><b style="font-size:22px;color:#ffb454">3D motoru yüklenemedi</b><span>vendor/three.min.js dosyası bulunamadı ve internetten de indirilemedi.</span><span style="color:#8f9cc0;font-size:14px">Oyun klasörünün tamamını (vendor klasörü dahil) indirdiğinden emin ol, sonra sayfayı yenile.</span></div>');
+  document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;inset:0;z-index:99999;background:#03050c;color:#e8edff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;font:600 17px/1.4 Barlow,system-ui,sans-serif"><b style="font-size:22px;color:#ffb454">3D motoru yüklenemedi</b><span>vendor/three.min.js dosyası bulunamadı ve internetten de indirilemedi.</span><span style="color:#8f9cc0;font-size:14px">Oyun klasörünün tamamını (vendor klasörü dahil) indirdiğinden emin ol, sonra sayfayı yenile.</span></div>');
   return;
 }
 const $ = id => document.getElementById(id);
@@ -9,7 +9,7 @@ const TAU = Math.PI * 2;
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
-const FONT = '"Saira SC","Segoe UI",system-ui,sans-serif';
+const FONT = '"Barlow","Segoe UI",system-ui,sans-serif';
 
 // ---------- Sahne ----------
 const glc = $('gl'), hud = $('hud'), hctx = hud.getContext('2d');
@@ -943,7 +943,7 @@ const TESTM = /:test$/.test(SAVEKEY);
 if (TESTM){
   const fill = () => { if (save.kredi < 900000) save.kredi = 999999; if (!save.parts) save.parts = {}; for (const k of ['levha', 'devre', 'hucre']) if (!(save.parts[k] >= 50)) save.parts[k] = 99; if (!(save.xp >= 9000)) save.xp = 9000; save.ammo = Math.max(save.ammo || 0, AMMO_MAX); save.ammoD = Math.max(save.ammoD || 0, DMAX); };
   fill(); setInterval(fill, 1000);
-  const tb = document.createElement('div'); tb.textContent = 'TEST MODU'; tb.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 2px);transform:translateX(-50%);z-index:95;font:800 10px sans-serif;letter-spacing:.12em;color:#1a0d00;background:#ffb454;padding:2px 8px;border-radius:6px;pointer-events:none;opacity:.85';
+  const tb = document.createElement('div'); tb.textContent = 'TEST MODU'; tb.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 2px);transform:translateX(-50%);z-index:95;font:800 10px Barlow,sans-serif;letter-spacing:.12em;color:#1a0d00;background:#ffb454;padding:2px 8px;border-radius:6px;pointer-events:none;opacity:.85';
   document.body.appendChild(tb);
 }
 const cargo = { demir: 0, buz: 0, kristal: 0 };
@@ -4925,6 +4925,7 @@ const A8 = {"i_coin": "assets/img/a8_i_coin.webp", "i_crate": "assets/img/a8_i_c
   // afiş (uyarı) resimleri
   const HZ = { r: new Image(), o: new Image() }; HZ.r.src = du('hz_r'); HZ.o.src = du('hz_o');
   window.__hzDraw = function(c, kind, txt, ox, by){
+    if (document.body.classList.contains('dockReady') && kind !== 'bad') return true;
     if (kind !== 'bad') return false; const orange = /UYARISI/.test(txt), im = orange ? HZ.o : HZ.r; if (!im.complete || !im.naturalWidth) return false;
     const bw = Math.min(W * 0.62, 520), bh = bw * im.naturalHeight / im.naturalWidth; c.drawImage(im, ox - bw / 2, by - 8, bw, bh);
     c.fillStyle = orange ? '#ffd9a0' : '#ffc0c8'; c.font = fnt(700, 13); c.textAlign = 'center'; c.shadowColor = orange ? '#ff9a2a' : '#ff3050'; c.shadowBlur = 6; c.fillText(txt, ox, by - 8 + bh * 0.58); c.shadowBlur = 0; return true;
@@ -5522,7 +5523,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     { t: 'Uçuş', x: () => K('W', 'İtiş') + ' ile ilerle. Yön için ' + (touch ? 'ekranın sol yarısında parmağını sürükle' : K('A / D', '') + ' ve ' + K('↑ / ↓', '')) + '. ' + K('S', 'Fren') + ' yavaşlatır.', ok: () => vel.length() > 25 },
     { t: 'Asteroit kır', x: () => 'Kuşaktaki bir kayayı nişangâhın ortasına al, ' + K('Boşluk', 'Lazer') + ' ile ateş et. Lazer menzili yaklaşık ' + Math.round(laserRange()) + ' m; uzaksa nişanda "MENZİL DIŞI" yazar.', ok: () => ores.length > 0 || cargoSum() > 0 },
     { t: 'Cevheri topla', x: () => 'Kırılan kayadan parlayan parçalar saçılır. Yanlarından geç, kendiliğinden kargoya çekilir. (' + cargoSum() + '/3)', ok: () => cargoSum() >= 3 },
-    { t: 'Üsse dön', x: () => 'Sarı işaret Ankora üssünü gösteriyor. Yaklaşınca ' + K('F', 'Üsse bağlan') + ' ile kenetlen.', ok: () => docked },
+    { t: 'Üsse dön', x: () => 'Sarı işaret Ankora üssünü gösteriyor. Yaklaşınca ' + K('F', 'Kenetlen') + ' ile istasyona kenetlen.', ok: () => docked },
     { t: 'Sat', x: () => '<span class="k">Ticaret</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.', enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
     { t: 'Gemini geliştir', x: () => '<span class="k">Gemi</span> sekmesinden bir geliştirme al, ya da şimdilik ' + '<span class="k">Kalkış</span> de.', enter: () => { lv0 = lvSum(); }, ok: () => lvSum() > lv0 || !docked },
     { t: 'Gerisi senin', x: () => 'Zorunlu bir şey yok. Gez, kaz, savaş. Arada telsizden sinyaller gelecek; istersen kabul et, istersen yoksay. ' + K('T', 'Kilit') + ' nişandaki hedefe, yoksa 5 km içindeki en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; kilitliyken lazer kendiliğinden vurur. Uzak yerlere gitmek için ' + K('M', 'haritayı') + ' aç, hedefe dokun.', last: true }
@@ -6170,7 +6171,7 @@ setTimeout(() => {
     // dikişler ve perçinler
     for (const p of [0, 128]){ g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(p - 1, 0, 3, 256); g.fillRect(0, p - 1, 256, 3); g.fillStyle = 'rgba(255,255,255,0.16)'; g.fillRect(p + 2, 0, 1, 256); g.fillRect(0, p + 2, 256, 1); }
     for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) for (const [dx, dy] of [[12, 12], [116, 12], [12, 116], [116, 116]]){ const x = i * 128 + dx, y = j * 128 + dy; g.fillStyle = 'rgba(0,0,0,0.65)'; g.beginPath(); g.arc(x + 1, y + 1.5, 4, 0, 7); g.fill(); g.fillStyle = rg(base, 1, 38); g.beginPath(); g.arc(x, y, 3.4, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,0.45)'; g.beginPath(); g.arc(x - 1, y - 1, 1.2, 0, 7); g.fill(); }
-    if (o.tag){ g.font = 'bold 20px sans-serif'; g.fillStyle = o.tagc || 'rgba(255,255,255,0.35)'; g.fillText(o.tag, 22, 78); g.fillRect(22, 90, 70, 5); }
+    if (o.tag){ g.font = 'bold 20px Barlow, sans-serif'; g.fillStyle = o.tagc || 'rgba(255,255,255,0.35)'; g.fillText(o.tag, 22, 78); g.fillRect(22, 90, 70, 5); }
     return TX(c);
   }
   function crate(base, edge, o = {}){
@@ -6181,7 +6182,7 @@ setTimeout(() => {
     g.strokeStyle = 'rgba(0,0,0,0.5)'; g.lineWidth = 2; g.strokeRect(16, 16, 224, 224); g.strokeRect(0.5, 0.5, 255, 255);
     g.strokeStyle = rg(edge, 0.8); g.lineWidth = 9; g.beginPath(); g.moveTo(16, 16); g.lineTo(240, 240); g.moveTo(240, 16); g.lineTo(16, 240); g.stroke();
     for (const [x, y] of [[14, 14], [242, 14], [14, 242], [242, 242], [128, 128]]){ g.fillStyle = 'rgba(0,0,0,0.6)'; g.beginPath(); g.arc(x + 1, y + 1, 6, 0, 7); g.fill(); g.fillStyle = rg(edge, 1, 40); g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); }
-    g.fillStyle = 'rgba(20,20,20,0.7)'; g.fillRect(70, 100, 116, 56); g.fillStyle = o.tc || '#e8e0c8'; g.font = 'bold 30px sans-serif'; g.textAlign = 'center'; g.fillText(o.tag || 'KARGO', 128, 138); g.textAlign = 'left';
+    g.fillStyle = 'rgba(20,20,20,0.7)'; g.fillRect(70, 100, 116, 56); g.fillStyle = o.tc || '#e8e0c8'; g.font = 'bold 30px Barlow, sans-serif'; g.textAlign = 'center'; g.fillText(o.tag || 'KARGO', 128, 138); g.textAlign = 'left';
     speck(g, 900, 0.14); if (o.rust) blot(g, 22, [150, 70, 25], 0.4, 8, 30); blot(g, 8, [0, 0, 0], 0.2, 14, 36);
     return TX(c);
   }
@@ -6263,7 +6264,7 @@ window.__xpal = {
     try {
       const T = window.__tx; if (!T) return; const kd = SK[0], HW = OW / 2, HH = OH / 2, R = T.R;
       const add = (m, x, y, z) => { m.position.set(x, y, z); xs.add(m); return m; };
-      const lab = (txt, col) => { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const g = c.getContext('2d'); g.fillStyle = 'rgba(4,10,18,0.85)'; g.fillRect(0, 0, 512, 128); g.strokeStyle = col; g.lineWidth = 6; g.strokeRect(5, 5, 502, 118); g.fillStyle = col; g.font = 'bold 44px Saira SC, sans-serif'; g.textAlign = 'center'; g.fillText(txt, 256, 82); const t = T.TX(c); mk(t); return t; };
+      const lab = (txt, col) => { const c = document.createElement('canvas'); c.width = 512; c.height = 128; const g = c.getContext('2d'); g.fillStyle = 'rgba(4,10,18,0.85)'; g.fillRect(0, 0, 512, 128); g.strokeStyle = col; g.lineWidth = 6; g.strokeRect(5, 5, 502, 118); g.fillStyle = col; g.font = 'bold 44px Barlow, sans-serif'; g.textAlign = 'center'; g.fillText(txt, 256, 82); const t = T.TX(c); mk(t); return t; };
       if (kd === 'ankora'){
         const pm = new THREE.MeshStandardMaterial({ map: T.plate(T.sc(104, 94, 80), { tag: 'A' }), roughness: 0.4, metalness: 0.5, bumpScale: 0.3 }), li = new THREE.MeshBasicMaterial({ color: 0xffc477 });
         for (let x = 8; x < LEN - 4; x += 9) for (const sg of [-1, 1]){ add(new THREE.Mesh(new THREE.BoxGeometry(0.5, OH, 0.4), pm), x, 0, sg * (HW - 0.22)); add(new THREE.Mesh(new THREE.BoxGeometry(0.06, OH * 0.82, 0.06), li), x - 0.0, 0, sg * (HW - 0.46)); }
@@ -6395,7 +6396,7 @@ window.__xpal = {
   css.textContent = '#hcPanel{position:fixed;left:50%;transform:translateX(-50%);z-index:5;width:min(560px,62vw);pointer-events:none;opacity:0;transition:opacity .35s;font-family:var(--font)}#hcPanel.on{opacity:1}'
     + '#hcPanel .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 14px;border:2px solid rgba(255,120,60,.9);background:repeating-linear-gradient(-45deg,rgba(255,105,45,.22) 0 9px,rgba(255,105,45,.06) 9px 18px);box-shadow:0 0 22px rgba(255,100,40,.25) inset}'
     + '#hcPanel .l b{display:block;font:700 15px var(--disp);letter-spacing:.18em;color:#ff8f55;text-shadow:0 0 8px rgba(255,110,40,.7)}#hcPanel .l span{font-size:11px;letter-spacing:.2em;color:#ffb38a}'
-    + '#hcPanel .tm{font:700 34px/1 ui-monospace,Menlo,Consolas,monospace;color:#ffd0b0;text-shadow:0 0 12px rgba(255,110,40,.85);letter-spacing:.06em}'
+    + '#hcPanel .tm{font:700 34px/1 Barlow,sans-serif;color:#ffd0b0;text-shadow:0 0 12px rgba(255,110,40,.85);letter-spacing:.06em}'
     + '#hcPanel .eng{font:700 18px var(--disp);letter-spacing:.28em;color:#ffd0b0;text-align:center;width:100%;text-shadow:0 0 12px rgba(255,110,40,.85)}'
     + '#hcPanel .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:5px}#hcPanel .seg i{height:16px;border:1px solid rgba(255,120,60,.7);background:rgba(255,105,45,.08);font:700 9px/16px var(--font);letter-spacing:.14em;color:#ffb38a;text-align:left;padding-left:5px;font-style:normal;transition:background .2s}#hcPanel .seg i.on{background:rgba(255,105,45,.75);color:#2a0d00}'
     + '#hcWhite{position:fixed;inset:0;z-index:61;background:#fff;opacity:0;pointer-events:none}';
@@ -7828,5 +7829,88 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   `;
   document.head.appendChild(st);  try { document.fonts && document.fonts.ready.then(() => { ckDirty = true; }); } catch (e) {}
   const fixT = () => { const tg = $('titleGo'); if (tg && tg.getAttribute('style')) tg.removeAttribute('style'); }; fixT(); setTimeout(fixT, 0); setTimeout(fixT, 500);
+}
+
+// =====================  v3: sıkı düğme kümesi, uyarılar, kenetlenme ekranı, yeni ikonlar  =====================
+{
+  // istasyon gelişim ve parça ikonları: altıgen çerçeveli çizgi ikonlar
+  window.DEVI = ["data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><polygon points='12,2 36,2 46.5,24 36,46 12,46 1.5,24' stroke='rgba(220,235,245,0.45)' stroke-width='1.2'/><path d='M11 34L21 17l10 17z'/><path d='M21 17v17M17.5 34l3.5-6 3.5 6' stroke-width='1.3'/><path d='M31 34V14M31 14l-3 3M31 14l3 3' stroke-width='1.3'/><path d='M27.5 11a5 5 0 0 1 7 0M25.5 8.5a8 8 0 0 1 11 0' stroke-width='1.2'/><path d='M8 36h32'/></svg>","data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><polygon points='12,2 36,2 46.5,24 36,46 12,46 1.5,24' stroke='rgba(220,235,245,0.45)' stroke-width='1.2'/><rect x='10' y='18' width='9' height='17' rx='3'/><rect x='22' y='14' width='9' height='21' rx='3'/><path d='M19 24h3M31 22h4v-8' /><path d='M35 14c1.8 1.6 2 3.4 0 5-2-1.6-1.8-3.4 0-5z' fill='white' stroke='none'/><path d='M8 36h32'/><path d='M13 23h3M25 19h3' stroke-width='1.1'/></svg>","data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><polygon points='12,2 36,2 46.5,24 36,46 12,46 1.5,24' stroke='rgba(220,235,245,0.45)' stroke-width='1.2'/><path d='M12 22h22l-4 5h-4v4h4v4H16v-4h4v-4h-4z'/><path d='M18 13h12l2 5H16z' fill='white' stroke='none'/><path d='M34 11l2-2M37 15h3M36 19l2 1.5' stroke-width='1.2'/></svg>","data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><polygon points='12,2 36,2 46.5,24 36,46 12,46 1.5,24' stroke='rgba(220,235,245,0.45)' stroke-width='1.2'/><ellipse cx='24' cy='24' rx='13' ry='6'/><path d='M24 10v28' /><rect x='20' y='19' width='8' height='10' rx='1.5' fill='white' stroke='none'/><path d='M11 24h-3M40 24h-3' stroke-width='1.2'/><rect x='34' y='29' width='6' height='5' rx='.8' stroke-width='1.1'/></svg>"];
+  try { Object.assign(window.PICON, {"levha":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 7l7-3 7 3v10l-7 3-7-3z'/><path d='M5 7l7 3 7-3M12 10v10' stroke-width='1.2'/><circle cx='8' cy='12' r='.9' fill='white' stroke='none'/><circle cx='16' cy='12' r='.9' fill='white' stroke='none'/></svg>","devre":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='6' y='6' width='12' height='12' rx='1.5'/><rect x='9.5' y='9.5' width='5' height='5' fill='white' stroke='none'/><path d='M9 3v3M12 3v3M15 3v3M9 18v3M12 18v3M15 18v3M3 9h3M3 12h3M3 15h3M18 9h3M18 12h3M18 15h3' stroke-width='1.2'/></svg>","hucre":"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='7' y='5' width='10' height='16' rx='2'/><path d='M10 3h4'/><path d='M12.8 8.5L10 13.2h3l-1 4.3 3-5.2h-3z' fill='white' stroke='none'/></svg>"}); } catch (e) {}
+  // uyarı afişi: ince çerçeveli koyu şerit, sol uçta işaret; çizgili eski resimler kalktı
+  window.__hzDraw = function(c, kind, txt, ox, by){
+    if (document.body.classList.contains('dockReady') && kind !== 'bad') return true;
+    const warn = /UYARI/.test(txt), bad = kind === 'bad', col = bad ? (warn ? '255,176,84' : '255,110,135') : '143,227,255';
+    c.save(); c.font = fnt(600, 12.5); c.letterSpacing = '3px'; const tw = c.measureText(txt).width; c.letterSpacing = '0px';
+    const bw = Math.max(170, tw + 70), bh = 26, x = ox - bw / 2, y = by;
+    c.fillStyle = 'rgba(6,11,20,0.82)'; c.fillRect(x, y, bw, bh);
+    c.strokeStyle = 'rgba(' + col + ',0.85)'; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, bw - 1, bh - 1);
+    c.fillStyle = 'rgba(' + col + ',1)'; c.fillRect(x, y, 3, bh); c.fillRect(x + bw - 3, y, 3, bh);
+    if (bad){ const ix = x + 18, iy = y + bh / 2; c.beginPath(); c.moveTo(ix, iy - 6); c.lineTo(ix + 7, iy + 6); c.lineTo(ix - 7, iy + 6); c.closePath(); c.fill(); c.fillStyle = '#060b14'; c.fillRect(ix - 0.8, iy - 2, 1.6, 4.5); c.fillRect(ix - 0.8, iy + 3.4, 1.6, 1.4); }
+    c.fillStyle = bad ? 'rgba(' + col + ',1)' : '#e9f1f7'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.letterSpacing = '3px'; c.fillText(txt, ox + (bad ? 8 : 0), y + bh / 2 + 1); c.letterSpacing = '0px';
+    c.restore(); return true;
+  };
+  // kenetlenme ekranı (örnekteki gibi): nişangâhın altında köşeli çerçeve, durum satırları, Kenetlen düğmesi
+  const dh = document.createElement('div'); dh.id = 'dockHud';
+  dh.innerHTML = '<i class="bl"></i><i class="br"></i><div class="t">KENETLENEBİLİRSİN</div><div class="n"></div><div class="ln"><span>YANAŞMA İZNİ</span><b>VERİLDİ</b></div><div class="ln"><span>KENETLEME KOLLARI</span><b>HAZIR</b></div><div class="ln"><span>MESAFE</span><b class="d">—</b></div><button type="button"><kbd>F</kbd>KENETLEN</button>';
+  document.body.appendChild(dh);
+  dh.querySelector('button').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); tryDock(); });
+  const bd0 = $('bDock'); if (bd0) bd0.textContent = 'Üsse kenetlen';
+  let dhN = '', dhD = '';
+  EXTRA.push(() => {
+    const on = !docked && !paused && bd0 && !bd0.classList.contains('hidden') && !window.__hcOn && !window.__hjOn;
+    dh.classList.toggle('on', !!on); document.body.classList.toggle('dockReady', !!on);
+    if (!on) return;
+    let best = null, bd = 1e9; for (let i = 0; i < STATIONS.length; i++){ const d = rig.position.distanceTo(STATIONS[i].pos); if (d < bd){ bd = d; best = STATIONS[i]; } }
+    if (best){ const n = best.ad.toLocaleUpperCase('tr-TR'); if (n !== dhN){ dhN = n; dh.querySelector('.n').textContent = n; } const d = Math.max(0, Math.round(bd - best.r)) + ' m'; if (d !== dhD){ dhD = d; dh.querySelector('.d').textContent = d; } }
+  });
+  const st = document.createElement('style');
+  st.textContent = `
+  /* sıkı altıgen küme: sağ alt köşeye yaslı petek */
+  html body #stage #bLaser.btn,html body #bLaser.btn{right:calc(env(safe-area-inset-right,0px) + 8px) !important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px) !important;width:96px !important;height:96px !important}
+  html body #stage #bThrust.btn,html body #bThrust.btn{right:calc(env(safe-area-inset-right,0px) + 90px) !important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px) !important;width:64px !important;height:64px !important}
+  html body #stage #bLock.btn,html body #bLock.btn{right:calc(env(safe-area-inset-right,0px) + 141px) !important;bottom:calc(env(safe-area-inset-bottom,0px) + 44px) !important;width:64px !important;height:64px !important}
+  html body #stage #bMissile.btn,html body #bMissile.btn{right:calc(env(safe-area-inset-right,0px) + 192px) !important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px) !important;width:64px !important;height:64px !important}
+  html body #stage #bBoost.btn,html body #bBoost.btn{right:calc(env(safe-area-inset-right,0px) + 24px) !important;bottom:calc(env(safe-area-inset-bottom,0px) + 108px) !important;width:64px !important;height:64px !important}
+  html body #stage #bBrake.btn,html body #bBrake.btn{right:calc(env(safe-area-inset-right,0px) + 80px) !important;bottom:calc(env(safe-area-inset-bottom,0px) + 80px) !important;width:64px !important;height:64px !important}
+  html body #stage #snd.btn,html body #snd.btn{top:calc(env(safe-area-inset-top,0px) + 6px) !important;right:calc(env(safe-area-inset-right,0px) + 8px) !important;width:44px !important;height:44px !important}
+  html body #stage #msgBtn.btn,html body #msgBtn.btn{top:calc(env(safe-area-inset-top,0px) + 52px) !important;right:calc(env(safe-area-inset-right,0px) + 8px) !important;width:44px !important;height:44px !important}
+  html body #stage #bComm.btn,html body #bComm.btn{top:calc(env(safe-area-inset-top,0px) + 29px) !important;right:calc(env(safe-area-inset-right,0px) + 44px) !important;width:44px !important;height:44px !important}
+  html body #msgBadge{right:calc(env(safe-area-inset-right,0px) + 6px) !important}
+  html body #inbox{right:calc(env(safe-area-inset-right,0px) + 96px) !important}
+  /* eski yanaşma düğmesi yerine ortadaki kenetlenme ekranı */
+  html body #bDock,html body #stage #bDock.img,html body #stage #bDock{display:none !important}
+  #dockHud{position:fixed;left:50%;top:calc(36% + 34px);transform:translate(-50%,0);z-index:5;width:min(290px,60vw);padding:10px 22px 12px;background:rgba(6,11,20,.62);backdrop-filter:blur(3px);display:none;flex-direction:column;align-items:stretch;gap:3px;color:#e9f1f7;font-family:var(--font);text-align:center;pointer-events:none}
+  #dockHud.on{display:flex;animation:dhIn .35s ease-out}
+  @keyframes dhIn{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
+  #dockHud .bl,#dockHud .br{position:absolute;top:0;bottom:0;width:10px;border:1px solid rgba(233,241,247,.7)}
+  #dockHud .bl{left:0;border-right:0}#dockHud .br{right:0;border-left:0}
+  #dockHud::before,#dockHud::after{content:"";position:absolute;top:-14px;width:1px;height:10px;background:rgba(233,241,247,.7)}
+  #dockHud::before{left:50%}#dockHud::after{display:none}
+  #dockHud .t{font:600 15px/1.2 var(--font);letter-spacing:.32em;padding-left:.32em}
+  #dockHud .n{font:500 10.5px/1.2 var(--font);letter-spacing:.24em;color:#8ea2b6;margin-bottom:6px}
+  #dockHud .ln{display:flex;justify-content:space-between;font:500 9.5px/1.5 var(--font);letter-spacing:.14em;color:#8ea2b6;border-top:1px solid rgba(255,255,255,.07)}
+  #dockHud .ln b{font-weight:600;color:#e9f1f7}
+  #dockHud button{pointer-events:auto;margin:9px auto 0;display:flex;align-items:center;gap:10px;background:rgba(6,11,20,.55);border:1px solid rgba(233,241,247,.75);border-radius:999px;color:#e9f1f7;font:700 12px/1 var(--font);letter-spacing:.26em;padding:8px 20px 8px 8px;touch-action:manipulation;cursor:pointer}
+  #dockHud button:active{background:#e9f1f7;color:#0a1220}
+  #dockHud kbd{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1px solid rgba(233,241,247,.7);border-radius:50%;font:700 10px var(--font);letter-spacing:0}
+  @media (hover:none){#dockHud kbd{display:none}#dockHud button{padding:9px 24px}}
+  body.dockReady #cine b{display:none !important}
+  @media (max-height:520px){#dockHud{top:calc(36% + 22px);padding:7px 18px 9px;gap:1px}#dockHud .t{font-size:13px}#dockHud .n{margin-bottom:3px}#dockHud .ln{font-size:8.5px;line-height:1.4}#dockHud button{margin-top:6px;padding:7px 20px}}
+  /* istasyona yaklaşma yazısı: ince çizgi */
+  html body #cine b{border:0 !important;border-image:none !important;background:none !important;box-shadow:none !important;font:600 12px var(--font) !important;letter-spacing:.3em !important;color:#e9f1f7 !important;text-shadow:0 1px 6px rgba(0,0,0,.8) !important;padding:0 64px !important}
+  html body #cine b::before,html body #cine b::after{content:"";position:absolute;top:50%;width:48px;height:1px;background:rgba(233,241,247,.6)}
+  html body #cine b::before{left:0}html body #cine b::after{right:0}
+  /* hangar sinematiği: başlık ve durum yazısı aynı ince dilde */
+  html body #xfade .tt{font:300 18px var(--font) !important;letter-spacing:.5em !important;color:#e9f1f7 !important;text-shadow:0 2px 12px rgba(0,0,0,.7) !important}
+  html body #xfade .tx{border:0 !important;border-image:none !important;background:rgba(6,11,20,.55) !important;padding:8px 30px !important;font:600 13px var(--font) !important;letter-spacing:.32em !important;color:#e9f1f7 !important;text-shadow:none !important;min-width:240px}
+  html body #xfade .tx::before,html body #xfade .tx::after{content:"";position:absolute;top:0;bottom:0;width:8px;border:1px solid rgba(233,241,247,.7)}
+  html body #xfade .tx::before{left:0;border-right:0}html body #xfade .tx::after{right:0;border-left:0}
+  /* çarpışma kenar uyarısı daha yumuşak */
+  #cwarn .l,#cwarn .r{width:16% !important}#cwarn .t,#cwarn .b{height:18% !important}
+  /* gelişim ve parça ikonları */
+  html body .db{width:56px !important;height:56px !important;opacity:.95}
+  html body img.pi{filter:none !important}
+  `;
+  document.head.appendChild(st);
 }
 })();
