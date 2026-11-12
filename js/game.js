@@ -1475,7 +1475,7 @@ function update(dt){
     if (laser.over && laser.heat < 40) laser.over = false;
     if (laser.burstT > 0){
       if (!wantFire) laser.burstT = 0;
-      else { laser.burstT -= dt; laser.heat += 34 * WPN.heat * (1 - 0.08 * (save.lv.sogutma || 0)) * (window.__perkHeat || 1) * (window.__skH || 1) * dt; if (laser.burstT <= 0) laser.gapT = 0.35; }
+      else { laser.burstT -= dt; laser.heat += 34 * WPN.heat * (1 - 0.08 * (save.lv.sogutma || 0)) * (window.__perkHeat || 1) * (window.__skH || 1) * (window.__amH || 1) * dt; if (laser.burstT <= 0) laser.gapT = 0.35; }
     } else {
       if (laser.gapT > 0) laser.gapT -= dt;
       else if (wantFire && !laser.over) laser.burstT = WPN.burst;
@@ -1491,7 +1491,7 @@ function update(dt){
       let end;
       if (inRange){
         end = _end.copy(aim.pos).addScaledVector(tmp.copy(rig.position).sub(aim.pos).normalize(), aim.r * 0.9);
-        if (aim.mesh) aim.hp -= dps * WPN.mine * (window.__skM || 1) * dt; else damageNpc(aim, dps * WPN.pvp * (window.__skP || 1) * dt, 'player'); shake = Math.max(shake, 0.12);
+        if (aim.mesh) aim.hp -= dps * WPN.mine * (window.__skM || 1) * (window.__amM || 1) * dt; else damageNpc(aim, dps * WPN.pvp * (window.__skP || 1) * (window.__amP || 1) * dt, 'player'); shake = Math.max(shake, 0.12);
         impact.visible = true; impact.position.copy(end); impact.scale.setScalar(rand(5, 8)); impact.material.rotation = rand(0, TAU);
         tmp.copy(end).sub(aim.pos).normalize();
         for (let q = 0; q < 2; q++){
@@ -8960,33 +8960,62 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 
   // ---- cephanelik donanımı: motor, kalkan jeneratörü, tamir robotu
   const EQ = {
+    mermi: { ad: 'Lazer Mermisi', items: [
+      { id: 'std', ad: 'Standart Mermi', f: 0, d: 'Sıradan enerji hücresi.' },
+      { id: 'yogun', ad: 'Yoğun Mermi', f: 2500, d: 'Gemilere hasar +%20.', p: 1.2 },
+      { id: 'kazici', ad: 'Kazıcı Mermi', f: 2500, d: 'Kaya kırma +%25.', mn: 1.25 },
+      { id: 'soguk', ad: 'Soğuk Mermi', f: 3000, d: 'Lazer %25 daha geç ısınır.', h: 0.75 },
+      { id: 'ustun', ad: 'Üstün Mermi', f: 8000, d: 'Gemilere +%20, kayalara +%20, ısınma −%15.', p: 1.2, mn: 1.2, h: 0.85 } ] },
     motor: { ad: 'Motor', items: [
-      { id: 'std', ad: 'Standart itici', f: 0, d: 'Geminin kendi motoru.' },
-      { id: 'hizli', ad: 'Hızlı itici', f: 3000, d: 'Azami hız +%15, itiş +%10.', v: 1.15, t: 1.1 },
-      { id: 'yaris', ad: 'Yarış iticisi', f: 7000, d: 'Azami hız +%30, itiş +%25.', v: 1.3, t: 1.25 } ] },
-    kalkan: { ad: 'Kalkan jeneratörü', items: [
-      { id: 'std', ad: 'Standart jeneratör', f: 0, d: 'Geminin kendi kalkanı.' },
-      { id: 'guclu', ad: 'Ağır jeneratör', f: 3500, d: 'Kalkan kapasitesi +%40.', m: 1.4 },
-      { id: 'cabuk', ad: 'Çabuk dolan jeneratör', f: 3500, d: 'Kalkan iki kat hızlı dolar.', s: 2 },
-      { id: 'kale', ad: 'Kale jeneratörü', f: 9000, d: 'Kapasite +%60 ve %50 daha hızlı dolar.', m: 1.6, s: 1.5 } ] },
-    robot: { ad: 'Tamir robotu', items: [
-      { id: 'yok', ad: 'Robot yok', f: 0, d: 'Gövde yalnızca tamirhanede onarılır.' },
-      { id: 'r1', ad: 'Tamir robotu', f: 4000, d: 'Çatışma dışında gövdeyi yavaşça onarır (saniyede 1).', r: 1 },
-      { id: 'r2', ad: 'Usta tamir robotu', f: 9000, d: 'Çatışma dışında gövdeyi hızla onarır (saniyede 2,5).', r: 2.5 } ] }
+      { id: 'std', ad: 'Standart İtici', f: 0, d: 'Geminin kendi motoru.' },
+      { id: 'hizli', ad: 'Hızlı İtici', f: 3000, d: 'Azami hız +%15, itiş +%10.', v: 1.15, t: 1.1 },
+      { id: 'yaris', ad: 'Yarış İticisi', f: 7000, d: 'Azami hız +%30, itiş +%25.', v: 1.3, t: 1.25 } ] },
+    kalkan: { ad: 'Kalkan Jeneratörü', items: [
+      { id: 'std', ad: 'Standart Jeneratör', f: 0, d: 'Geminin kendi kalkanı.' },
+      { id: 'guclu', ad: 'Ağır Jeneratör', f: 3500, d: 'Kalkan kapasitesi +%40.', m: 1.4 },
+      { id: 'cabuk', ad: 'Çabuk Dolan Jeneratör', f: 3500, d: 'Kalkan iki kat hızlı dolar.', s: 2 },
+      { id: 'kale', ad: 'Kale Jeneratörü', f: 9000, d: 'Kapasite +%60 ve %50 daha hızlı dolar.', m: 1.6, s: 1.5 } ] },
+    robot: { ad: 'Tamir Robotu', items: [
+      { id: 'yok', ad: 'Robot Yok', f: 0, d: 'Gövde yalnızca tamirhanede onarılır.' },
+      { id: 'r1', ad: 'Tamir Robotu', f: 4000, d: 'Çatışma dışında gövdeyi yavaşça onarır (saniyede 1).', r: 1 },
+      { id: 'r2', ad: 'Usta Tamir Robotu', f: 9000, d: 'Çatışma dışında gövdeyi hızla onarır (saniyede 2,5).', r: 2.5 } ] }
   };
   if (!save.eq || typeof save.eq !== 'object') save.eq = { motor: 'std', kalkan: 'std', robot: 'yok' };
+  if (!save.eq.mermi) save.eq.mermi = 'std';
   if (!Array.isArray(save.eqOwn)) save.eqOwn = [];
   const eqIt = s => EQ[s].items.find(q => q.id === save.eq[s]) || EQ[s].items[0];
-  function eqApply(){ const m = eqIt('motor'), k = eqIt('kalkan'); window.__eqV = m.v || 1; window.__eqT = m.t || 1; window.__eqS = k.s || 1; try { applyShip(false); } catch (e) {} }
+  function eqApply(){ const m = eqIt('motor'), k = eqIt('kalkan'), am = eqIt('mermi'); window.__amP = am.p || 1; window.__amM = am.mn || 1; window.__amH = am.h || 1; window.__eqV = m.v || 1; window.__eqT = m.t || 1; window.__eqS = k.s || 1; try { applyShip(false); } catch (e) {} }
   { const _as = applyShip; applyShip = function(full){ _as(full); const k = eqIt('kalkan'); if (k.m){ hp.shieldMax = Math.round(hp.shieldMax * k.m); if (full) hp.shield = hp.shieldMax; } }; }
   eqApply();
   EXTRA.push(dt => { const r = eqIt('robot').r; if (!r || docked || hp.regenT > 0 || hp.hull <= 0 || hp.hull >= hp.hullMax) return; hp.hull = Math.min(hp.hullMax, hp.hull + r * dt); });
+  // ---- donanım simgeleri: her türün kendi çizimi, parlayan şeridin rengi parçaya göre değişir
+  const HUE = ['#7fd8ff', '#ffc56e', '#ff7c98', '#7be0a4', '#c8a8ff'];
+  const ICO = {
+    mermi: c => `<rect x='22' y='8' width='20' height='48' rx='7' fill='#27344a' stroke='#aebccf' stroke-width='2'/><rect x='26' y='18' width='12' height='26' rx='3' fill='${c}'/><rect x='26' y='18' width='12' height='26' rx='3' fill='url(#gl)'/><path d='M22 14h20M22 50h20' stroke='#aebccf' stroke-width='2'/><rect x='27' y='3' width='10' height='6' rx='2' fill='#aebccf'/>`,
+    baslik: c => `<path d='M10 40 L30 20 L46 10 L54 18 L44 34 L24 54 Z' fill='#27344a' stroke='#aebccf' stroke-width='2' stroke-linejoin='round'/><path d='M17 47 L37 27 M23 53 L43 33' stroke='#aebccf' stroke-width='1.6'/><circle cx='50' cy='14' r='6.5' fill='${c}'/><circle cx='50' cy='14' r='6.5' fill='url(#gl)'/><path d='M8 46 L18 56' stroke='#aebccf' stroke-width='4' stroke-linecap='round'/>`,
+    roket: c => `<path d='M50 6 C58 14 54 26 46 34 L26 54 L10 54 L10 38 L30 18 C38 10 44 6 50 6 Z' fill='#27344a' stroke='#aebccf' stroke-width='2' stroke-linejoin='round'/><path d='M22 26 L38 42' stroke='${c}' stroke-width='5'/><path d='M10 38 L2 40 L10 46 M26 54 L24 62 L18 54' fill='#aebccf' stroke='#aebccf' stroke-width='2' stroke-linejoin='round'/><circle cx='46' cy='18' r='3.5' fill='${c}'/>`,
+    rbaslik: c => `<path d='M32 4 C44 16 48 34 46 48 L18 48 C16 34 20 16 32 4 Z' fill='#27344a' stroke='#aebccf' stroke-width='2' stroke-linejoin='round'/><rect x='16' y='46' width='32' height='7' rx='2' fill='${c}'/><rect x='20' y='53' width='24' height='7' rx='2' fill='#aebccf'/><path d='M26 22 Q32 12 38 22' stroke='#aebccf' stroke-width='1.6' fill='none'/><circle cx='32' cy='30' r='4' fill='${c}'/>`,
+    kalkan: c => `<rect x='18' y='6' width='28' height='52' rx='8' fill='#27344a' stroke='#aebccf' stroke-width='2'/><rect x='18' y='25' width='28' height='12' fill='${c}'/><rect x='18' y='25' width='28' height='12' fill='url(#gl)'/><path d='M18 16h28M18 46h28' stroke='#aebccf' stroke-width='2'/><path d='M23 10v4M32 10v4M41 10v4M23 50v4M32 50v4M41 50v4' stroke='#aebccf' stroke-width='1.6'/><path d='M12 22 Q6 31 12 40 M52 22 Q58 31 52 40' stroke='${c}' stroke-width='2' fill='none' stroke-linecap='round'/>`,
+    motor: c => `<path d='M8 22 H34 L44 14 V50 L34 42 H8 Z' fill='#27344a' stroke='#aebccf' stroke-width='2' stroke-linejoin='round'/><path d='M44 14 L58 8 V56 L44 50 Z' fill='#1a2436' stroke='#aebccf' stroke-width='2' stroke-linejoin='round'/><ellipse cx='52' cy='32' rx='4.5' ry='16' fill='${c}'/><ellipse cx='52' cy='32' rx='4.5' ry='16' fill='url(#gl)'/><path d='M14 22v20M22 22v20' stroke='#aebccf' stroke-width='1.6'/><rect x='12' y='14' width='14' height='8' rx='2' fill='#aebccf'/>`,
+    robot: c => `<circle cx='32' cy='30' r='17' fill='#27344a' stroke='#aebccf' stroke-width='2'/><circle cx='32' cy='28' r='7' fill='${c}'/><circle cx='32' cy='28' r='7' fill='url(#gl)'/><path d='M16 38 L6 50 L12 54 M48 38 L58 50 L52 54' stroke='#aebccf' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/><path d='M32 13 V5 M28 5h8' stroke='#aebccf' stroke-width='2' stroke-linecap='round'/><path d='M22 44 Q32 50 42 44' stroke='#aebccf' stroke-width='1.6' fill='none'/>`
+  };
+  const icon = (k, i) => { const im = window.__ITIMG && window.__ITIMG[k]; if (im) return '<img class="iti" style="filter:hue-rotate(' + [0, 205, 150, 300, 80][i % 5] + 'deg)" src="' + im + '" alt="">';
+    const c = HUE[i % HUE.length]; return '<img class="iti" alt="" src="data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='gl' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#fff' stop-opacity='.55'/><stop offset='.6' stop-color='#fff' stop-opacity='0'/></linearGradient><radialGradient id='bg' cx='50%' cy='45%' r='60%'><stop offset='0' stop-color='" + c + "' stop-opacity='.22'/><stop offset='1' stop-color='" + c + "' stop-opacity='0'/></radialGradient></defs><rect width='64' height='64' rx='10' fill='#0b1524'/><rect width='64' height='64' rx='10' fill='url(#bg)'/><rect x='1' y='1' width='62' height='62' rx='9' fill='none' stroke='" + c + "' stroke-opacity='.45' stroke-width='1.2'/>" + ICO[k](c) + '</svg>') + '">'; };
+  window.__itIcon = icon;
+  const eqLines = s => EQ[s].items.map((q, i) => { const on = save.eq[s] === q.id, own = !q.f || save.eqOwn.includes(s + ':' + q.id);
+    return '<div class="line itl' + (s === 'robot' ? ' rbl' : '') + '">' + icon(s, i) + '<span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + '</span></span><button class="act' + (on ? ' on' : own || save.kredi >= q.f ? ' go' : '') + '" data-eq="' + s + ':' + q.id + '" ' + (on || (!own && save.kredi < q.f) ? 'disabled' : '') + '>' + (on ? 'Takılı' : own ? 'Tak' : q.f + ' kredi') + '</button></div>'; }).join('');
   function renderEq(){
     const box = $('eqBox'); if (!box) return; let h = '';
-    for (const s in EQ){ h += '<div class="sect">' + EQ[s].ad + '</div>';
-      for (const q of EQ[s].items){ const on = save.eq[s] === q.id, own = !q.f || save.eqOwn.includes(s + ':' + q.id);
-        h += '<div class="line"><span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + '</span></span><button class="act' + (on ? ' on' : own || save.kredi >= q.f ? ' go' : '') + '" data-eq="' + s + ':' + q.id + '" ' + (on || (!own && save.kredi < q.f) ? 'disabled' : '') + '>' + (on ? 'Takılı' : own ? 'Tak' : q.f + ' kredi') + '</button></div>'; } }
+    for (const s in EQ){ if (s === 'robot') continue; h += '<div class="sect">' + EQ[s].ad + '</div>' + eqLines(s); }
     if (box.dataset.h !== h){ box.dataset.h = h; box.innerHTML = h; }
+    // Tamir Robotu: onarım düğmeleri (eski tamirhane) + robot seçenekleri tek bölümde
+    const rb = $('repBox'); if (rb){ rb.dataset.tab = isHome() ? 'wp' : 'trade'; let hd = rb.querySelector(':scope > .sect'); if (!hd){ hd = document.createElement('div'); hd.className = 'sect'; rb.appendChild(hd); }
+      if (hd.textContent.replace(/\s+/g, ' ').trim().indexOf('Tamir Robotu') !== 0){ hd.textContent = 'Tamir Robotu'; hd.dataset.t0 = 'Tamir Robotu'; }
+      rb.querySelectorAll('b, span, div').forEach(n => { if (n.children.length === 0 && n.textContent.trim() === 'Tamirhane') n.textContent = 'Onarım'; });
+      rb.querySelectorAll(':scope > .rbl').forEach(n => n.remove()); if (isHome()) rb.insertAdjacentHTML('beforeend', eqLines('robot')); const on = !hd.classList.contains('acch') || hd.classList.contains('op'); rb.querySelectorAll(':scope > .rbl').forEach(n => n.classList.toggle('accx', !on)); }
+    // lazer başlıkları ve roketlerin simgeleri
+    const wb = $('wpBox'); if (wb){ let cat = null, i = 0; for (const el of wb.children){ if (el.classList.contains('sect')){ const t = (el.dataset.t0 || el.textContent); cat = /Lazer/.test(t) ? 'baslik' : /Roket başlığı/i.test(t) ? 'rbaslik' : /Roket/.test(t) ? 'roket' : null; i = 0; continue; }
+        if (cat && el.classList.contains('wpc')){ const h4 = el.querySelector('h4'); if (h4 && !h4.querySelector('.iti')) h4.insertAdjacentHTML('afterbegin', icon(cat, i)); i++; } } }
   }
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-eq]'); if (!b || b.disabled) return; const [s, id] = b.dataset.eq.split(':'), q = EQ[s] && EQ[s].items.find(x => x.id === id); if (!q) return; const key = s + ':' + id;
     if (q.f && !save.eqOwn.includes(key)){ if (save.kredi < q.f) return; save.kredi -= q.f; save.eqOwn.push(key); }
@@ -9016,7 +9045,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     } catch (e) { console.warn(e); }
     busy = false;
   }
-  for (const id of ['repBox', 'stBox', 'facBox']){ const d = $(id); if (d) d.addEventListener('click', e => { if (e.target.closest('.acch')) return; const b = e.target.closest('button, a'); if (!b || b.disabled) return; const src = $(d.dataset.src || ''); if (!src || !b.isConnected) return; e.stopPropagation();
+  for (const id of ['repBox', 'stBox', 'facBox']){ const d = $(id); if (d) d.addEventListener('click', e => { if (e.target.closest('.acch')) return; const b = e.target.closest('button, a'); if (!b || b.disabled) return; if (b.dataset.rp){ e.stopPropagation(); try { rpDo(b.dataset.rp === 'all' ? 'all' : +b.dataset.rp); } catch (er) { console.warn(er); } setTimeout(relayout, 0); return; } const src = $(d.dataset.src || ''); if (!src || !b.isConnected) return; e.stopPropagation();
       const ph = document.createComment(''); b.parentNode.insertBefore(ph, b); src.appendChild(b); try { b.click(); } finally { if (ph.parentNode){ if (b.isConnected && b.parentNode === src) ph.parentNode.insertBefore(b, ph); ph.remove(); } } setTimeout(relayout, 0); }); }
   { const _a = dockLayout; dockLayout = function(){ const r = _a.apply(this, arguments); relayout(); return r; }; }
   { const _a = renderCt; renderCt = function(){ const r = _a.apply(this, arguments); relayout(); return r; }; }
@@ -9033,6 +9062,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const st = document.createElement('style'); st.textContent = `
   html body #dock .acch,html body #dock .sect{text-transform:none !important;letter-spacing:.02em !important}html body #dock .acch{font-size:14px !important;font-weight:600 !important}
   html body #dock .pilotRow{display:none !important}
+  html body #dock .acch,html body #dock .sect,.lq b,#skModal .nd em,#skModal .ph{text-transform:capitalize !important}html body #dock .acch *,html body #dock .sect *{text-transform:none !important}
+  img.iti{width:40px;height:40px;border-radius:8px;flex:none;margin-right:10px;vertical-align:middle}.line.itl{justify-content:flex-start !important}.line.itl>span{flex:1}.wpc h4 img.iti{width:34px;height:34px;margin-right:8px}.wpc h4{align-items:center}
   html body #dock #hgBox > .acch,html body #dock #lqBox > .acch,html body #dock #facBox > .acch:only-of-type{display:none !important}
   html body #dock #lqBox > .accx{display:block !important}
   #dkStat .rnk{cursor:pointer}html body #dock #dkStat .rnk img.rkc{display:inline-block !important;width:20px;height:20px;vertical-align:-5px;margin-right:4px}
