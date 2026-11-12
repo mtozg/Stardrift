@@ -609,7 +609,7 @@ const NPC_DEF = {
   reaver:   { skin: 'korsanC',  L: 58, hull: 260, spd: [34, 44], role: 'pirate', cap: 0,  pre: 'Yağmacı', tint: 0xf4e8e4 }
 };
 // patron korsan reisleri (evren sırasıyla): Dorak, Zerha, Hiem, Verdan
-for (let i = 0; i < 4; i++) NPC_DEF['boss' + i] = { skin: 'boss' + i, L: [190, 200, 205, 195][i], hull: 1700, spd: [26, 34], role: 'pirate', cap: 0, pre: 'Reis' };
+for (let i = 0; i < 6; i++) NPC_DEF['boss' + i] = { skin: 'boss' + (i === 4 ? 0 : i === 5 ? 1 : i), L: [190, 200, 205, 195, 190, 200][i], hull: 1700, spd: [26, 34], role: 'pirate', cap: 0, pre: 'Reis' };
 const eco = { t: 0, cool: { miner: 0, trader: 0, patrol: 0, pirate: 0 }, threat: 1, growth: 0, growT: 0, kills: 0, trades: 0, alerts: [], radioT: -9, warnT: -9 };
 const npcs = [], npcDummy = new THREE.Object3D();
 let npcId = 0;
@@ -6268,7 +6268,7 @@ window.__xpal = {
       if (kd === 'ankora'){
         const pm = new THREE.MeshStandardMaterial({ map: T.plate(T.sc(104, 94, 80), { tag: 'A' }), roughness: 0.4, metalness: 0.5, bumpScale: 0.3 }), li = new THREE.MeshBasicMaterial({ color: 0xffc477 });
         for (let x = 8; x < LEN - 4; x += 9) for (const sg of [-1, 1]){ add(new THREE.Mesh(new THREE.BoxGeometry(0.5, OH, 0.4), pm), x, 0, sg * (HW - 0.22)); add(new THREE.Mesh(new THREE.BoxGeometry(0.06, OH * 0.82, 0.06), li), x - 0.0, 0, sg * (HW - 0.46)); }
-        const L = ['KENETLENME KOLU 2 · HAZIR', 'HANGAR A · BASINÇ NORMAL', 'ANKORA TRAFİK KONTROL'];
+        const L = ['KENETLENME KOLU 2 · HAZIR', 'HANGAR A · BASINÇ NORMAL', (STATIONS[0].ad.split(' ')[0] || 'ANKORA').toLocaleUpperCase('tr-TR') + ' TRAFİK KONTROL'];
         L.forEach((s, i) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: lab(s, '#ffc477'), transparent: true })); const sg = i % 2 ? 1 : -1; m.rotation.y = sg > 0 ? Math.PI : 0; add(m, 12 + i * 11, 0.9, sg * (HW - 0.07)); });
       } else if (kd === 'demirhan'){
         const im = new THREE.MeshStandardMaterial({ map: T.plate(T.sc(52, 38, 32), { rust: 1 }), roughness: 0.6, metalness: 0.7, bumpScale: 0.3 }), em = new THREE.MeshBasicMaterial({ color: 0xff6a1a });
@@ -7035,12 +7035,16 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     { ad: 'Kara Kaptan Dorak', at: [-7200, 600, 5200], perk: 'Lazer hasarı +%10', taunt: 'Benim inime kimse davetsiz giremez!' },
     { ad: 'Kızıl Kaptan Zerha', at: [6800, -500, -6200], perk: 'Kalkan +25', taunt: 'Ateşle oynuyorsun, küçük pilot.' },
     { ad: 'Kırağı Hanı Hiem', at: [-6500, 400, -6800], perk: 'Lazer %20 daha az ısınır', taunt: 'Soğuk, sabırlıdır. Ben de öyle.' },
-    { ad: 'Sis Efendisi Verdan', at: [7000, 700, 6000], perk: 'Kargo +10', taunt: 'Sisin içinden kimse geri dönmedi.' }
+    { ad: 'Sis Efendisi Verdan', at: [7000, 700, 6000], perk: 'Kargo +10', taunt: 'Sisin içinden kimse geri dönmedi.' },
+    { ad: 'Kiralık Kaptan Varak', at: [6400, 500, -7200], perk: 'Cevher satışı +%5', taunt: 'Loncanın altını benim cebime akar. Seninki de akacak.' },
+    { ad: 'Liman Ağası Morr', at: [-7000, -500, 6600], perk: 'Gövde +30', taunt: 'Kara Liman\'ın tek bir ağası var. O da benim.' }
   ];
   function perks(){ const b = save.boss; window.__perkDmg = b.includes(0) ? 1.1 : 1; window.__perkHeat = b.includes(2) ? 0.8 : 1; }
   perks();
   const _as = applyShip; applyShip = function(full){ _as(full); if (save.boss.includes(1)){ hp.shieldMax += 25; if (full) hp.shield = hp.shieldMax; } };
   const _cc = crewCargo; crewCargo = function(){ return _cc() + (save.boss.includes(3) ? 10 : 0); };
+  { const _rm = repMul; repMul = st => _rm(st) * (save.boss.includes(4) ? 1.05 : 1); }
+  { const _as2 = applyShip; applyShip = function(full){ _as2(full); if (save.boss.includes(5)){ hp.hullMax += 30; if (full) hp.hull = hp.hullMax; } }; }
   applyShip(false);
   const _ld = window.__leaderDrop; window.__leaderDrop = function(n){ if (n.boss == null) _ld(n); };
   const css = document.createElement('style'); css.textContent = '#bossBar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);transform:translateX(-50%);z-index:5;width:min(460px,56vw);display:none;pointer-events:none;text-align:center;font:700 13px var(--font);letter-spacing:.14em;color:#ffd0d6;text-shadow:0 0 8px #000}#bossBar.on{display:block}#bossBar .b{height:9px;margin-top:4px;border:1px solid rgba(255,107,138,.7);border-radius:5px;background:rgba(20,6,10,.7);position:relative;overflow:hidden}#bossBar .b u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff3b5c,#ff9a6e);transition:width .25s}#bossBar .b s{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}';
@@ -8225,5 +8229,129 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         toast(st.ad + ' kapılarını sana kapattı: ' + ad + ' seni düşman sayıyor.', 3600); eco.radioT = -9; radio(st.ad, 'Yanaşma reddedildi. Uzak dur.', '#ff5a6e'); return; } }
     return _td.apply(this, arguments);
   };
+}
+
+// =====================  ev sistemlerinin tünelleri, aranma ve ödül, kaçak mal, ücra düşman kapıları  =====================
+{
+  // ---- tünel görünümü: Lonca altın, Kara Liman pas kırmızısı (mevcut tünellerden uyarlandı)
+  const IMG = k => { const im = new Image(); im.src = 'assets/img/' + k + '.webp?v=' + (window.SD_VERSION || ''); return im; };
+  const ALT = { lonca: { d: IMG('xdoor_lonca'), h: IMG('xhull_lonca_d') }, kara: { d: IMG('xdoor_kara'), h: IMG('xhull_kara_d') } };
+  const ORIG = { ankora: null, demirhan: null }, PAL0 = {}, XS0 = XSTK['Ankora İstasyonu'].slice();
+  const setImg = (t, im) => { if (t && im && im.complete && im.naturalWidth){ t.image = im; t.needsUpdate = true; } };
+  function tunnelSkin(){
+    for (const k of ['ankora', 'demirhan']){ if (!ORIG[k] && XDT[k] && XDT[k].image) ORIG[k] = { d: XDT[k].image, h: XHT[k].image }; if (!PAL0[k] && window.__xpal) PAL0[k] = window.__xpal[k]; }
+    XSTK['Ankora İstasyonu'] = XS0.slice();
+    for (const k of ['ankora', 'demirhan']) if (ORIG[k]){ setImg(XDT[k], ORIG[k].d); setImg(XHT[k], ORIG[k].h); if (PAL0[k]) window.__xpal[k] = PAL0[k]; }
+    if (curSys === 4 && ORIG.ankora){ setImg(XDT.ankora, ALT.lonca.d); setImg(XHT.ankora, ALT.lonca.h); window.__xpal.ankora = [[0.1, 0.075, 0.035], [0.66, 0.54, 0.32], [1.0, 0.94, 0.74]]; XSTK['Ankora İstasyonu'] = ['ankora', 0xffc860, 0xfff0c0]; }
+    if (curSys === 5 && ORIG.demirhan){ setImg(XDT.demirhan, ALT.kara.d); setImg(XHT.demirhan, ALT.kara.h); window.__xpal.demirhan = [[0.05, 0.012, 0.012], [0.38, 0.08, 0.06], [1.0, 0.36, 0.26]]; XSTK['Ankora İstasyonu'] = ['demirhan', 0xff4a3a, 0xff9a80]; }
+  }
+  { const _aw = applyWorld; applyWorld = function(k){ _aw(k); try { tunnelSkin(); } catch (e) { console.warn(e); } }; }
+  setTimeout(() => { try { tunnelSkin(); } catch (e) {} }, 2500);
+
+  // ---- aranma ve başa konan ödül
+  if (typeof save.wanted !== 'number') save.wanted = 0;
+  if (typeof save.kacak !== 'number') save.kacak = 0;
+  const STARS = w => '★'.repeat(Math.ceil(w)) + '☆'.repeat(5 - Math.ceil(w));
+  const bounty = () => Math.round(save.wanted * 250);
+  let crimeT = -999;
+  const addWanted = (d, why) => { const w0 = save.wanted; save.wanted = clamp(save.wanted + d, 0, 5); crimeT = time; persist();
+    if (Math.ceil(save.wanted) > Math.ceil(w0)){ toast('ARANIYORSUN ' + STARS(save.wanted) + (why ? ' · ' + why : ''), 3600); try { sfxP('itibar', 0.6); } catch (e) {} } };
+  window.__addWanted = addWanted;
+  { const _kn = killNpc; killNpc = function(n, by){ const was = npcs.indexOf(n) >= 0, hos = n.hostile, role = n.role, hunter = n.hunter; _kn(n, by); if (!was || by !== 'player') return;
+      if (hunter){ const b = 120; save.kredi += b; persist(); toast('Ödül avcısı düştü: +' + b + ' kredi', 2200); return; }
+      if (!hos && role === 'patrol') addWanted(1, 'devriye düşürdün');
+      else if (!hos && role !== 'patrol') addWanted(0.5, 'sivil gemi düşürdün'); }; }
+  const wEl = document.createElement('div'); wEl.id = 'wanted'; document.body.appendChild(wEl);
+  { const col = $('leftCol'); if (col) col.insertBefore(wEl, col.firstChild); }
+  let lastW = '', huntT = 20, decT = 0, scanned = new WeakSet();
+  EXTRA.push(dt => {
+    const t = save.wanted > 0 ? '<b>ARANIYOR</b> <i>' + STARS(save.wanted) + '</i><span>Başındaki ödül ' + bounty() + ' kredi' + (save.kacak ? ' · Kaçak mal ' + save.kacak : '') + '</span>' : save.kacak ? '<span>Kaçak mal ' + save.kacak + ' · devriyelerden uzak dur</span>' : '';
+    if (t !== lastW){ lastW = t; wEl.innerHTML = t; wEl.style.display = t ? 'block' : 'none'; }
+    if (docked || paused) return;
+    // zamanla unutulur
+    decT += dt; if (decT > 30){ decT = 0; if (save.wanted > 0 && time - crimeT > 180){ save.wanted = Math.max(0, save.wanted - 0.25); persist(); } }
+    // ödül avcıları (Kara Liman'da yok)
+    if (save.wanted >= 1 && curSys !== 5){ huntT -= dt;
+      if (huntT <= 0){ huntT = Math.max(45, 130 - save.wanted * 18);
+        const n0 = 1 + Math.floor(save.wanted / 2), back = V(0, 0, 1).applyQuaternion(rig.quaternion);
+        for (let i = 0; i < n0; i++){ const p = rig.position.clone().addScaledVector(back, 1400 + i * 120).add(V(rand(-300, 300), rand(-150, 150), rand(-300, 300)));
+          const h = spawnNpc(save.wanted >= 3 && i === 0 ? 'brute' : 'raider', p, STATION); if (!h) continue; h.hunter = true; h.hostile = true; h.name = 'Ödül avcısı ' + (h.name || '').split(' ').pop(); h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
+        eco.radioT = -9; radio('Ödül avcısı', 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
+    // devriyeler: çok arananı görünce saldırır, kaçak mal tarar
+    for (let i = 0; i < npcs.length; i++){ const q = npcs[i]; if (q.role !== 'patrol' || q.hostile || curSys === 5) continue; const d = q.pos.distanceTo(rig.position); if (d > 600) continue;
+      if (save.wanted >= 3 && !(q.rev > time)){ q.rev = time + 60; radio(q.name, 'Aranan pilot tespit edildi. Teslim ol!', '#ff5a6e'); }
+      if (save.kacak > 0 && !scanned.has(q)){ scanned.add(q); if (Math.random() < (save.side === 'lonca' ? 0.15 : 0.25)) seize(q.name); else { eco.radioT = -9; radio(q.name, 'Rutin tarama... temiz. Devam et.', '#7fd8ff'); } }
+    }
+  });
+  function seize(who){ const n = save.kacak, fine = n * 40; save.kacak = 0; save.kredi = Math.max(0, save.kredi - fine); persist(); addWanted(1, 'kaçak mal');
+    toast('Kaçak mal bulundu! ' + n + ' birime el konuldu, ' + fine + ' kredi ceza.', 4200); eco.radioT = -9; radio(who, 'Kaçak yüke el konuldu. Kaydına işlendi.', '#ff5a6e'); }
+  // kaçak mal kargo yerini kaplar
+  { const _cc = crewCargo; crewCargo = function(){ return _cc() - (save.kacak || 0); }; }
+  // istasyona yanaşınca gümrük taraması
+  { const _td = tryDock; tryDock = function(){ const was = docked; const r = _td.apply(this, arguments);
+      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && Math.random() < (save.side === 'lonca' ? 0.2 : 0.35)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
+  // istasyonda: Ticaret sekmesinde kaçak pazar ve kayıt silme
+  const box = document.createElement('div'); box.id = 'kacakBox'; box.dataset.tab = 'trade';
+  const BUY = 70, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 230 : 170);
+  function renderK(){
+    const dc = $('dcont'); if (!dc) return; if (box.parentNode !== dc) dc.appendChild(box);
+    const pir = curSys === 5, free = cargoCap() - cargoSum(); let h = '<div class="sect">' + (pir ? 'Kaçak pazar' : 'Kaçak mal') + '</div>';
+    if (pir){
+      h += '<div class="line"><span>Kaçak mal al<span class="dim"><br>Birimi ' + BUY + ' kredi · Kara Liman dışında ' + 170 + ', Lonca Pazarı\'nda 230 kredi eder. Devriye ve gümrük taraması riski var.</span></span><span style="display:flex;gap:6px"><button class="act" data-kc="b1" ' + (save.kredi < BUY || free < 1 ? 'disabled' : '') + '>Al 1</button><button class="act go" data-kc="b5" ' + (save.kredi < BUY * 5 || free < 5 ? 'disabled' : '') + '>Al 5</button></span></div>';
+      if (save.wanted > 0) h += '<div class="line"><span>Kayıtlarını sildir<span class="dim"><br>Aranma seviyen: ' + STARS(save.wanted) + '</span></span><button class="act go" data-kc="clr" ' + (save.kredi < bounty() ? 'disabled' : '') + '>Sil · ' + bounty() + ' kredi</button></div>';
+    } else {
+      h += '<div class="line"><span>Kaçak mal sat · elinde ' + save.kacak + '<span class="dim"><br>Birimi ' + sellP() + ' kredi. Her yanaşmada gümrük taraması riski var.</span></span><button class="act go" data-kc="s" ' + (save.kacak ? '' : 'disabled') + '>Hepsini sat</button></div>';
+      if (save.wanted > 0 && curSt === STATIONS[0] && curSys === 0 && save.fac.filo > -60) h += '<div class="line"><span>Cezanı öde<span class="dim"><br>Filo kaydını temizler.</span></span><button class="act" data-kc="fine" ' + (save.kredi < Math.round(bounty() * 1.5) ? 'disabled' : '') + '>Öde · ' + Math.round(bounty() * 1.5) + ' kredi</button></div>';
+    }
+    if (!pir && !save.kacak && !(save.wanted > 0 && curSys === 0)) h = '';
+    box.innerHTML = h;
+  }
+  box.addEventListener('click', e => { const b = e.target.closest('button[data-kc]'); if (!b || b.disabled) return; const a = b.dataset.kc;
+    if (a === 'b1' || a === 'b5'){ const n = a === 'b1' ? 1 : 5; if (save.kredi < BUY * n || cargoCap() - cargoSum() < n) return; save.kredi -= BUY * n; save.kacak += n; toast(n + ' birim kaçak mal yüklendi.', 1800); }
+    else if (a === 's'){ const v = save.kacak * sellP(); save.kredi += v; save.kacak = 0; toast('Kaçak mal satıldı: +' + v + ' kredi', 2400); window.__fac && window.__fac('korsan', 3); }
+    else if (a === 'clr'){ save.kredi -= bounty(); save.wanted = 0; toast('Kayıtların silindi. Artık aranmıyorsun.', 2600); }
+    else if (a === 'fine'){ save.kredi -= Math.round(bounty() * 1.5); save.wanted = 0; toast('Ceza ödendi. Kaydın temiz.', 2600); }
+    persist(); try { blip(660, 0.08); } catch (er) {} renderK(); try { dockLayout(); } catch (er) {} });
+  { const _dl = dockLayout; dockLayout = function(){ _dl(); try { renderK(); } catch (e) { console.warn(e); } }; }
+  const css = document.createElement('style'); css.textContent = `
+  #wanted{display:none;padding:7px 10px;background:rgba(40,6,12,.72);border:1px solid rgba(255,110,135,.35);border-left:2px solid #ff6e87;border-radius:4px;color:#ffd5dc;font:500 11.5px/1.35 var(--font);pointer-events:none}
+  #wanted b{font-weight:700;letter-spacing:.24em;color:#ff8ea2;font-size:11px}#wanted i{font-style:normal;color:#ffb454;letter-spacing:.1em;margin-left:6px}#wanted span{display:block;color:#d9a3ad;font-size:11px}
+  #dock[data-t="trade"] .card #kacakBox{display:block}`;
+  document.head.appendChild(css);
+
+  // ---- ücra düşman kapıları: her ev sisteminin uzak bir köşesinde, rakip tarafın evine açılır
+  const REMOTE = { 0: { to: 5, at: [13200, -1100, -12600] }, 5: { to: 4, at: [-12800, 900, 12900] }, 4: { to: 0, at: [12600, 1300, 13100] } };
+  const EN = { 0: 'ankora', 4: 'lonca', 5: 'korsan' }, FEE = 400;
+  if (!save.rgate || typeof save.rgate !== 'object') save.rgate = {};
+  const g = new THREE.Group(); scene.add(g); g.visible = false;
+  const ringM = new THREE.MeshStandardMaterial({ color: 0x3a3236, metalness: 0.7, roughness: 0.45, emissive: 0x200608 });
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(150, 16, 12, 40), ringM));
+  for (let i = 0; i < 8; i++){ const a = i / 8 * TAU, b = new THREE.Mesh(new THREE.BoxGeometry(26, 40, 34), ringM); b.position.set(Math.cos(a) * 158, Math.sin(a) * 158, 0); b.rotation.z = a; g.add(b);
+    const l = sprite(glowTexture(255, 70, 60), 40, 0.9); l.position.set(Math.cos(a) * 176, Math.sin(a) * 176, 0); g.add(l); }
+  const eTex = {}, eT = k => eTex[k] || (eTex[k] = (() => { const t = new THREE.TextureLoader().load('assets/img/gate_' + EN[k] + '_enerji.webp'); t.encoding = THREE.sRGBEncoding; return t; })());
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(136, 48), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); g.add(disc);
+  const glw = sprite(glowTexture(255, 90, 80), 700, 0.35); g.add(glw);
+  let R = null, mark = null, cool = 0, asked = false;
+  const fm = window.__featMap; window.__featMap = () => (fm ? fm() : []).concat(mark ? [mark] : []);
+  function place(){ R = REMOTE[curSys] || null; g.visible = !!R; mark = null; if (!R) return; g.position.set(...R.at); g.lookAt(STATION.pos); disc.material.map = eT(R.to); disc.material.needsUpdate = true;
+    if (save.rgate[curSys]) mark = { kind: 'ruin', i: 8, gate: true, found: true, r: 160, ad: 'Ücra kapı', label: 'Ücra kapı → ' + SYS[R.to].ad, pos: g.position.clone(), group: { position: g.position } }; }
+  { const _aw = applyWorld; applyWorld = function(k){ _aw(k); try { place(); } catch (e) { console.warn(e); } }; }
+  place();
+  EXTRA.push(dt => {
+    if (!R) return; g.rotation.z += dt * 0.05; disc.rotation.z -= dt * 0.6; cool -= dt;
+    if (docked || paused) return; const d = rig.position.distanceTo(g.position);
+    if (d < 3200 && !save.rgate[curSys]){ save.rgate[curSys] = 1; persist(); place(); eco.radioT = -9; radio('Tarayıcı', 'Ücra bir kapı sinyali! Yön: ' + SYS[R.to].ad + '. Düşman toprağına açılıyor.', '#ff6b8a'); toast('Ücra kapı keşfedildi → ' + SYS[R.to].ad, 3600); }
+    if (d < 170 && cool <= 0 && !asked && window.__gateAsk){ asked = true; const to = R.to;
+      window.__gateAsk(to, () => { asked = false; if (save.kredi < FEE){ toast('Kaçak geçiş ' + FEE + ' kredi.', 2600); cool = 8; return; } save.kredi -= FEE; persist();
+          if (!save.open.includes(to)){ save.open.push(to); persist(); }
+          window.__gj2 = true; window.__afterJump = () => { docked = false; $('dock').classList.add('hidden'); curSt = null; const P = REMOTE[to] ? V(...REMOTE[to].at) : STATION.pos.clone(), dir = STATION.pos.clone().sub(P).normalize();
+            rig.position.copy(P).addScaledVector(dir, 420); rig.lookAt(rig.position.clone().sub(dir)); vel.copy(dir).multiplyScalar(90); window.__gj2 = false; cool = 10; };
+          enterSystem(to); },
+        () => { asked = false; cool = 8; const away = rig.position.clone().sub(g.position).normalize(); rig.position.copy(g.position).addScaledVector(away, 420); vel.set(0, 0, 0); });
+      const q = $('gateQ'), pp = q && q.querySelector('.p p'), yb = q && q.querySelector('button.y');
+      if (pp) pp.innerHTML = 'Ücra kapı: <b>düşman toprağına</b> açılır. Kaçak geçiş ücreti <b>' + FEE + ' kredi</b>.';
+      if (yb){ yb.disabled = save.kredi < FEE; yb.style.opacity = save.kredi < FEE ? '.45' : ''; yb.textContent = save.kredi < FEE ? 'Kredi yetersiz' : 'Geç · ' + FEE + ' kredi'; } }
+  });
+  { const _dh = drawHud; drawHud = function(){ _dh(); try { if (R && save.rgate[curSys] && !docked) drawMarker(hctx, g.position, '#ff6b8a', 'Ücra kapı → ' + SYS[R.to].ad, rig.position.distanceTo(g.position), 5000); } catch (e) {} }; }
 }
 })();
