@@ -5245,16 +5245,16 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
     const open = openMap[c.id];
     for (const g of groups){
       let head = g.head; if (!head){ head = document.createElement('div'); head.textContent = g.title; g.items[0].parentNode.insertBefore(head, g.items[0]); }
-      head.classList.add('acch'); head.dataset.k = g.key; head.dataset.c = c.id; head.classList.toggle('op', g.key === open);
-      for (const it of g.items) it.classList.toggle('accx', g.key !== open);
+      head.classList.add('acch'); head.dataset.k = g.key; head.dataset.c = c.id; head.classList.add('op');
+      for (const it of g.items) it.classList.remove('accx');   // v2 menü: tüm bölümler açık
     }
-    if (c.id === 'cargoList'){ const sa = $('sellAll'); if (sa) sa.classList.toggle('accx', open !== 'ore'); }
+    if (c.id === 'cargoList'){ const sa = $('sellAll'); if (sa) sa.classList.remove('accx'); }
     c._seen = true;
     obs[c.id].observe(c, { childList: true });
   }
   for (const id in SPEC){ const c = $(id); if (!c) continue; obs[id] = new MutationObserver(() => accApply(c)); obs[id].observe(c, { childList: true }); accApply(c); }
   dc.addEventListener('click', e => {
-    const h = e.target.closest('.acch'); if (h){ const id = h.dataset.c, k = h.dataset.k; openMap[id] = openMap[id] === k ? '' : k; accApply($(id)); dc.scrollTop = 0; return; }
+    if (e.target.closest('.acch')) return;
     const t = e.target.closest('.wpc > h4'); if (t){ const card = t.parentNode; const was = card.classList.contains('op'); card.parentNode.querySelectorAll('.wpc.op').forEach(x => x.classList.remove('op')); if (!was) card.classList.add('op'); }
   });
   // pilot adı satırı: yalnızca Diğer sekmesinde
@@ -7613,4 +7613,95 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Çok uzaklarda zayıf sinyaller var.', 6000);
+
+// =====================  v2 istasyon menüsü: tam ekran, sade, uzay arayüzü  =====================
+{
+  const TABN = { trade: 'Ticaret', mk: 'Pazar', ct: 'Görevler', hg: 'Gemiler', wp: 'Silahlar', up: 'Geliştir', more: 'Diğer' };
+  const _dl = dockLayout;
+  dockLayout = function(){
+    _dl();
+    const tb = $('dtabs'); if (tb) [...tb.children].forEach(b => { const n = TABN[b.dataset.t]; if (n && b.textContent !== n) b.textContent = n; });
+    const ds = $('dkStat'); if (ds){ ds.querySelectorAll('span').forEach(sp => { if (sp.dataset.v2) return; sp.dataset.v2 = 1; const bs = sp.querySelectorAll('b'); const lab = [...sp.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join(' ').trim().split(' ')[0];
+      if (lab){ [...sp.childNodes].forEach(n => { if (n.nodeType === 3 && n.textContent.trim() === lab) n.remove(); else if (n.nodeType === 3) n.textContent = n.textContent.replace(lab, ''); }); const l = document.createElement('small'); l.textContent = lab; sp.insertBefore(l, sp.firstChild); } }); }
+  };
+  const st = document.createElement('style');
+  st.textContent = `
+  html body #dock{--v2t:#e9f1f7;--v2d:#8ea2b6;--v2l:rgba(220,235,245,.14);--v2a:#8fe3ff;padding:0 !important;justify-content:stretch !important;align-items:stretch !important;font-family:var(--font)}
+  html body #dock::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,8,16,.92) 0%,rgba(4,8,16,.78) 46%,rgba(4,8,16,.25) 100%),linear-gradient(180deg,rgba(4,8,16,.7),rgba(4,8,16,0) 22%,rgba(4,8,16,0) 78%,rgba(4,8,16,.75));pointer-events:none;z-index:0}
+  html body #dock:not(.stage)::before{background:rgba(4,8,16,.82)}
+  html body #dock .card,html body #dock.hgmode .card,html body #dock:not(.stage) .card{position:absolute !important;inset:0 !important;width:auto !important;height:auto !important;max-height:none !important;margin:0 !important;border:0 !important;border-image:none !important;border-radius:0 !important;background:none !important;box-shadow:none !important;backdrop-filter:none !important;
+    display:grid !important;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr;column-gap:24px;padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 28px) 0 calc(env(safe-area-inset-left,0px) + 28px) !important;z-index:1;pointer-events:none}
+  html body #dock .card > *{pointer-events:auto}
+  html body #dock .card > h2{grid-column:1;grid-row:1;align-self:center;margin:0 !important;font-size:15px !important;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--v2t);white-space:nowrap}
+  html body #dock .card > .sub{grid-column:1 / 3;grid-row:2;display:block !important;margin:4px 0 0 !important;font-size:12px !important;color:var(--v2d);letter-spacing:.02em}
+  html body #dock #dtabs{grid-column:2;grid-row:1;justify-self:center;display:flex !important;gap:2px !important;margin:0 !important;padding:0 !important;background:none !important}
+  html body #dock #dtabs button{border:0 !important;border-image:none !important;background:none !important;box-shadow:none !important;border-radius:3px !important;padding:5px 12px !important;margin:0 !important;min-width:0;display:block !important;
+    font:600 13px/1.2 var(--font) !important;letter-spacing:.14em;text-transform:uppercase;color:var(--v2d) !important;text-shadow:none !important}
+  html body #dock #dtabs button img,html body #dock #dtabs button span:empty{display:none !important}
+  html body #dock #dtabs button:hover{color:var(--v2t) !important}
+  html body #dock #dtabs button.on{background:var(--v2t) !important;color:#0a1220 !important}
+  html body #dock #dkStat,html body #dock.hgmode.stage .card > #dkStat{grid-column:3;grid-row:1 / 3;align-self:start;display:grid !important;grid-template-columns:repeat(3,auto);gap:2px 18px !important;margin:0 !important;justify-content:end}
+  html body #dock #dkStat span{background:none !important;border:0 !important;padding:0 !important;font-size:13px !important;color:var(--v2t);display:flex !important;align-items:baseline;gap:6px;white-space:nowrap;justify-content:flex-end}
+  html body #dock #dkStat span small{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--v2d)}
+  html body #dock #dkStat span b{font-weight:700;color:var(--v2t)}
+  html body #dock #dcont{grid-column:1 / 4;grid-row:3;align-self:stretch;width:min(560px,48vw);margin-top:14px;padding:0 6px 90px 0 !important;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+  html body #dock:not(.stage) #dcont{justify-self:center;width:min(760px,100%)}
+  html body #dock #hgStage{left:50vw !important;right:0 !important;top:70px !important;bottom:0 !important}
+  html body #dock #hgInfo{left:auto !important;right:28px !important;text-align:right;bottom:88px !important}
+  html body #dock #hgInfo b{display:block;font-size:22px !important;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+  html body #dock #hgInfo span{font-size:12px !important;color:var(--v2d)}
+  html body #dock .sect,html body #dock .acch{border:0 !important;border-image:none !important;border-bottom:1px solid var(--v2l) !important;border-radius:0 !important;background:none !important;box-shadow:none !important;
+    margin:18px 0 8px !important;padding:0 0 6px !important;font:600 11px/1.2 var(--font) !important;letter-spacing:.2em;text-transform:uppercase;color:var(--v2d) !important;cursor:default;text-shadow:none !important}
+  html body #dock .acch::after,html body #dock .acch::before{display:none !important;content:none !important}
+  html body #dock .hgstat{border:0 !important;border-image:none !important;background:none !important;box-shadow:none !important;padding:4px 0 !important;margin:6px 0 !important}
+  html body #dock .hgstat i{background:rgba(255,255,255,.1) !important;border:0 !important;border-image:none !important;height:3px !important;border-radius:2px !important;box-shadow:none !important}
+  html body #dock .hgstat span{color:var(--v2d) !important;font-size:11px !important;letter-spacing:.06em}
+  html body #dock #dkStat .ic,html body #dock #dkStat img,html body #dock #dkStat span::before{display:none !important}
+  html body #dock #dcont > .acch:first-child,html body #dock #dcont > .sect:first-child,html body #dock #dcont > div > .acch:first-child,html body #dock #dcont > div > .sect:first-child{margin-top:2px !important}
+  html body #dock .line,html body #dock .ctc,html body #dock .hgrow{border:0 !important;border-image:none !important;border-bottom:1px solid rgba(255,255,255,.05) !important;border-radius:0 !important;background:none !important;padding:8px 0 !important;margin:0 !important;color:var(--v2t);font-size:13px}
+  html body #dock .dim{color:var(--v2d) !important}
+  html body #dock .wpc{border:1px solid rgba(255,255,255,.07) !important;border-image:none !important;border-radius:4px !important;background:rgba(255,255,255,.03) !important;box-shadow:none !important;margin:0 0 6px !important;padding:9px 12px !important}
+  html body #dock .wpc.cur{border-color:rgba(143,227,255,.45) !important;background:rgba(143,227,255,.06) !important}
+  html body #dock .wpc > h4{margin:0 !important;font:600 13px/1.3 var(--font) !important;letter-spacing:.08em;text-transform:uppercase;color:var(--v2t) !important;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:none !important;border:0 !important;padding:0 !important}
+  html body #dock .wpc > h4::after{content:none !important}
+  html body #dock .wpc > h4 small{text-transform:none;letter-spacing:.02em;font-weight:500}
+  html body #dock .wpc p{color:var(--v2d);font-size:12px;margin:6px 0 !important}
+  html body #dock button.act,html body #dock button.act.buy,html body #dock button.act.poor,html body #dock button.act.go{border:1px solid rgba(220,235,245,.32) !important;border-image:none !important;border-radius:999px !important;background:rgba(255,255,255,.035) !important;box-shadow:none !important;text-shadow:none !important;
+    color:var(--v2t) !important;font:600 12px/1.2 var(--font) !important;letter-spacing:.06em;padding:6px 16px !important;min-height:0}
+  html body #dock button.act:hover:not(:disabled){border-color:var(--v2t) !important;background:rgba(255,255,255,.08) !important}
+  html body #dock button.act.go,html body #dock button.act.buy{border-color:transparent !important;background:var(--v2t) !important;color:#0a1220 !important}
+  html body #dock button.act:disabled,html body #dock button.act.poor{opacity:.38 !important;background:none !important;color:var(--v2t) !important;border-color:rgba(220,235,245,.2) !important}
+  html body #dock button.act.full{display:block;width:100%;margin-top:6px !important}
+  html body #dock #undock{position:fixed !important;left:auto !important;right:25vw !important;transform:translateX(50%) !important;bottom:calc(env(safe-area-inset-bottom,0px) + 22px) !important;z-index:3;border:1px solid rgba(233,241,247,.7) !important;border-image:none !important;border-radius:999px !important;background:rgba(6,12,22,.55) !important;box-shadow:none !important;
+    color:var(--v2t) !important;font:700 14px/1 var(--font) !important;letter-spacing:.28em;text-transform:uppercase;padding:12px 44px !important;text-shadow:none !important;backdrop-filter:blur(4px)}
+  html body #dock #undock:hover{background:var(--v2t) !important;color:#0a1220 !important}
+  html body #dock:not(.stage) #undock,html body #dock #undock{left:auto !important}
+  html body #dock:not(.stage) #undock{right:50% !important}
+  html body #dock table{border-collapse:collapse}
+  html body #dock table th{font-size:10px !important;letter-spacing:.16em;color:var(--v2d) !important;font-weight:600 !important;background:none !important}
+  html body #dock table td,html body #dock table th{border-bottom:1px solid rgba(255,255,255,.05) !important}
+  html body #dock input[type=text],html body #dock input:not([type]){border:1px solid var(--v2l) !important;border-image:none !important;border-radius:4px !important;background:rgba(255,255,255,.04) !important;color:var(--v2t) !important}
+  html body #dock .hgstat u,html body #dock .hgstat i u{background:var(--v2a) !important;left:0 !important;top:0 !important;bottom:0 !important;max-width:100% !important;border-radius:2px !important}
+  /* tablet dikey ve dar ekran: içerik tam genişlik, gemi üstte değil arka planda */
+  @media (max-width:820px){html body #dock .card{grid-template-columns:1fr;column-gap:0}html body #dock #dtabs{grid-column:1;grid-row:2;justify-self:start;margin-top:8px !important;flex-wrap:wrap}html body #dock .card > .sub{display:none !important}
+    html body #dock #dkStat{grid-column:1;grid-row:1;justify-self:end}html body #dock #dcont{grid-column:1;width:100% !important}html body #dock #hgStage{left:0 !important;opacity:.35}html body #dock #undock{right:50% !important}}
+  /* telefon yatay (alçak ekran) */
+  @media (max-height:520px){
+    html body #dock .card,html body #dock.hgmode .card,html body #dock:not(.stage) .card{padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 16px) 0 calc(env(safe-area-inset-left,0px) + 16px) !important;column-gap:12px}
+    html body #dock .card > h2{font-size:12px !important}
+    html body #dock .card > .sub{display:none !important}
+    html body #dock #dtabs button{font-size:10.5px !important;padding:4px 7px !important;letter-spacing:.1em}
+    html body #dock #dkStat{grid-template-columns:repeat(3,auto);gap:0 12px !important}
+    html body #dock #dkStat span{font-size:11px !important}html body #dock #dkStat span small{font-size:8.5px}
+    html body #dock #dcont{margin-top:8px;width:min(480px,52vw);padding-bottom:64px !important}
+    html body #dock:not(.stage) #dcont{width:min(680px,100%)}
+    html body #dock .sect,html body #dock .acch{margin:12px 0 6px !important;font-size:10px !important}
+    html body #dock .line,html body #dock .ctc{padding:6px 0 !important;font-size:12px}
+    html body #dock #hgStage{top:52px !important}
+    html body #dock #hgInfo{bottom:62px !important}html body #dock #hgInfo b{font-size:16px !important}
+    html body #dock #undock{bottom:calc(env(safe-area-inset-bottom,0px) + 10px) !important;padding:9px 34px !important;font-size:12px !important}
+  }
+  `;
+  document.head.appendChild(st);
+}
 })();
