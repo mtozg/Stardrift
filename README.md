@@ -26,7 +26,11 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Evrenlere özgü yerler: Ankora'da sökülebilir eski uydu tarlası, Kızıl'da lav akıntısı ve güneş fırtınaları, Buzul'da buz devleri, Zümrüt'te kristal monolitler ve korsanlardan saklayan sis bulutları.
 - Altı evren: Ankora, Kızıl, Buzul, Zümrüt ve iki ev sistemi. Lonca Pazarı (Tüccar Loncasının altın ticaret merkezi) ve Kara Liman (Korsan Birliğinin asteroid içine kurulmuş sığınağı). Lonca ve Korsan seçen pilot kendi evinde başlar; diğerleri ilgili grupla Dost olunca koordinatları alır. Ana istasyonlar kendilerine düşman olanı içeri almaz.
 - Aranma ve ödül: devriye ya da sivil gemi düşürmek aranma seviyesini (★1-5) yükseltir; ödül avcıları peşine düşer, ★3'ten sonra devriyeler saldırır. Kayıtlar Kara Liman'da silinir ya da Ankora'da ceza ödenir; zamanla da unutulur.
-- Kaçak mal: Kara Liman'da ucuza alınır, diğer istasyonlarda (en iyi Lonca Pazarı'nda) pahalıya satılır; devriye ve gümrük taramasında el konur, ceza ve aranma gelir.
+- Kaçak mal: Kara Liman'da ucuza alınır, diğer istasyonlarda (en iyi Lonca Pazarı'nda) pahalıya satılır; kargodan ayrı gizli bölmede taşınır (6, korsanlarda 10 birim); devriye ve gümrük taramasında el konur, ceza ve aranma gelir.
+- Toplama: kırılan kayadan dökülen cevherleri 190 m içinden çekim ışını kendiliğinden toplar; ekranda "+1 Demir" yazısı çıkar, yakındaki cevherler renkli işaretle görünür.
+- Korsan çaylak koruması: yeni korsan pilota ilk 10 dakika ödül avcısı gelmez, devriyeler ateş açmaz.
+- Lonca'ya özel süreli acil siparişler; rütbe rozetleri (Çaylak → Efsane).
+- Kayıt kodu: Ayarlar → Kayıt bölümünden kaydı başka cihaza taşı (kodu al / kod gir).
 - Ücra kapılar: üç ev sisteminin uzak bir köşesinde rakip tarafın evine açılan gizli kapı (400 kredi).
 - Taraf seçimi: oyunun başında Yıldız Filosu, Tüccar Loncası ya da Korsan Birliği seçilir; her tarafın kendi avantajı ve başlangıç ilişkileri var. Taraf sonradan değiştirilebilir ama ağır bedelli (Usta Pilot, 4000 kredi, yeni tarafla Dost olmak, XP'nin %20'si; eski taraf seni düşman sayar).
 - Gruplar ve itibar: Yıldız Filosu, Tüccar Loncası, Korsan Birliği. Korsan avı Filoyu, satış ve yardım Loncayı güçlendirir; itibar fiyatları, ödülleri ve kimin sana saldıracağını değiştirir.
