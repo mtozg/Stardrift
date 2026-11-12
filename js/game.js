@@ -8620,34 +8620,43 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const levelOf = xp => { let l = 0; for (let i = 0; i < LV.length; i++) if (xp >= LV[i]) l = i + 1; return Math.max(1, l); };
   window.__level = () => levelOf(save.xp || 0); window.__lvXp = LV;
   // ---- rozet: çerçeve rütbeyi, yıldızlar rütbe içindeki seviyeyi, şeritler yükselişi gösterir; Efsane hepsini birleştirir
-  // ---- rozet (Stardrift'e özgü): altıgen ailesinden çerçeve rütbeyi, gezegen çevresindeki yörüngeler yükselişi, alttaki elmaslar rütbe içindeki seviyeyi gösterir
-  const RC = [['#1f5866', '#06161d', '#a8e4ee'], ['#1f5866', '#06161d', '#a8e4ee'], ['#1f5866', '#06161d', '#a8e4ee'], ['#43307a', '#100a24', '#dccfff'], ['#43307a', '#100a24', '#dccfff'], ['#5a3e12', '#120a02', '#f2c464']];
-  const poly = (n, cx, cy, r, rot) => Array.from({ length: n }, (_, i) => { const a = (rot || 0) + i * 2 * Math.PI / n; return (cx + Math.cos(a) * r).toFixed(1) + ',' + (cy + Math.sin(a) * r).toFixed(1); }).join(' ');
-  const FRM = [
-    () => `<polygon points='${poly(6, 50, 50, 41, -Math.PI / 2)}'/>`,
-    () => `<polygon points='50,7 87,25 87,63 50,95 13,63 13,25'/>`,
-    () => `<polygon points='${poly(8, 50, 50, 43, Math.PI / 8)}'/>`,
-    () => `<polygon points='${poly(6, 50, 50, 40, 0)}'/>`,
-    () => `<polygon points='${poly(6, 50, 50, 43, -Math.PI / 2)}'/>`,
-    () => `<polygon points='${poly(6, 50, 50, 41, 0)}'/>`
-  ];
+  // ---- rütbe rozeti: çerçeve rütbeyi, kuyruklu yıldız izleri yükselişi, parıltılar rütbe içindeki seviyeyi gösterir; Efsane hepsini birleştirir
+  const FRB = [
+    'M50 6 L88 28 L88 72 L50 94 L12 72 L12 28 Z',
+    'M50 5 L88 22 L88 60 L50 95 L12 60 L12 22 Z',
+    'M34 7 L66 7 L93 34 L93 66 L66 93 L34 93 L7 66 L7 34 Z',
+    'M50 9 L93 84 Q95 89 89 89 L11 89 Q5 89 7 84 Z',
+    'M50 8 A42 42 0 1 1 49.9 8 Z',
+    'M50 4 L97 86 Q99 92 92 92 L8 92 Q1 92 3 86 Z'];
+  const FILLB = [['#2b5a9c', '#0b1834'], ['#2b5a9c', '#0b1834'], ['#2b5a9c', '#0b1834'], ['#a0222f', '#3a0610'], ['#a0222f', '#3a0610'], ['#24487f', '#091428']];
+  const EDGEB = ['#d6e2f0', '#d6e2f0', '#d6e2f0', '#f2dccb', '#f2dccb', '#f4cf7e'];
+  const sparkB = (x, y, k) => `<path d='M${x} ${y - k}Q${x + k * 0.16} ${y - k * 0.16} ${x + k * 0.78} ${y}Q${x + k * 0.16} ${y + k * 0.16} ${x} ${y + k}Q${x - k * 0.16} ${y + k * 0.16} ${x - k * 0.78} ${y}Q${x - k * 0.16} ${y - k * 0.16} ${x} ${y - k}Z' fill='#fbfdff'/><circle cx='${x}' cy='${y}' r='${(k * 0.12).toFixed(1)}' fill='#7fd8ff'/>`;
+  const STARB = [[[50, 50, 14]], [[39, 51, 11], [61, 49, 11]], [[50, 40, 12], [38, 58, 10], [62, 58, 10]], [[50, 37, 12], [36, 51, 9.5], [64, 51, 9.5], [50, 65, 9.5]], [[50, 34, 11.5], [35, 47, 9], [65, 47, 9], [41, 64, 9], [59, 64, 9]]];
+  // kuyruklu yıldız izi: kuyrukta incecik, başta kalın, ucu yuvarlak
+  function comet(x0, y0, cx, cy, x1, y1, w, col){
+    const L = [], R = [], N = 14;
+    for (let i = 0; i <= N; i++){ const t = i / N, u = 1 - t, x = u * u * x0 + 2 * u * t * cx + t * t * x1, y = u * u * y0 + 2 * u * t * cy + t * t * y1;
+      const dx = 2 * u * (cx - x0) + 2 * t * (x1 - cx), dy = 2 * u * (cy - y0) + 2 * t * (y1 - cy), m = Math.hypot(dx, dy) || 1, h = w * 0.5 * Math.pow(t, 0.9);
+      L.push((x - dy / m * h).toFixed(1) + ' ' + (y + dx / m * h).toFixed(1)); R.push((x + dy / m * h).toFixed(1) + ' ' + (y - dx / m * h).toFixed(1)); }
+    return `<path d='M${L.join(' L')} A${w / 2} ${w / 2} 0 0 0 ${R[R.length - 1]} L${R.reverse().join(' L')} Z' fill='${col}'/>`;
+  }
+  const RIBB = [
+    () => comet(10, 82, 30, 52, 84, 26, 10, '#e8343f'),
+    () => comet(8, 66, 40, 50, 90, 34, 7, '#f2a640'),
+    () => comet(16, 94, 46, 68, 94, 52, 8, '#e8343f'),
+    () => comet(4, 50, 30, 36, 82, 14, 6, '#f6c35a'),
+    () => comet(24, 98, 58, 80, 98, 66, 6, '#c82838')];
+  const CYAN = (r) => `<path d='M${r === 5 ? 2 : 12} ${r === 5 ? 74 : 72} Q44 50 ${r === 5 ? 96 : 88} 30' stroke='#7fd8ff' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='.85'/>`;
   function badge(L){
-    L = Math.max(1, Math.min(30, L)); const r = Math.min(5, Math.floor((L - 1) / 5)), st = (L - 1) % 5 + 1, [f0, f1, e] = RC[r], id = 'r' + L;
-    let back = '';
-    if (r === 3 || r === 5) back += `<path d='M14 40 L-2 30 L4 48 L-4 58 L14 56 Z M86 40 L102 30 L96 48 L104 58 L86 56 Z' fill='${f0}' stroke='${e}' stroke-width='2' stroke-linejoin='round'/>`;
-    if (r === 5) for (let i = 0; i < 6; i++){ const a = -Math.PI / 2 + i * Math.PI / 3, x = 50 + Math.cos(a) * 47, y = 50 + Math.sin(a) * 47, x1 = 50 + Math.cos(a - 0.2) * 40, y1 = 50 + Math.sin(a - 0.2) * 40, x2 = 50 + Math.cos(a + 0.2) * 40, y2 = 50 + Math.sin(a + 0.2) * 40; back += `<polygon points='${x1.toFixed(1)},${y1.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}' fill='${e}'/>`; }
-    const fr = FRM[r]();
-    let orb = `<ellipse cx='50' cy='44' rx='27' ry='9' transform='rotate(-22 50 44)'/>`;
-    if (r >= 2) orb += `<ellipse cx='50' cy='44' rx='33' ry='12' transform='rotate(24 50 44)' stroke-width='1.6'/>`;
-    if (r >= 4) orb += `<ellipse cx='50' cy='44' rx='35' ry='6' transform='rotate(-70 50 44)' stroke-width='1.4'/>`;
-    let moons = '';
-    if (r === 1 || r >= 3) moons += `<circle cx='74' cy='34' r='3.2' fill='${e}'/>`;
-    if (r === 5) moons += `<circle cx='22' cy='58' r='2.6' fill='${e}'/>` + [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const a = i * Math.PI / 4; return `<line x1='${(50 + Math.cos(a) * 12).toFixed(1)}' y1='${(44 + Math.sin(a) * 12).toFixed(1)}' x2='${(50 + Math.cos(a) * 16).toFixed(1)}' y2='${(44 + Math.sin(a) * 16).toFixed(1)}' stroke='${e}' stroke-width='1.6' stroke-linecap='round'/>`; }).join('');
-    const pip = i => { const x = 50 + (i - 2) * 9, y = 78, on = i < st; return `<rect x='${x - 2.8}' y='${y - 2.8}' width='5.6' height='5.6' transform='rotate(45 ${x} ${y})' fill='${on ? e : 'none'}' stroke='${e}' stroke-width='1.1' opacity='${on ? 1 : 0.5}'/>`; };
-    const sv = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='-8 -6 116 112'><defs><radialGradient id='g${id}' cx='50%' cy='36%' r='70%'><stop offset='0' stop-color='${f0}'/><stop offset='1' stop-color='${f1}'/></radialGradient><radialGradient id='p${id}' cx='38%' cy='35%' r='70%'><stop offset='0' stop-color='#ffffff'/><stop offset='.5' stop-color='${e}'/><stop offset='1' stop-color='${f0}'/></radialGradient></defs>`
-      + back + `<g fill='url(#g${id})' stroke='${e}' stroke-width='${r === 5 ? 3.6 : 3}' stroke-linejoin='round'>${fr}</g>`
-      + (r === 4 ? `<polygon points='${poly(6, 50, 50, 35, -Math.PI / 2)}' fill='none' stroke='${e}' stroke-width='1' opacity='.55'/>` : `<g fill='none' stroke='${e}' stroke-width='1' opacity='.3' transform='translate(50 50) scale(.86) translate(-50 -50)'>${fr}</g>`)
-      + `<g fill='none' stroke='${e}' stroke-width='2' opacity='.95'>${orb}</g><circle cx='50' cy='44' r='9' fill='url(#p${id})'/>` + moons + [0, 1, 2, 3, 4].map(pip).join('') + '</svg>';
+    L = Math.max(1, Math.min(30, L)); const r = Math.min(5, Math.floor((L - 1) / 5)), st = (L - 1) % 5, ef = r === 5, id = 'b' + L;
+    const ribs = RIBB.slice(0, ef ? 5 : r + 1).map(f => f()).join('') + CYAN(r);
+    const sy = r === 3 || ef ? 9 : 0;
+    let stars = (ef ? STARB[4] : STARB[st]).map(q => sparkB(q[0], q[1] + sy, q[2])).join('');
+    if (ef) stars += [[18, 12], [82, 12], [12, 30], [88, 30]].slice(0, st).map(q => sparkB(q[0], q[1], 5)).join('');
+    const sv = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='-6 -6 112 112'><defs><radialGradient id='g${id}' cx='50%' cy='38%' r='70%'><stop offset='0' stop-color='${FILLB[r][0]}'/><stop offset='1' stop-color='${FILLB[r][1]}'/></radialGradient><clipPath id='c${id}'><path d='${FRB[r]}'/></clipPath></defs>`
+      + `<path d='${FRB[r]}' fill='url(#g${id})'/>` + (ef ? ribs : `<g clip-path='url(#c${id})'>${ribs}</g>`)
+      + `<path d='${FRB[r]}' fill='none' stroke='${EDGEB[r]}' stroke-width='${ef ? 4.6 : 3.6}' stroke-linejoin='round'/>`
+      + `<path d='${FRB[r]}' fill='none' stroke='rgba(127,216,255,.35)' stroke-width='1' transform='translate(50 50) scale(.86) translate(-50 -50)'/>` + stars + '</svg>';
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(sv);
   }
   window.__badge = badge;
