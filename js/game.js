@@ -356,9 +356,10 @@ for (let i = 0; i < 4; i++){
 }
 // çizimle gelen cevher kayaları (siyah arka plan → saydam, işlenmiş webp): listede varsa kaya o resimlerden biriyle görünür
 const ORE3 = {};
-(window.ORE3_LIST || []).forEach(n => { const m = /^ore3_([a-z]+)_\d+$/.exec(n); if (!m) return; const im = new Image(); im.onload = () => { const t = new THREE.Texture(im); t.anisotropy = 4; t.needsUpdate = true; (ORE3[m[1]] = ORE3[m[1]] || []).push(t);
+(window.ORE3_LIST || ['demir', 'kristal', 'buz', 'titan', 'hurda'].flatMap(k => [1, 2, 3].map(i => 'ore3_' + k + '_' + i))).forEach(n => { const m = /^ore3_([a-z]+)_\d+$/.exec(n); if (!m) return; const im = new Image(); im.onload = () => { const t = new THREE.Texture(im); t.anisotropy = 4; t.needsUpdate = true; (ORE3[m[1]] = ORE3[m[1]] || []).push(t);
   if (typeof asteroids !== 'undefined') asteroids.forEach(a => { if (a.type === m[1] && !a.mesh.isSprite){ const nm = rockMesh(a.type, a.r); nm.position.copy(a.mesh.position); scene.remove(a.mesh); scene.add(nm); a.mesh = nm; a.pos = nm.position; } }); };
   im.src = 'assets/img/' + n + '.webp?v=' + (window.SD_VERSION || ''); });
+const ORP = {}; ['titan', 'hurda'].forEach(k => { const im = new Image(); im.onload = () => { const t = new THREE.Texture(im); t.needsUpdate = true; ORP[k] = t; }; im.src = 'assets/img/orep_' + k + '.webp?v=' + (window.SD_VERSION || ''); });
 const prismGeo = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.17, -0.44), new THREE.Vector2(0.17, 0.26), new THREE.Vector2(0.001, 0.5)], 6);
 // kristal sivrisi: dipte koyu kan kırmızısı, uca doğru açılan pembe-beyaz ışık (renk köşelere işlenir)
 const gemGeo = (() => { const g = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.15, -0.46), new THREE.Vector2(0.17, -0.1), new THREE.Vector2(0.16, 0.3), new THREE.Vector2(0.001, 0.5)], 6).toNonIndexed(), p = g.attributes.position, c = new Float32Array(p.count * 3);
@@ -751,7 +752,7 @@ function hoverPoint(st){ return st.pos.clone().add(V(rand(-1, 1), rand(-0.3, 0.3
 function setDest(n, p, arriveR){ if (!n.dest) n.dest = V(0, 0, 0); n.dest.copy(p); n.arriveR = arriveR || 0; }
 
 function oreVis(type){
-  const t = oreTex[ORE_IDX[type]];
+  const t = oreTex[ORE_IDX[type]] || ORP[type];
   if (t){ const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, fog: false, rotation: rand(0, TAU) })), k = rand(4.2, 6.5); sp.scale.set(k * t.image.width / t.image.height, k, 1); return sp; }
   const m = new THREE.Mesh(tmpl[(Math.random() * tmpl.length) | 0], oreChunkMat[type]); m.scale.setScalar(rand(1.0, 1.7)); return m;
 }
