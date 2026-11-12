@@ -8037,10 +8037,13 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 {
   const SIDE = {
     filo: { ad: 'Yıldız Filosu', col: '#7fd8ff', img: 'fac_filo', pitch: 'Düzenin bekçisi ol. Korsan avla, ticaret yollarını koru.',
+      story: 'Kadim Kapı sustuğunda dört sistem kaosa düştü. Ankora\'nın son savaş gemileri bir yemin etti: hiçbir tüccar yolda kaybolmayacak. Yıldız Filosu o yeminden doğdu. Bugün devriyeleri kuşakları koruyor; ama gemileri eskiyor, korsanlar her yıl biraz daha cesurlaşıyor. Filo\'nun yeni pilotlara ihtiyacı var.',
       perks: ['Korsan ödülleri +%25', 'Devriyeler başın sıkışınca yardıma gelir', 'Başlangıçta Filo dostun'], rel: { filo: 40, lonca: 10, korsan: -30 } },
     lonca: { ad: 'Tüccar Loncası', col: '#ffc477', img: 'fac_lonca', pitch: 'Kazan, sat, büyü. Fiyatları bil, yükünü doldur.',
+      story: 'Lonca Pazarı\'nda her şeyin bir fiyatı vardır: cevherin, sırrın, sessizliğin. Loncayı kuran yedi tüccar ailesi yıldızları savaşın değil ticaretin bir arada tuttuğuna inanır. Filoya vergi, korsanlara haraç öder, herkesle konuşurlar. Onlara göre iyi pilot, yükü zamanında ve eksiksiz getirendir.',
       perks: ['Cevher satışı +%8', 'Kargo kapasitesi +4', 'Başlangıçta herkesle arası iyi'], rel: { filo: 10, lonca: 40, korsan: -5 } },
     korsan: { ad: 'Korsan Birliği', col: '#ff6b8a', img: 'fac_korsan', pitch: 'Kural yok. Tüccarları soy, devriyelerden kaç.',
+      story: 'Kara Liman, bir asteroidin içine oyulmuş, hiçbir haritada görünmeyen bir sığınaktır. Filo\'dan kaçanlar, Loncanın borçlu bıraktıkları, düzene sığmayanlar orada yaşar. Korsan Birliği\'nin tek kuralı vardır: Birlik\'ten olana dokunulmaz. Gerisi av.',
       perks: ['Korsanlar sana saldırmaz', 'Tüccar gemisi düşürünce yağma +80 kredi', 'Ama Filo devriyeleri seni görünce saldırır'], rel: { filo: -65, lonca: -20, korsan: 50 } }
   };
   window.__SIDE = SIDE;
@@ -8061,32 +8064,50 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #sideSel{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);background:radial-gradient(ellipse at 50% 40%,rgba(20,30,52,.92),rgba(3,5,12,.97));color:#e9f1f7;font-family:var(--font);overflow:auto}
   #sideSel h2{margin:0;font:600 17px/1.2 var(--font);letter-spacing:.42em;padding-left:.42em}
   #sideSel .sub{margin:-6px 0 4px;color:#8ea2b6;font-size:12.5px;letter-spacing:.04em;text-align:center}
-  #sideSel .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(900px,100%)}
-  #sideSel .c{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:14px 12px 12px;background:rgba(255,255,255,.035);border:1px solid rgba(220,235,245,.14);border-top:2px solid var(--c);border-radius:4px;cursor:pointer;transition:background .15s,transform .15s}
-  #sideSel .c:hover,#sideSel .c.on{background:rgba(255,255,255,.07)}
-  #sideSel .c.on{outline:1px solid var(--c);transform:translateY(-2px)}
-  #sideSel .c img{width:64px;height:68px;object-fit:contain}
-  #sideSel .c b{font:600 14px var(--font);letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
-  #sideSel .c p{margin:0;font-size:12.5px;color:#c9d6e2;line-height:1.35}
-  #sideSel .c ul{margin:4px 0 0;padding:0;list-style:none;font-size:11.5px;color:#8ea2b6;line-height:1.5;text-align:left;width:100%}
-  #sideSel .c li::before{content:"";display:inline-block;width:5px;height:5px;margin:0 7px 1px 0;background:var(--c);transform:rotate(45deg)}
-  #sideSel .go{margin-top:4px;padding:11px 46px;border-radius:999px;border:1px solid rgba(233,241,247,.75);background:transparent;color:#e9f1f7;font:700 13px var(--font);letter-spacing:.32em;cursor:pointer}
-  #sideSel .go:not(:disabled){background:#e9f1f7;color:#0a1220}
-  #sideSel .go:disabled{opacity:.35}
+  #sideSel .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:min(920px,100%);perspective:1200px}
+  #sideSel .c{position:relative;height:min(380px,calc(100vh - 150px));cursor:pointer}
+  #sideSel .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,.8,.3,1)}
+  #sideSel .c.flip .in{transform:rotateY(180deg)}
+  #sideSel .f,#sideSel .bk{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;gap:7px;padding:16px 14px 12px;text-align:center;
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(220,235,245,.16);border-top:2px solid var(--c);border-radius:5px;overflow:hidden}
+  #sideSel .bk{transform:rotateY(180deg);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03))}
+  #sideSel .c:hover .f{background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03))}
+  #sideSel .f img{width:66px;height:70px;object-fit:contain;flex:0 0 auto}
+  #sideSel b{font:600 14px var(--font);letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
+  #sideSel .st{margin:2px 0 0;font-size:12.5px;line-height:1.5;color:#c9d6e2;text-align:left;overflow:auto;flex:1 1 auto}
+  #sideSel .bk p{margin:0;font-size:12.5px;color:#c9d6e2}
+  #sideSel .h{align-self:stretch;margin-top:6px;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,.08);font:600 10px var(--font);letter-spacing:.2em;text-transform:uppercase;color:#8ea2b6;text-align:left}
+  #sideSel ul{margin:0;padding:0;list-style:none;font-size:12px;color:#e9f1f7;line-height:1.55;text-align:left;align-self:stretch}
+  #sideSel li::before{content:"";display:inline-block;width:5px;height:5px;margin:0 8px 1px 0;background:var(--c);transform:rotate(45deg)}
+  #sideSel .rel{display:flex;gap:6px;align-self:stretch}
+  #sideSel .rel span{flex:1;display:flex;flex-direction:column;gap:1px;padding:4px 2px;border:1px solid rgba(255,255,255,.08);border-radius:3px;font-size:11.5px;color:#e9f1f7}
+  #sideSel .rel i{font-style:normal;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#8ea2b6}
+  #sideSel .pk{margin-top:auto;width:100%;padding:10px 8px;border-radius:999px;border:0;background:#e9f1f7;color:#0a1220;font:700 12px var(--font);letter-spacing:.24em;cursor:pointer}
+  #sideSel .pk:active{background:var(--c)}
+  #sideSel .tap{font-size:10.5px;letter-spacing:.16em;color:#6f8296;text-transform:uppercase}
+  #sideSel.done{opacity:0;transition:opacity .35s}
+  @media (max-height:520px){#sideSel{justify-content:flex-start;gap:6px}#sideSel .c{height:calc(100vh - 92px)}#sideSel .f,#sideSel .bk{padding:10px 10px 8px;gap:4px}#sideSel .f img{width:44px;height:47px}
+    #sideSel .st{font-size:11.5px;line-height:1.42}#sideSel ul{font-size:11px;line-height:1.4}#sideSel .bk p{font-size:11.5px}#sideSel h2{font-size:14px}#sideSel .sub{margin:-4px 0 0;font-size:11px}#sideSel .note{display:none}#sideSel .pk{padding:8px}}
+  @media (max-width:600px){#sideSel .cards{grid-template-columns:1fr}#sideSel .c{height:300px}}
   #sideSel .note{font-size:11px;color:#6f8296;text-align:center;max-width:560px}
   @media (max-height:520px){#sideSel{justify-content:flex-start;gap:8px}#sideSel .c{padding:9px 8px;gap:3px}#sideSel .c img{width:44px;height:47px}#sideSel .c p{font-size:11.5px}#sideSel .c ul{font-size:10.5px;line-height:1.4}#sideSel h2{font-size:14px}}
   @media (max-width:600px){#sideSel .cards{grid-template-columns:1fr}}
   `; document.head.appendChild(css);
   function pick(cb){
     const d = document.createElement('div'); d.id = 'sideSel'; let sel = null;
-    d.innerHTML = '<h2>TARAFINI SEÇ</h2><div class="sub">Yıldızlar arasında kimin yanında uçacaksın?</div><div class="cards">'
-      + Object.keys(SIDE).map(k => { const S = SIDE[k]; return '<div class="c" data-k="' + k + '" style="--c:' + S.col + '"><img alt="" src="assets/img/' + S.img + '.webp?v=' + (window.SD_VERSION || '') + '"><b>' + S.ad + '</b><p>' + S.pitch + '</p><ul>' + S.perks.map(x => '<li>' + x + '</li>').join('') + '</ul></div>'; }).join('')
-      + '</div><button class="go" disabled>SEÇ</button><div class="note">Tarafını sonradan değiştirebilirsin, ama bedeli ağır olur: istasyondaki Görevler sekmesinde, Gruplar bölümünde.</div>';
+    const REL = { filo: 'Filo', lonca: 'Lonca', korsan: 'Korsan' }, rt = v => v >= 30 ? 'Dost' : v > -30 ? 'Tarafsız' : v > -60 ? 'Soğuk' : 'Düşman';
+    d.innerHTML = '<h2>TARAFINI SEÇ</h2><div class="sub">Kartlara dokun: hikâyeyi oku, çevir, kararını ver.</div><div class="cards">'
+      + Object.keys(SIDE).map(k => { const S = SIDE[k]; return '<div class="c" data-k="' + k + '" style="--c:' + S.col + '"><div class="in">'
+        + '<div class="f"><img alt="" src="assets/img/' + S.img + '.webp?v=' + (window.SD_VERSION || '') + '"><b>' + S.ad + '</b><p class="st">' + S.story + '</p><span class="tap">Çevir ↻</span></div>'
+        + '<div class="bk"><b>' + S.ad + '</b><p>' + S.pitch + '</p><div class="h">Avantajlar</div><ul>' + S.perks.map(x => '<li>' + x + '</li>').join('') + '</ul>'
+        + '<div class="h">Başlangıç ilişkileri</div><div class="rel">' + Object.keys(S.rel).map(f => '<span><i>' + REL[f] + '</i>' + rt(S.rel[f]) + '</span>').join('') + '</div>'
+        + '<button class="pk">BU TARAFI SEÇ</button><span class="tap">Geri ↺</span></div></div></div>'; }).join('')
+      + '</div><div class="note">Tarafını sonradan değiştirebilirsin, ama bedeli ağırdır.</div>';
     document.body.appendChild(d); window.__menuOn = true;
-    const go = d.querySelector('.go');
     d.addEventListener('click', e => {
-      const c = e.target.closest('.c'); if (c){ sel = c.dataset.k; d.querySelectorAll('.c').forEach(x => x.classList.toggle('on', x === c)); go.disabled = false; go.textContent = SIDE[sel].ad.toLocaleUpperCase('tr-TR') + ' · SEÇ'; try { blip(640, 0.08); } catch (er) {} return; }
-      if (e.target === go && sel){ d.remove(); window.__menuOn = false; cb(sel); }
+      const pk = e.target.closest('.pk'); if (pk){ const k = pk.closest('.c').dataset.k; d.classList.add('done'); try { blip(780, 0.1); } catch (er) {} setTimeout(() => { d.remove(); window.__menuOn = false; cb(k); }, 380); return; }
+      const c = e.target.closest('.c'); if (!c) return; const fl = !c.classList.contains('flip');
+      d.querySelectorAll('.c').forEach(x => x.classList.toggle('flip', x === c && fl)); try { blip(fl ? 560 : 420, 0.06); } catch (er) {}
     });
     for (const ev of ['keydown', 'keyup']) d.addEventListener(ev, e => e.stopPropagation());
   }
