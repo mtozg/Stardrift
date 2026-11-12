@@ -6664,6 +6664,7 @@ window.__xpal = {
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
+      + line('Düğme boyutu', 'Uçuş düğmelerini büyüt ya da küçült', '<button class="act" data-set="bs">' + BSN[BSI()] + '</button>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
       + '<div class="sect">Teknik</div>'
@@ -6673,6 +6674,11 @@ window.__xpal = {
       + '</div>';
   }
   let verTap = 0;
+  const BSV = [0.8, 0.9, 1, 1.12, 1.25], BSN = ['Çok küçük', 'Küçük', 'Normal', 'Büyük', 'Çok büyük'];
+  const BSI = () => { try { const v = localStorage.getItem('sd_bs'); return v == null ? 2 : Math.max(0, Math.min(BSV.length - 1, +v)); } catch (e) { return 2; } };
+  const bsSt = document.createElement('style'); document.head.appendChild(bsSt);
+  function bsApply(){ const z = BSV[BSI()]; bsSt.textContent = z === 1 ? '' : 'html body .btn,html body #stage .btn{zoom:' + z + '}'; }   // köşeye göre ölçeklenir: düğmeler arası boşluk da orantılı
+  bsApply();
   function open(){ verTap = 0; render(); P.classList.add('on'); window.__menuOn = true; }
   function close(){ P.classList.remove('on'); window.__menuOn = false; persist(); }
   window.__openSet = open;
@@ -6685,6 +6691,7 @@ window.__xpal = {
     else if (a === 'bloom'){ window.__bloomPref = !window.__bloomPref; try { localStorage.setItem('sd_bloom', window.__bloomPref ? '1' : '0'); } catch (e) {} b.textContent = window.__bloomPref ? 'Açık' : 'Kapalı'; }
     else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
+    else if (a === 'bs'){ const i = (BSI() + 1) % BSV.length; try { localStorage.setItem('sd_bs', String(i)); } catch (e) {} bsApply(); b.textContent = BSN[i]; }
     else if (a === 'ver'){ verTap++; if (verTap >= 5 && !TESTVIS()){ try { localStorage.setItem('sd_testvis', '1'); } catch (e) {} toast('Test ayarı açıldı', 2000); render(); } }
     else if (a === 'test'){ persist(); try { if (TESTM){ localStorage.setItem('sd-key', localStorage.getItem('sd-key-prev') || 'kayip-yildizlar'); } else { localStorage.setItem('sd-key-prev', SAVEKEY); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); } } catch (e) {} location.reload(); }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
