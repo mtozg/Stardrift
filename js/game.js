@@ -8610,23 +8610,34 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const levelOf = xp => { let l = 0; for (let i = 0; i < LV.length; i++) if (xp >= LV[i]) l = i + 1; return Math.max(1, l); };
   window.__level = () => levelOf(save.xp || 0); window.__lvXp = LV;
   // ---- rozet: çerçeve rütbeyi, yıldızlar rütbe içindeki seviyeyi, şeritler yükselişi gösterir; Efsane hepsini birleştirir
-  const FR = [
-    'M50 8 L90 50 L50 92 L10 50 Z', 'M50 9 L91 39 L75 89 L25 89 L9 39 Z', 'M50 7 L88 29 L88 71 L50 93 L12 71 L12 29 Z',
-    'M50 10 Q53 10 55 14 L91 80 Q93 86 87 86 L13 86 Q7 86 9 80 L45 14 Q47 10 50 10 Z', 'M50 9 A41 41 0 1 1 49.9 9 Z', 'M50 6 Q54 6 56 11 L96 82 Q98 89 91 89 L9 89 Q2 89 4 82 L44 11 Q46 6 50 6 Z'];
-  const FILL = [['#2a5596', '#0c1a36'], ['#2a5596', '#0c1a36'], ['#2a5596', '#0c1a36'], ['#9a2030', '#3a0812'], ['#9a2030', '#3a0812'], ['#22457e', '#0a1530']];
-  const EDGE = ['#cfdcec', '#cfdcec', '#cfdcec', '#f0d6c4', '#f0d6c4', '#f0cd84'];
-  const spark = (x, y, k) => `<path d='M${x} ${y - k}Q${x} ${y} ${x + k * 0.8} ${y}Q${x} ${y} ${x} ${y + k}Q${x} ${y} ${x - k * 0.8} ${y}Q${x} ${y} ${x} ${y - k}Z' fill='#fbfdff'/>`;
-  const STAR = [[[50, 50, 13]], [[40, 50, 11], [60, 50, 11]], [[50, 41, 12], [39, 58, 9], [61, 58, 9]], [[50, 38, 12], [37, 52, 9], [63, 52, 9], [50, 64, 9]], [[50, 34, 11], [36, 47, 9], [64, 47, 9], [42, 64, 9], [58, 64, 9]]];
-  const RIB = [
-    ["M18 74 C34 56 56 40 86 22", 9, '#e8343f'], ["M14 62 C36 48 58 36 90 30", 6, '#f2a640'], ["M22 86 C42 66 64 54 92 48", 7, '#e8343f'],
-    ["M10 50 C30 40 54 28 80 12", 5, '#f6c35a'], ["M26 92 C48 74 70 66 96 62", 5, '#c82838']];
+  // ---- rozet (Stardrift'e özgü): altıgen ailesinden çerçeve rütbeyi, gezegen çevresindeki yörüngeler yükselişi, alttaki elmaslar rütbe içindeki seviyeyi gösterir
+  const RC = [['#1f5866', '#06161d', '#a8e4ee'], ['#1f5866', '#06161d', '#a8e4ee'], ['#1f5866', '#06161d', '#a8e4ee'], ['#43307a', '#100a24', '#dccfff'], ['#43307a', '#100a24', '#dccfff'], ['#5a3e12', '#120a02', '#f2c464']];
+  const poly = (n, cx, cy, r, rot) => Array.from({ length: n }, (_, i) => { const a = (rot || 0) + i * 2 * Math.PI / n; return (cx + Math.cos(a) * r).toFixed(1) + ',' + (cy + Math.sin(a) * r).toFixed(1); }).join(' ');
+  const FRM = [
+    () => `<polygon points='${poly(6, 50, 50, 41, -Math.PI / 2)}'/>`,
+    () => `<polygon points='50,7 87,25 87,63 50,95 13,63 13,25'/>`,
+    () => `<polygon points='${poly(8, 50, 50, 43, Math.PI / 8)}'/>`,
+    () => `<polygon points='${poly(6, 50, 50, 40, 0)}'/>`,
+    () => `<polygon points='${poly(6, 50, 50, 43, -Math.PI / 2)}'/>`,
+    () => `<polygon points='${poly(6, 50, 50, 41, 0)}'/>`
+  ];
   function badge(L){
-    L = Math.max(1, Math.min(30, L)); const r = Math.min(5, Math.floor((L - 1) / 5)), st = (L - 1) % 5, ef = r === 5, id = 'b' + L;
-    const ribs = RIB.slice(0, ef ? 5 : r + 1).map(([d, w, c]) => `<path d='${d}' stroke='${c}' stroke-width='${w}' fill='none' stroke-linecap='round'/>`).join('');
-    const stars = (ef ? STAR[4] : STAR[st]).map(q => spark(q[0], q[1] + (r === 3 || ef ? 8 : 0), q[2])).join('') + (ef && st > 0 ? STAR[Math.min(4, st)].slice(0, st).map(q => spark(q[0] * 0.5 + 25 + (q[0] > 50 ? 26 : -26), q[1] * 0.4 + 6, 5)).join('') : '');
-    const sv = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='-6 -6 112 112'><defs><radialGradient id='g${id}' cx='50%' cy='38%' r='68%'><stop offset='0' stop-color='${FILL[r][0]}'/><stop offset='1' stop-color='${FILL[r][1]}'/></radialGradient><clipPath id='c${id}'><path d='${FR[r]}'/></clipPath></defs>`
-      + `<path d='${FR[r]}' fill='url(#g${id})'/>` + (ef ? ribs : `<g clip-path='url(#c${id})' opacity='.95'>${ribs}</g>`)
-      + `<path d='${FR[r]}' fill='none' stroke='${EDGE[r]}' stroke-width='${ef ? 4.5 : 3.5}' stroke-linejoin='round'/><path d='${FR[r]}' fill='none' stroke='rgba(0,0,0,.35)' stroke-width='1.2' transform='translate(50 50) scale(.88) translate(-50 -50)'/>` + stars + '</svg>';
+    L = Math.max(1, Math.min(30, L)); const r = Math.min(5, Math.floor((L - 1) / 5)), st = (L - 1) % 5 + 1, [f0, f1, e] = RC[r], id = 'r' + L;
+    let back = '';
+    if (r === 3 || r === 5) back += `<path d='M14 40 L-2 30 L4 48 L-4 58 L14 56 Z M86 40 L102 30 L96 48 L104 58 L86 56 Z' fill='${f0}' stroke='${e}' stroke-width='2' stroke-linejoin='round'/>`;
+    if (r === 5) for (let i = 0; i < 6; i++){ const a = -Math.PI / 2 + i * Math.PI / 3, x = 50 + Math.cos(a) * 47, y = 50 + Math.sin(a) * 47, x1 = 50 + Math.cos(a - 0.2) * 40, y1 = 50 + Math.sin(a - 0.2) * 40, x2 = 50 + Math.cos(a + 0.2) * 40, y2 = 50 + Math.sin(a + 0.2) * 40; back += `<polygon points='${x1.toFixed(1)},${y1.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}' fill='${e}'/>`; }
+    const fr = FRM[r]();
+    let orb = `<ellipse cx='50' cy='44' rx='27' ry='9' transform='rotate(-22 50 44)'/>`;
+    if (r >= 2) orb += `<ellipse cx='50' cy='44' rx='33' ry='12' transform='rotate(24 50 44)' stroke-width='1.6'/>`;
+    if (r >= 4) orb += `<ellipse cx='50' cy='44' rx='35' ry='6' transform='rotate(-70 50 44)' stroke-width='1.4'/>`;
+    let moons = '';
+    if (r === 1 || r >= 3) moons += `<circle cx='74' cy='34' r='3.2' fill='${e}'/>`;
+    if (r === 5) moons += `<circle cx='22' cy='58' r='2.6' fill='${e}'/>` + [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const a = i * Math.PI / 4; return `<line x1='${(50 + Math.cos(a) * 12).toFixed(1)}' y1='${(44 + Math.sin(a) * 12).toFixed(1)}' x2='${(50 + Math.cos(a) * 16).toFixed(1)}' y2='${(44 + Math.sin(a) * 16).toFixed(1)}' stroke='${e}' stroke-width='1.6' stroke-linecap='round'/>`; }).join('');
+    const pip = i => { const x = 50 + (i - 2) * 9, y = 78, on = i < st; return `<rect x='${x - 2.8}' y='${y - 2.8}' width='5.6' height='5.6' transform='rotate(45 ${x} ${y})' fill='${on ? e : 'none'}' stroke='${e}' stroke-width='1.1' opacity='${on ? 1 : 0.5}'/>`; };
+    const sv = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='-8 -6 116 112'><defs><radialGradient id='g${id}' cx='50%' cy='36%' r='70%'><stop offset='0' stop-color='${f0}'/><stop offset='1' stop-color='${f1}'/></radialGradient><radialGradient id='p${id}' cx='38%' cy='35%' r='70%'><stop offset='0' stop-color='#ffffff'/><stop offset='.5' stop-color='${e}'/><stop offset='1' stop-color='${f0}'/></radialGradient></defs>`
+      + back + `<g fill='url(#g${id})' stroke='${e}' stroke-width='${r === 5 ? 3.6 : 3}' stroke-linejoin='round'>${fr}</g>`
+      + (r === 4 ? `<polygon points='${poly(6, 50, 50, 35, -Math.PI / 2)}' fill='none' stroke='${e}' stroke-width='1' opacity='.55'/>` : `<g fill='none' stroke='${e}' stroke-width='1' opacity='.3' transform='translate(50 50) scale(.86) translate(-50 -50)'>${fr}</g>`)
+      + `<g fill='none' stroke='${e}' stroke-width='2' opacity='.95'>${orb}</g><circle cx='50' cy='44' r='9' fill='url(#p${id})'/>` + moons + [0, 1, 2, 3, 4].map(pip).join('') + '</svg>';
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(sv);
   }
   window.__badge = badge;
@@ -8674,34 +8685,71 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   skApply();
   // seviye atlayınca seviyeye bağlı lazer gücü/menzil de güncellenir
   { let lv0 = levelOf(save.xp || 0); EXTRA.push(() => { const L = levelOf(save.xp || 0); if (L !== lv0){ lv0 = L; skApply(); } }); }
-  // ---- yetenek penceresi (uçarken de açılır)
-  let skSel = null;
-  function skOpen(){
+  // ---- yetenek penceresi: dal sekmeleri, kademe şeritleri, bağlantılı düğümler, alt bilgi panelleri (uçarken de açılır)
+  const PAR = { kargo: ['kazi'], menzil: ['cekim'], damar: ['kargo', 'menzil'], kalkan: ['sogut'], roket: ['nisan'], avci: ['roket', 'kalkan'],
+    isin: ['itki'], kapi: ['hiz'], dayan: ['isin', 'kapi'], kacak: ['pazar'], diplo: ['tamir'], tuccar: ['kacak', 'diplo'] };
+  const IC = {
+    kazi: "<path d='M4 20l6-6'/><path d='M10 14l3-8 5 5-8 3z'/><path d='M15 4l5 5'/><circle cx='5' cy='19' r='.6'/>",
+    cekim: "<path d='M6 4v7a6 6 0 0 0 12 0V4'/><path d='M6 4h3v7a3 3 0 0 0 6 0V4h3'/><path d='M12 20v2M9 19l-1 2M15 19l1 2'/>",
+    kargo: "<rect x='3' y='12' width='8' height='8'/><rect x='13' y='12' width='8' height='8'/><rect x='8' y='4' width='8' height='8'/><path d='M7 12v3M17 12v3M12 4v3'/>",
+    menzil: "<path d='M3 12h15'/><path d='M14 8l4 4-4 4'/><path d='M21 6v12'/><circle cx='5' cy='12' r='1.6'/>",
+    damar: "<path d='M12 2l4 6-4 6-4-6z'/><path d='M4 22c3-4 6-6 8-8 2 2 5 4 8 8'/><path d='M8 8h8'/>",
+    nisan: "<circle cx='12' cy='12' r='7'/><circle cx='12' cy='12' r='2.5'/><path d='M12 2v4M12 18v4M2 12h4M18 12h4'/>",
+    sogut: "<path d='M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9'/><path d='M10 4.5l2 1.5 2-1.5M10 19.5l2-1.5 2 1.5'/>",
+    kalkan: "<path d='M12 3l7 3v5c0 5-3.2 8-7 10-3.8-2-7-5-7-10V6z'/><path d='M9 12a3 3 0 1 0 3-3'/><path d='M12 7v2.5h2.5'/>",
+    roket: "<path d='M12 2c3 3 4 7 3 12H9C8 9 9 5 12 2z'/><path d='M9 14l-3 3 3 1M15 14l3 3-3 1'/><path d='M11 18l1 4 1-4'/><circle cx='12' cy='8' r='1.5'/>",
+    avci: "<path d='M12 3l2.4 5 5.6.6-4.2 3.8 1.2 5.6L12 15l-5 3 1.2-5.6L4 8.6 9.6 8z'/><circle cx='12' cy='11' r='1.4'/>",
+    itki: "<path d='M5 9h9l5 3-5 3H5z'/><path d='M5 9L3 7M5 15l-2 2'/><path d='M2 12h-0M1 10.5h2M1 13.5h2'/>",
+    hiz: "<path d='M4 17a8 8 0 1 1 16 0'/><path d='M12 17l5-6'/><circle cx='12' cy='17' r='1.4'/><path d='M7 12l1 1M12 9v1.5M17 12l-1 1'/>",
+    isin: "<path d='M2 7l8 5-8 5'/><path d='M10 12h12'/><circle cx='10' cy='12' r='2.2'/><path d='M17 9l3 3-3 3'/>",
+    kapi: "<circle cx='12' cy='12' r='8'/><circle cx='12' cy='12' r='4.5'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3'/>",
+    dayan: "<path d='M4 6l8-3 8 3v6c0 4-3 7-8 9-5-2-8-5-8-9z'/><path d='M4 11h16M12 3v18'/>",
+    pazar: "<path d='M12 3v18M6 21h12'/><path d='M4 7h16'/><path d='M4 7l-2.5 6h5zM20 7l-2.5 6h5z'/>",
+    tamir: "<path d='M14.5 4a4 4 0 0 0-4.8 5.3L3 16l3 3 6.7-6.7A4 4 0 0 0 20 7.5l-2.6 2.6-2.8-.7-.7-2.8z'/>",
+    kacak: "<rect x='3' y='8' width='18' height='12'/><path d='M3 8l3-4h12l3 4'/><path d='M8 14c2-2 6-2 8 0-2 2-6 2-8 0z'/><path d='M5 18L19 10'/>",
+    diplo: "<path d='M2 12l4-4 4 2 4-2 4 2 4 4'/><path d='M6 8v6l4 4M18 10v4l-5 5'/><path d='M10 12l3 3'/>",
+    tuccar: "<path d='M6 2h9l4 4v16H6z'/><path d='M15 2v4h4'/><path d='M9 10h7M9 13h7'/><circle cx='13' cy='18' r='2'/>"
+  };
+  const NSHP = "<path d='M50 4 L90 24 L90 66 L50 96 L10 66 L10 24 Z'/>";
+  let skSel = null, skTab = 0;
+  function skOpen(tab){
     let w = $('skModal'); if (!w){ w = document.createElement('div'); w.id = 'skModal'; document.body.appendChild(w);
       w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-skx]')){ w.classList.remove('on'); return; }
+        const tb = e.target.closest('[data-skt]'); if (tb){ const v = tb.dataset.skt; skTab = v === 'p' ? (skTab + 3) % 4 : v === 'n' ? (skTab + 1) % 4 : +v; skSel = null; skRender(); return; }
         const nd = e.target.closest('[data-skn]'); if (nd){ skSel = nd.dataset.skn; skRender(); return; }
         const b = e.target.closest('button[data-sk]'); if (b && !b.disabled){ const q = SKL.find(x => x.id === b.dataset.sk); if (q && save.sp > 0 && SL(q.id) < q.m && inBr(q.b) >= TNEED[q.t]){ save.sp--; save.sk[q.id] = SL(q.id) + 1; persist(); skApply(); try { sfxP('gelistirme', 0.6); } catch (er) {} skRender(); try { renderCt(); } catch (er) {} } }
-        const r = e.target.closest('button[data-skr]'); if (r && !r.disabled){ if (!r.dataset.ok){ r.dataset.ok = 1; r.textContent = 'Emin misin? ' + RESET() + ' kredi'; return; } const n = Object.values(save.sk).reduce((a, b) => a + b, 0); save.kredi -= RESET(); save.sk = {}; save.sp += n; persist(); skApply(); skRender(); } }); }
-    skRender(); w.classList.add('on');
+        const r = e.target.closest('button[data-skr]'); if (r && !r.disabled){ if (!r.dataset.ok){ r.dataset.ok = 1; r.textContent = 'Emin misin? ' + RESET() + ' kredi'; return; } const n = Object.values(save.sk).reduce((a, b) => a + b, 0); save.kredi -= RESET(); save.sk = {}; save.sp += n; persist(); skApply(); skRender(); } });
+      addEventListener('resize', () => { if (w.classList.contains('on')) skLines(); }); }
+    if (typeof tab === 'number') skTab = tab;
+    w.classList.add('on'); skRender();
   }
   const RESET = () => 300 + 100 * Object.values(save.sk).reduce((a, b) => a + b, 0);
+  const nodeHtml = (q, bc) => { const l = SL(q.id), lock = inBr(q.b) < TNEED[q.t];
+    return '<div class="nd' + (l ? ' has' : '') + (l >= q.m ? ' max' : '') + (lock ? ' lk' : '') + (skSel === q.id ? ' sel' : '') + '" data-skn="' + q.id + '"><svg class="sh" viewBox="0 0 100 100">' + NSHP + '</svg><svg class="ic" viewBox="0 0 24 24">' + IC[q.id] + '</svg><small>' + l + '/' + q.m + '</small><em>' + q.n + '</em></div>'; };
   function skRender(){
-    const w = $('skModal'); if (!w) return; const L = levelOf(save.xp || 0);
-    if (!skSel || !SKL.some(q => q.id === skSel)) skSel = SKL[0].id;
-    let h = '<div class="bx"><div class="hd"><img src="' + badge(L) + '"><div><b>Yetenek ağacı</b><span>Seviye ' + L + ' · ' + RANKS[rankOf(save.xp)][0] + ' · her seviye lazer gücünü ve menzilini biraz artırır</span></div><i class="pt">' + save.sp + '<small>puan</small></i></div><div class="tr">';
-    for (const [b, bn, bc] of BR){ const sp = inBr(b);
-      h += '<div class="col" style="--bc:' + bc + '"><div class="bn">' + bn + '<small>' + sp + ' puan</small></div>';
-      for (const t of [1, 2, 3]){ const lock = sp < TNEED[t];
-        h += '<div class="tier' + (lock ? ' lk' : '') + '">' + (lock ? '<div class="need">◇ ' + TNEED[t] + ' puan</div>' : '');
-        for (const q of SKL.filter(x => x.b === b && x.t === t)){ const l = SL(q.id);
-          h += '<div class="nd' + (l ? ' has' : '') + (skSel === q.id ? ' sel' : '') + '" data-skn="' + q.id + '"><b>' + q.n + '</b><i>' + Array.from({ length: q.m }, (_, i) => '<u class="' + (i < l ? 'on' : '') + '"></u>').join('') + '</i></div>'; }
-        h += '</div>'; }
-      h += '</div>'; }
-    const q = SKL.find(x => x.id === skSel), l = SL(q.id), lock = inBr(q.b) < TNEED[q.t], can = save.sp > 0 && l < q.m && !lock, bc = BR.find(x => x[0] === q.b)[2];
-    h += '</div><div class="ft" style="--bc:' + bc + '"><span><b>' + q.n + '</b> · ' + l + '/' + q.m + '<small>' + (l ? q.d(l) : 'Henüz yok') + (l < q.m ? ' → ' + q.d(l + 1) : '') + (lock ? ' · Bu kademe, dalda ' + TNEED[q.t] + ' puan harcayınca açılır' : '') + '</small></span>'
-      + '<button class="act' + (can ? ' go' : '') + '" data-sk="' + q.id + '" ' + (can ? '' : 'disabled') + '>' + (l >= q.m ? 'Tamam' : 'Puan ver') + '</button>'
-      + (Object.keys(save.sk).length ? '<button class="act" data-skr="1" ' + (save.kredi < RESET() ? 'disabled' : '') + '>Sıfırla</button>' : '') + '<button class="act" data-skx="1">Kapat</button></div></div>';
-    w.innerHTML = h;
+    const w = $('skModal'); if (!w) return; const L = levelOf(save.xp || 0), [b, bn, bc] = BR[skTab], bsp = inBr(b);
+    const list = SKL.filter(x => x.b === b); if (!skSel || !list.some(q => q.id === skSel)) skSel = list[0].id;
+    let h = '<div class="bx" style="--bc:' + bc + '"><div class="tabs"><button class="ar" data-skt="p">‹</button>' + BR.map((x, i) => '<button data-skt="' + i + '" class="' + (i === skTab ? 'on' : '') + '" style="--tc:' + x[2] + '">' + x[1] + '<i>' + inBr(x[0]) + '</i></button>').join('') + '<button class="ar" data-skt="n">›</button><button class="x" data-skx="1">✕</button></div>';
+    h += '<div class="body"><div class="tree"><div class="th">' + bn.toLocaleUpperCase('tr-TR') + '</div><svg class="ln"></svg>';
+    for (const t of [1, 2, 3]){ const lock = bsp < TNEED[t];
+      h += '<div class="row t' + t + (lock ? ' lk' : '') + '"><span class="rl">' + ['', 'I', 'II', 'III'][t] + (lock ? '<b>' + bsp + '/' + TNEED[t] + '</b>' : '') + '</span>' + list.filter(q => q.t === t).map(q => nodeHtml(q, bc)).join('') + '</div>'; }
+    const q = SKL.find(x => x.id === skSel), l = SL(q.id), lock = bsp < TNEED[q.t], can = save.sp > 0 && l < q.m && !lock;
+    const need = TNEED[q.t], prog = need ? Math.min(1, bsp / need) : 1;
+    h += '</div><div class="side"><div class="sp"><img src="' + badge(L) + '"><span>YETENEK PUANI<b>' + save.sp + '</b></span></div>'
+      + '<div class="pn"><div class="ph">GEREKSİNİM <i>' + (need ? Math.min(bsp, need) + '/' + need : 'açık') + '</i></div><div class="pb"><u style="width:' + (prog * 100) + '%"></u></div><p>' + (need ? (lock ? 'Bu kademe, ' + bn + ' dalında ' + need + ' puan harcayınca açılır.' : 'Kademe açık: ' + bn + ' dalında ' + need + ' puan harcadın.') : 'İlk kademe her zaman açık.') + '</p></div>'
+      + '<div class="pn"><div class="ph">' + q.n.toLocaleUpperCase('tr-TR') + ' <i>' + l + '/' + q.m + '</i></div><p>' + (l ? q.d(l) : 'Henüz yatırım yok.') + (l < q.m ? '<br><span class="nx">Sıradaki: ' + q.d(l + 1) + '</span>' : '<br><span class="nx">En üst basamak.</span>') + '</p>'
+      + '<div class="bt"><button class="act' + (can ? ' go' : '') + '" data-sk="' + q.id + '" ' + (can ? '' : 'disabled') + '>' + (l >= q.m ? 'Tamam' : 'Puan ver') + '</button>' + (Object.keys(save.sk).length ? '<button class="act" data-skr="1" ' + (save.kredi < RESET() ? 'disabled' : '') + '>Sıfırla</button>' : '') + '</div></div>'
+      + '<div class="ft">Seviye ' + L + ' · ' + RANKS[rankOf(save.xp)][0] + '. Her seviye 1 puan verir; seviye ayrıca lazer gücünü ve menzilini biraz artırır.</div></div></div></div>';
+    w.innerHTML = h; requestAnimationFrame(skLines);
+  }
+  function skLines(){
+    const w = $('skModal'), tr = w && w.querySelector('.tree'), sv = tr && tr.querySelector('svg.ln'); if (!sv) return; const R0 = tr.getBoundingClientRect(); let h = '';
+    sv.setAttribute('viewBox', '0 0 ' + R0.width + ' ' + R0.height); sv.setAttribute('width', R0.width); sv.setAttribute('height', R0.height);
+    for (const id in PAR){ const c = tr.querySelector('[data-skn="' + id + '"] .sh'); if (!c) continue; const rc = c.getBoundingClientRect();
+      for (const p of PAR[id]){ const pe = tr.querySelector('[data-skn="' + p + '"] .sh'); if (!pe) continue; const rp = pe.getBoundingClientRect(), rb = pe.parentNode.getBoundingClientRect(), on = SL(p) > 0;
+        const x1 = rp.left + rp.width / 2 - R0.left, y1 = rb.bottom - R0.top + 3, x2 = rc.left + rc.width / 2 - R0.left, y2 = rc.top - R0.top + 2, my = (y1 + y2) / 2;
+        h += '<path d="M' + x1 + ' ' + y1 + ' V' + my + ' H' + x2 + ' V' + y2 + '" class="' + (on ? 'on' : '') + '"/>'; } }
+    sv.innerHTML = h;
   }
   window.__skOpen = skOpen;
   // ---- seviye atlama ekranı
@@ -8737,20 +8785,43 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #lvUp .bar{margin-top:10px;background:rgba(0,0,0,.85);border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:7px 26px;font-weight:600;font-size:13px;letter-spacing:.24em;color:#fff}
   #lvUp .sk{margin-top:14px;display:flex;align-items:center;gap:10px;background:none;border:0;color:#dfe8f2;font:600 12px var(--font);letter-spacing:.26em;cursor:pointer}
   #lvUp .sk i{font-style:normal;width:24px;height:24px;border:1.4px solid #dfe8f2;border-radius:50%;display:flex;align-items:center;justify-content:center;letter-spacing:0;font-size:12px}
-  #skModal{position:fixed;inset:0;z-index:59;background:rgba(2,5,12,.74);display:none;align-items:center;justify-content:center;padding:12px}#skModal.on{display:flex}
-  #skModal .bx{width:min(520px,94vw);max-height:92vh;display:flex;flex-direction:column;background:rgba(8,14,26,.97);border:1px solid rgba(220,235,245,.16);border-radius:10px;color:#e8edff;font:500 13px/1.4 var(--font)}
-  #skModal .hd{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(220,235,245,.1)}#skModal .hd img{width:46px;height:46px}#skModal .hd b{display:block;font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:13px}#skModal .hd span{color:#9fb0c8;font-size:12px}
-  #skModal .hd .pt{margin-left:auto;font-style:normal;font-size:24px;font-weight:300;color:#ffc56e;text-align:center;line-height:1}#skModal .hd .pt small{display:block;font-size:9.5px;letter-spacing:.2em;color:#9fb0c8;text-transform:uppercase}
-  #skModal .bx{width:min(900px,97vw)}
-  #skModal .tr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 12px;overflow:auto}
-  #skModal .col{display:flex;flex-direction:column;gap:6px}#skModal .bn{font-size:10.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--bc);border-bottom:1px solid var(--bc);padding-bottom:4px;display:flex;justify-content:space-between;align-items:baseline}#skModal .bn small{letter-spacing:.05em;color:#8fa3c4;font-size:10px}
-  #skModal .tier{display:flex;flex-direction:column;gap:5px;padding-left:8px;border-left:1px dashed rgba(220,235,245,.14)}#skModal .tier.lk .nd{opacity:.38}
-  #skModal .need{font-size:9.5px;color:#8fa3c4;letter-spacing:.1em}
-  #skModal .nd{padding:6px 8px;border:1px solid rgba(220,235,245,.14);border-radius:5px;background:rgba(255,255,255,.02);cursor:pointer}#skModal .nd b{display:block;font-weight:600;font-size:12px;line-height:1.25}
-  #skModal .nd.has{border-color:var(--bc);background:rgba(255,255,255,.05)}#skModal .nd.sel{outline:1.5px solid var(--bc);outline-offset:1px}
-  #skModal .nd i{display:flex;gap:3px;margin-top:4px}#skModal .nd u{width:7px;height:7px;transform:rotate(45deg);border:1px solid #6f82a3}#skModal .nd u.on{background:var(--bc);border-color:var(--bc)}
-  #skModal .ft{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid rgba(220,235,245,.1)}#skModal .ft>span{flex:1;font-size:13px}#skModal .ft>span b{color:var(--bc)}#skModal .ft small{display:block;color:#93a4bf;font-size:11.5px}
-  @media (max-height:480px){#skModal .bx{max-height:96vh}#skModal .hd{padding:6px 12px}#skModal .hd img{width:32px;height:32px}#skModal .tr{padding:6px 10px;gap:6px}#skModal .col{gap:4px}#skModal .tier{gap:4px}#skModal .nd{padding:3px 6px}#skModal .nd b{font-size:11px}#skModal .nd i{margin-top:2px}#skModal .ft{padding:6px 12px}}`;
+  #skModal{position:fixed;inset:0;z-index:59;background:radial-gradient(ellipse at 50% 30%,rgba(14,26,48,.94),rgba(3,6,14,.97));display:none;align-items:center;justify-content:center;padding:10px}#skModal.on{display:flex}
+  #skModal .bx{width:min(1040px,98vw);height:min(640px,96vh);display:flex;flex-direction:column;color:#e8edff;font:500 13px/1.4 var(--font)}
+  #skModal .tabs{display:flex;align-items:stretch;gap:0;margin:0 auto 10px;width:min(760px,100%)}
+  #skModal .tabs button{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(220,235,245,.14);border-left-width:0;color:#b9c6da;font:600 11.5px var(--font);letter-spacing:.2em;padding:8px 4px;cursor:pointer;text-transform:uppercase}
+  #skModal .tabs button i{font-style:normal;margin-left:6px;color:var(--tc);letter-spacing:0}
+  #skModal .tabs button.on{background:var(--tc);color:#08101c;border-color:var(--tc)}#skModal .tabs button.on i{color:#08101c}
+  #skModal .tabs .ar{flex:0 0 34px;border:1px solid rgba(220,235,245,.3);border-radius:4px;margin:0 8px;font-size:18px;letter-spacing:0;padding:0}
+  #skModal .tabs .x{flex:0 0 34px;border:0;background:none;font-size:16px;letter-spacing:0;margin-left:4px}
+  #skModal .body{flex:1;min-height:0;display:flex;gap:12px}
+  #skModal .tree{flex:1;position:relative;display:flex;flex-direction:column;min-width:0}
+  #skModal .th{background:var(--bc);color:#08101c;text-align:center;font-weight:700;letter-spacing:.3em;font-size:12px;padding:6px 0;position:relative;z-index:2}
+  #skModal .ln{position:absolute;left:0;top:0;pointer-events:none;z-index:1}#skModal .ln path{fill:none;stroke:rgba(200,215,235,.22);stroke-width:2}#skModal .ln path.on{stroke:var(--bc);stroke-width:2.4}
+  #skModal .row{flex:1;display:flex;align-items:center;justify-content:center;gap:clamp(18px,6vw,70px);position:relative;border-bottom:1px solid rgba(0,0,0,.35)}
+  #skModal .row.t1{background:rgba(70,92,120,.28)}#skModal .row.t2{background:rgba(40,96,110,.24)}#skModal .row.t3{background:rgba(58,52,120,.26)}
+  #skModal .row .rl{position:absolute;left:10px;top:6px;font-size:10px;letter-spacing:.2em;color:#8fa3c4}#skModal .row .rl b{display:block;font-weight:600;color:#c9d4e6;letter-spacing:.05em}
+  #skModal .row.lk .nd{opacity:.42}
+  #skModal .nd{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;cursor:pointer;width:72px}
+  #skModal .nd .sh{width:56px;height:56px;fill:#0d1626;stroke:rgba(200,215,235,.4);stroke-width:3;transition:transform .15s}
+  #skModal .nd .ic{position:absolute;top:13px;width:28px;height:28px;fill:none;stroke:#7d8ca6;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  #skModal .nd.has .sh{fill:color-mix(in srgb,var(--bc) 22%,#0d1626);stroke:var(--bc)}#skModal .nd.has .ic{stroke:#f2f6fb}
+  #skModal .nd.max .sh{fill:color-mix(in srgb,var(--bc) 45%,#0d1626)}
+  #skModal .nd.sel .sh{stroke:#fff;stroke-width:5;transform:scale(1.08)}
+  #skModal .nd small{margin-top:2px;font-size:10.5px;font-weight:600;color:#c9d4e6;background:rgba(0,0,0,.45);padding:0 6px;border-radius:3px}#skModal .nd.has small{color:var(--bc)}
+  #skModal .nd em{font-style:normal;font-size:10.5px;color:#aab8cf;text-align:center;line-height:1.15;margin-top:2px;max-width:80px}
+  #skModal .side{width:clamp(220px,30%,300px);display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+  #skModal .sp{display:flex;align-items:center;gap:10px;border:1px solid rgba(220,235,245,.2);padding:8px 10px;background:rgba(0,0,0,.25)}#skModal .sp img{width:42px;height:42px}
+  #skModal .sp span{font-size:10.5px;letter-spacing:.22em;color:#9fb0c8}#skModal .sp b{display:block;font-size:24px;font-weight:300;color:#fff;letter-spacing:0;line-height:1.1}
+  #skModal .pn{border:1px solid rgba(220,235,245,.16);background:rgba(4,8,16,.55)}
+  #skModal .ph{display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(220,235,245,.1);font-size:11px;font-weight:600;letter-spacing:.16em}#skModal .ph i{font-style:normal;color:var(--bc)}
+  #skModal .pb{height:3px;margin:0 10px;background:rgba(255,255,255,.1);margin-top:6px}#skModal .pb u{display:block;height:100%;background:var(--bc)}
+  #skModal .pn p{margin:0;padding:7px 10px;color:#c9d4e6;font-size:12px}#skModal .pn .nx{color:#8fa3c4;font-size:11.5px}
+  #skModal .bt{display:flex;gap:6px;padding:0 10px 9px}#skModal .bt .act{flex:1}
+  #skModal .ft{font-size:10.5px;color:#7f8fa8;line-height:1.35}
+  @media (max-height:500px){#skModal{padding:6px}#skModal .tabs{margin-bottom:6px}#skModal .tabs button{padding:5px 2px;font-size:10px;letter-spacing:.12em}#skModal .th{padding:3px 0;font-size:10.5px}
+    #skModal .nd{width:64px}#skModal .nd .sh{width:42px;height:42px}#skModal .nd .ic{top:9px;width:22px;height:22px}#skModal .nd em{font-size:9.5px}#skModal .nd small{font-size:9.5px}
+    #skModal .side{gap:5px}#skModal .sp{padding:4px 8px}#skModal .sp img{width:30px;height:30px}#skModal .sp b{font-size:18px}#skModal .ph{padding:4px 8px}#skModal .pn p{padding:4px 8px;font-size:11px}#skModal .bt{padding:0 8px 6px}#skModal .ft{display:none}}
+  @media (max-width:640px){#skModal .body{flex-direction:column}#skModal .side{width:auto}}`;
   document.head.appendChild(st);
 }
 
