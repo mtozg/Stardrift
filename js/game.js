@@ -929,6 +929,8 @@ function updateEco(dt){
 }
 
 // ---------- Durum ----------
+// test modu: ayrı kayıt anahtarı; sürüm numarasına 5 kez dokununca ya da adrese ?test=1 eklenince ayarlarda görünür
+const TESTVIS = () => { try { if (/[?&]test=1/.test(location.search)) localStorage.setItem('sd_testvis', '1'); return localStorage.getItem('sd_testvis') === '1'; } catch (e) { return false; } };
 const SAVEKEY = (() => { try { return localStorage.getItem('sd-key') || 'kayip-yildizlar'; } catch (e) { return 'kayip-yildizlar'; } })();
 let save = { kredi: 0, lv: { lazer: 0, kargo: 0, motor: 0 } };
 try { const s = JSON.parse(localStorage.getItem(SAVEKEY) || 'null'); if (s && s.lv) save = s; } catch (e) {}
@@ -937,6 +939,13 @@ if (typeof save.ammo !== 'number') save.ammo = AMMO_MAX;
 if (typeof save.ammoD !== 'number') save.ammoD = 12;
 ruins.forEach((r, i) => { r.found = save.ruin.includes(i); });
 function persist(){ try { localStorage.setItem(SAVEKEY, JSON.stringify(save)); } catch (e) {} }
+const TESTM = /:test$/.test(SAVEKEY);
+if (TESTM){
+  const fill = () => { if (save.kredi < 900000) save.kredi = 999999; if (!save.parts) save.parts = {}; for (const k of ['levha', 'devre', 'hucre']) if (!(save.parts[k] >= 50)) save.parts[k] = 99; if (!(save.xp >= 9000)) save.xp = 9000; save.ammo = Math.max(save.ammo || 0, AMMO_MAX); save.ammoD = Math.max(save.ammoD || 0, DMAX); };
+  fill(); setInterval(fill, 1000);
+  const tb = document.createElement('div'); tb.textContent = 'TEST MODU'; tb.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 2px);transform:translateX(-50%);z-index:95;font:800 10px sans-serif;letter-spacing:.12em;color:#1a0d00;background:#ffb454;padding:2px 8px;border-radius:6px;pointer-events:none;opacity:.85';
+  document.body.appendChild(tb);
+}
 const cargo = { demir: 0, buz: 0, kristal: 0 };
 const PSHIPS = [
   { id: 'kasif', ad: 'Kaşif', fiyat: 0, thr: 1, turn: 1, vmax: 1, hull: 1, shield: 1, cargo: 1, not: 'Dengeli, her işe uygun. Ücretsiz.' },
@@ -2096,6 +2105,7 @@ function mapScreen(c, I){
   else { c.fillStyle = '#5d6a8f'; c.fillText('Hedef yok', cx, yy); }
 }
 function overlayRect(k){
+  if (W < 900 || H < 500) return { x: W * 0.16, y: H * 0.06, w: W * 0.68, h: H * 0.66 };   // küçük ekran: büyütülen panel ortada ve geniş
   const h = H * 0.5, y = H * 0.13;
   return k === 'bars' ? { x: W * 0.07, y, w: W * 0.25, h } : k === 'map' ? { x: W * 0.31, y, w: W * 0.38, h } : { x: W * 0.68, y, w: W * 0.25, h };
 }
@@ -2117,10 +2127,12 @@ function quadUV(q, x, y){
   }
   return [u, v];
 }
+// panel içeriği en az bu mantıksal boyutta çizilir, sonra ekrandaki alana sığdırılır (yazılar üst üste binmesin)
+function ovLogic(k, r){ const s = Math.max(1, (k === 'map' ? 520 : 400) / r.w, 270 / r.h); return { w: r.w * s, h: r.h * s, s }; }
 function overlayTap(x, y){
   if (overlay && overlayQ && inQuad(x, y, overlayQ)){
     if (overlay === 'map'){
-      const r = overlayRect('map'), [u, v] = quadUV(overlayQ, x, y), lx = u * r.w, ly = v * r.h;
+      const r = ovLogic('map', overlayRect('map')), [u, v] = quadUV(overlayQ, x, y), lx = u * r.w, ly = v * r.h;
       let best = null, bd = 22;
       if (mapHits) for (const h of mapHits){ const d = Math.hypot(h.x - lx, h.y - ly); if (d < bd){ bd = d; best = h.obj; } }
       if (best){ setLock(best); overlay = null; return; }
@@ -2133,11 +2145,11 @@ function overlayTap(x, y){
 const OVL = {};
 function drawOverlay(c){
   if (!overlay) return;
-  const r = overlayRect(overlay), cvw = Math.round(r.w * DPR * 1.6), cvh = Math.round(r.h * DPR * 1.6);
+  const r0 = overlayRect(overlay), L = ovLogic(overlay, r0), r = { x: r0.x, y: r0.y, w: L.w, h: L.h }, cvw = Math.round(r0.w * DPR * 1.6), cvh = Math.round(r0.h * DPR * 1.6);
   let o = OVL[overlay];
   if (!o || o.cv.width !== cvw || o.cv.height !== cvh){ const cv = document.createElement('canvas'); cv.width = cvw; cv.height = cvh; o = OVL[overlay] = { cv, g: cv.getContext('2d') }; }
-  const g = o.g; g.setTransform(DPR * 1.6, 0, 0, DPR * 1.6, 0, 0); g.clearRect(0, 0, r.w, r.h);
-  g.fillStyle = 'rgba(5,11,22,0.86)'; g.strokeStyle = 'rgba(150,220,230,0.6)'; g.lineWidth = 2; rrect(g, 2, 2, r.w - 4, r.h - 4, 10); g.fill(); g.stroke(); if (window.__drawFr) window.__drawFr(g, r.w, r.h);
+  const g = o.g; g.setTransform(DPR * 1.6 / L.s, 0, 0, DPR * 1.6 / L.s, 0, 0); g.clearRect(0, 0, r.w, r.h);
+  g.fillStyle = 'rgba(5,11,22,0.96)'; g.strokeStyle = 'rgba(150,220,230,0.6)'; g.lineWidth = 2; rrect(g, 2, 2, r.w - 4, r.h - 4, 10); g.fill(); g.stroke(); if (window.__drawFr) window.__drawFr(g, r.w, r.h);
   g.fillStyle = 'rgba(150,220,230,0.07)'; for (let yy = 8; yy < r.h; yy += 3) g.fillRect(6, yy, r.w - 12, 1);
   g.textAlign = 'left'; g.fillStyle = '#7fd8ff'; g.font = fnt(700, 15); g.fillText(overlay === 'bars' ? 'Sistem' : overlay === 'map' ? 'Harita' : 'Gövde ve kalkan', 16, 26);
   g.fillStyle = 'rgba(150,220,230,0.55)'; g.font = fnt(500, 10); g.textAlign = 'right'; g.fillText(overlay === 'map' ? 'Nesneye dokun: kilitlen · boşluğa: yakınlaştır · dışına: kapat' : 'Kapatmak için dışına dokun', r.w - 14, 26);
@@ -2147,7 +2159,7 @@ function drawOverlay(c){
   else { mapContent(g, { x: 8, y: 36, w: r.w - 16, h: r.h - 62 }, { labels: true, hits: true });
     g.textAlign = 'left'; g.font = fnt(500, 10); if (window.__ic){ window.__ic(g, 'i_st', 14, r.h - 22, 13); window.__ic(g, 'i_pl', 80, r.h - 22, 13); window.__ic(g, 'i_gate', 144, r.h - 22, 13); } g.fillStyle = '#ffb454'; g.fillText('   İstasyon', 16, r.h - 12); g.fillStyle = '#6fb8ff'; g.fillText('   Gezegen', 82, r.h - 12); g.fillStyle = '#5ff0d0'; g.fillText('   Sinyal', 146, r.h - 12);
     g.fillStyle = '#ffb454'; g.fillText('▲ Madenci', 200, r.h - 12); g.fillStyle = '#7fd8ff'; g.fillText('▲ Devriye', 262, r.h - 12); g.fillStyle = '#ff5a6e'; g.fillText('▲ Korsan', 324, r.h - 12); }
-  const p = clamp((time - overlayT0) / 0.2, 0, 1), q = overlayQuad(overlay, r, p); overlayQ = q;
+  const p = clamp((time - overlayT0) / 0.2, 0, 1), q = overlayQuad(overlay, r0, p); overlayQ = q;
   c.save(); c.globalAlpha = p; drawQuad(c, { q, cv: o.cv }); c.restore();
 }
 
@@ -5119,6 +5131,26 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
   #dock:not(.stage) .card{width:min(760px,94vw) !important;height:calc(100% - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) !important;border-radius:16px !important;border-width:1px !important;
     padding-bottom:84px !important;background:linear-gradient(180deg,rgba(11,17,33,.9),rgba(7,11,22,.93)) !important;box-shadow:0 18px 60px rgba(0,0,0,.6) !important;backdrop-filter:blur(3px)}
   body:has(#dock:not(.hidden)) #tut{display:none !important}
+  /* alçak ekran (telefon yatay): sıkı panel */
+  @media (max-height:520px){
+    #dock .card,#dock.hgmode .card{width:min(400px,50vw) !important;padding:calc(env(safe-area-inset-top,0px) + 6px) 10px 8px !important}
+    #dock .card > h2{font-size:15px !important;margin:0 !important}
+    #dock .card > .sub{display:none !important}
+    #dkStat,#dock.hgmode.stage .card > #dkStat{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px !important;margin:4px 0 6px !important}
+    #dkStat span{font-size:10.5px !important;padding:2px 5px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px}
+    #dkStat span img,#dkStat span .ic{width:13px !important;height:13px !important}
+    #dtabs{gap:4px !important;margin:0 0 6px !important}
+    #dtabs button{padding:3px 1px 3px !important;font-size:9.5px !important;border-radius:8px;gap:1px}
+    #dtabs button img{width:26px !important;height:26px !important;margin:-2px 0 !important}
+    #dcont{font-size:12px}
+    #dcont .wpc h4,#dcont .line,#dcont .ctc{font-size:12px}
+    #undock{left:calc((100vw - min(400px,50vw)) / 2) !important;bottom:8px !important;padding:3px 30px !important;font-size:15px !important}
+    #hgStage{right:min(400px,50vw) !important}
+    #dock.stage #hgInfo,#dock.hgmode #hgInfo{bottom:52px !important}#hgInfo b{font-size:18px !important}#hgInfo span{font-size:11px !important}
+    #dock:not(.stage) .card{width:min(640px,92vw) !important;height:calc(100% - 12px) !important;padding-bottom:52px !important}
+    #dock:not(.stage) #undock{left:50% !important;bottom:12px !important}
+    #dock:not(.stage) #dkStat{grid-template-columns:repeat(6,minmax(0,1fr))}
+  }
   #dock:not(.stage) #undock{left:50% !important;bottom:calc(env(safe-area-inset-bottom,0px) + 26px) !important}
   @media (max-width:760px){#dock:not(.stage) .card{width:94vw !important}#dock:not(.stage) #undock{left:50% !important}}
   `;
@@ -6636,10 +6668,12 @@ window.__xpal = {
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
       + '<div class="sect">Teknik</div>'
       + line('Ses dosyaları', 'Yüklenen ses efektleri', '<button class="act" data-sfxst="1">' + (window.__sfxStat ? window.__sfxStat() : '0/0') + '</button>')
-      + line('Oyun sürümü', 'Güncel sürümü görmüyorsan sayfayı zorla yenile', '<b style="color:#ffc477">' + (window.SD_VERSION || '?') + '</b>')
+      + line('Oyun sürümü', 'Güncel sürümü görmüyorsan sayfayı zorla yenile', '<button class="act" data-set="ver" style="color:#ffc477;font-weight:800">' + (window.SD_VERSION || '?') + '</button>')
+      + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
       + '</div>';
   }
-  function open(){ render(); P.classList.add('on'); window.__menuOn = true; }
+  let verTap = 0;
+  function open(){ verTap = 0; render(); P.classList.add('on'); window.__menuOn = true; }
   function close(){ P.classList.remove('on'); window.__menuOn = false; persist(); }
   window.__openSet = open;
   P.addEventListener('pointerdown', e => e.stopPropagation());
@@ -6651,6 +6685,8 @@ window.__xpal = {
     else if (a === 'bloom'){ window.__bloomPref = !window.__bloomPref; try { localStorage.setItem('sd_bloom', window.__bloomPref ? '1' : '0'); } catch (e) {} b.textContent = window.__bloomPref ? 'Açık' : 'Kapalı'; }
     else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
+    else if (a === 'ver'){ verTap++; if (verTap >= 5 && !TESTVIS()){ try { localStorage.setItem('sd_testvis', '1'); } catch (e) {} toast('Test ayarı açıldı', 2000); render(); } }
+    else if (a === 'test'){ persist(); try { if (TESTM){ localStorage.setItem('sd-key', localStorage.getItem('sd-key-prev') || 'kayip-yildizlar'); } else { localStorage.setItem('sd-key-prev', SAVEKEY); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); } } catch (e) {} location.reload(); }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
   });
   for (const ev of ['keydown', 'keyup']) P.addEventListener(ev, e => e.stopPropagation());
