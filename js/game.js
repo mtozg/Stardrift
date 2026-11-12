@@ -655,7 +655,7 @@ function explodeMissile(pos, hitA){
     a.hp -= dmg; tmp.copy(a.pos).sub(pos).normalize(); a.vel.addScaledVector(tmp, 6);
     if (a.hp <= 0) breakAsteroid(a, true);
   }
-  for (const n of npcs.slice()){ const d = n.pos.distanceTo(pos), reach = n.r + W.reach; if (d < reach) damageNpc(n, n === hitA ? W.direct : W.splash * (1 - d / reach), 'player'); }
+  for (const n of npcs.slice()){ const d = n.pos.distanceTo(pos), reach = n.r + W.reach; if (d < reach) damageNpc(n, (n === hitA ? W.direct : W.splash * (1 - d / reach)) * (window.__skRk || 1), 'player'); }
 }
 function updateMissiles(dt){
   missileCd -= dt;
@@ -1053,7 +1053,7 @@ const WPNS = [
 if (!Array.isArray(save.ships)) save.ships = ['kasif']; if (!PSHIPS.some(s => s.id === save.ship)) save.ship = 'kasif';
 if (!Array.isArray(save.weps)) save.weps = ['darbe']; if (!WPNS.some(s => s.id === save.wep)) save.wep = 'darbe';
 let SHP = PSHIPS.find(s => s.id === save.ship), WPN = WPNS.find(s => s.id === save.wep);
-const cargoCap = () => Math.round((12 + 8 * save.lv.kargo) * SHP.cargo) + crewCargo();
+const cargoCap = () => Math.round((12 + (window.__skC || 0)) * SHP.cargo) + crewCargo();
 const cargoSum = () => cargo.demir + cargo.buz + cargo.kristal + cargo.titan + cargo.hurda;
 
 const vel = V(0, 0, 0);
@@ -1179,7 +1179,7 @@ const tName = t => t.mesh ? ORE[t.type].ad : t.kind === 'npc' ? t.name : t.ad;
 const tHp = t => t.mesh ? t.hp / t.max : t.kind === 'npc' ? t.hull / t.hullMax : null;
 const tAlive = t => t.mesh ? asteroids.indexOf(t) >= 0 : t.kind === 'npc' ? npcs.indexOf(t) >= 0 : true;
 // lazer menzili tek yerden: taban 450 m, her lazer seviyesi +50 m, mermi türü çarpanı
-function laserRange(){ return (450 + 50 * save.lv.lazer) * WPN.range; }
+function laserRange(){ return (450 + (window.__skL || 0)) * WPN.range; }
 const lockStand = (t, rngL) => t.mesh ? rngL * 0.8 : t.kind === 'npc' ? rngL * 0.6 : t.kind === 'station' ? t.dock * 0.8 - t.r : t.kind === 'ruin' ? 100 : 650;
 function setLock(a){
   lock = a;
@@ -1331,7 +1331,7 @@ function update(dt){
   for (let _q19 = 0; _q19 < ruins.length; _q19++){ const r = ruins[_q19]; r.group.rotation.y += dt * 0.05; r.core.rotation.y += dt; r.core.scale.setScalar(1 + 0.15 * Math.sin(time * 2 + r.i)); }
 
   fwd.set(0, 0, -1).applyQuaternion(rig.quaternion);
-  const lvM = save.lv.motor, lvL = save.lv.lazer;
+  const lvM = window.__skT0 || 0, lvL = window.__skD0 || 0;
   let speed = vel.length();
   thrustNow = 0; firing = false; aim = null; boosting = false;
   prevVel.copy(vel);
@@ -1727,9 +1727,9 @@ function drawDash(c){
     if (I.h > 125){
       y += lh * 0.9;
       for (const k of ['lazer', 'kargo', 'motor']){
-        c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText(UPG[k].ad, I.x + 6, y + 5);
+        c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText({ lazer: 'Kazı', kargo: 'Kargo', motor: 'İtki' }[k], I.x + 6, y + 5);
         const sw = Math.min(16, (I.w - 66) / MAXLV - 3);
-        for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < save.lv[k] ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 58 + i * (sw + 3), y - 2, sw, 8); }
+        for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < ((save.sk || {})[{ lazer: 'kazi', kargo: 'kargo', motor: 'itki' }[k]] || 0) ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 58 + i * (sw + 3), y - 2, sw, 8); }
         y += lh * 0.8;
       }
     }
@@ -1845,9 +1845,9 @@ function sysContent(c, I){
   if (I.h > 125){
     y += lh * 0.9;
     for (const k of ['lazer', 'kargo', 'motor']){
-      c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText(UPG[k].ad, I.x + 4, y + 5);
+      c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText({ lazer: 'Kazı', kargo: 'Kargo', motor: 'İtki' }[k], I.x + 4, y + 5);
       const sw = Math.min(16, (I.w - 62) / MAXLV - 3);
-      for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < save.lv[k] ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 54 + i * (sw + 3), y - 2, sw, 8); }
+      for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < ((save.sk || {})[{ lazer: 'kazi', kargo: 'kargo', motor: 'itki' }[k]] || 0) ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 54 + i * (sw + 3), y - 2, sw, 8); }
       y += lh * 0.8;
     }
   }
@@ -2100,7 +2100,7 @@ function wreck(){
 }
 function hpTick(dt){
   hp.hit = Math.max(0, hp.hit - dt); hp.regenT -= dt;
-  if (hp.regenT <= 0 && hp.shield < hp.shieldMax) hp.shield = Math.min(hp.shieldMax, hp.shield + 6 * dt);
+  if (hp.regenT <= 0 && hp.shield < hp.shieldMax) hp.shield = Math.min(hp.shieldMax, hp.shield + 6 * (window.__skS || 1) * dt);
 }
 
 // ---------- Şeffaf paneller ----------
@@ -2118,7 +2118,7 @@ function drawShipHolo(c, cx, cy, sc, col){
 }
 function drawPanels(c, speed){
   const pw = clamp(W * 0.15, 104, 180), ph = clamp(H * 0.36, 112, 210), py = Math.round(H * 0.16), cs = cargoSum(), cap = cargoCap();
-  const lvL = save.lv.lazer, lvM = save.lv.motor;
+  const lvL = Math.min(5, (window.__skD0 || 0) / 0.55), lvM = Math.min(5, (window.__skT0 || 0) / 0.22);
   // sol: cephane, roket, hız, kalkan
   panelBox(c, 8, py, pw, ph);
   const cols = [['LAZ', (lvL + 1) / 6, '#ffb454'], ['ROK', (save.ammo + save.ammoD) / (AMMO_MAX + DMAX), '#ff6b8a'], ['MOT', (lvM + 1) / 6, '#7fd8ff'], ['HIZ', clamp(speed / 150, 0, 1), '#7be0a4'], ['KLK', hp.shield / hp.shieldMax, '#8ab4ff']];
@@ -2254,7 +2254,7 @@ function drawOverlay(c){
 }
 
 function drawRing(c, ox, oy, speed){
-  const R = clamp(Math.min(W, H) * 0.3, 90, 200), cs = cargoSum(), cap = cargoCap(), lvL = save.lv.lazer, A = d => d * Math.PI / 180;
+  const R = clamp(Math.min(W, H) * 0.3, 90, 200), cs = cargoSum(), cap = cargoCap(), lvL = Math.min(5, (window.__skD0 || 0) / 0.55), A = d => d * Math.PI / 180;
   c.save(); c.lineCap = 'round';
   c.strokeStyle = 'rgba(170,230,240,0.3)'; c.lineWidth = 1.5; c.beginPath(); c.arc(ox, oy, R, 0, TAU); c.stroke();
   c.strokeStyle = 'rgba(170,230,240,0.12)'; c.beginPath(); c.arc(ox, oy, R * 0.9, 0, TAU); c.stroke();
@@ -2815,7 +2815,7 @@ EXTRA.push(dt => {
 const LORE = [
   ['+450 kredi', 'Duvarda yazıyor: "Yıldızlar sönmedi, biz uzaklaştık."'],
   ['Roketlerin doldu', 'Eski cephanelik. Not: "Son nöbetçi kapıyı açık bıraktı."'],
-  ['Lazerin güçlendi', 'Soğutma çekirdeği. Not: "Işık, onu taşıyandan hızlıdır."'],
+  ['+1 yetenek puanı', 'Soğutma çekirdeği. Not: "Işık, onu taşıyandan hızlıdır."'],
   ['Yıldız haritası çözüldü', 'Tüm kalıntı sinyalleri haritada. Not: "Biz de bir gün aranacağız."']
 ];
 function onRuinFound(r){
@@ -2824,7 +2824,7 @@ function onRuinFound(r){
   let rw = LORE[r.i][0];
   if (r.i === 0){ const v = Math.round(450 * SYSC.bounty); save.kredi += v; rw = '+' + v + ' kredi'; }
   else if (r.i === 1){ save.ammo = AMMO_MAX; save.ammoD = DMAX; }
-  else if (r.i === 2){ if (save.lv.lazer < MAXLV) save.lv.lazer++; else { save.kredi += 300; rw = '+300 kredi'; } }
+  else if (r.i === 2){ save.sp = (save.sp || 0) + 1; rw = '+1 yetenek puanı'; }
   else { save.map = true; }
   if (!save.parts) save.parts = {}; save.parts.hucre = (save.parts.hucre || 0) + 2; save.parts.devre = (save.parts.devre || 0) + 1; rw += ' · +2 enerji hücresi, +1 devre kartı';
   persist();
@@ -2856,7 +2856,8 @@ const SYS = [
   { ad: 'Buzul Halka', not: 'Buzun tek yurdu; ortalık sakin ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
   { ad: 'Zümrüt Sis', not: 'Kristalin tek yurdu, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
 ];
-const GATE_TO = [1, 2, 3, 0, 0, 0], JC = 150;
+const GATE_TO = [1, 2, 3, 0, 0, 0], JC0 = 150;
+const JCf = () => Math.round(JC0 * (window.__skG || 1));
 const LORE_S = {
   1: ['Duvarda kurum: "Ocaklar sönmeden son kuşak burada yandı."', 'Pas dolu cephanelik. Not: "Ateş, korkunun mimarıdır."', 'Eriyik bir çekirdek. Not: "Kızıl yıldız bizi tavlayıp güçlendirdi."', 'Haritanın kenarında: "Geçit sadece geri dönenlere açılır."'],
   2: ['Buza gömülü günlük: "Sessizlik de bir sinyaldir."', 'Donmuş cephanelik. Not: "Soğuk, hiçbir şeyi unutmaz."', 'Kırağılı çekirdek. Not: "Isı, yalnızca hareketin adıdır."', 'Buzdaki harita: "Her halka bir kapıya çıkar."'],
@@ -2977,10 +2978,10 @@ function renderJump(){
   let box = $('jumpBox');
   if (!box){
     box = document.createElement('div'); box.id = 'jumpBox'; const u = $('undock'); if (!u) return; u.parentNode.insertBefore(box, u);
-    box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JC) return; save.kredi -= JC; persist(); enterSystem(+b.dataset.j); });
+    box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JCf()) return; save.kredi -= JCf(); persist(); enterSystem(+b.dataset.j); });
   }
   let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
-  for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i>${SYS[k].ad}<span class="dim"><br>${SYS[k].not}</span></span><button class="act" data-j="${k}" ${save.kredi < JC ? 'disabled' : ''}>Hiperatla · ${JC} kredi</button></div>`;
+  for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i>${SYS[k].ad}<span class="dim"><br>${SYS[k].not}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
   const hid = SYS.length - save.open.length;
   if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
   box.innerHTML = h;
@@ -6140,10 +6141,10 @@ setTimeout(() => {
     let box = $('jumpBox');
     if (!box){
       box = document.createElement('div'); box.id = 'jumpBox'; const u = $('undock'); if (!u) return; u.parentNode.insertBefore(box, u);
-      box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JC) return; save.kredi -= JC; persist(); enterSystem(+b.dataset.j); });
+      box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JCf()) return; save.kredi -= JCf(); persist(); enterSystem(+b.dataset.j); });
     }
     let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
-    for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i><b>${SYS[k].ad}</b><span class="dim sysi">${window.__fmtNot(SYS[k].not)}</span></span><button class="act" data-j="${k}" ${save.kredi < JC ? 'disabled' : ''}>Hiperatla · ${JC} kredi</button></div>`;
+    for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i><b>${SYS[k].ad}</b><span class="dim sysi">${window.__fmtNot(SYS[k].not)}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
     const hid = SYS.length - save.open.length;
     if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
     box.innerHTML = h;
@@ -6922,7 +6923,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     for (const c of save.ct.active.slice()){
       if (c.type !== type || (test && !test(c))) continue;
       c.prog = Math.min(c.n, c.prog + amt); ch = true;
-      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += c.reward; persist(); addXp(c.xp); window.__fac && window.__fac(c.type === 'av' ? 'filo' : 'lonca', 4); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gorev_tamam', 0.8) || sfxP('gelistirme', 0.7); }
+      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += Math.round(c.reward * (window.__skQ || 1)); persist(); addXp(c.xp); window.__fac && window.__fac(c.type === 'av' ? 'filo' : 'lonca', 4); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gorev_tamam', 0.8) || sfxP('gelistirme', 0.7); }
       else if (c.n > 1) toast('Görev: ' + c.txt + ' · ' + c.prog + '/' + c.n, 1800);
     }
     if (ch){ persist(); drawTrack(); }
@@ -8385,7 +8386,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   function seize(who){ const n = save.kacak, fine = n * 60; save.kacak = 0; save.kredi = Math.max(0, save.kredi - fine); persist(); addWanted(1, 'kaçak mal');
     toast('Kaçak mal bulundu! ' + n + ' birime el konuldu, ' + fine + ' kredi ceza.', 4200); eco.radioT = -9; radio(who, 'Kaçak yüke el konuldu. Kaydına işlendi.', '#ff5a6e'); }
   // kaçak mal kargoda değil, ayrı gizli bölmede taşınır (korsanların bölmesi daha geniş)
-  const HOLD = () => (save.side === 'korsan' ? 10 : 6);
+  const HOLD = () => (save.side === 'korsan' ? 10 : 6) + (window.__skK || 0);
   window.__kHold = HOLD;
   // istasyona yanaşınca gümrük taraması
   { const _td = tryDock; tryDock = function(){ const was = docked; const r = _td.apply(this, arguments);
@@ -8421,7 +8422,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 
   // ---- ücra düşman kapıları: her ev sisteminin uzak bir köşesinde, rakip tarafın evine açılır
   const REMOTE = { 0: { to: 5, at: [13200, -1100, -12600] }, 5: { to: 4, at: [-12800, 900, 12900] }, 4: { to: 0, at: [12600, 1300, 13100] } };
-  const EN = { 0: 'ankora', 4: 'lonca', 5: 'korsan' }, FEE = 400;
+  const EN = { 0: 'ankora', 4: 'lonca', 5: 'korsan' }, FEEf = () => Math.round(400 * (window.__skG || 1));
   if (!save.rgate || typeof save.rgate !== 'object') save.rgate = {};
   const g = new THREE.Group(); scene.add(g); g.visible = false;
   const ringM = new THREE.MeshStandardMaterial({ color: 0x3a3236, metalness: 0.7, roughness: 0.45, emissive: 0x200608 });
@@ -8442,15 +8443,15 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     if (docked || paused) return; const d = rig.position.distanceTo(g.position);
     if (d < 3200 && !save.rgate[curSys]){ save.rgate[curSys] = 1; persist(); place(); eco.radioT = -9; radio('Tarayıcı', 'Ücra bir kapı sinyali! Yön: ' + SYS[R.to].ad + '. Düşman toprağına açılıyor.', '#ff6b8a'); toast('Ücra kapı keşfedildi → ' + SYS[R.to].ad, 3600); }
     if (d < 170 && cool <= 0 && !asked && window.__gateAsk){ asked = true; const to = R.to;
-      window.__gateAsk(to, () => { asked = false; if (save.kredi < FEE){ toast('Kaçak geçiş ' + FEE + ' kredi.', 2600); cool = 8; return; } save.kredi -= FEE; persist();
+      window.__gateAsk(to, () => { asked = false; if (save.kredi < FEEf()){ toast('Kaçak geçiş ' + FEEf() + ' kredi.', 2600); cool = 8; return; } save.kredi -= FEEf(); persist();
           if (!save.open.includes(to)){ save.open.push(to); persist(); }
           window.__gj2 = true; window.__afterJump = () => { docked = false; $('dock').classList.add('hidden'); curSt = null; const P = REMOTE[to] ? V(...REMOTE[to].at) : STATION.pos.clone(), dir = STATION.pos.clone().sub(P).normalize();
             rig.position.copy(P).addScaledVector(dir, 420); rig.lookAt(rig.position.clone().sub(dir)); vel.copy(dir).multiplyScalar(90); window.__gj2 = false; cool = 10; };
           enterSystem(to); },
         () => { asked = false; cool = 8; const away = rig.position.clone().sub(g.position).normalize(); rig.position.copy(g.position).addScaledVector(away, 420); vel.set(0, 0, 0); });
       const q = $('gateQ'), pp = q && q.querySelector('.p p'), yb = q && q.querySelector('button.y');
-      if (pp) pp.innerHTML = 'Ücra kapı: <b>düşman toprağına</b> açılır. Kaçak geçiş ücreti <b>' + FEE + ' kredi</b>.';
-      if (yb){ yb.disabled = save.kredi < FEE; yb.style.opacity = save.kredi < FEE ? '.45' : ''; yb.textContent = save.kredi < FEE ? 'Kredi yetersiz' : 'Geç · ' + FEE + ' kredi'; } }
+      if (pp) pp.innerHTML = 'Ücra kapı: <b>düşman toprağına</b> açılır. Kaçak geçiş ücreti <b>' + FEEf() + ' kredi</b>.';
+      if (yb){ yb.disabled = save.kredi < FEEf(); yb.style.opacity = save.kredi < FEEf() ? '.45' : ''; yb.textContent = save.kredi < FEEf() ? 'Kredi yetersiz' : 'Geç · ' + FEEf() + ' kredi'; } }
   });
   { const _dh = drawHud; drawHud = function(){ _dh(); try { if (R && save.rgate[curSys] && !docked) drawMarker(hctx, g.position, '#ff6b8a', 'Ücra kapı → ' + SYS[R.to].ad, rig.position.distanceTo(g.position), 5000); } catch (e) {} }; }
 }
@@ -8629,44 +8630,77 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(sv);
   }
   window.__badge = badge;
-  // ---- yetenekler
+  // ---- yetenek ağacı: 4 dal, 3 kademe; üst kademe dalda harcanan puanla açılır
+  const BR = [['kazi', 'Madencilik', '#ffb454'], ['savas', 'Savaş', '#ff6b8a'], ['pilot', 'Pilotaj', '#7fd8ff'], ['ticaret', 'Ticaret', '#7be0a4']];
   const SKL = [
-    { id: 'kazi', g: 'Madencilik', n: 'Derin kazı', d: l => 'Kaya kırma hızı +%' + l * 12 },
-    { id: 'cekim', g: 'Madencilik', n: 'Çekim ışını', d: l => 'Toplama menzili ' + (190 + l * 50) + ' m' },
-    { id: 'kargo', g: 'Madencilik', n: 'Sıkı istif', d: l => 'Kargo +' + l * 3 },
-    { id: 'nisan', g: 'Savaş', n: 'Keskin nişan', d: l => 'Gemilere hasar +%' + l * 10 },
-    { id: 'zirh', g: 'Savaş', n: 'Zırh kaplama', d: l => 'Gövde +' + l * 15 },
-    { id: 'kalkan', g: 'Savaş', n: 'Kalkan ayarı', d: l => 'Kalkan +%' + l * 12 },
-    { id: 'itki', g: 'Pilotaj', n: 'İtki ayarı', d: l => 'İtiş ve azami hız +%' + l * 6 },
-    { id: 'sogut', g: 'Pilotaj', n: 'Soğutma hattı', d: l => 'Lazer ısınması −%' + l * 10 },
-    { id: 'pazar', g: 'Ticaret', n: 'Pazarlıkçı', d: l => 'Cevher satışı +%' + l * 4 }
-  ], SMAX = 3;
+    { id: 'kazi', b: 'kazi', t: 1, m: 5, n: 'Derin kazı', d: l => 'Kaya kırma +%' + l * 15 },
+    { id: 'cekim', b: 'kazi', t: 1, m: 3, n: 'Çekim ışını', d: l => 'Toplama menzili ' + (190 + l * 50) + ' m' },
+    { id: 'kargo', b: 'kazi', t: 2, m: 5, n: 'Sıkı istif', d: l => 'Kargo +' + l * 6 },
+    { id: 'menzil', b: 'kazi', t: 2, m: 3, n: 'Uzun ışın', d: l => 'Lazer menzili +' + l * 40 + ' m' },
+    { id: 'damar', b: 'kazi', t: 3, m: 3, n: 'Zengin damar', d: l => 'Kayadan +1 cevher şansı %' + l * 15 },
+    { id: 'nisan', b: 'savas', t: 1, m: 5, n: 'Keskin nişan', d: l => 'Gemilere hasar +%' + l * 10 },
+    { id: 'sogut', b: 'savas', t: 1, m: 3, n: 'Soğutma hattı', d: l => 'Lazer ısınması −%' + l * 10 },
+    { id: 'kalkan', b: 'savas', t: 2, m: 3, n: 'Kalkan yenilemesi', d: l => 'Kalkan dolma hızı +%' + l * 25 },
+    { id: 'roket', b: 'savas', t: 2, m: 3, n: 'Roket ustası', d: l => 'Roket hasarı +%' + l * 15 },
+    { id: 'avci', b: 'savas', t: 3, m: 3, n: 'Ödül avcısı', d: l => 'Korsan ödülleri +%' + l * 15 },
+    { id: 'itki', b: 'pilot', t: 1, m: 5, n: 'İtki ayarı', d: l => 'İtiş gücü +%' + l * 10 },
+    { id: 'hiz', b: 'pilot', t: 1, m: 3, n: 'Hız sınırı', d: l => 'Azami hız +%' + l * 6 },
+    { id: 'isin', b: 'pilot', t: 2, m: 3, n: 'Işın odağı', d: l => 'Lazer gücü +%' + l * 8 },
+    { id: 'kapi', b: 'pilot', t: 2, m: 3, n: 'Atlama ustası', d: l => 'Hiperatlama ve ücra kapı ücreti −%' + l * 15 },
+    { id: 'dayan', b: 'pilot', t: 3, m: 3, n: 'Sağlam gövde', d: l => 'Alınan hasar −%' + l * 6 },
+    { id: 'pazar', b: 'ticaret', t: 1, m: 5, n: 'Pazarlıkçı', d: l => 'Cevher satışı +%' + l * 4 },
+    { id: 'tamir', b: 'ticaret', t: 1, m: 3, n: 'Tamir indirimi', d: l => 'Tamir −%' + l * 12 },
+    { id: 'kacak', b: 'ticaret', t: 2, m: 3, n: 'Kaçakçı', d: l => 'Gizli bölme +' + l * 2 },
+    { id: 'diplo', b: 'ticaret', t: 2, m: 3, n: 'Diplomat', d: l => 'İtibar kazancı +%' + l * 20 },
+    { id: 'tuccar', b: 'ticaret', t: 3, m: 3, n: 'Lonca ortağı', d: l => 'Görev ödülleri +%' + l * 10 }
+  ], TNEED = { 1: 0, 2: 3, 3: 7 };
   if (!save.sk || typeof save.sk !== 'object'){ save.sk = {}; save.sp = levelOf(save.xp || 0) - 1; persist(); }
   if (typeof save.sp !== 'number') save.sp = 0;
-  const SL = k => save.sk[k] || 0;
-  function skApply(){ window.__skM = 1 + 0.12 * SL('kazi'); window.__skR = 190 + 50 * SL('cekim'); window.__skP = 1 + 0.1 * SL('nisan'); window.__skT = 1 + 0.06 * SL('itki'); window.__skH = 1 - 0.1 * SL('sogut'); try { applyShip(false); } catch (e) {} }
-  { const _as = applyShip; applyShip = function(full){ _as(full); const hm = hp.hullMax, sm = hp.shieldMax; hp.hullMax += 15 * SL('zirh'); hp.shieldMax = Math.round(hp.shieldMax * (1 + 0.12 * SL('kalkan')));
-      if (full){ hp.hull = hp.hullMax; hp.shield = hp.shieldMax; } else if (hp.hull === hm && hp.hullMax > hm){ hp.hull = hp.hullMax; } }; }
+  // ağaçta artık olmayan yetenekler (zırh vb.): puan iade
+  for (const k of Object.keys(save.sk)) if (!SKL.some(q => q.id === k)){ save.sp += save.sk[k]; delete save.sk[k]; }
+  // gemi geliştirmeleri kaldırıldı: harcanan kredi ve parçalar iade edilir
+  if (!save.upgRefund){ let back = 0; const UB = { lazer: 80, kargo: 60, motor: 90, kalkan: 100, zirh: 110, sogutma: 90 }, UPP2 = { lazer: ['devre', [1, 1, 2, 3, 4]], kargo: ['levha', [2, 3, 5, 7, 9]], motor: ['hucre', [1, 1, 2, 2, 3]], kalkan: ['levha', [2, 3, 4, 6, 8]] };
+    for (const k in UB){ const lv = (save.lv && save.lv[k]) || 0; for (let i = 0; i < lv; i++){ back += Math.round(UB[k] * Math.pow(1.9, i)); const P = UPP2[k]; if (P){ if (!save.parts) save.parts = {}; save.parts[P[0]] = (save.parts[P[0]] || 0) + P[1][i]; } } if (save.lv) save.lv[k] = 0; }
+    save.upgRefund = 1; if (back > 0){ save.kredi += back; setTimeout(() => toast('Gemi geliştirme kaldırıldı: ' + back + ' kredi ve parçaların iade edildi. Artık güç yetenek ağacından gelir.', 6500), 4000); } persist(); }
+  for (const k in UPG) delete UPG[k];
+  try { applyShip(false); } catch (e) {}
+  const SL = k => save.sk[k] || 0, inBr = b => SKL.filter(q => q.b === b).reduce((t, q) => t + SL(q.id), 0);
+  function skApply(){ const L = levelOf(save.xp || 0);
+    window.__skM = 1 + 0.15 * SL('kazi'); window.__skR = 190 + 50 * SL('cekim'); window.__skC = 6 * SL('kargo'); window.__skL = 40 * SL('menzil') + 5 * (L - 1);
+    window.__skP = 1 + 0.1 * SL('nisan'); window.__skH = 1 - 0.1 * SL('sogut'); window.__skS = 1 + 0.25 * SL('kalkan'); window.__skRk = 1 + 0.15 * SL('roket');
+    window.__skT0 = 0.45 * SL('itki'); window.__skT = 1 + 0.06 * SL('hiz'); window.__skD0 = 0.07 * (L - 1) + 0.15 * SL('isin');
+    window.__skG = 1 - 0.15 * SL('kapi'); window.__skCol = 1 - 0.06 * SL('dayan'); window.__skRep = 1 - 0.12 * SL('tamir'); window.__skK = 2 * SL('kacak'); window.__skF = 1 + 0.2 * SL('diplo'); window.__skQ = 1 + 0.1 * SL('tuccar'); window.__skA = 1 + 0.15 * SL('avci'); window.__skDm = 0.15 * SL('damar'); }
   { const _rm = repMul; repMul = function(st){ return _rm(st) * (1 + 0.04 * SL('pazar')); }; }
-  { const _cc = crewCargo; crewCargo = function(){ return _cc() + 3 * SL('kargo'); }; }
   skApply();
+  // seviye atlayınca seviyeye bağlı lazer gücü/menzil de güncellenir
+  { let lv0 = levelOf(save.xp || 0); EXTRA.push(() => { const L = levelOf(save.xp || 0); if (L !== lv0){ lv0 = L; skApply(); } }); }
   // ---- yetenek penceresi (uçarken de açılır)
+  let skSel = null;
   function skOpen(){
     let w = $('skModal'); if (!w){ w = document.createElement('div'); w.id = 'skModal'; document.body.appendChild(w);
       w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-skx]')){ w.classList.remove('on'); return; }
-        const b = e.target.closest('button[data-sk]'); if (b && !b.disabled){ const k = b.dataset.sk; if (save.sp > 0 && SL(k) < SMAX){ save.sp--; save.sk[k] = SL(k) + 1; persist(); skApply(); try { sfxP('gelistirme', 0.6); } catch (er) {} skRender(); try { renderCt(); } catch (er) {} } }
+        const nd = e.target.closest('[data-skn]'); if (nd){ skSel = nd.dataset.skn; skRender(); return; }
+        const b = e.target.closest('button[data-sk]'); if (b && !b.disabled){ const q = SKL.find(x => x.id === b.dataset.sk); if (q && save.sp > 0 && SL(q.id) < q.m && inBr(q.b) >= TNEED[q.t]){ save.sp--; save.sk[q.id] = SL(q.id) + 1; persist(); skApply(); try { sfxP('gelistirme', 0.6); } catch (er) {} skRender(); try { renderCt(); } catch (er) {} } }
         const r = e.target.closest('button[data-skr]'); if (r && !r.disabled){ if (!r.dataset.ok){ r.dataset.ok = 1; r.textContent = 'Emin misin? ' + RESET() + ' kredi'; return; } const n = Object.values(save.sk).reduce((a, b) => a + b, 0); save.kredi -= RESET(); save.sk = {}; save.sp += n; persist(); skApply(); skRender(); } }); }
     skRender(); w.classList.add('on');
   }
   const RESET = () => 300 + 100 * Object.values(save.sk).reduce((a, b) => a + b, 0);
   function skRender(){
-    const w = $('skModal'); if (!w) return; const L = levelOf(save.xp || 0); let h = '<div class="bx"><div class="hd"><img src="' + badge(L) + '"><div><b>Yetenekler</b><span>Seviye ' + L + ' · ' + RANKS[rankOf(save.xp)][0] + '</span></div><i class="pt">' + save.sp + '<small>puan</small></i></div><div class="ls">';
-    let g0 = '';
-    for (const S of SKL){ const l = SL(S.id);
-      if (S.g !== g0){ g0 = S.g; h += '<div class="g">' + g0 + '</div>'; }
-      h += '<div class="r"><span><b>' + S.n + '</b><small>' + (l ? S.d(l) : 'Henüz yok') + (l < SMAX ? ' → ' + S.d(l + 1) : '') + '</small></span><i class="pp">' + [0, 1, 2].map(i => '<u class="' + (i < l ? 'on' : '') + '"></u>').join('') + '</i><button class="act' + (save.sp > 0 && l < SMAX ? ' go' : '') + '" data-sk="' + S.id + '" ' + (save.sp > 0 && l < SMAX ? '' : 'disabled') + '>' + (l >= SMAX ? 'Tam' : '+') + '</button></div>'; }
-    const spent = Object.values(save.sk).reduce((a, b) => a + b, 0);
-    h += '</div><div class="ft"><span>Her seviye atlayışında 1 yetenek puanı kazanırsın.</span>' + (spent ? '<button class="act" data-skr="1" ' + (save.kredi < RESET() ? 'disabled' : '') + '>Sıfırla</button>' : '') + '<button class="act" data-skx="1">Kapat</button></div></div>';
+    const w = $('skModal'); if (!w) return; const L = levelOf(save.xp || 0);
+    if (!skSel || !SKL.some(q => q.id === skSel)) skSel = SKL[0].id;
+    let h = '<div class="bx"><div class="hd"><img src="' + badge(L) + '"><div><b>Yetenek ağacı</b><span>Seviye ' + L + ' · ' + RANKS[rankOf(save.xp)][0] + ' · her seviye lazer gücünü ve menzilini biraz artırır</span></div><i class="pt">' + save.sp + '<small>puan</small></i></div><div class="tr">';
+    for (const [b, bn, bc] of BR){ const sp = inBr(b);
+      h += '<div class="col" style="--bc:' + bc + '"><div class="bn">' + bn + '<small>' + sp + ' puan</small></div>';
+      for (const t of [1, 2, 3]){ const lock = sp < TNEED[t];
+        h += '<div class="tier' + (lock ? ' lk' : '') + '">' + (lock ? '<div class="need">◇ ' + TNEED[t] + ' puan</div>' : '');
+        for (const q of SKL.filter(x => x.b === b && x.t === t)){ const l = SL(q.id);
+          h += '<div class="nd' + (l ? ' has' : '') + (skSel === q.id ? ' sel' : '') + '" data-skn="' + q.id + '"><b>' + q.n + '</b><i>' + Array.from({ length: q.m }, (_, i) => '<u class="' + (i < l ? 'on' : '') + '"></u>').join('') + '</i></div>'; }
+        h += '</div>'; }
+      h += '</div>'; }
+    const q = SKL.find(x => x.id === skSel), l = SL(q.id), lock = inBr(q.b) < TNEED[q.t], can = save.sp > 0 && l < q.m && !lock, bc = BR.find(x => x[0] === q.b)[2];
+    h += '</div><div class="ft" style="--bc:' + bc + '"><span><b>' + q.n + '</b> · ' + l + '/' + q.m + '<small>' + (l ? q.d(l) : 'Henüz yok') + (l < q.m ? ' → ' + q.d(l + 1) : '') + (lock ? ' · Bu kademe, dalda ' + TNEED[q.t] + ' puan harcayınca açılır' : '') + '</small></span>'
+      + '<button class="act' + (can ? ' go' : '') + '" data-sk="' + q.id + '" ' + (can ? '' : 'disabled') + '>' + (l >= q.m ? 'Tamam' : 'Puan ver') + '</button>'
+      + (Object.keys(save.sk).length ? '<button class="act" data-skr="1" ' + (save.kredi < RESET() ? 'disabled' : '') + '>Sıfırla</button>' : '') + '<button class="act" data-skx="1">Kapat</button></div></div>';
     w.innerHTML = h;
   }
   window.__skOpen = skOpen;
@@ -8707,10 +8741,16 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #skModal .bx{width:min(520px,94vw);max-height:92vh;display:flex;flex-direction:column;background:rgba(8,14,26,.97);border:1px solid rgba(220,235,245,.16);border-radius:10px;color:#e8edff;font:500 13px/1.4 var(--font)}
   #skModal .hd{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(220,235,245,.1)}#skModal .hd img{width:46px;height:46px}#skModal .hd b{display:block;font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:13px}#skModal .hd span{color:#9fb0c8;font-size:12px}
   #skModal .hd .pt{margin-left:auto;font-style:normal;font-size:24px;font-weight:300;color:#ffc56e;text-align:center;line-height:1}#skModal .hd .pt small{display:block;font-size:9.5px;letter-spacing:.2em;color:#9fb0c8;text-transform:uppercase}
-  #skModal .ls{overflow:auto;padding:4px 14px 8px}#skModal .g{margin:10px 0 2px;font-size:10.5px;font-weight:600;letter-spacing:.24em;color:#8fa3c4;text-transform:uppercase}
-  #skModal .r{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(220,235,245,.06)}#skModal .r>span{flex:1}#skModal .r b{font-weight:600}#skModal .r small{display:block;color:#93a4bf;font-size:11.5px}
-  #skModal .pp{display:flex;gap:4px}#skModal .pp u{width:9px;height:9px;transform:rotate(45deg);border:1px solid #8fa3c4}#skModal .pp u.on{background:#ffc56e;border-color:#ffc56e}
-  #skModal .r .act{min-width:44px}#skModal .ft{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid rgba(220,235,245,.1)}#skModal .ft span{flex:1;color:#93a4bf;font-size:11.5px}`;
+  #skModal .bx{width:min(900px,97vw)}
+  #skModal .tr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 12px;overflow:auto}
+  #skModal .col{display:flex;flex-direction:column;gap:6px}#skModal .bn{font-size:10.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--bc);border-bottom:1px solid var(--bc);padding-bottom:4px;display:flex;justify-content:space-between;align-items:baseline}#skModal .bn small{letter-spacing:.05em;color:#8fa3c4;font-size:10px}
+  #skModal .tier{display:flex;flex-direction:column;gap:5px;padding-left:8px;border-left:1px dashed rgba(220,235,245,.14)}#skModal .tier.lk .nd{opacity:.38}
+  #skModal .need{font-size:9.5px;color:#8fa3c4;letter-spacing:.1em}
+  #skModal .nd{padding:6px 8px;border:1px solid rgba(220,235,245,.14);border-radius:5px;background:rgba(255,255,255,.02);cursor:pointer}#skModal .nd b{display:block;font-weight:600;font-size:12px;line-height:1.25}
+  #skModal .nd.has{border-color:var(--bc);background:rgba(255,255,255,.05)}#skModal .nd.sel{outline:1.5px solid var(--bc);outline-offset:1px}
+  #skModal .nd i{display:flex;gap:3px;margin-top:4px}#skModal .nd u{width:7px;height:7px;transform:rotate(45deg);border:1px solid #6f82a3}#skModal .nd u.on{background:var(--bc);border-color:var(--bc)}
+  #skModal .ft{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid rgba(220,235,245,.1)}#skModal .ft>span{flex:1;font-size:13px}#skModal .ft>span b{color:var(--bc)}#skModal .ft small{display:block;color:#93a4bf;font-size:11.5px}
+  @media (max-height:480px){#skModal .bx{max-height:96vh}#skModal .hd{padding:6px 12px}#skModal .hd img{width:32px;height:32px}#skModal .tr{padding:6px 10px;gap:6px}#skModal .col{gap:4px}#skModal .tier{gap:4px}#skModal .nd{padding:3px 6px}#skModal .nd b{font-size:11px}#skModal .nd i{margin-top:2px}#skModal .ft{padding:6px 12px}}`;
   document.head.appendChild(st);
 }
 
@@ -8785,5 +8825,17 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button[data-bm]')) setTimeout(() => { try { build(); } catch (er) {} }, 50); });
   const st = document.createElement('style'); st.textContent = '.bzc{display:flex;gap:7px}.bzc button{width:24px;height:24px;border-radius:50%;background:var(--c);border:2px solid rgba(0,0,0,.4);cursor:pointer;padding:0}.bzc button.on{outline:2px solid #fff;outline-offset:2px}';
   document.head.appendChild(st);
+}
+
+// ---------- yetenek etkileri: hasar azaltma, ödül avcısı, zengin damar, diplomat, tamir indirimi ----------
+{
+  { const _h = hurt; hurt = function(n){ return _h.call(this, n * (window.__skCol || 1)); }; }
+  { const _kn = killNpc; killNpc = function(n, by){ const k0 = save.kredi, hos = n && n.hostile; const r = _kn.apply(this, arguments); if (by === 'player' && hos && (window.__skA || 1) > 1){ const d = save.kredi - k0; if (d > 0) save.kredi += Math.round(d * (window.__skA - 1)); } return r; }; }
+  { const _ba = breakAsteroid; breakAsteroid = function(a, big, noOre){ if (!noOre && a && Math.random() < (window.__skDm || 0)) a.units = (a.units || 1) + 1; return _ba.apply(this, arguments); }; }
+  { const _f = window.__fac; if (_f) window.__fac = function(k, d, q){ return _f(k, d > 0 ? d * (window.__skF || 1) : d, q); }; }
+  try { const _rd = rpDisc; rpDisc = () => _rd() * (window.__skRep || 1); } catch (e) {}
+  // Geliştir sekmesinde gemi geliştirme yerine yetenek ağacına yönlendirme
+  const _rdk = renderDock; renderDock = function(){ _rdk(); try { const up = $('upgrades'); if (up && !up.querySelector('[data-skopen]')){ up.querySelectorAll('.partsum').forEach(e => e.remove()); const sc = [...up.querySelectorAll('.sect')].find(x => /Gemi geliştirme/.test(x.textContent)); if (sc) sc.textContent = 'Pilot yetenekleri';
+      (sc || up).insertAdjacentHTML(sc ? 'afterend' : 'afterbegin', '<div class="line"><span>Yetenek ağacı<span class="dim"><br>Gemi geliştirme yerine artık seviye atladıkça puan kazanır, madencilik, savaş, pilotaj ve ticaret dallarına dağıtırsın. Silah ve roketler Silahlar sekmesinde.</span></span><button class="act' + (save.sp ? ' go' : '') + '" data-skopen="1">Yetenekler' + (save.sp ? ' · ' + save.sp : '') + '</button></div>'); } } catch (e) { console.warn(e); } };
 }
 })();
