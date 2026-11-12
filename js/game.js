@@ -8032,4 +8032,98 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   `;
   document.head.appendChild(st);
 }
+
+// =====================  taraf seçimi: Yıldız Filosu, Tüccar Loncası, Korsan Birliği  =====================
+{
+  const SIDE = {
+    filo: { ad: 'Yıldız Filosu', col: '#7fd8ff', img: 'fac_filo', pitch: 'Düzenin bekçisi ol. Korsan avla, ticaret yollarını koru.',
+      perks: ['Korsan ödülleri +%25', 'Devriyeler başın sıkışınca yardıma gelir', 'Başlangıçta Filo dostun'], rel: { filo: 40, lonca: 10, korsan: -30 } },
+    lonca: { ad: 'Tüccar Loncası', col: '#ffc477', img: 'fac_lonca', pitch: 'Kazan, sat, büyü. Fiyatları bil, yükünü doldur.',
+      perks: ['Cevher satışı +%8', 'Kargo kapasitesi +4', 'Başlangıçta herkesle arası iyi'], rel: { filo: 10, lonca: 40, korsan: -5 } },
+    korsan: { ad: 'Korsan Birliği', col: '#ff6b8a', img: 'fac_korsan', pitch: 'Kural yok. Tüccarları soy, devriyelerden kaç.',
+      perks: ['Korsanlar sana saldırmaz', 'Tüccar gemisi düşürünce yağma +80 kredi', 'Ama Filo devriyeleri seni görünce saldırır'], rel: { filo: -65, lonca: -20, korsan: 50 } }
+  };
+  window.__SIDE = SIDE;
+  const fac = window.__fac;
+  const own = () => save.side && SIDE[save.side] ? save.side : null;
+  // avantajlar
+  { const _rm = repMul; repMul = st => _rm(st) * (own() === 'lonca' ? 1.08 : 1); }
+  { const _cc = crewCargo; crewCargo = function(){ return _cc() + (own() === 'lonca' ? 4 : 0); }; }
+  { const _kn = killNpc; killNpc = function(n, by){
+      const was = npcs.indexOf(n) >= 0, hos = n.hostile, role = n.role; _kn(n, by); if (!was || by !== 'player') return;
+      if (own() === 'filo' && hos){ const b = Math.round(25 * (SYSC.bounty || 1)); save.kredi += b; persist(); }
+      if (own() === 'korsan' && !hos && role !== 'patrol'){ const b = Math.round(80 * (SYSC.pay || 1)); save.kredi += b; persist(); toast('Yağma: +' + b + ' kredi', 1800); }
+    }; }
+  // kendi grubunla aran hiçbir zaman "Dost"un altına düşmez
+  EXTRA.push(() => { const k = own(); if (k && save.fac[k] < 30) save.fac[k] = 30; });
+  // seçim ekranı
+  const css = document.createElement('style'); css.textContent = `
+  #sideSel{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);background:radial-gradient(ellipse at 50% 40%,rgba(20,30,52,.92),rgba(3,5,12,.97));color:#e9f1f7;font-family:var(--font);overflow:auto}
+  #sideSel h2{margin:0;font:600 17px/1.2 var(--font);letter-spacing:.42em;padding-left:.42em}
+  #sideSel .sub{margin:-6px 0 4px;color:#8ea2b6;font-size:12.5px;letter-spacing:.04em;text-align:center}
+  #sideSel .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(900px,100%)}
+  #sideSel .c{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:14px 12px 12px;background:rgba(255,255,255,.035);border:1px solid rgba(220,235,245,.14);border-top:2px solid var(--c);border-radius:4px;cursor:pointer;transition:background .15s,transform .15s}
+  #sideSel .c:hover,#sideSel .c.on{background:rgba(255,255,255,.07)}
+  #sideSel .c.on{outline:1px solid var(--c);transform:translateY(-2px)}
+  #sideSel .c img{width:64px;height:68px;object-fit:contain}
+  #sideSel .c b{font:600 14px var(--font);letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
+  #sideSel .c p{margin:0;font-size:12.5px;color:#c9d6e2;line-height:1.35}
+  #sideSel .c ul{margin:4px 0 0;padding:0;list-style:none;font-size:11.5px;color:#8ea2b6;line-height:1.5;text-align:left;width:100%}
+  #sideSel .c li::before{content:"";display:inline-block;width:5px;height:5px;margin:0 7px 1px 0;background:var(--c);transform:rotate(45deg)}
+  #sideSel .go{margin-top:4px;padding:11px 46px;border-radius:999px;border:1px solid rgba(233,241,247,.75);background:transparent;color:#e9f1f7;font:700 13px var(--font);letter-spacing:.32em;cursor:pointer}
+  #sideSel .go:not(:disabled){background:#e9f1f7;color:#0a1220}
+  #sideSel .go:disabled{opacity:.35}
+  #sideSel .note{font-size:11px;color:#6f8296;text-align:center;max-width:560px}
+  @media (max-height:520px){#sideSel{justify-content:flex-start;gap:8px}#sideSel .c{padding:9px 8px;gap:3px}#sideSel .c img{width:44px;height:47px}#sideSel .c p{font-size:11.5px}#sideSel .c ul{font-size:10.5px;line-height:1.4}#sideSel h2{font-size:14px}}
+  @media (max-width:600px){#sideSel .cards{grid-template-columns:1fr}}
+  `; document.head.appendChild(css);
+  function pick(cb){
+    const d = document.createElement('div'); d.id = 'sideSel'; let sel = null;
+    d.innerHTML = '<h2>TARAFINI SEÇ</h2><div class="sub">Yıldızlar arasında kimin yanında uçacaksın?</div><div class="cards">'
+      + Object.keys(SIDE).map(k => { const S = SIDE[k]; return '<div class="c" data-k="' + k + '" style="--c:' + S.col + '"><img alt="" src="assets/img/' + S.img + '.webp?v=' + (window.SD_VERSION || '') + '"><b>' + S.ad + '</b><p>' + S.pitch + '</p><ul>' + S.perks.map(x => '<li>' + x + '</li>').join('') + '</ul></div>'; }).join('')
+      + '</div><button class="go" disabled>SEÇ</button><div class="note">Tarafını sonradan değiştirebilirsin, ama bedeli ağır olur: istasyondaki Görevler sekmesinde, Gruplar bölümünde.</div>';
+    document.body.appendChild(d); window.__menuOn = true;
+    const go = d.querySelector('.go');
+    d.addEventListener('click', e => {
+      const c = e.target.closest('.c'); if (c){ sel = c.dataset.k; d.querySelectorAll('.c').forEach(x => x.classList.toggle('on', x === c)); go.disabled = false; go.textContent = SIDE[sel].ad.toLocaleUpperCase('tr-TR') + ' · SEÇ'; try { blip(640, 0.08); } catch (er) {} return; }
+      if (e.target === go && sel){ d.remove(); window.__menuOn = false; cb(sel); }
+    });
+    for (const ev of ['keydown', 'keyup']) d.addEventListener(ev, e => e.stopPropagation());
+  }
+  function join(k, first){
+    const S = SIDE[k]; save.side = k; save.sideT = Date.now();
+    if (first){ for (const f in S.rel) save.fac[f] = S.rel[f]; }
+    persist(); try { sfxP('itibar', 0.7); } catch (e) {}
+    setTimeout(() => { eco.radioT = -9; radio(S.ad, k === 'filo' ? 'Aramıza hoş geldin, pilot. Devriyeler arkanda.' : k === 'lonca' ? 'Loncaya hoş geldin. Yükün dolu, cebin dolu olsun.' : 'Artık bizdensin. Devriyelere dikkat et.', S.col); }, 1200);
+  }
+  window.__sidePick = () => pick(k => join(k, true));
+  const ask = () => { if (!own() && !$('sideSel')) pick(k => join(k, true)); };
+  // açılış ekranından sonra (eski oyuncular da bir kez seçer)
+  { const tg = $('titleGo'); if (tg) tg.addEventListener('click', () => setTimeout(ask, 650)); else setTimeout(ask, 1500); }
+  // taraf değiştirme: zor ve cezalı
+  const REQ = { xp: 1200, kredi: 4000, rep: 30, cool: 2 * 3600 * 1000 };
+  function canSwitch(to){
+    const r = []; if (save.xp < REQ.xp) r.push('Usta Pilot rütbesi'); if (save.kredi < REQ.kredi) r.push(REQ.kredi + ' kredi'); if (save.fac[to] < REQ.rep) r.push(SIDE[to].ad + ' ile en az Dost (' + Math.round(save.fac[to]) + '/30)');
+    const left = (save.sideT || 0) + REQ.cool - Date.now(); if (left > 0) r.push('son değişiklikten ' + Math.ceil(left / 60000) + ' dk sonra');
+    return r;
+  }
+  function doSwitch(to){
+    const from = own(); if (!from || canSwitch(to).length) return;
+    save.kredi -= REQ.kredi; save.xp = Math.round(save.xp * 0.8); save.fac[from] = -60; if (to === 'korsan') save.fac.filo = Math.min(save.fac.filo, -65); if (to === 'filo') save.fac.korsan = Math.min(save.fac.korsan, -30); save.side = to; save.sideT = Date.now(); save.sideN = (save.sideN || 0) + 1; persist();
+    toast('Artık ' + SIDE[to].ad + ' tarafındasın. ' + SIDE[from].ad + ' seni hain ilan etti.', 4200);
+    setTimeout(() => { eco.radioT = -9; radio(SIDE[from].ad, 'Bunu unutmayacağız, hain.', SIDE[from].col); }, 1400);
+    try { sfxP('itibar', 0.8); } catch (e) {} renderCt();
+  }
+  const _rc = renderCt; renderCt = function(){
+    _rc(); const box = $('ctBox'); if (!box) return; const k = own(); if (!k) return;
+    const sect = [...box.querySelectorAll(':scope > .sect')].find(x => /^Gruplar/.test(x.dataset.t0 || x.textContent)); if (!sect) return;
+    let h = '<div class="line"><span>Tarafın: <b style="color:' + SIDE[k].col + '">' + SIDE[k].ad + '</b><span class="dim"><br>' + SIDE[k].perks.slice(0, 2).join(' · ') + '</span></span></div>';
+    for (const to in SIDE){ if (to === k) continue; const miss = canSwitch(to);
+      h += '<div class="line"><span>' + SIDE[to].ad + ' tarafına geç<span class="dim"><br>' + (miss.length ? 'Gerekli: ' + miss.join(', ') : 'Bedeli: ' + REQ.kredi + ' kredi, XP\'nin %20\'si; ' + SIDE[k].ad + ' seni düşman sayar') + '</span></span><button class="act' + (miss.length ? '' : ' go') + '" data-side="' + to + '" ' + (miss.length ? 'disabled' : '') + '>Geç</button></div>'; }
+    sect.insertAdjacentHTML('afterend', h);
+  };
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-side]'); if (!b || b.disabled) return; const to = b.dataset.side;
+    if (b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Emin misin?'; setTimeout(() => { if (b.isConnected){ b.dataset.sure = ''; b.textContent = 'Geç'; } }, 3500); return; }
+    doSwitch(to); });
+}
 })();
