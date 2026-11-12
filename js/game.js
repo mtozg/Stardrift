@@ -6722,10 +6722,10 @@ window.__xpal = {
   };
   // ---- üs modülleri: kredi + cevher + parça
   const REQ = {
-    tam: { c: [600, 1400, 2800], o: { demir: [10, 24, 48] }, p: { levha: [1, 3, 5] } },
-    dep: { c: [500, 1200, 2400], o: { demir: [8, 18, 36], buz: [0, 6, 14] }, p: { levha: [1, 2, 4] } },
-    rok: { c: [450, 1100, 2200], o: { demir: [10, 20, 40], kristal: [0, 4, 10] }, p: { devre: [1, 2, 4] } },
-    sav: { c: [700, 1600, 3000], o: { demir: [12, 24, 48], kristal: [0, 6, 14] }, p: { devre: [1, 3, 5], hucre: [0, 1, 2] } }
+    tam: { c: [600, 1400, 2800], o: { titan: [10, 24, 48], hurda: [0, 6, 12] }, p: { levha: [1, 3, 5] } },
+    dep: { c: [500, 1200, 2400], o: { titan: [8, 18, 36], hurda: [4, 8, 16] }, p: { levha: [1, 2, 4] } },
+    rok: { c: [450, 1100, 2200], o: { titan: [10, 20, 40], hurda: [0, 6, 12] }, p: { devre: [1, 2, 4] } },
+    sav: { c: [700, 1600, 3000], o: { titan: [12, 24, 48], hurda: [6, 12, 20] }, p: { devre: [1, 3, 5], hucre: [0, 1, 2] } }
   };
   const haveOre = k => (cargo[k] || 0) + ((save.base && save.base.store && save.base.store[k]) || 0);
   const lacks = (a, l) => { const R = REQ[a], out = []; for (const k in R.o){ const n = R.o[k][l]; if (n > 0) out.push([ORE[k].ad.toLowerCase(), n, haveOre(k) >= n, k]); } for (const k in R.p){ const n = R.p[k][l]; if (n > 0) out.push([PN[k], n, save.parts[k] >= n, k]); } return out; };
@@ -6737,7 +6737,7 @@ window.__xpal = {
       if (sp) sp.insertAdjacentHTML('beforeend', '<br>Gerekir: ' + ls.map(x => '<span style="color:' + (x[2] ? '#7be0a4' : '#ff7a8a') + '">' + x[1] + __pi(x[3]) + '</span>').join(' · '));
       if (!ok) b.disabled = true;
     });
-    const f = e.querySelector('.line.fac'); if (f && !e.querySelector('.bsum')) f.insertAdjacentHTML('beforebegin', '<div class="line bsum"><span class="dim">Elindeki: ' + ['demir', 'buz', 'kristal'].map(k => __pi(k) + haveOre(k)).join(' · ') + '<br>' + partTxt() + '</span></div>');
+    const f = e.querySelector('.line.fac'); if (f && !e.querySelector('.bsum')) f.insertAdjacentHTML('beforebegin', '<div class="line bsum"><span class="dim">Elindeki: ' + ['titan', 'hurda'].map(k => __pi(k) + haveOre(k)).join(' · ') + '<br>' + partTxt() + '</span></div>');
   };
   document.addEventListener('click', ev => {
     const b = ev.target.closest && ev.target.closest('button[data-bm]'); if (!b) return; const a = b.dataset.bm, R = REQ[a]; if (!R) return; const B = save.base; if (!B || !B.m || curSt !== baseSt) return; const l = B.m[a];
@@ -8407,7 +8407,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   window.__kHold = HOLD;
   // istasyona yanaşınca gümrük taraması
   { const _td = tryDock; tryDock = function(){ const was = docked; const r = _td.apply(this, arguments);
-      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && Math.random() < (save.side === 'lonca' ? 0.25 : 0.4)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
+      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && !(curSt && curSt.isBase) && Math.random() < (save.side === 'lonca' ? 0.25 : 0.4)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
   // istasyonda: Ticaret sekmesinde kaçak pazar ve kayıt silme
   const box = document.createElement('div'); box.id = 'kacakBox'; box.dataset.tab = 'trade';
   const BUY = 90, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 185 : 150);
