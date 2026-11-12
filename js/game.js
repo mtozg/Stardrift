@@ -354,6 +354,11 @@ for (let i = 0; i < 4; i++){
     let f = mp.get(key); if (f === undefined){ f = 0.92 + 0.14 * fbm(q.x * 2 + i * 7, q.y * 2, q.z * 2, 3); mp.set(key, f); } p.setXYZ(j, q.x * f, q.y * f, q.z * f); }
   smoothNormals(g); iceT.push(g);
 }
+// çizimle gelen cevher kayaları (siyah arka plan → saydam, işlenmiş webp): listede varsa kaya o resimlerden biriyle görünür
+const ORE3 = {};
+(window.ORE3_LIST || []).forEach(n => { const m = /^ore3_([a-z]+)_\d+$/.exec(n); if (!m) return; const im = new Image(); im.onload = () => { const t = new THREE.Texture(im); t.anisotropy = 4; t.needsUpdate = true; (ORE3[m[1]] = ORE3[m[1]] || []).push(t);
+  if (typeof asteroids !== 'undefined') asteroids.forEach(a => { if (a.type === m[1] && !a.mesh.isSprite){ const nm = rockMesh(a.type, a.r); nm.position.copy(a.mesh.position); scene.remove(a.mesh); scene.add(nm); a.mesh = nm; a.pos = nm.position; } }); };
+  im.src = 'assets/img/' + n + '.webp?v=' + (window.SD_VERSION || ''); });
 const prismGeo = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.17, -0.44), new THREE.Vector2(0.17, 0.26), new THREE.Vector2(0.001, 0.5)], 6);
 // kristal sivrisi: dipte koyu kan kırmızısı, uca doğru açılan pembe-beyaz ışık (renk köşelere işlenir)
 const gemGeo = (() => { const g = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.15, -0.46), new THREE.Vector2(0.17, -0.1), new THREE.Vector2(0.16, 0.3), new THREE.Vector2(0.001, 0.5)], 6).toNonIndexed(), p = g.attributes.position, c = new Float32Array(p.count * 3);
@@ -373,6 +378,7 @@ const gemMat = {
   panel: new THREE.MeshStandardMaterial({ color: 0x8a92a4, roughness: 0.45, metalness: 0.3, emissive: 0x101420, flatShading: true })
 };
 function rockMesh(type, r){
+  { const L = ORE3[type]; if (L && L.length){ const t = L[(Math.random() * L.length) | 0], sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: true, alphaTest: 0.35, rotation: rand(0, TAU) })); sp.scale.set(r * 2.7, r * 2.7, 1); return sp; } }
   const pick = a => a[(Math.random() * a.length) | 0], add = (m, g, mat, sx, sy, sz, pos, quat) => { const c = new THREE.Mesh(g, mat); c.scale.set(sx, sy, sz); c.position.copy(pos); if (quat) c.quaternion.copy(quat); m.add(c); return c; };
   const up = new THREE.Vector3(0, 1, 0);
   let m;
@@ -1336,7 +1342,7 @@ function update(dt){
   planetMesh.rotation.y += dt * 0.01; cloudMesh.rotation.y += dt * 0.014; giantMesh.rotation.y += dt * 0.006;
   moonAng += dt * 0.01;
   moonMesh.position.set(PLANET.pos.x + Math.cos(moonAng) * 2300, PLANET.pos.y + Math.sin(moonAng * 1.7) * 300, PLANET.pos.z + Math.sin(moonAng) * 2300);
-  for (let _q18 = 0; _q18 < asteroids.length; _q18++){ const a = asteroids[_q18]; a.pos.addScaledVector(a.vel, dt); a.mesh.rotation.x += a.spin.x * dt; a.mesh.rotation.y += a.spin.y * dt; a.mesh.rotation.z += a.spin.z * dt; if (a.heat > 0){ a.heat -= dt; if (a.heat <= 0) a.mesh.material = astMat[a.type]; } }
+  for (let _q18 = 0; _q18 < asteroids.length; _q18++){ const a = asteroids[_q18]; a.pos.addScaledVector(a.vel, dt); a.mesh.rotation.x += a.spin.x * dt; a.mesh.rotation.y += a.spin.y * dt; a.mesh.rotation.z += a.spin.z * dt; if (a.mesh.isSprite) a.mesh.material.rotation += a.spin.z * dt * 0.35; if (a.heat > 0){ a.heat -= dt; if (a.heat <= 0){ if (a.mesh.isSprite) a.mesh.material.color.setHex(0xffffff); else a.mesh.material = astMat[a.type]; } } }
   updateEco(dt);
   for (let _q19 = 0; _q19 < ruins.length; _q19++){ const r = ruins[_q19]; r.group.rotation.y += dt * 0.05; r.core.rotation.y += dt; r.core.scale.setScalar(1 + 0.15 * Math.sin(time * 2 + r.i)); }
 
@@ -1493,7 +1499,7 @@ function update(dt){
           emit(end, d.x + aim.vel.x, d.y + aim.vel.y, d.z + aim.vel.z, Math.random() < 0.5 ? 0xffb070 : 0xfff0d8, rand(0.25, 0.55));
         }
         if (Math.random() < 0.12) addDebris(end, V(tmp.x * rand(3, 9) + rand(-3, 3), tmp.y * rand(3, 9) + rand(-3, 3), tmp.z * rand(3, 9) + rand(-3, 3)).add(aim.vel), rand(0.15, 0.4), rand(1.5, 3), aim.mesh ? aim.type : 'demir');
-        if (aim.mesh){ aim.heat = 0.25; aim.mesh.material = hotMat(aim.type); }
+        if (aim.mesh){ aim.heat = 0.25; if (aim.mesh.isSprite) aim.mesh.material.color.setHex(0xffa070); else aim.mesh.material = hotMat(aim.type); }
         if (aim.mesh && aim.hp <= 0){ shake = Math.max(shake, 0.4); breakAsteroid(aim, false); aim = null; }
         else if (aim && aim.kind === 'npc' && npcs.indexOf(aim) < 0){ shake = Math.max(shake, 0.4); aim = null; }
       } else end = _end.copy(rig.position).addScaledVector(fwd, range);
@@ -2452,7 +2458,7 @@ function img3(key, cb){ const im = new Image(); im.onload = () => cb(im); im.src
   loadArt(A3[key], t => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; t.needsUpdate = true;
     const m = astMat[type]; m.map = t; m.bumpMap = t; m.bumpScale = bump; m.color.setRGB(col[0], col[1], col[2]); if (type === 'buz'){ m.emissiveMap = t; m.emissive.setHex(0x9ab8d0); m.emissiveIntensity = 0.42; } m.needsUpdate = true;
-    hotCache = {}; asteroids.forEach(a => { if (a.heat > 0) a.mesh.material = astMat[a.type]; });
+    hotCache = {}; asteroids.forEach(a => { if (a.heat > 0 && !a.mesh.isSprite) a.mesh.material = astMat[a.type]; });
     if (type === 'demir'){ ROCKT.d = null; rockSys(); }
   });
 });
