@@ -609,7 +609,7 @@ const NPC_DEF = {
   reaver:   { skin: 'korsanC',  L: 58, hull: 260, spd: [34, 44], role: 'pirate', cap: 0,  pre: 'Yağmacı', tint: 0xf4e8e4 }
 };
 // patron korsan reisleri (evren sırasıyla): Dorak, Zerha, Hiem, Verdan
-for (let i = 0; i < 4; i++) NPC_DEF['boss' + i] = { skin: 'boss' + i, L: [190, 200, 205, 195][i], hull: 1700, spd: [26, 34], role: 'pirate', cap: 0, pre: 'Reis' };
+for (let i = 0; i < 6; i++) NPC_DEF['boss' + i] = { skin: 'boss' + (i === 4 ? 0 : i === 5 ? 1 : i), L: [190, 200, 205, 195, 190, 200][i], hull: 1700, spd: [26, 34], role: 'pirate', cap: 0, pre: 'Reis' };
 const eco = { t: 0, cool: { miner: 0, trader: 0, patrol: 0, pirate: 0 }, threat: 1, growth: 0, growT: 0, kills: 0, trades: 0, alerts: [], radioT: -9, warnT: -9 };
 const npcs = [], npcDummy = new THREE.Object3D();
 let npcId = 0;
@@ -2761,7 +2761,7 @@ const SYS = [
   { ad: 'Buzul Halka', not: 'Buz bol ve ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
   { ad: 'Zümrüt Sis', not: 'Kristal çok zengin, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
 ];
-const GATE_TO = [1, 2, 3, 0], JC = 150;
+const GATE_TO = [1, 2, 3, 0, 0, 0], JC = 150;
 const LORE_S = {
   1: ['Duvarda kurum: "Ocaklar sönmeden son kuşak burada yandı."', 'Pas dolu cephanelik. Not: "Ateş, korkunun mimarıdır."', 'Eriyik bir çekirdek. Not: "Kızıl yıldız bizi tavlayıp güçlendirdi."', 'Haritanın kenarında: "Geçit sadece geri dönenlere açılır."'],
   2: ['Buza gömülü günlük: "Sessizlik de bir sinyaldir."', 'Donmuş cephanelik. Not: "Soğuk, hiçbir şeyi unutmaz."', 'Kırağılı çekirdek. Not: "Isı, yalnızca hareketin adıdır."', 'Buzdaki harita: "Her halka bir kapıya çıkar."'],
@@ -2799,7 +2799,7 @@ const SYSST = {}; let MV = null, HOME = null;
 const SYSF = ['ruin', 'rn', 'map', 'calm', 'kb'];
 function lay(p, k, seed){
   if (k === 0) return p.clone();
-  const A = [0, 2.1, 4.2, 1.0][k], S = [1, 0.93, 1.08, 0.97][k], M = k === 2 ? -1 : 1;
+  const A = [0, 2.1, 4.2, 1.0, 3.1, 5.3][k] || 0, S = [1, 0.93, 1.08, 0.97, 1.04, 0.95][k] || 1, M = k === 2 || k === 5 ? -1 : 1;
   const rr = n => { const t = Math.sin(n * 12.9898 + k * 78.233) * 43758.5453; return t - Math.floor(t); };
   const x = p.x * S * M, z = p.z * S, c = Math.cos(A), s = Math.sin(A);
   return V(x * c + z * s + (rr(seed) - 0.5) * 700, p.y * S + (rr(seed + 9) - 0.5) * 200, -x * s + z * c + (rr(seed + 19) - 0.5) * 700);
@@ -4760,11 +4760,11 @@ function drawShieldFx(c, ox, oy, W, H){
 
 // ---------- 5) istasyona göre hangar arka planı ----------
 {
-  const HG = [null, A6.h1, A6.h2, A6.h3]; let last = -9;
+  const HG = [null, A6.h1, A6.h2, A6.h3]; let last = -9; const HGS = { 4: 'assets/img/a6_h_lonca.webp', 5: 'assets/img/a6_h_kara.webp' };
   EXTRA.push(dt => {
     if (!docked) { last = -9; return; }
-    const kk = xstk(curSt)[0], i = ['ankora','demirhan','ice','kristal'].indexOf(kk); if (i === last) return; last = i;
-    $('dock').style.setProperty('--hg', 'url(' + (HG[i] || A3.hangar) + ')');
+    const kk = xstk(curSt)[0], i0 = ['ankora','demirhan','ice','kristal'].indexOf(kk), hs = curSt === STATIONS[0] && HGS[curSys], i = hs ? 100 + curSys : i0; if (i === last) return; last = i;
+    $('dock').style.setProperty('--hg', 'url(' + (hs || HG[i0] || A3.hangar) + ')');
   });
 }
 
@@ -4781,7 +4781,7 @@ function drawShieldFx(c, ox, oy, W, H){
 
 // ---------- 7) sıçrama / kapı geçişi: evrenin rengine göre kodla çizilen efekt ----------
 {
-  const FXC = [[110, 190, 255], [255, 98, 54], [130, 226, 255], [72, 255, 166]];
+  const FXC = [[110, 190, 255], [255, 98, 54], [130, 226, 255], [72, 255, 166], [255, 196, 96], [255, 60, 90]];
   const st = document.createElement('style'); st.textContent = '#hyp{position:fixed;inset:0;z-index:60;background:#000;opacity:0;pointer-events:none;transition:opacity .25s;overflow:hidden}#hyp.on{opacity:1;pointer-events:auto}#hyp canvas{position:absolute;inset:0;width:100%;height:100%}'; document.head.appendChild(st);
   const hy = document.createElement('div'); hy.id = 'hyp'; hy.innerHTML = '<canvas></canvas>'; document.body.appendChild(hy);
   const cv = hy.querySelector('canvas');
@@ -5290,7 +5290,7 @@ window.__xProps = function(xs, mk, SK, OW, OH, LEN){
 };
 
 // ======== v79 ========
-function isHome(){ return curSys === 0 && curSt === STATIONS[0]; }
+function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === ({ lonca: 4, korsan: 5 }[save.side] ?? -1)); }
 
 // ---- dost ateşi: önce uyarı, devam edersen karşılık
 {
@@ -6268,7 +6268,7 @@ window.__xpal = {
       if (kd === 'ankora'){
         const pm = new THREE.MeshStandardMaterial({ map: T.plate(T.sc(104, 94, 80), { tag: 'A' }), roughness: 0.4, metalness: 0.5, bumpScale: 0.3 }), li = new THREE.MeshBasicMaterial({ color: 0xffc477 });
         for (let x = 8; x < LEN - 4; x += 9) for (const sg of [-1, 1]){ add(new THREE.Mesh(new THREE.BoxGeometry(0.5, OH, 0.4), pm), x, 0, sg * (HW - 0.22)); add(new THREE.Mesh(new THREE.BoxGeometry(0.06, OH * 0.82, 0.06), li), x - 0.0, 0, sg * (HW - 0.46)); }
-        const L = ['KENETLENME KOLU 2 · HAZIR', 'HANGAR A · BASINÇ NORMAL', 'ANKORA TRAFİK KONTROL'];
+        const L = ['KENETLENME KOLU 2 · HAZIR', 'HANGAR A · BASINÇ NORMAL', (STATIONS[0].ad.split(' ')[0] || 'ANKORA').toLocaleUpperCase('tr-TR') + ' TRAFİK KONTROL'];
         L.forEach((s, i) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: lab(s, '#ffc477'), transparent: true })); const sg = i % 2 ? 1 : -1; m.rotation.y = sg > 0 ? Math.PI : 0; add(m, 12 + i * 11, 0.9, sg * (HW - 0.07)); });
       } else if (kd === 'demirhan'){
         const im = new THREE.MeshStandardMaterial({ map: T.plate(T.sc(52, 38, 32), { rust: 1 }), roughness: 0.6, metalness: 0.7, bumpScale: 0.3 }), em = new THREE.MeshBasicMaterial({ color: 0xff6a1a });
@@ -6327,7 +6327,7 @@ window.__xpal = {
       if (window.__skyT){ const sg = mkd(new THREE.SphereGeometry(1500, 40, 28)); sg.scale(-1, 1, 1); sky = new THREE.Mesh(sg, mkd(new THREE.MeshBasicMaterial({ map: window.__skyT, transparent: true, opacity: 0, depthWrite: false, color: new THREE.Color(1.18, 1.18, 1.28) }))); sc.add(sky); }
       if (window.__plT){ plan = new THREE.Sprite(mkd(new THREE.SpriteMaterial({ map: window.__plT, transparent: true, depthWrite: false, fog: false, opacity: 0 }))); plan.scale.set(520, 520, 1); plan.position.set(-380, 70, -1000); sc.add(plan); }
       // gidilen evrenin enerji girdabı: gemi ona doğru çekilip içine dalar
-      { const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut' }[o.k]; if (VK){ const vt = mkd(new THREE.TextureLoader().load('assets/img/gate_' + VK + '_enerji.webp')); vt.encoding = THREE.sRGBEncoding;
+      { const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut', 4: 'lonca', 5: 'korsan' }[o.k]; if (VK){ const vt = mkd(new THREE.TextureLoader().load('assets/img/gate_' + VK + '_enerji.webp')); vt.encoding = THREE.sRGBEncoding;
         vtx = new THREE.Mesh(mkd(new THREE.CircleGeometry(14, 72)), mkd(new THREE.MeshBasicMaterial({ map: vt, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))); vtx.position.z = -120; sc.add(vtx); } }
       cv = XR.domElement; cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none'; host.insertBefore(cv, host.firstChild);
       XR.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix();
@@ -6417,7 +6417,7 @@ window.__xpal = {
     glow: glowTexture(255, 255, 255)
   });
   const addMat = (map, col) => new THREE.MeshBasicMaterial({ map, color: col || 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, fog: false, side: THREE.DoubleSide });
-  const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut' };
+  const VK = { 0: 'ankora', 1: 'kizil', 2: 'buzul', 3: 'zumrut', 4: 'lonca', 5: 'korsan' };
   const envTex = {}; const energy = k => envTex[k] || (envTex[k] = (() => { const t = new THREE.TextureLoader().load('assets/img/gate_' + VK[k] + '_enerji.webp'); t.encoding = THREE.sRGBEncoding; return t; })());
 
   // ---- A) kokpitten hiperatlama
@@ -6768,7 +6768,7 @@ window.__xpal = {
   const _spR = spawnRole;
   spawnRole = function(role, initial){
     const n = _spR(role, initial);
-    if (role === 'pirate' && n && Math.random() < [0.3, 0.45, 0.4, 0.5][curSys] && n.type !== 'leader'){
+    if (role === 'pirate' && n && Math.random() < ([0.3, 0.45, 0.4, 0.5, 0.2, 0.6][curSys] || 0.3) && n.type !== 'leader'){
       const w = spawnNpc('raider', n.pos.clone().add(V(rand(-60, 60), rand(-20, 20), rand(-60, 60))), n.home); w.state = 'roam'; w.wingOf = n;
     }
     return n;
@@ -7035,12 +7035,16 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     { ad: 'Kara Kaptan Dorak', at: [-7200, 600, 5200], perk: 'Lazer hasarı +%10', taunt: 'Benim inime kimse davetsiz giremez!' },
     { ad: 'Kızıl Kaptan Zerha', at: [6800, -500, -6200], perk: 'Kalkan +25', taunt: 'Ateşle oynuyorsun, küçük pilot.' },
     { ad: 'Kırağı Hanı Hiem', at: [-6500, 400, -6800], perk: 'Lazer %20 daha az ısınır', taunt: 'Soğuk, sabırlıdır. Ben de öyle.' },
-    { ad: 'Sis Efendisi Verdan', at: [7000, 700, 6000], perk: 'Kargo +10', taunt: 'Sisin içinden kimse geri dönmedi.' }
+    { ad: 'Sis Efendisi Verdan', at: [7000, 700, 6000], perk: 'Kargo +10', taunt: 'Sisin içinden kimse geri dönmedi.' },
+    { ad: 'Kiralık Kaptan Varak', at: [6400, 500, -7200], perk: 'Cevher satışı +%5', taunt: 'Loncanın altını benim cebime akar. Seninki de akacak.' },
+    { ad: 'Liman Ağası Morr', at: [-7000, -500, 6600], perk: 'Gövde +30', taunt: 'Kara Liman\'ın tek bir ağası var. O da benim.' }
   ];
   function perks(){ const b = save.boss; window.__perkDmg = b.includes(0) ? 1.1 : 1; window.__perkHeat = b.includes(2) ? 0.8 : 1; }
   perks();
   const _as = applyShip; applyShip = function(full){ _as(full); if (save.boss.includes(1)){ hp.shieldMax += 25; if (full) hp.shield = hp.shieldMax; } };
   const _cc = crewCargo; crewCargo = function(){ return _cc() + (save.boss.includes(3) ? 10 : 0); };
+  { const _rm = repMul; repMul = st => _rm(st) * (save.boss.includes(4) ? 1.05 : 1); }
+  { const _as2 = applyShip; applyShip = function(full){ _as2(full); if (save.boss.includes(5)){ hp.hullMax += 30; if (full) hp.hull = hp.hullMax; } }; }
   applyShip(false);
   const _ld = window.__leaderDrop; window.__leaderDrop = function(n){ if (n.boss == null) _ld(n); };
   const css = document.createElement('style'); css.textContent = '#bossBar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);transform:translateX(-50%);z-index:5;width:min(460px,56vw);display:none;pointer-events:none;text-align:center;font:700 13px var(--font);letter-spacing:.14em;color:#ffd0d6;text-shadow:0 0 8px #000}#bossBar.on{display:block}#bossBar .b{height:9px;margin-top:4px;border:1px solid rgba(255,107,138,.7);border-radius:5px;background:rgba(20,6,10,.7);position:relative;overflow:hidden}#bossBar .b u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff3b5c,#ff9a6e);transition:width .25s}#bossBar .b s{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}';
@@ -7566,7 +7570,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
       const inTitle = tt && !tt.classList.contains('off');
       let hostile = false; if (!docked && !inTitle) for (let _q88 = 0, q; _q88 < npcs.length && ((q = npcs[_q88]), true); _q88++) if (q.hostile){ const d = q.pos.distanceTo(rig.position); if (q.state === 'attack' ? d < 1200 : d < 600){ hostile = true; break; } }
       if (hostile) lastH = performance.now();
-      let k; if (inTitle || performance.now() < anaUntil) k = 'ana'; else if (docked) k = 'hangar'; else if (performance.now() - lastH < 8000) k = 'savas'; else k = save.uzayAna ? 'ana' : ['ankora', 'kizil', 'buzul', 'zumrut'][Math.min(3, Math.max(0, curSys | 0))];
+      let k; if (inTitle || performance.now() < anaUntil) k = 'ana'; else if (docked) k = 'hangar'; else if (performance.now() - lastH < 8000) k = 'savas'; else k = save.uzayAna ? 'ana' : (['ankora', 'kizil', 'buzul', 'zumrut', 'ankora', 'kizil'][curSys | 0] || 'ankora');
       if (k === 'ana' && save.anaTema && MF['ana_' + save.anaTema]) k = 'ana_' + save.anaTema;
       const on = soundOn && save.mus !== false && (!paused || k.indexOf('ana') === 0) && AC.state === 'running';
       if (!BUS){ if (!on) return; BUS = AC.createGain(); BUS.gain.value = 0; MM = AC.createGain(); MM.connect(AC.destination); BUS.connect(MM); }
@@ -8031,5 +8035,323 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   @media (max-height:520px){#leftCol{top:calc(env(safe-area-inset-top,0px) + 6px);width:min(240px,28vw);gap:6px}}
   `;
   document.head.appendChild(st);
+}
+
+// =====================  taraf seçimi: Yıldız Filosu, Tüccar Loncası, Korsan Birliği  =====================
+{
+  const SIDE = {
+    filo: { ad: 'Yıldız Filosu', col: '#7fd8ff', img: 'fac_filo', pitch: 'Düzenin bekçisi ol. Korsan avla, ticaret yollarını koru.',
+      story: 'Kadim Kapı sustuğunda dört sistem kaosa düştü. Ankora\'nın son savaş gemileri bir yemin etti: hiçbir tüccar yolda kaybolmayacak. Yıldız Filosu o yeminden doğdu. Bugün devriyeleri kuşakları koruyor; ama gemileri eskiyor, korsanlar her yıl biraz daha cesurlaşıyor. Filo\'nun yeni pilotlara ihtiyacı var.',
+      perks: ['Korsan ödülleri +%25', 'Devriyeler başın sıkışınca yardıma gelir', 'Başlangıçta Filo dostun'], rel: { filo: 40, lonca: 10, korsan: -30 } },
+    lonca: { ad: 'Tüccar Loncası', col: '#ffc477', img: 'fac_lonca', pitch: 'Kazan, sat, büyü. Fiyatları bil, yükünü doldur.',
+      story: 'Lonca Pazarı\'nda her şeyin bir fiyatı vardır: cevherin, sırrın, sessizliğin. Loncayı kuran yedi tüccar ailesi yıldızları savaşın değil ticaretin bir arada tuttuğuna inanır. Filoya vergi, korsanlara haraç öder, herkesle konuşurlar. Onlara göre iyi pilot, yükü zamanında ve eksiksiz getirendir.',
+      perks: ['Cevher satışı +%8', 'Kargo kapasitesi +4', 'Başlangıçta herkesle arası iyi'], rel: { filo: 10, lonca: 40, korsan: -5 } },
+    korsan: { ad: 'Korsan Birliği', col: '#ff6b8a', img: 'fac_korsan', pitch: 'Kural yok. Tüccarları soy, devriyelerden kaç.',
+      story: 'Kara Liman, bir asteroidin içine oyulmuş, hiçbir haritada görünmeyen bir sığınaktır. Filo\'dan kaçanlar, Loncanın borçlu bıraktıkları, düzene sığmayanlar orada yaşar. Korsan Birliği\'nin tek kuralı vardır: Birlik\'ten olana dokunulmaz. Gerisi av.',
+      perks: ['Korsanlar sana saldırmaz', 'Tüccar gemisi düşürünce yağma +80 kredi', 'Ama Filo devriyeleri seni görünce saldırır'], rel: { filo: -65, lonca: -20, korsan: 50 } }
+  };
+  window.__SIDE = SIDE;
+  const fac = window.__fac;
+  const own = () => save.side && SIDE[save.side] ? save.side : null;
+  // avantajlar
+  { const _rm = repMul; repMul = st => _rm(st) * (own() === 'lonca' ? 1.08 : 1); }
+  { const _cc = crewCargo; crewCargo = function(){ return _cc() + (own() === 'lonca' ? 4 : 0); }; }
+  { const _kn = killNpc; killNpc = function(n, by){
+      const was = npcs.indexOf(n) >= 0, hos = n.hostile, role = n.role; _kn(n, by); if (!was || by !== 'player') return;
+      if (own() === 'filo' && hos){ const b = Math.round(25 * (SYSC.bounty || 1)); save.kredi += b; persist(); }
+      if (own() === 'korsan' && !hos && role !== 'patrol'){ const b = Math.round(80 * (SYSC.pay || 1)); save.kredi += b; persist(); toast('Yağma: +' + b + ' kredi', 1800); }
+    }; }
+  // kendi grubunla aran hiçbir zaman "Dost"un altına düşmez
+  EXTRA.push(() => { const k = own(); if (k && save.fac[k] < 30) save.fac[k] = 30; });
+  // seçim ekranı
+  const css = document.createElement('style'); css.textContent = `
+  #sideSel{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 14px);background:radial-gradient(ellipse at 50% 40%,rgba(20,30,52,.92),rgba(3,5,12,.97));color:#e9f1f7;font-family:var(--font);overflow:auto}
+  #sideSel h2{margin:0;font:600 17px/1.2 var(--font);letter-spacing:.42em;padding-left:.42em}
+  #sideSel .sub{margin:-6px 0 4px;color:#8ea2b6;font-size:12.5px;letter-spacing:.04em;text-align:center}
+  #sideSel .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:min(920px,100%);perspective:1200px}
+  #sideSel .c{position:relative;height:min(380px,calc(100vh - 150px));cursor:pointer}
+  #sideSel .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,.8,.3,1)}
+  #sideSel .c.flip .in{transform:rotateY(180deg)}
+  #sideSel .f,#sideSel .bk{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;gap:7px;padding:16px 14px 12px;text-align:center;
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(220,235,245,.16);border-top:2px solid var(--c);border-radius:5px;overflow:hidden}
+  #sideSel .bk{transform:rotateY(180deg);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03))}
+  #sideSel .c:hover .f{background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03))}
+  #sideSel .f img{width:66px;height:70px;object-fit:contain;flex:0 0 auto}
+  #sideSel b{font:600 14px var(--font);letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
+  #sideSel .st{margin:2px 0 0;font-size:12.5px;line-height:1.5;color:#c9d6e2;text-align:left;overflow:auto;flex:1 1 auto}
+  #sideSel .bk p{margin:0;font-size:12.5px;color:#c9d6e2}
+  #sideSel .h{align-self:stretch;margin-top:6px;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,.08);font:600 10px var(--font);letter-spacing:.2em;text-transform:uppercase;color:#8ea2b6;text-align:left}
+  #sideSel ul{margin:0;padding:0;list-style:none;font-size:12px;color:#e9f1f7;line-height:1.55;text-align:left;align-self:stretch}
+  #sideSel li::before{content:"";display:inline-block;width:5px;height:5px;margin:0 8px 1px 0;background:var(--c);transform:rotate(45deg)}
+  #sideSel .rel{display:flex;gap:6px;align-self:stretch}
+  #sideSel .rel span{flex:1;display:flex;flex-direction:column;gap:1px;padding:4px 2px;border:1px solid rgba(255,255,255,.08);border-radius:3px;font-size:11.5px;color:#e9f1f7}
+  #sideSel .rel i{font-style:normal;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#8ea2b6}
+  #sideSel .pk{margin-top:auto;width:100%;padding:10px 8px;border-radius:999px;border:0;background:#e9f1f7;color:#0a1220;font:700 12px var(--font);letter-spacing:.24em;cursor:pointer}
+  #sideSel .pk:active{background:var(--c)}
+  #sideSel .tap{font-size:10.5px;letter-spacing:.16em;color:#6f8296;text-transform:uppercase}
+  #sideSel.done{opacity:0;transition:opacity .35s}
+  @media (max-height:520px){#sideSel{justify-content:flex-start;gap:6px}#sideSel .c{height:calc(100vh - 92px)}#sideSel .f,#sideSel .bk{padding:10px 10px 8px;gap:4px}#sideSel .f img{width:44px;height:47px}
+    #sideSel .st{font-size:11.5px;line-height:1.42}#sideSel ul{font-size:11px;line-height:1.4}#sideSel .bk p{font-size:11.5px}#sideSel h2{font-size:14px}#sideSel .sub{margin:-4px 0 0;font-size:11px}#sideSel .note{display:none}#sideSel .pk{padding:8px}}
+  @media (max-width:600px){#sideSel .cards{grid-template-columns:1fr}#sideSel .c{height:300px}}
+  #sideSel .note{font-size:11px;color:#6f8296;text-align:center;max-width:560px}
+  @media (max-height:520px){#sideSel{justify-content:flex-start;gap:8px}#sideSel .c{padding:9px 8px;gap:3px}#sideSel .c img{width:44px;height:47px}#sideSel .c p{font-size:11.5px}#sideSel .c ul{font-size:10.5px;line-height:1.4}#sideSel h2{font-size:14px}}
+  @media (max-width:600px){#sideSel .cards{grid-template-columns:1fr}}
+  `; document.head.appendChild(css);
+  function pick(cb){
+    const d = document.createElement('div'); d.id = 'sideSel'; let sel = null;
+    const REL = { filo: 'Filo', lonca: 'Lonca', korsan: 'Korsan' }, rt = v => v >= 30 ? 'Dost' : v > -30 ? 'Tarafsız' : v > -60 ? 'Soğuk' : 'Düşman';
+    d.innerHTML = '<h2>TARAFINI SEÇ</h2><div class="sub">Kartlara dokun: hikâyeyi oku, çevir, kararını ver.</div><div class="cards">'
+      + Object.keys(SIDE).map(k => { const S = SIDE[k]; return '<div class="c" data-k="' + k + '" style="--c:' + S.col + '"><div class="in">'
+        + '<div class="f"><img alt="" src="assets/img/' + S.img + '.webp?v=' + (window.SD_VERSION || '') + '"><b>' + S.ad + '</b><p class="st">' + S.story + '</p><span class="tap">Çevir ↻</span></div>'
+        + '<div class="bk"><b>' + S.ad + '</b><p>' + S.pitch + '</p><div class="h">Avantajlar</div><ul>' + S.perks.map(x => '<li>' + x + '</li>').join('') + '</ul>'
+        + '<div class="h">Başlangıç ilişkileri</div><div class="rel">' + Object.keys(S.rel).map(f => '<span><i>' + REL[f] + '</i>' + rt(S.rel[f]) + '</span>').join('') + '</div>'
+        + '<button class="pk">BU TARAFI SEÇ</button><span class="tap">Geri ↺</span></div></div></div>'; }).join('')
+      + '</div><div class="note">Tarafını sonradan değiştirebilirsin, ama bedeli ağırdır.</div>';
+    document.body.appendChild(d); window.__menuOn = true;
+    d.addEventListener('click', e => {
+      const pk = e.target.closest('.pk'); if (pk){ const k = pk.closest('.c').dataset.k; d.classList.add('done'); try { blip(780, 0.1); } catch (er) {} setTimeout(() => { d.remove(); window.__menuOn = false; cb(k); }, 380); return; }
+      const c = e.target.closest('.c'); if (!c) return; const fl = !c.classList.contains('flip');
+      d.querySelectorAll('.c').forEach(x => x.classList.toggle('flip', x === c && fl)); try { blip(fl ? 560 : 420, 0.06); } catch (er) {}
+    });
+    for (const ev of ['keydown', 'keyup']) d.addEventListener(ev, e => e.stopPropagation());
+  }
+  function join(k, first){
+    const S = SIDE[k]; save.side = k; save.sideT = Date.now();
+    if (first){ for (const f in S.rel) save.fac[f] = S.rel[f]; }
+    persist(); try { sfxP('itibar', 0.7); } catch (e) {}
+    setTimeout(() => { eco.radioT = -9; radio(S.ad, k === 'filo' ? 'Aramıza hoş geldin, pilot. Devriyeler arkanda.' : k === 'lonca' ? 'Loncaya hoş geldin. Yükün dolu, cebin dolu olsun.' : 'Artık bizdensin. Devriyelere dikkat et.', S.col); }, 1200);
+  }
+  window.__sidePick = () => pick(k => join(k, true));
+  const ask = () => { if (!own() && !$('sideSel')) pick(k => join(k, true)); };
+  // açılış ekranından sonra (eski oyuncular da bir kez seçer)
+  { const tg = $('titleGo'); if (tg) tg.addEventListener('click', () => setTimeout(ask, 650)); else setTimeout(ask, 1500); }
+  // taraf değiştirme: zor ve cezalı
+  const REQ = { xp: 1200, kredi: 4000, rep: 30, cool: 2 * 3600 * 1000 };
+  function canSwitch(to){
+    const r = []; if (save.xp < REQ.xp) r.push('Usta Pilot rütbesi'); if (save.kredi < REQ.kredi) r.push(REQ.kredi + ' kredi'); if (save.fac[to] < REQ.rep) r.push(SIDE[to].ad + ' ile en az Dost (' + Math.round(save.fac[to]) + '/30)');
+    const left = (save.sideT || 0) + REQ.cool - Date.now(); if (left > 0) r.push('son değişiklikten ' + Math.ceil(left / 60000) + ' dk sonra');
+    return r;
+  }
+  function doSwitch(to){
+    const from = own(); if (!from || canSwitch(to).length) return;
+    save.kredi -= REQ.kredi; save.xp = Math.round(save.xp * 0.8); save.fac[from] = -60; if (to === 'korsan') save.fac.filo = Math.min(save.fac.filo, -65); if (to === 'filo') save.fac.korsan = Math.min(save.fac.korsan, -30); save.side = to; save.sideT = Date.now(); save.sideN = (save.sideN || 0) + 1; persist();
+    toast('Artık ' + SIDE[to].ad + ' tarafındasın. ' + SIDE[from].ad + ' seni hain ilan etti.', 4200);
+    setTimeout(() => { eco.radioT = -9; radio(SIDE[from].ad, 'Bunu unutmayacağız, hain.', SIDE[from].col); }, 1400);
+    try { sfxP('itibar', 0.8); } catch (e) {} renderCt();
+  }
+  const _rc = renderCt; renderCt = function(){
+    _rc(); const box = $('ctBox'); if (!box) return; const k = own(); if (!k) return;
+    const sect = [...box.querySelectorAll(':scope > .sect')].find(x => /^Gruplar/.test(x.dataset.t0 || x.textContent)); if (!sect) return;
+    let h = '<div class="line"><span>Tarafın: <b style="color:' + SIDE[k].col + '">' + SIDE[k].ad + '</b><span class="dim"><br>' + SIDE[k].perks.slice(0, 2).join(' · ') + '</span></span></div>';
+    for (const to in SIDE){ if (to === k) continue; const miss = canSwitch(to);
+      h += '<div class="line"><span>' + SIDE[to].ad + ' tarafına geç<span class="dim"><br>' + (miss.length ? 'Gerekli: ' + miss.join(', ') : 'Bedeli: ' + REQ.kredi + ' kredi, XP\'nin %20\'si; ' + SIDE[k].ad + ' seni düşman sayar') + '</span></span><button class="act' + (miss.length ? '' : ' go') + '" data-side="' + to + '" ' + (miss.length ? 'disabled' : '') + '>Geç</button></div>'; }
+    sect.insertAdjacentHTML('afterend', h);
+  };
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-side]'); if (!b || b.disabled) return; const to = b.dataset.side;
+    if (b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Emin misin?'; setTimeout(() => { if (b.isConnected){ b.dataset.sure = ''; b.textContent = 'Geç'; } }, 3500); return; }
+    doSwitch(to); });
+}
+
+// =====================  iki yeni ev sistemi: Lonca Pazarı (4) ve Kara Liman (5)  =====================
+{
+  SYS.push(
+    { ad: 'Lonca Pazarı', home: 'lonca', not: 'Tüccar Loncasının evi. Fiyatlar yüksek, ortalık sakin. Zorluk: ★ · Cevher satış fiyatları %25 daha yüksek · Kristal biraz daha bol',
+      names: { st: ['Lonca Pazarı', 'Altın Rıhtım', 'Kervan Durağı', 'Takas Kapısı'], pl: ['Sarnıç', 'Kehribar', 'Tuzla', 'Akik'], moon: 'Pul' },
+      tint: [1.22, 1.05, 0.78], sky: [1.32, 1.16, 0.95], kr: 1.2, ice: 0.9, danger: 0.7, px: { kristal: 1.2 }, rock: 1, pay: 1.25, hull: 1, bounty: 1, dmg: 1, intro: 'Altın ışıklı rıhtımlar, durmayan kervanlar. Lonca Pazarı seni bekliyor.' },
+    { ad: 'Kara Liman', home: 'korsan', not: 'Korsan Birliğinin saklı sığınağı. Devriye yok ama herkes silahlı. Zorluk ★★ · Düşman gemileri %40 daha dayanıklı · Korsan ödülleri %60 daha yüksek · Demir bol',
+      names: { st: ['Kara Liman', 'Hurda Rıhtımı', 'Kaçak Durağı', 'Sis Kapısı'], pl: ['Kurum', 'Zehir', 'Pas', 'Kül'], moon: 'Kemik' },
+      tint: [1.28, 0.74, 0.72], sky: [1.2, 0.86, 0.9], kr: 0.9, ice: 0.6, danger: 1.5, px: { demir: 0.9 }, rock: 1.3, pay: 1.2, hull: 1.4, bounty: 1.6, dmg: 1.2, intro: 'Kurum, pas ve sessizlik. Kara Liman haritada yok; ama sen buradasın.' }
+  );
+  LORE_S[4] = LORE_S[1]; LORE_S[5] = LORE_S[1];
+  PL_GLOW[4] = [255, 196, 110]; PL_GLOW[5] = [255, 90, 70];
+  PL_CLOUD[4] = [1, 0.95, 0.85, 0.35]; PL_CLOUD[5] = [0.45, 0.4, 0.38, 0.55];
+  for (const i of [4, 5]){
+    loadArt('assets/img/a4_p' + i + '.webp', t => { t.encoding = THREE.sRGBEncoding; PL_DISC[i] = t; if (i === curSys) plApply(); });
+    loadArt('assets/img/pmap_' + i + '.webp', t => { t.anisotropy = 4; PL_MAP[i] = t; if (i === curSys) plApply(); });
+  }
+  loadArt('assets/img/pmap_5_glow.webp', t => { PL_GLOWMAP[5] = t; if (curSys === 5) plApply(); });
+  // ana istasyonun görünümü: sisteme göre (üst + yan çizimden 3B)
+  const SPEC = {
+    lonca: { yc: 0.5, zc: 0, sx: 1, gain: 1.05, ta: 0.9881, sa: 0.4819, top: 'olay_lonca_top', side: 'olay_lonca_side',
+      rings: [{ R: 0.285, a: 0.03, h: 0.035, n: 4, seg: 96 }],
+      lathes: [{ pts: [[0.001, -0.175], [0.035, -0.142], [0.07, -0.12], [0.1, -0.1], [0.118, -0.08], [0.13, -0.06], [0.142, -0.03], [0.142, 0.03], [0.13, 0.06], [0.118, 0.08], [0.1, 0.1], [0.07, 0.12], [0.035, 0.142], [0.001, 0.175]], seg: 40 },
+        { pts: [[0.006, 0.17], [0.006, 0.25], [0.002, 0.27]], seg: 8 }, { pts: [[0.006, -0.17], [0.006, -0.24]], seg: 8 }],
+      boxes: [0, 1, 2, 3].map(q => { const a = q * Math.PI / 2; return { u: 0.5 + Math.cos(a) * 0.215, y: 0, z: Math.sin(a) * 0.215, sx: 0.15, sy: 0.03, sz: 0.035, mir: false, ry: -a }; })
+        .concat([...Array(8)].map((_, q) => { const a = q * Math.PI / 4 + Math.PI / 8; return { u: 0.5 + Math.cos(a) * 0.39, y: 0, z: Math.sin(a) * 0.39, sx: 0.17, sy: 0.05, sz: 0.06, mir: false, ry: -a }; })) },
+    kara: { yc: 0.5, zc: 0, sx: 1, gain: 1.15, ta: 0.9937, sa: 0.4451, top: 'olay_kara_top', side: 'olay_kara_side',
+      rings: [[-2.9, 1.3], [-1.35, 1.6], [0.5, 1.2], [1.95, 1.0]].map(([p0, pl]) => ({ R: 0.385, a: 0.05, h: 0.045, n: 3, p0, pl, seg: 32 })),
+      lathes: [{ pts: Array.from({ length: 15 }, (_, i) => { const t = -1 + 2 * i / 14; return [0.2 * Math.sqrt(Math.max(0, 1 - t * t)) * (1 + 0.08 * Math.sin(i * 2.7)), 0.11 * t]; }), seg: 11 },
+        { pts: [[0.001, 0.09], [0.06, 0.09], [0.06, 0.13], [0.001, 0.14]], seg: 8 }],
+      boxes: [...Array(6)].map((_, q) => { const a = q * Math.PI / 3 + 0.3; return { u: 0.5 + Math.cos(a) * 0.29, y: 0.01, z: Math.sin(a) * 0.29, sx: 0.2, sy: 0.015, sz: 0.018, mir: false, ry: -a }; })
+        .concat([[0.12, -0.33, 0.6], [0.83, 0.22, -0.9], [0.3, 0.37, 2.4]].map(([u, z, ry]) => ({ u, y: 0, z, sx: 0.2, sy: 0.07, sz: 0.08, mir: false, ry }))) }
+  };
+  const tex = {}, ld = n => tex[n] || (tex[n] = (() => { const t = new THREE.TextureLoader().load('assets/img/' + n + '.webp?v=' + (window.SD_VERSION || '')); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; })());
+  const blank = (() => { const t = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1, THREE.RGBAFormat); t.needsUpdate = true; return t; })();
+  const MOD = {};
+  const model = k => { if (MOD[k] !== undefined) return MOD[k]; const S = SPEC[k];
+    try { const m = buildShip3D(THREE, { top: ld(S.top), side: ld(S.side), f: blank, r: blank, b: blank, ta: S.ta, sa: S.sa }, S); m.scale.setScalar(k === 'kara' ? 300 : 280); m.visible = false; STATION.group.add(m); MOD[k] = m;
+      const gl = sprite(glowTexture(k === 'kara' ? 255 : 255, k === 'kara' ? 90 : 200, k === 'kara' ? 60 : 110), 340, 0.35); gl.visible = false; STATION.group.add(gl); m.userData.gl = gl; return m; } catch (e) { console.warn('ev istasyonu', e); MOD[k] = null; return null; } };
+  function stSkin(){
+    const want = curSys === 4 ? 'lonca' : curSys === 5 ? 'kara' : null, g = STATION.group, m = want ? model(want) : null, mine = new Set();
+    for (const k in MOD) if (MOD[k]){ mine.add(MOD[k]); mine.add(MOD[k].userData.gl); MOD[k].visible = MOD[k] === m; MOD[k].userData.gl.visible = MOD[k] === m; }
+    for (const c of g.children){ if (mine.has(c)) continue;
+      if (m){ if (c.userData.__v0 === undefined) c.userData.__v0 = c.visible; c.visible = false; }
+      else if (c.userData.__v0 !== undefined){ c.visible = c.userData.__v0; delete c.userData.__v0; } }
+  }
+  EXTRA.push(() => { if ((curSys === 4 || curSys === 5) && STATION.group.children.some(c => c.visible && c.userData.__v0 === undefined && !Object.values(MOD).some(m => m && (m === c || m.userData.gl === c)))) stSkin(); });
+  { const _aw = applyWorld; applyWorld = function(k){ _aw(k); try { stSkin(); } catch (e) { console.warn(e); } }; }
+  EXTRA.push(dt => { for (const k in MOD){ const m = MOD[k]; if (m && m.visible) m.rotation.y += dt * (k === 'kara' ? 0.02 : 0.03); } });
+  // ev sistemleri haritada: taraf evi açık; diğer taraflar itibarla açılır
+  const HOMEOF = { lonca: 4, korsan: 5 };
+  const openSys = (k, why) => { if (!save.open.includes(k)){ save.open.push(k); persist(); if (why){ toast(why, 4200); eco.radioT = -9; radio(SYS[k].ad, 'Koordinatlar gönderildi. Hiperatlama ile gelebilirsin.', k === 4 ? '#ffc477' : '#ff6b8a'); } } };
+  window.__homeSys = () => HOMEOF[save.side] ?? 0;
+  if (HOMEOF[save.side] !== undefined) openSys(HOMEOF[save.side]);
+  let accT = 0;
+  EXTRA.push(dt => { accT += dt; if (accT < 4) return; accT = 0;
+    if (save.fac.lonca >= 30) openSys(4, 'Lonca Pazarı koordinatları açıldı (Lonca ile Dost oldun).');
+    if (save.fac.korsan >= 30) openSys(5, 'Kara Liman koordinatları açıldı (Korsanlarla Dost oldun).'); });
+  // taraf seçilince: evi aç; yeni pilot doğrudan evinde başlar
+  { const S = window.__SIDE; let lastSide = save.side;
+    EXTRA.push(() => { if (save.side === lastSide) return; const was = lastSide; lastSide = save.side; const h = HOMEOF[save.side];
+      if (h === undefined) return; openSys(h);
+      const fresh = !was && (save.xp || 0) < 60 && curSys === 0;
+      if (fresh) setTimeout(() => { try { enterSystem(h);
+          docked = false; curSt = null; $('dock').classList.add('hidden'); { const away = rig.position.clone().sub(STATION.pos).normalize(); rig.lookAt(rig.position.clone().sub(away)); } vel.set(0, 0, 0); scrFlash = 0;
+          $('stick') && 0; sBase && sBase.classList.add('hidden'); } catch (e) { console.warn(e); } }, 900);
+      else toast('Evin: ' + SYS[h].ad + ' · İstasyondan Hiperatlama ile gidebilirsin.', 5000);
+    }); }
+  // ana istasyonlar düşmana kapısını kapatır
+  const KEEP = { 0: 'filo', 4: 'lonca', 5: 'korsan' };
+  const _td = tryDock;
+  tryDock = function(){
+    if (!docked && nearStation()){ const st = stationInRange(), f = KEEP[curSys];
+      if (st === STATIONS[0] && f && save.fac[f] <= -60){ const ad = { filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' }[f];
+        toast(st.ad + ' kapılarını sana kapattı: ' + ad + ' seni düşman sayıyor.', 3600); eco.radioT = -9; radio(st.ad, 'Yanaşma reddedildi. Uzak dur.', '#ff5a6e'); return; } }
+    return _td.apply(this, arguments);
+  };
+}
+
+// =====================  ev sistemlerinin tünelleri, aranma ve ödül, kaçak mal, ücra düşman kapıları  =====================
+{
+  // ---- tünel görünümü: Lonca altın, Kara Liman pas kırmızısı (mevcut tünellerden uyarlandı)
+  const IMG = k => { const im = new Image(); im.src = 'assets/img/' + k + '.webp?v=' + (window.SD_VERSION || ''); return im; };
+  const ALT = { lonca: { d: IMG('xdoor_lonca'), h: IMG('xhull_lonca_d') }, kara: { d: IMG('xdoor_kara'), h: IMG('xhull_kara_d') } };
+  const ORIG = { ankora: null, demirhan: null }, PAL0 = {}, XS0 = XSTK['Ankora İstasyonu'].slice();
+  const setImg = (t, im) => { if (t && im && im.complete && im.naturalWidth){ t.image = im; t.needsUpdate = true; } };
+  function tunnelSkin(){
+    for (const k of ['ankora', 'demirhan']){ if (!ORIG[k] && XDT[k] && XDT[k].image) ORIG[k] = { d: XDT[k].image, h: XHT[k].image }; if (!PAL0[k] && window.__xpal) PAL0[k] = window.__xpal[k]; }
+    XSTK['Ankora İstasyonu'] = XS0.slice();
+    for (const k of ['ankora', 'demirhan']) if (ORIG[k]){ setImg(XDT[k], ORIG[k].d); setImg(XHT[k], ORIG[k].h); if (PAL0[k]) window.__xpal[k] = PAL0[k]; }
+    if (curSys === 4 && ORIG.ankora){ setImg(XDT.ankora, ALT.lonca.d); setImg(XHT.ankora, ALT.lonca.h); window.__xpal.ankora = [[0.1, 0.075, 0.035], [0.66, 0.54, 0.32], [1.0, 0.94, 0.74]]; XSTK['Ankora İstasyonu'] = ['ankora', 0xffc860, 0xfff0c0]; }
+    if (curSys === 5 && ORIG.demirhan){ setImg(XDT.demirhan, ALT.kara.d); setImg(XHT.demirhan, ALT.kara.h); window.__xpal.demirhan = [[0.05, 0.012, 0.012], [0.38, 0.08, 0.06], [1.0, 0.36, 0.26]]; XSTK['Ankora İstasyonu'] = ['demirhan', 0xff4a3a, 0xff9a80]; }
+  }
+  { const _aw = applyWorld; applyWorld = function(k){ _aw(k); try { tunnelSkin(); } catch (e) { console.warn(e); } }; }
+  setTimeout(() => { try { tunnelSkin(); } catch (e) {} }, 2500);
+
+  // ---- aranma ve başa konan ödül
+  if (typeof save.wanted !== 'number') save.wanted = 0;
+  if (typeof save.kacak !== 'number') save.kacak = 0;
+  const STARS = w => '★'.repeat(Math.ceil(w)) + '☆'.repeat(5 - Math.ceil(w));
+  const bounty = () => Math.round(save.wanted * 250);
+  let crimeT = -999;
+  const addWanted = (d, why) => { const w0 = save.wanted; save.wanted = clamp(save.wanted + d, 0, 5); crimeT = time; persist();
+    if (Math.ceil(save.wanted) > Math.ceil(w0)){ toast('ARANIYORSUN ' + STARS(save.wanted) + (why ? ' · ' + why : ''), 3600); try { sfxP('itibar', 0.6); } catch (e) {} } };
+  window.__addWanted = addWanted;
+  { const _kn = killNpc; killNpc = function(n, by){ const was = npcs.indexOf(n) >= 0, hos = n.hostile, role = n.role, hunter = n.hunter; _kn(n, by); if (!was || by !== 'player') return;
+      if (hunter){ const b = 120; save.kredi += b; persist(); toast('Ödül avcısı düştü: +' + b + ' kredi', 2200); return; }
+      if (!hos && role === 'patrol') addWanted(1, 'devriye düşürdün');
+      else if (!hos && role !== 'patrol') addWanted(0.5, 'sivil gemi düşürdün'); }; }
+  const wEl = document.createElement('div'); wEl.id = 'wanted'; document.body.appendChild(wEl);
+  { const col = $('leftCol'); if (col) col.insertBefore(wEl, col.firstChild); }
+  let lastW = '', huntT = 20, decT = 0, scanned = new WeakSet();
+  EXTRA.push(dt => {
+    const t = save.wanted > 0 ? '<b>ARANIYOR</b> <i>' + STARS(save.wanted) + '</i><span>Başındaki ödül ' + bounty() + ' kredi' + (save.kacak ? ' · Kaçak mal ' + save.kacak : '') + '</span>' : save.kacak ? '<span>Kaçak mal ' + save.kacak + ' · devriyelerden uzak dur</span>' : '';
+    if (t !== lastW){ lastW = t; wEl.innerHTML = t; wEl.style.display = t ? 'block' : 'none'; }
+    if (docked || paused) return;
+    // zamanla unutulur
+    decT += dt; if (decT > 30){ decT = 0; if (save.wanted > 0 && time - crimeT > 180){ save.wanted = Math.max(0, save.wanted - 0.25); persist(); } }
+    // ödül avcıları (Kara Liman'da yok)
+    if (save.wanted >= 1 && curSys !== 5){ huntT -= dt;
+      if (huntT <= 0){ huntT = Math.max(45, 130 - save.wanted * 18);
+        const n0 = 1 + Math.floor(save.wanted / 2), back = V(0, 0, 1).applyQuaternion(rig.quaternion);
+        for (let i = 0; i < n0; i++){ const p = rig.position.clone().addScaledVector(back, 1400 + i * 120).add(V(rand(-300, 300), rand(-150, 150), rand(-300, 300)));
+          const h = spawnNpc(save.wanted >= 3 && i === 0 ? 'brute' : 'raider', p, STATION); if (!h) continue; h.hunter = true; h.hostile = true; h.name = 'Ödül avcısı ' + (h.name || '').split(' ').pop(); h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
+        eco.radioT = -9; radio('Ödül avcısı', 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
+    // devriyeler: çok arananı görünce saldırır, kaçak mal tarar
+    for (let i = 0; i < npcs.length; i++){ const q = npcs[i]; if (q.role !== 'patrol' || q.hostile || curSys === 5) continue; const d = q.pos.distanceTo(rig.position); if (d > 600) continue;
+      if (save.wanted >= 3 && !(q.rev > time)){ q.rev = time + 60; radio(q.name, 'Aranan pilot tespit edildi. Teslim ol!', '#ff5a6e'); }
+      if (save.kacak > 0 && !scanned.has(q)){ scanned.add(q); if (Math.random() < (save.side === 'lonca' ? 0.15 : 0.25)) seize(q.name); else { eco.radioT = -9; radio(q.name, 'Rutin tarama... temiz. Devam et.', '#7fd8ff'); } }
+    }
+  });
+  function seize(who){ const n = save.kacak, fine = n * 40; save.kacak = 0; save.kredi = Math.max(0, save.kredi - fine); persist(); addWanted(1, 'kaçak mal');
+    toast('Kaçak mal bulundu! ' + n + ' birime el konuldu, ' + fine + ' kredi ceza.', 4200); eco.radioT = -9; radio(who, 'Kaçak yüke el konuldu. Kaydına işlendi.', '#ff5a6e'); }
+  // kaçak mal kargo yerini kaplar
+  { const _cc = crewCargo; crewCargo = function(){ return _cc() - (save.kacak || 0); }; }
+  // istasyona yanaşınca gümrük taraması
+  { const _td = tryDock; tryDock = function(){ const was = docked; const r = _td.apply(this, arguments);
+      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && Math.random() < (save.side === 'lonca' ? 0.2 : 0.35)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
+  // istasyonda: Ticaret sekmesinde kaçak pazar ve kayıt silme
+  const box = document.createElement('div'); box.id = 'kacakBox'; box.dataset.tab = 'trade';
+  const BUY = 70, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 230 : 170);
+  function renderK(){
+    const dc = $('dcont'); if (!dc) return; if (box.parentNode !== dc) dc.appendChild(box);
+    const pir = curSys === 5, free = cargoCap() - cargoSum(); let h = '<div class="sect">' + (pir ? 'Kaçak pazar' : 'Kaçak mal') + '</div>';
+    if (pir){
+      h += '<div class="line"><span>Kaçak mal al<span class="dim"><br>Birimi ' + BUY + ' kredi · Kara Liman dışında ' + 170 + ', Lonca Pazarı\'nda 230 kredi eder. Devriye ve gümrük taraması riski var.</span></span><span style="display:flex;gap:6px"><button class="act" data-kc="b1" ' + (save.kredi < BUY || free < 1 ? 'disabled' : '') + '>Al 1</button><button class="act go" data-kc="b5" ' + (save.kredi < BUY * 5 || free < 5 ? 'disabled' : '') + '>Al 5</button></span></div>';
+      if (save.wanted > 0) h += '<div class="line"><span>Kayıtlarını sildir<span class="dim"><br>Aranma seviyen: ' + STARS(save.wanted) + '</span></span><button class="act go" data-kc="clr" ' + (save.kredi < bounty() ? 'disabled' : '') + '>Sil · ' + bounty() + ' kredi</button></div>';
+    } else {
+      h += '<div class="line"><span>Kaçak mal sat · elinde ' + save.kacak + '<span class="dim"><br>Birimi ' + sellP() + ' kredi. Her yanaşmada gümrük taraması riski var.</span></span><button class="act go" data-kc="s" ' + (save.kacak ? '' : 'disabled') + '>Hepsini sat</button></div>';
+      if (save.wanted > 0 && curSt === STATIONS[0] && curSys === 0 && save.fac.filo > -60) h += '<div class="line"><span>Cezanı öde<span class="dim"><br>Filo kaydını temizler.</span></span><button class="act" data-kc="fine" ' + (save.kredi < Math.round(bounty() * 1.5) ? 'disabled' : '') + '>Öde · ' + Math.round(bounty() * 1.5) + ' kredi</button></div>';
+    }
+    if (!pir && !save.kacak && !(save.wanted > 0 && curSys === 0)) h = '';
+    box.innerHTML = h;
+  }
+  box.addEventListener('click', e => { const b = e.target.closest('button[data-kc]'); if (!b || b.disabled) return; const a = b.dataset.kc;
+    if (a === 'b1' || a === 'b5'){ const n = a === 'b1' ? 1 : 5; if (save.kredi < BUY * n || cargoCap() - cargoSum() < n) return; save.kredi -= BUY * n; save.kacak += n; toast(n + ' birim kaçak mal yüklendi.', 1800); }
+    else if (a === 's'){ const v = save.kacak * sellP(); save.kredi += v; save.kacak = 0; toast('Kaçak mal satıldı: +' + v + ' kredi', 2400); window.__fac && window.__fac('korsan', 3); }
+    else if (a === 'clr'){ save.kredi -= bounty(); save.wanted = 0; toast('Kayıtların silindi. Artık aranmıyorsun.', 2600); }
+    else if (a === 'fine'){ save.kredi -= Math.round(bounty() * 1.5); save.wanted = 0; toast('Ceza ödendi. Kaydın temiz.', 2600); }
+    persist(); try { blip(660, 0.08); } catch (er) {} renderK(); try { dockLayout(); } catch (er) {} });
+  { const _dl = dockLayout; dockLayout = function(){ _dl(); try { renderK(); } catch (e) { console.warn(e); } }; }
+  const css = document.createElement('style'); css.textContent = `
+  #wanted{display:none;padding:7px 10px;background:rgba(40,6,12,.72);border:1px solid rgba(255,110,135,.35);border-left:2px solid #ff6e87;border-radius:4px;color:#ffd5dc;font:500 11.5px/1.35 var(--font);pointer-events:none}
+  #wanted b{font-weight:700;letter-spacing:.24em;color:#ff8ea2;font-size:11px}#wanted i{font-style:normal;color:#ffb454;letter-spacing:.1em;margin-left:6px}#wanted span{display:block;color:#d9a3ad;font-size:11px}
+  #dock[data-t="trade"] .card #kacakBox{display:block}`;
+  document.head.appendChild(css);
+
+  // ---- ücra düşman kapıları: her ev sisteminin uzak bir köşesinde, rakip tarafın evine açılır
+  const REMOTE = { 0: { to: 5, at: [13200, -1100, -12600] }, 5: { to: 4, at: [-12800, 900, 12900] }, 4: { to: 0, at: [12600, 1300, 13100] } };
+  const EN = { 0: 'ankora', 4: 'lonca', 5: 'korsan' }, FEE = 400;
+  if (!save.rgate || typeof save.rgate !== 'object') save.rgate = {};
+  const g = new THREE.Group(); scene.add(g); g.visible = false;
+  const ringM = new THREE.MeshStandardMaterial({ color: 0x3a3236, metalness: 0.7, roughness: 0.45, emissive: 0x200608 });
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(150, 16, 12, 40), ringM));
+  for (let i = 0; i < 8; i++){ const a = i / 8 * TAU, b = new THREE.Mesh(new THREE.BoxGeometry(26, 40, 34), ringM); b.position.set(Math.cos(a) * 158, Math.sin(a) * 158, 0); b.rotation.z = a; g.add(b);
+    const l = sprite(glowTexture(255, 70, 60), 40, 0.9); l.position.set(Math.cos(a) * 176, Math.sin(a) * 176, 0); g.add(l); }
+  const eTex = {}, eT = k => eTex[k] || (eTex[k] = (() => { const t = new THREE.TextureLoader().load('assets/img/gate_' + EN[k] + '_enerji.webp'); t.encoding = THREE.sRGBEncoding; return t; })());
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(136, 48), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); g.add(disc);
+  const glw = sprite(glowTexture(255, 90, 80), 700, 0.35); g.add(glw);
+  let R = null, mark = null, cool = 0, asked = false;
+  const fm = window.__featMap; window.__featMap = () => (fm ? fm() : []).concat(mark ? [mark] : []);
+  function place(){ R = REMOTE[curSys] || null; g.visible = !!R; mark = null; if (!R) return; g.position.set(...R.at); g.lookAt(STATION.pos); disc.material.map = eT(R.to); disc.material.needsUpdate = true;
+    if (save.rgate[curSys]) mark = { kind: 'ruin', i: 8, gate: true, found: true, r: 160, ad: 'Ücra kapı', label: 'Ücra kapı → ' + SYS[R.to].ad, pos: g.position.clone(), group: { position: g.position } }; }
+  { const _aw = applyWorld; applyWorld = function(k){ _aw(k); try { place(); } catch (e) { console.warn(e); } }; }
+  place();
+  EXTRA.push(dt => {
+    if (!R) return; g.rotation.z += dt * 0.05; disc.rotation.z -= dt * 0.6; cool -= dt;
+    if (docked || paused) return; const d = rig.position.distanceTo(g.position);
+    if (d < 3200 && !save.rgate[curSys]){ save.rgate[curSys] = 1; persist(); place(); eco.radioT = -9; radio('Tarayıcı', 'Ücra bir kapı sinyali! Yön: ' + SYS[R.to].ad + '. Düşman toprağına açılıyor.', '#ff6b8a'); toast('Ücra kapı keşfedildi → ' + SYS[R.to].ad, 3600); }
+    if (d < 170 && cool <= 0 && !asked && window.__gateAsk){ asked = true; const to = R.to;
+      window.__gateAsk(to, () => { asked = false; if (save.kredi < FEE){ toast('Kaçak geçiş ' + FEE + ' kredi.', 2600); cool = 8; return; } save.kredi -= FEE; persist();
+          if (!save.open.includes(to)){ save.open.push(to); persist(); }
+          window.__gj2 = true; window.__afterJump = () => { docked = false; $('dock').classList.add('hidden'); curSt = null; const P = REMOTE[to] ? V(...REMOTE[to].at) : STATION.pos.clone(), dir = STATION.pos.clone().sub(P).normalize();
+            rig.position.copy(P).addScaledVector(dir, 420); rig.lookAt(rig.position.clone().sub(dir)); vel.copy(dir).multiplyScalar(90); window.__gj2 = false; cool = 10; };
+          enterSystem(to); },
+        () => { asked = false; cool = 8; const away = rig.position.clone().sub(g.position).normalize(); rig.position.copy(g.position).addScaledVector(away, 420); vel.set(0, 0, 0); });
+      const q = $('gateQ'), pp = q && q.querySelector('.p p'), yb = q && q.querySelector('button.y');
+      if (pp) pp.innerHTML = 'Ücra kapı: <b>düşman toprağına</b> açılır. Kaçak geçiş ücreti <b>' + FEE + ' kredi</b>.';
+      if (yb){ yb.disabled = save.kredi < FEE; yb.style.opacity = save.kredi < FEE ? '.45' : ''; yb.textContent = save.kredi < FEE ? 'Kredi yetersiz' : 'Geç · ' + FEE + ' kredi'; } }
+  });
+  { const _dh = drawHud; drawHud = function(){ _dh(); try { if (R && save.rgate[curSys] && !docked) drawMarker(hctx, g.position, '#ff6b8a', 'Ücra kapı → ' + SYS[R.to].ad, rig.position.distanceTo(g.position), 5000); } catch (e) {} }; }
 }
 })();
