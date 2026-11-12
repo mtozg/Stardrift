@@ -89,3 +89,7 @@ Görseller `assets/img/` içinde, adları kodda nerede kullanıldıklarını sö
 - **Var olan bir görseli değiştirmek:** Aynı adla, aynı en-boy oranında ve saydam arka planla üzerine yaz. Kod değişmez.
 - **Yeni görsel:** Dosyayı `assets/img/` içine koy, kodda ilgili tabloya `anahtar: "assets/img/dosya.webp"` satırını ekle.
 - İkonlar için saydam arka planlı kare webp (160×160 yeterli), arka planlar için 2048 genişlik iyi bir ölçü.
+- Cevherler haritalara ayrıldı: demir yalnız Kızıl Geçit'te, buz Buzul Halka'da, kristal Zümrüt Sis'te; her uzmanlık istasyonu yalnız kendi haritasında. Ev haritalarında (Ankora, Lonca Pazarı, Kara Liman) yeni cevher titan ve lazerle kesilen uzay enkazları (hurda).
+- Yeni cevher cisimleri: köşeli metal demir, kırmızı kristal kümeleri, sarkıtlı buz topları, mor damarlı titan, uzay enkazı.
+- Seviyeler (30) ve katmanlı rütbe rozetleri; seviye atlama ekranı ve yetenek puanları (madencilik, savaş, pilotaj, ticaret).
+- Kendi üssünü özelleştir: ad, ışık rengi, hurdayla kurulan eklentiler (ışık dizisi, anten, güneş paneli, amblem, kubbe); modüller üssün üstünde görünür.
