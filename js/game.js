@@ -7621,9 +7621,26 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   dockLayout = function(){
     _dl();
     const tb = $('dtabs'); if (tb) [...tb.children].forEach(b => { const n = TABN[b.dataset.t]; if (n && b.textContent !== n) b.textContent = n; });
+    orderMore();
     const ds = $('dkStat'); if (ds){ ds.querySelectorAll('span').forEach(sp => { if (sp.dataset.v2) return; sp.dataset.v2 = 1; const bs = sp.querySelectorAll('b'); const lab = [...sp.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join(' ').trim().split(' ')[0];
       if (lab){ [...sp.childNodes].forEach(n => { if (n.nodeType === 3 && n.textContent.trim() === lab) n.remove(); else if (n.nodeType === 3) n.textContent = n.textContent.replace(lab, ''); }); const l = document.createElement('small'); l.textContent = lab; sp.insertBefore(l, sp.firstChild); } }); }
   };
+  // Diğer: önce yolculuk ve keşif, en altta pilot/ayar/hesap
+  function orderMore(){
+    const e = $('exBox'), j = $('jumpBox'), dc = $('dcont'); if (!e || !dc) return;
+    if (j && j.parentNode === dc && j.nextElementSibling !== e) dc.insertBefore(j, e);
+    const groups = [], pre = []; let cur = null;
+    for (const c of [...e.children]){ if (c.classList.contains('sect')){ cur = { t: c.textContent.trim(), els: [c] }; groups.push(cur); } else if (cur) cur.els.push(c); else pre.push(c); }
+    const rank = t => /^Kendi üssün/.test(t) ? 1 : /^Kadim/.test(t) ? 2 : /^İstasyon durumu/.test(t) ? 3 : /^Görünüm/.test(t) ? 8 : /^Pilot/.test(t) ? 9 : /^Hesap/.test(t) ? 10 : 5;
+    const want = groups.slice().sort((a, b) => rank(a.t) - rank(b.t));
+    let ph = groups.find(g => g.t === 'Pilot');
+    if (!ph){ const h = document.createElement('div'); h.className = 'sect'; h.textContent = 'Pilot'; ph = { t: 'Pilot', els: [h] }; want.splice(want.findIndex(g => rank(g.t) > 9) < 0 ? want.length : want.findIndex(g => rank(g.t) > 9), 0, ph); }
+    const pr = dc.querySelector(':scope > .pilotRow') || e.querySelector('.pilotRow'); if (pr && !ph.els.includes(pr)) ph.els.push(pr);
+    for (const x of pre) if (!ph.els.includes(x)) ph.els.push(x);
+    const flat = want.flatMap(g => g.els); if (flat.every((x, i) => e.children[i] === x)) return;
+    for (const x of flat) e.appendChild(x);
+  }
+  { const _rx = renderExtras; renderExtras = function(){ _rx(); try { orderMore(); } catch (e) {} }; }
   const st = document.createElement('style');
   st.textContent = `
   html body #dock{--v2t:#e9f1f7;--v2d:#8ea2b6;--v2l:rgba(220,235,245,.14);--v2a:#8fe3ff;padding:0 !important;justify-content:stretch !important;align-items:stretch !important;font-family:var(--font)}
@@ -7653,6 +7670,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #dock .sect,html body #dock .acch{border:0 !important;border-image:none !important;border-bottom:1px solid var(--v2l) !important;border-radius:0 !important;background:none !important;box-shadow:none !important;
     margin:18px 0 8px !important;padding:0 0 6px !important;font:600 11px/1.2 var(--font) !important;letter-spacing:.2em;text-transform:uppercase;color:var(--v2d) !important;cursor:default;text-shadow:none !important}
   html body #dock .acch::after,html body #dock .acch::before{display:none !important;content:none !important}
+  html body #dock .pilotRow{display:flex !important;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);color:var(--v2t);font-size:13px}
+  html body #dock:not([data-t="more"]) .pilotRow{display:none !important}
+  html body #dock .pilotRow input{flex:1;padding:6px 10px !important;font-size:13px !important}
   html body #dock .hgstat{border:0 !important;border-image:none !important;background:none !important;box-shadow:none !important;padding:4px 0 !important;margin:6px 0 !important}
   html body #dock .hgstat i{background:rgba(255,255,255,.1) !important;border:0 !important;border-image:none !important;height:3px !important;border-radius:2px !important;box-shadow:none !important}
   html body #dock .hgstat span{color:var(--v2d) !important;font-size:11px !important;letter-spacing:.06em}
@@ -7703,5 +7723,85 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   }
   `;
   document.head.appendChild(st);
+}
+
+// =====================  v2 arayüz: uçuş düğmeleri, pencereler, konuşmalar (istasyon menüsüyle aynı dil)  =====================
+{
+  const st = document.createElement('style');
+  st.textContent = `
+  :root{--v2t:#e9f1f7;--v2d:#8ea2b6;--v2l:rgba(220,235,245,.16);--v2bg:rgba(6,11,20,.9)}
+  /* uçuş düğmeleri: koyu yarı saydam daire, ince halka, çizgi simge, altında küçük etiket */
+  html body #stage .btn,html body #stage .btn.img,html body .btn,html body .btn.img{background:rgba(8,14,26,.55) !important;background-image:none !important;border:1px solid rgba(220,235,245,.35) !important;border-image:none !important;border-radius:50% !important;
+    box-shadow:none !important;filter:none !important;backdrop-filter:blur(3px);color:var(--v2t) !important;text-shadow:none !important;
+    font:600 9px/1 var(--font) !important;letter-spacing:.14em;text-transform:uppercase;display:flex !important;flex-direction:column;align-items:center;justify-content:flex-end !important;padding:0 0 9px !important;gap:0;overflow:hidden}
+  html body #stage .btn.hidden,html body .btn.hidden,html body #stage .btn.img.hidden{display:none !important}
+  html body .btn::before{content:"";display:block;flex:0 0 auto;width:42%;height:42%;margin:auto 0 4px;background:var(--v2t);-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
+  html body .btn:active,html body .btn.down,html body .btn.on,html body #stage .btn.img:active,html body #stage .btn.img.down,html body #stage .btn.img.on{background:rgba(233,241,247,.92) !important;color:#0a1220 !important;border-color:transparent !important;filter:none !important}
+  html body .btn:active::before,html body .btn.down::before,html body .btn.on::before{background:#0a1220}
+  html body #bLaser{border-color:rgba(255,120,145,.7) !important}
+  html body #bLaser.down{background:rgba(255,120,145,.9) !important}
+  html body #bBoost{border-color:rgba(143,227,255,.7) !important}
+  html body #bDock,html body #stage #bDock.img{border-radius:999px !important;width:auto !important;min-width:110px;height:40px !important;padding:0 16px !important;flex-direction:row !important;justify-content:center !important;align-items:center !important;gap:8px;font-size:11px !important;
+    border-color:rgba(123,224,164,.8) !important;color:#c9f5dc !important;animation:v2pulse 1.6s ease-in-out infinite}
+  html body #bDock::before{width:18px;height:18px;margin:0;background:#c9f5dc}
+  @keyframes v2pulse{50%{box-shadow:0 0 0 6px rgba(123,224,164,.12)}}
+  html body #snd,html body #msgBtn,html body #bComm{padding:0 0 5px !important;font-size:7px !important;letter-spacing:.04em !important;overflow:visible}
+  html body #snd::before,html body #msgBtn::before,html body #bComm::before{margin:auto 0 2px;width:46%;height:46%}
+  html body #inbox{right:62px !important}
+  html body #msgBadge{background:#ff7891 !important;color:#fff !important;border:0 !important;font:700 9px/14px var(--font) !important;min-width:14px;height:14px;border-radius:7px !important}
+  html body #bLaser::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M12 2v5M12 17v5M2 12h5M17 12h5M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M12 2v5M12 17v5M2 12h5M17 12h5M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3'/></svg>")}
+  html body #bThrust::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3c3 3 4 7 3 11h-6C8 10 9 6 12 3z'/><path d='M10 17l2 4 2-4'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3c3 3 4 7 3 11h-6C8 10 9 6 12 3z'/><path d='M10 17l2 4 2-4'/></svg>")}
+  html body #bBrake::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8'/><path d='M9 9v6M15 9v6'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='8'/><path d='M9 9v6M15 9v6'/></svg>")}
+  html body #bBoost::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 6l6 6-6 6M12 6l6 6-6 6'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 6l6 6-6 6M12 6l6 6-6 6'/></svg>")}
+  html body #bLock::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4'/><circle cx='12' cy='12' r='2.5'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4'/><circle cx='12' cy='12' r='2.5'/></svg>")}
+  html body #bMissile::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M14 4l6 6-8 8-4-4z'/><path d='M8 14l-3 1-1 5 5-1 1-3'/><circle cx='15' cy='9' r='1'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M14 4l6 6-8 8-4-4z'/><path d='M8 14l-3 1-1 5 5-1 1-3'/><circle cx='15' cy='9' r='1'/></svg>")}
+  html body #bDock::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 12h7M8 9l3 3-3 3M20 12h-7M16 9l-3 3 3 3'/><path d='M12 4v3M12 17v3'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M4 12h7M8 9l3 3-3 3M20 12h-7M16 9l-3 3 3 3'/><path d='M12 4v3M12 17v3'/></svg>")}
+  html body #bComm::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='13' r='1.6'/><path d='M8.5 9.5a5 5 0 0 0 0 7M15.5 9.5a5 5 0 0 1 0 7M5.5 6.5a9 9 0 0 0 0 13M18.5 6.5a9 9 0 0 1 0 13'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='13' r='1.6'/><path d='M8.5 9.5a5 5 0 0 0 0 7M15.5 9.5a5 5 0 0 1 0 7M5.5 6.5a9 9 0 0 0 0 13M18.5 6.5a9 9 0 0 1 0 13'/></svg>")}
+  html body #msgBtn::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='6' width='18' height='12' rx='1.5'/><path d='M3.5 7l8.5 6 8.5-6'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='6' width='18' height='12' rx='1.5'/><path d='M3.5 7l8.5 6 8.5-6'/></svg>")}
+  html body #snd::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1'/></svg>")}
+  html body #stickBase{border:1px solid rgba(220,235,245,.25) !important;background:rgba(8,14,26,.25) !important}
+  html body #stickKnob{background:rgba(233,241,247,.25) !important;border:1px solid rgba(233,241,247,.7) !important}
+  /* ortak pencere dili */
+  html body #comm .sheet,html body #inbox,html body #setP .card,html body #gateQ .p,html body #accBox .p,html body #awayCard .ac,html body #tut,html body #hcPanel,html body div[style*="#08101e"]{
+    background:var(--v2bg) !important;border:1px solid var(--v2l) !important;border-image:none !important;border-radius:6px !important;box-shadow:0 18px 50px rgba(0,0,0,.55) !important;backdrop-filter:blur(6px);color:var(--v2t)}
+  html body #setP h2,html body #gateQ h2,html body #gateQ .p > b:first-child,html body #awayCard h2,html body #accBox h2{font:700 14px/1.2 var(--font) !important;letter-spacing:.22em !important;text-transform:uppercase;color:var(--v2t) !important;background:none !important;-webkit-text-fill-color:currentColor !important}
+  html body #setP .sect,html body #inbox .sect,html body #awayCard .sect{color:var(--v2d) !important;font:600 10.5px/1.2 var(--font) !important;letter-spacing:.2em !important;text-transform:uppercase;border-bottom:1px solid var(--v2l);padding-bottom:5px;margin:16px 0 4px !important}
+  html body #setP .line{border-bottom:1px solid rgba(255,255,255,.05) !important;font-size:13px !important}
+  html body #setP input[type=range]{accent-color:#e9f1f7}
+  /* pencere düğmeleri: hap, ince çerçeve; asıl işlem beyaz dolgu */
+  html body button.act,html body #comm .op button,html body #accBox .tb button,html body #accBox .go,html body #gateQ button,html body #accRow a,html body #accBox [data-x],html body #awayCard button,html body #inbox button,html body #tut button,html body div[style*="#08101e"] button,html body #comm .xb{
+    border:1px solid rgba(220,235,245,.32) !important;border-image:none !important;border-radius:999px !important;background:rgba(255,255,255,.035) !important;box-shadow:none !important;text-shadow:none !important;
+    color:var(--v2t) !important;font:600 12px/1.25 var(--font) !important;letter-spacing:.06em;padding:7px 16px !important;text-decoration:none !important}
+  html body button.act:disabled,html body #comm .op button:disabled,html body #gateQ button:disabled{opacity:.38 !important}
+  html body button.act.go,html body #accBox .go,html body #accBox .tb button.on,html body #gateQ button.y,html body #comm .op button:not(.x):first-child,html body #awayCard #awayOk{background:var(--v2t) !important;color:#0a1220 !important;border-color:transparent !important}
+  html body #comm .op button{border-radius:6px !important;text-align:left;padding:10px 12px !important;font-size:13px !important}
+  html body #comm .op button.x{text-align:center;color:var(--v2d) !important}
+  html body #comm .chip{border-radius:3px !important;font-size:10px !important;letter-spacing:.16em}
+  html body #comm .nm{letter-spacing:.06em}
+  html body #comm .say{font-size:14px !important;color:#d6e2ec}
+  html body #comm .xb{position:absolute;right:8px;top:8px;width:28px;height:28px;padding:0 !important;font-size:0 !important}
+  html body #comm .xb::before,html body #comm .xb::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:1.5px;background:var(--v2t);transform:translate(-50%,-50%) rotate(45deg)}
+  html body #comm .xb::after{transform:translate(-50%,-50%) rotate(-45deg)}
+  html body #accBox input{border:1px solid var(--v2l) !important;border-image:none !important;border-radius:4px !important;background:rgba(255,255,255,.04) !important;color:var(--v2t) !important;padding:9px 10px !important}
+  html body #accBox .tb{gap:6px}
+  html body #gateQ .p p b,html body #gateQ .p div b{display:inline !important;letter-spacing:.06em !important;margin:0 !important;font-size:inherit !important}
+  /* bildirim, telsiz, rehber */
+  html body #toast{background:var(--v2bg) !important;border:1px solid var(--v2l) !important;border-image:none !important;border-radius:4px !important;padding:8px 16px !important;color:var(--v2t) !important;font:500 12.5px/1.35 var(--font) !important;letter-spacing:.03em;box-shadow:0 8px 24px rgba(0,0,0,.4) !important}
+  html body #radio .rl{background:rgba(6,11,20,.72) !important;border:0 !important;border-image:none !important;border-left:2px solid rgba(143,227,255,.7) !important;border-radius:0 3px 3px 0 !important;padding:5px 10px !important;color:var(--v2t) !important}
+  html body #tut{padding:10px 14px !important}
+  html body #tut .h span{color:var(--v2d) !important;letter-spacing:.2em !important;font-size:10px !important}
+  html body #tut b{letter-spacing:.06em}
+  html body #ctTrack,html body #ctTrack *{text-shadow:none !important}
+  html body #ctTrack > div{background:rgba(6,11,20,.62) !important;border:0 !important;border-image:none !important;border-left:2px solid rgba(255,196,119,.7) !important;border-radius:0 3px 3px 0 !important}
+  /* açılış ekranı */
+  html body #title h1{background:none !important;-webkit-text-fill-color:#e9f1f7 !important;color:#e9f1f7 !important;font-weight:300 !important;letter-spacing:.5em !important}
+  html body #title p{color:var(--v2d) !important;font-size:11px !important}
+  html body #title img{filter:drop-shadow(0 0 14px rgba(160,210,255,.25)) !important}
+  html body #titleGo{background:transparent !important;border:1px solid rgba(233,241,247,.75) !important;color:var(--v2t) !important;font:700 15px/1 var(--font) !important;letter-spacing:.4em !important;padding:13px 52px !important;border-radius:999px !important;text-shadow:none !important}
+  html body #titleGo:hover,html body #titleGo:active{background:var(--v2t) !important;color:#0a1220 !important}
+  html body #accRow{gap:10px !important}
+  html body #accRow a{font-size:11px !important;padding:6px 14px !important;letter-spacing:.12em;text-transform:uppercase}
+  `;
+  document.head.appendChild(st);  const fixT = () => { const tg = $('titleGo'); if (tg && tg.getAttribute('style')) tg.removeAttribute('style'); }; fixT(); setTimeout(fixT, 0); setTimeout(fixT, 500);
 }
 })();
