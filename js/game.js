@@ -7608,7 +7608,7 @@ function frame(now){
   drawHud();
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
   $('bLock').classList.toggle('on', !!lock);
-  { const lab = 'Roket ' + (lock ? 'G' + save.ammo : 'D' + save.ammoD); if (frameAmmo !== lab){ frameAmmo = lab; $('bMissile').textContent = lab; } }
+  { const lab = 'Roket ' + (lock ? 'G' + save.ammo : 'D' + save.ammoD); if (frameAmmo !== lab){ frameAmmo = lab; $('bMissile').textContent = (lock ? 'G' : 'D') + ' ' + (lock ? save.ammo : save.ammoD); } }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -7751,6 +7751,13 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #stage #bLaser.btn.img:not(#bDock):active,html body #stage #bLaser.btn.img:not(#bDock).down,html body #stage #bLaser.btn:not(#bDock).down{background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><radialGradient id='g' cx='50%25' cy='36%25' r='62%25'><stop offset='0' stop-color='rgba(255,150,170,0.95)'/><stop offset='1' stop-color='rgba(230,90,120,0.95)'/></radialGradient></defs><polygon points='25,2.5 75,2.5 98.5,50 75,97.5 25,97.5 1.5,50' fill='url(%23g)' stroke='rgba(255,140,160,1)' stroke-width='1.6' vector-effect='non-scaling-stroke'/></svg>") center/100% 100% no-repeat !important}
   html body #stage #bBoost.btn.img:not(#bDock),html body #stage #bBoost.btn:not(#bDock){background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><radialGradient id='g' cx='50%25' cy='36%25' r='62%25'><stop offset='0' stop-color='rgba(66,92,110,0.82)'/><stop offset='1' stop-color='rgba(10,18,26,0.88)'/></radialGradient></defs><polygon points='25,2.5 75,2.5 98.5,50 75,97.5 25,97.5 1.5,50' fill='url(%23g)' stroke='rgba(143,227,255,0.75)' stroke-width='1.6' vector-effect='non-scaling-stroke'/></svg>") center/100% 100% no-repeat !important}
   html body #stage #bBoost.btn.img:not(#bDock):active,html body #stage #bBoost.btn.img:not(#bDock).down,html body #stage #bBoost.btn:not(#bDock).down{background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><radialGradient id='g' cx='50%25' cy='36%25' r='62%25'><stop offset='0' stop-color='rgba(243,247,250,0.98)'/><stop offset='1' stop-color='rgba(214,224,233,0.95)'/></radialGradient></defs><polygon points='25,2.5 75,2.5 98.5,50 75,97.5 25,97.5 1.5,50' fill='url(%23g)' stroke='rgba(233,241,247,1)' stroke-width='1.6' vector-effect='non-scaling-stroke'/></svg>") center/100% 100% no-repeat !important}
+  /* altıgenin geniş orta bandında: simge biraz üstte, yazı merkezin hemen altında (köşelere taşmaz) */
+  html body .btn:not(#bDock),html body #stage .btn.img:not(#bDock){justify-content:center !important;padding:0 !important;gap:3px !important;font-size:8px !important;letter-spacing:.06em !important;line-height:1 !important}
+  html body .btn:not(#bDock)::before{margin:0 !important;width:40% !important;height:40% !important}
+  html body #bLaser{font-size:9px !important}
+  /* küçük üst düğmeler: yalnızca simge */
+  html body #snd.btn:not(#bDock),html body #msgBtn.btn:not(#bDock),html body #bComm.btn:not(#bDock),html body #stage #snd.btn:not(#bDock),html body #stage #msgBtn.btn:not(#bDock),html body #stage #bComm.btn:not(#bDock){font-size:0 !important;letter-spacing:0 !important;gap:0 !important;color:transparent !important}
+  html body #snd::before,html body #msgBtn::before,html body #bComm::before{width:48% !important;height:48% !important}
   html body #bDock,html body #stage #bDock.img{border-radius:999px !important;width:auto !important;min-width:110px;height:40px !important;padding:0 16px !important;flex-direction:row !important;justify-content:center !important;align-items:center !important;gap:8px;font-size:11px !important;
     border-color:rgba(123,224,164,.8) !important;color:#c9f5dc !important;animation:v2pulse 1.6s ease-in-out infinite}
   html body #bDock::before{width:18px;height:18px;margin:0;background:#c9f5dc}
