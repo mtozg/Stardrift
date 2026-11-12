@@ -6722,10 +6722,10 @@ window.__xpal = {
   };
   // ---- üs modülleri: kredi + cevher + parça
   const REQ = {
-    tam: { c: [600, 1400, 2800], o: { demir: [10, 24, 48] }, p: { levha: [1, 3, 5] } },
-    dep: { c: [500, 1200, 2400], o: { demir: [8, 18, 36], buz: [0, 6, 14] }, p: { levha: [1, 2, 4] } },
-    rok: { c: [450, 1100, 2200], o: { demir: [10, 20, 40], kristal: [0, 4, 10] }, p: { devre: [1, 2, 4] } },
-    sav: { c: [700, 1600, 3000], o: { demir: [12, 24, 48], kristal: [0, 6, 14] }, p: { devre: [1, 3, 5], hucre: [0, 1, 2] } }
+    tam: { c: [600, 1400, 2800], o: { titan: [10, 24, 48], hurda: [0, 6, 12] }, p: { levha: [1, 3, 5] } },
+    dep: { c: [500, 1200, 2400], o: { titan: [8, 18, 36], hurda: [4, 8, 16] }, p: { levha: [1, 2, 4] } },
+    rok: { c: [450, 1100, 2200], o: { titan: [10, 20, 40], hurda: [0, 6, 12] }, p: { devre: [1, 2, 4] } },
+    sav: { c: [700, 1600, 3000], o: { titan: [12, 24, 48], hurda: [6, 12, 20] }, p: { devre: [1, 3, 5], hucre: [0, 1, 2] } }
   };
   const haveOre = k => (cargo[k] || 0) + ((save.base && save.base.store && save.base.store[k]) || 0);
   const lacks = (a, l) => { const R = REQ[a], out = []; for (const k in R.o){ const n = R.o[k][l]; if (n > 0) out.push([ORE[k].ad.toLowerCase(), n, haveOre(k) >= n, k]); } for (const k in R.p){ const n = R.p[k][l]; if (n > 0) out.push([PN[k], n, save.parts[k] >= n, k]); } return out; };
@@ -6737,7 +6737,7 @@ window.__xpal = {
       if (sp) sp.insertAdjacentHTML('beforeend', '<br>Gerekir: ' + ls.map(x => '<span style="color:' + (x[2] ? '#7be0a4' : '#ff7a8a') + '">' + x[1] + __pi(x[3]) + '</span>').join(' · '));
       if (!ok) b.disabled = true;
     });
-    const f = e.querySelector('.line.fac'); if (f && !e.querySelector('.bsum')) f.insertAdjacentHTML('beforebegin', '<div class="line bsum"><span class="dim">Elindeki: ' + ['demir', 'buz', 'kristal'].map(k => __pi(k) + haveOre(k)).join(' · ') + '<br>' + partTxt() + '</span></div>');
+    const f = e.querySelector('.line.fac'); if (f && !e.querySelector('.bsum')) f.insertAdjacentHTML('beforebegin', '<div class="line bsum"><span class="dim">Elindeki: ' + ['titan', 'hurda'].map(k => __pi(k) + haveOre(k)).join(' · ') + '<br>' + partTxt() + '</span></div>');
   };
   document.addEventListener('click', ev => {
     const b = ev.target.closest && ev.target.closest('button[data-bm]'); if (!b) return; const a = b.dataset.bm, R = REQ[a]; if (!R) return; const B = save.base; if (!B || !B.m || curSt !== baseSt) return; const l = B.m[a];
@@ -8407,7 +8407,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   window.__kHold = HOLD;
   // istasyona yanaşınca gümrük taraması
   { const _td = tryDock; tryDock = function(){ const was = docked; const r = _td.apply(this, arguments);
-      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && Math.random() < (save.side === 'lonca' ? 0.25 : 0.4)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
+      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && !(curSt && curSt.isBase) && Math.random() < (save.side === 'lonca' ? 0.25 : 0.4)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
   // istasyonda: Ticaret sekmesinde kaçak pazar ve kayıt silme
   const box = document.createElement('div'); box.id = 'kacakBox'; box.dataset.tab = 'trade';
   const BUY = 90, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 185 : 150);
@@ -8877,78 +8877,6 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   document.head.appendChild(st);
 }
 
-// =====================  kendi üssünü özelleştir: ad, renk, eklentiler (hurda ile), modüller 3B görünür  =====================
-{
-  const PAL = [['Yeşil', 0x7be0a4], ['Amber', 0xffb454], ['Buz', 0x7fd8ff], ['Kızıl', 0xff5a6e], ['Mor', 0xc8a8ff]];
-  const COS = {
-    isik: { n: 'Işık dizisi', d: 'Halkada yanıp sönen renkli ışıklar', h: 10, k: 300 },
-    anten: { n: 'Anten çanağı', d: 'Tepede telsiz çanağı, ucunda yanıp sönen ışık', h: 15, k: 400 },
-    panel: { n: 'Güneş panelleri', d: 'Üs geliri +%10', h: 20, k: 500 },
-    amblem: { n: 'Taraf amblemi', d: 'Tarafının amblemi üssün üstünde parlar', h: 25, k: 600 },
-    kubbe: { n: 'Gözlem kubbesi', d: 'Cam kubbe; gece ışıl ışıl', h: 30, k: 800 }
-  };
-  const cz = () => { const B = save.base; if (!B) return null; if (!B.cz) B.cz = { name: '', col: 0, ad: {} }; if (!B.cz.ad) B.cz.ad = {}; return B.cz; };
-  const hurdaHave = () => (cargo.hurda || 0) + ((save.base && save.base.store && save.base.store.hurda) || 0);
-  const hurdaTake = n => { const a = Math.min(cargo.hurda || 0, n); cargo.hurda -= a; n -= a; if (n > 0 && save.base.store) save.base.store.hurda -= n; };
-  let G = null; const blink = [], turrets = [];
-  const M = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.5, metalness: 0.4, flatShading: true }, o || {}));
-  function put(g, geo, mat, x, y, z, rx, ry, rz){ const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx || 0, ry || 0, rz || 0); g.add(m); return m; }
-  function build(){
-    if (!baseSt || !baseSt.group || !save.base) return; const C = cz(), B = save.base, md = B.m || {}, col = PAL[C.col] ? PAL[C.col][1] : PAL[0][1];
-    if (G) baseSt.group.remove(G); G = new THREE.Group(); blink.length = 0; turrets.length = 0;
-    const steel = M(0x8a93a6), dark = M(0x2a3346), glow = new THREE.MeshBasicMaterial({ color: col });
-    // modüller: depo konteynerleri, savunma taretleri, roket rafları, tamir vinçleri
-    const cc = [0xc0603a, 0x3a7ac0, 0xd0b040, 0x5a9a5a, 0x9a5ac0];
-    for (let i = 0; i < (md.dep || 0) * 3; i++){ const a = 0.5 + i * 0.22, r = 92 + (i % 2) * 14; put(G, new THREE.BoxGeometry(16, 9, 9), M(cc[i % cc.length], { metalness: 0.3 }), Math.cos(a) * r, -18 + ((i / 2) | 0) % 2 * 10, Math.sin(a) * r, 0, -a, 0); }
-    for (let i = 0; i < (md.sav || 0) * 2; i++){ const a = i / Math.max(1, (md.sav || 0) * 2) * TAU + 0.3, t = new THREE.Group(); t.position.set(Math.cos(a) * 78, i % 2 ? 26 : -26, Math.sin(a) * 78);
-      put(t, new THREE.CylinderGeometry(6, 8, 6, 8), dark, 0, 0, 0); const head = new THREE.Group(); head.position.y = 5; t.add(head);
-      put(head, new THREE.BoxGeometry(8, 5, 8), steel, 0, 0, 0); put(head, new THREE.CylinderGeometry(1, 1, 16, 6), steel, 0, 0, 9, Math.PI / 2, 0, 0); put(head, new THREE.SphereGeometry(1.2, 6, 6), glow, 0, 2.8, 0);
-      G.add(t); turrets.push(head); }
-    for (let i = 0; i < (md.rok || 0); i++){ const a = Math.PI + i * 0.5; const g = new THREE.Group(); g.position.set(Math.cos(a) * 84, 6, Math.sin(a) * 84); g.rotation.y = -a; G.add(g);
-      put(g, new THREE.BoxGeometry(6, 14, 18), dark, 0, 0, 0); for (let j = 0; j < 4; j++) put(g, new THREE.ConeGeometry(1.6, 5, 6), M(0xff5a6e, { emissive: 0x601018 }), 3.5, 9, -6 + j * 4); }
-    for (let i = 0; i < (md.tam || 0); i++){ const a = 2.2 + i * 0.7; const g = new THREE.Group(); g.position.set(Math.cos(a) * 60, 30, Math.sin(a) * 60); g.rotation.y = -a; G.add(g);
-      put(g, new THREE.BoxGeometry(4, 40, 4), M(0xd0a040), 0, 18, 0); put(g, new THREE.BoxGeometry(34, 3, 3), M(0xd0a040), 15, 38, 0); put(g, new THREE.BoxGeometry(2, 10, 2), steel, 31, 32, 0); }
-    // eklentiler
-    if (C.ad.panel) for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2 + Math.PI / 4; put(G, new THREE.BoxGeometry(40, 2, 2), steel, Math.cos(a) * 95, 0, Math.sin(a) * 95, 0, -a, 0);
-      put(G, new THREE.BoxGeometry(60, 1.5, 26), M(0x1a2c66, { emissive: 0x0a1640, metalness: 0.7, roughness: 0.25 }), Math.cos(a) * 140, 0, Math.sin(a) * 140, 0, -a, 0); }
-    if (C.ad.anten){ put(G, new THREE.CylinderGeometry(1.4, 1.8, 60, 6), steel, 0, 75, 0); const d = put(G, new THREE.SphereGeometry(20, 16, 8, 0, TAU, 0, 0.9), M(0xdfe6ef, { side: THREE.DoubleSide, metalness: 0.2 }), 0, 108, 0, -1.1, 0, 0);
-      const tip = put(G, new THREE.SphereGeometry(2, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff3040 }), 0, 106, 0); blink.push({ m: tip, p: 0, f: 1.2 }); }
-    if (C.ad.isik) for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, l = put(G, new THREE.SphereGeometry(2.4, 6, 6), new THREE.MeshBasicMaterial({ color: col }), Math.cos(a) * 104, -12, Math.sin(a) * 104); blink.push({ m: l, p: i / 24 * TAU, f: 3 }); }
-    if (C.ad.kubbe){ put(G, new THREE.SphereGeometry(30, 20, 10, 0, TAU, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9fe0ff, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0.2, emissive: col, emissiveIntensity: 0.25, depthWrite: false }), 0, 42, 0);
-      put(G, new THREE.TorusGeometry(30, 2, 6, 32), steel, 0, 42, 0, Math.PI / 2, 0, 0); }
-    if (C.ad.amblem && save.side){ const t = new THREE.TextureLoader().load('assets/img/fac_' + save.side + '.webp?v=' + (window.SD_VERSION || '')); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false })); sp.scale.set(54, 54, 1); sp.position.set(0, C.ad.anten ? 150 : 110, 0); G.add(sp); }
-    baseSt.group.add(G);
-    (baseSt.lights || []).forEach(l => l.material && l.material.color && l.material.color.setHex(col));
-    baseSt.group.children.forEach(ch => { if (ch.isPointLight) ch.color.setHex(col); });
-    if (C.name) baseSt.ad = C.name;
-  }
-  window.__baseBuild = build;
-  { const _ab = attachBase; attachBase = function(){ const r = _ab.apply(this, arguments); try { build(); } catch (e) { console.warn(e); } return r; }; }
-  try { build(); } catch (e) {}
-  EXTRA.push(dt => { if (!G) return; for (const b of blink) b.m.visible = Math.sin(time * b.f * 2 + b.p) > -0.2; for (const h of turrets) h.rotation.y += dt * 0.4; });
-  // panel: üs geliri +%10
-  { let acc = 0; EXTRA.push(dt => { const B = save.base; if (!B || !B.cz || !B.cz.ad || !B.cz.ad.panel) return; acc += dt; if (acc < 30) return; acc = 0; const lv = B.lv || 1; B.bank = Math.min(BCAP[lv], B.bank + BRATE[lv] * 0.1 * 0.5); }); }
-  // arayüz: üsteyken "Üs görünümü"
-  const _rx = renderExtras; renderExtras = function(){ _rx(); try {
-    const e = $('exBox'); if (!e || !save.base || !curSt || curSt !== baseSt) return; const C = cz(), hh = hurdaHave();
-    let h = '<div class="sect">Üs görünümü</div><div class="line"><span>Üssün adı<span class="dim"><br>Haritada ve telsizde bu adla görünür</span></span><span style="display:flex;gap:6px;align-items:center"><input id="bzName" maxlength="22" value="' + (C.name || baseSt.ad).replace(/"/g, '&quot;') + '" style="width:150px;background:rgba(255,255,255,.04);border:1px solid rgba(220,235,245,.18);border-radius:6px;color:#e8edff;font:500 13px var(--font);padding:6px 8px"><button class="act" data-bz="name">Kaydet</button></span></div>';
-    h += '<div class="line"><span>Işık rengi</span><span class="bzc">' + PAL.map((p, i) => '<button data-bz="col:' + i + '" title="' + p[0] + '" class="' + (i === C.col ? 'on' : '') + '" style="--c:#' + p[1].toString(16).padStart(6, '0') + '"></button>').join('') + '</span></div>';
-    h += '<div class="dim" style="margin:4px 0 2px">Eklentiler hurda ile kurulur. Elindeki hurda (kargo + depo): <b style="color:#e0a060">' + hh + '</b> · Hurda ev haritalarındaki enkazlardan çıkar.</div>';
-    for (const k in COS){ const o = COS[k], has = !!C.ad[k], ok = hh >= o.h && save.kredi >= o.k;
-      h += '<div class="line"><span><b>' + o.n + '</b><span class="dim"><br>' + o.d + '</span></span>' + (has ? '<button class="act" data-bz="rm:' + k + '">Kaldır</button>' : '<button class="act go" data-bz="add:' + k + '" ' + (ok ? '' : 'disabled') + '>' + o.h + ' hurda · ' + o.k + '</button>') + '</div>'; }
-    const ss = [...e.querySelectorAll(':scope > .sect')], ki = ss.findIndex(x => x.textContent.trim() === 'Kendi üssün'), anchor = ki >= 0 ? ss[ki + 1] : null;
-    if (anchor) anchor.insertAdjacentHTML('beforebegin', h); else e.insertAdjacentHTML('beforeend', h);
-  } catch (er) { console.warn(er); } };
-  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-bz]'); if (!b || b.disabled || !save.base) return; const C = cz(), [a, k] = b.dataset.bz.split(':');
-    if (a === 'name'){ const v = ($('bzName').value || '').trim().slice(0, 22); C.name = v; if (baseSt) baseSt.ad = v || ((save.pilot || 'Kaşif') + ' Üssü'); toast('Üssün adı: ' + (baseSt ? baseSt.ad : v), 2000); }
-    else if (a === 'col'){ C.col = +k; }
-    else if (a === 'add' && COS[k]){ const o = COS[k]; if (hurdaHave() < o.h || save.kredi < o.k) return; hurdaTake(o.h); save.kredi -= o.k; C.ad[k] = 1; toast(o.n + ' kuruldu', 2000); try { sfxP('gelistirme', 0.6); } catch (er) {} }
-    else if (a === 'rm'){ delete C.ad[k]; }
-    persist(); build(); try { renderDock(); } catch (er) {} });
-  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button[data-bm]')) setTimeout(() => { try { build(); } catch (er) {} }, 50); });
-  const st = document.createElement('style'); st.textContent = '.bzc{display:flex;gap:7px}.bzc button{width:24px;height:24px;border-radius:50%;background:var(--c);border:2px solid rgba(0,0,0,.4);cursor:pointer;padding:0}.bzc button.on{outline:2px solid #fff;outline-offset:2px}';
-  document.head.appendChild(st);
-}
 
 // ---------- yetenek etkileri: hasar azaltma, ödül avcısı, zengin damar, diplomat, tamir indirimi ----------
 {

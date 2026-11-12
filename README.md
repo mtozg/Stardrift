@@ -93,4 +93,4 @@ Görseller `assets/img/` içinde, adları kodda nerede kullanıldıklarını sö
 - Yeni cevher cisimleri: köşeli metal demir, kırmızı kristal kümeleri, sarkıtlı buz topları, mor damarlı titan, uzay enkazı.
 - Seviyeler (30) ve rütbe rozetleri (rütbeye göre çerçeve, yükseldikçe çoğalan parıltılar ve kuyruklu yıldız izleri; Efsane hepsini birleştirir); seviye atlama ekranı. Yetenek ağacı dal sekmeleri, kademe şeritleri ve bağlantılı düğümlerle.
 - Gemi geliştirme kaldırıldı; yerine yetenek ağacı: 4 dal (madencilik, savaş, pilotaj, ticaret), 3 kademe, 20 yetenek. Üst kademeler dalda harcanan puanla açılır. Gövde ve kalkan gemiden, hasar silah ve roketlerden gelir; eski geliştirmelerin kredisi ve parçaları iade edilir.
-- Kendi üssünü özelleştir: ad, ışık rengi, hurdayla kurulan eklentiler (ışık dizisi, anten, güneş paneli, amblem, kubbe); modüller üssün üstünde görünür.
+
