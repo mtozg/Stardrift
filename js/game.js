@@ -8893,28 +8893,74 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   let G = null; const blink = [], turrets = [];
   const M = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.5, metalness: 0.4, flatShading: true }, o || {}));
   function put(g, geo, mat, x, y, z, rx, ry, rz){ const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx || 0, ry || 0, rz || 0); g.add(m); return m; }
+
+  // ---- çizimden 3B üs parçaları: üstten (ve varsa yandan) görünüşten hacim çıkarılır, dokular o çizimlerden
+  const MODI = {}, MODK = { kont: ['top'], vinc: ['top'], panel: ['top'], anten: ['top', 'side'], kubbe: ['top'], taret: [], roket: [] };
+  const gridOf = (im, N) => { const r = im.width / im.height, gw = r >= 1 ? N : Math.max(4, Math.round(N * r)), gh = r >= 1 ? Math.max(4, Math.round(N / r)) : N, c = document.createElement('canvas'); c.width = gw; c.height = gh;
+    const x = c.getContext('2d'); x.drawImage(im, 0, 0, gw, gh); const d = x.getImageData(0, 0, gw, gh).data, g = new Uint8Array(gw * gh); for (let i = 0; i < gw * gh; i++) g[i] = d[i * 4 + 3] > 110 ? 1 : 0; return { g, gw, gh }; };
+  for (const k in MODK) for (const v of MODK[k]){ const im = new Image(); im.onload = () => { const t = new THREE.Texture(im); t.needsUpdate = true; t.anisotropy = 4; (MODI[k] = MODI[k] || {})[v] = Object.assign({ im, tex: t }, gridOf(im, 44)); try { build(); } catch (e) {} };
+    im.src = 'assets/img/us_m_' + k + '_' + v + '.webp?v=' + (window.SD_VERSION || ''); }
+  const modReady = k => MODI[k] && MODK[k].every(v => MODI[k][v]);
+  function modMesh(k, W, H){
+    const T = MODI[k].top, S = MODI[k].side, gw = T.gw, gh = T.gh, cs = W / Math.max(gw, gh), x0 = -gw * cs / 2, z0 = -gh * cs / 2;
+    const solid = (i, j) => i >= 0 && j >= 0 && i < gw && j < gh && T.g[j * gw + i];
+    // yandan görünüş varsa her sütunun alt-üst yüksekliği oradan; yoksa sabit kalınlık
+    const yr = i => { if (!S) return [-H / 2, H / 2]; const sx = Math.min(S.gw - 1, Math.floor((i + 0.5) / gw * S.gw)); let a = -1, b = -1; for (let r = 0; r < S.gh; r++) if (S.g[r * S.gw + sx]){ if (a < 0) a = r; b = r; }
+      const sh = gw * cs * S.gh / S.gw; if (a < 0) return [-0.5, 0.5]; return [sh / 2 - (b + 1) / S.gh * sh, sh / 2 - a / S.gh * sh]; };
+    const tp = [], tu = [], wp = [], wu = [], Y = []; for (let i = 0; i < gw; i++) Y.push(yr(i));
+    const quad = (P, U, a, b, c, d, ua, ub, uc, ud) => { P.push(...a, ...b, ...c, ...a, ...c, ...d); U.push(...ua, ...ub, ...uc, ...ua, ...uc, ...ud); };
+    for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++){ if (!solid(i, j)) continue; const xa = x0 + i * cs, xb = xa + cs, za = z0 + j * cs, zb = za + cs, [y0, y1] = Y[i];
+      const u0 = i / gw, u1 = (i + 1) / gw, v0 = 1 - j / gh, v1 = 1 - (j + 1) / gh;
+      quad(tp, tu, [xa, y1, za], [xa, y1, zb], [xb, y1, zb], [xb, y1, za], [u0, v0], [u0, v1], [u1, v1], [u1, v0]);
+      quad(tp, tu, [xa, y0, za], [xb, y0, za], [xb, y0, zb], [xa, y0, zb], [u0, v0], [u1, v0], [u1, v1], [u0, v1]);
+      const sv = y => S ? 0.5 + y / (gw * cs * S.gh / S.gw) : (y > 0 ? 0.62 : 0.38), su = S ? (u0 + u1) / 2 : u0, vm = (v0 + v1) / 2;
+      const wall = (a, b, c, d, ua, ub) => quad(wp, wu, a, b, c, d, [ua, sv(a[1])], [ub, sv(b[1])], [ub, sv(c[1])], [ua, sv(d[1])]);
+      if (!solid(i, j - 1)) wall([xb, y0, za], [xa, y0, za], [xa, y1, za], [xb, y1, za], S ? u1 : u1, S ? u0 : u0);
+      if (!solid(i, j + 1)) wall([xa, y0, zb], [xb, y0, zb], [xb, y1, zb], [xa, y1, zb], u0, u1);
+      if (!solid(i - 1, j)) wall([xa, y0, za], [xa, y0, zb], [xa, y1, zb], [xa, y1, za], su, su);
+      if (!solid(i + 1, j)) wall([xb, y0, zb], [xb, y0, za], [xb, y1, za], [xb, y1, zb], su, su);
+    }
+    const mk = (P, U) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.computeVertexNormals(); return g; };
+    const grp = new THREE.Group();
+    grp.add(new THREE.Mesh(mk(tp, tu), new THREE.MeshStandardMaterial({ map: T.tex, emissiveMap: T.tex, emissive: 0xffffff, emissiveIntensity: 0.12, transparent: true, alphaTest: 0.45, roughness: 0.55, metalness: 0.35, side: THREE.DoubleSide })));
+    grp.add(new THREE.Mesh(mk(wp, wu), new THREE.MeshStandardMaterial({ map: (S || T).tex, roughness: 0.6, metalness: 0.35, color: S ? 0xffffff : 0xc8d0dc, side: THREE.DoubleSide })));
+    return grp;
+  }
+  function domeMesh(k, R){
+    const T = MODI[k].top, g = new THREE.SphereGeometry(R, 40, 16, 0, TAU, 0, Math.PI / 2), p = g.attributes.position, uv = g.attributes.uv;
+    for (let i = 0; i < p.count; i++) uv.setXY(i, 0.5 + p.getX(i) / (2 * R) * 0.82, 0.5 - p.getZ(i) / (2 * R) * 0.82);
+    const grp = new THREE.Group(); grp.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: T.tex, emissiveMap: T.tex, emissive: 0xffffff, emissiveIntensity: 0.45, roughness: 0.15, metalness: 0.2, transparent: true, opacity: 0.97 })));
+    const ring = new THREE.CylinderGeometry(R * 1.04, R * 1.1, R * 0.16, 40), ru = ring.attributes.uv, rp = ring.attributes.position; for (let i = 0; i < rp.count; i++) ru.setXY(i, 0.5 + rp.getX(i) / (2.2 * R) * 0.98, 0.5 - rp.getZ(i) / (2.2 * R) * 0.98);
+    const rm = new THREE.Mesh(ring, new THREE.MeshStandardMaterial({ map: T.tex, roughness: 0.5, metalness: 0.4 })); rm.position.y = -R * 0.06; grp.add(rm); return grp;
+  }
   function build(){
     if (!baseSt || !baseSt.group || !save.base) return; const C = cz(), B = save.base, md = B.m || {}, col = PAL[C.col] ? PAL[C.col][1] : PAL[0][1];
     if (G) baseSt.group.remove(G); G = new THREE.Group(); blink.length = 0; turrets.length = 0;
     const steel = M(0x8a93a6), dark = M(0x2a3346), glow = new THREE.MeshBasicMaterial({ color: col });
     // modüller: depo konteynerleri, savunma taretleri, roket rafları, tamir vinçleri
     const cc = [0xc0603a, 0x3a7ac0, 0xd0b040, 0x5a9a5a, 0x9a5ac0];
-    for (let i = 0; i < (md.dep || 0) * 3; i++){ const a = 0.5 + i * 0.22, r = 92 + (i % 2) * 14; put(G, new THREE.BoxGeometry(16, 9, 9), M(cc[i % cc.length], { metalness: 0.3 }), Math.cos(a) * r, -18 + ((i / 2) | 0) % 2 * 10, Math.sin(a) * r, 0, -a, 0); }
+    if (modReady('kont')) for (let i = 0; i < Math.min(6, (md.dep || 0) * 2); i++){ const a = 0.4 + i * 0.32, m = modMesh('kont', 22, 18); m.position.set(Math.cos(a) * 112, i % 2 ? -8 : 8, Math.sin(a) * 112); m.rotation.y = -a; G.add(m); }
+    else for (let i = 0; i < (md.dep || 0) * 3; i++){ const a = 0.5 + i * 0.22, r = 92 + (i % 2) * 14; put(G, new THREE.BoxGeometry(16, 9, 9), M(cc[i % cc.length], { metalness: 0.3 }), Math.cos(a) * r, -18 + ((i / 2) | 0) % 2 * 10, Math.sin(a) * r, 0, -a, 0); }
     for (let i = 0; i < (md.sav || 0) * 2; i++){ const a = i / Math.max(1, (md.sav || 0) * 2) * TAU + 0.3, t = new THREE.Group(); t.position.set(Math.cos(a) * 78, i % 2 ? 26 : -26, Math.sin(a) * 78);
       put(t, new THREE.CylinderGeometry(6, 8, 6, 8), dark, 0, 0, 0); const head = new THREE.Group(); head.position.y = 5; t.add(head);
       put(head, new THREE.BoxGeometry(8, 5, 8), steel, 0, 0, 0); put(head, new THREE.CylinderGeometry(1, 1, 16, 6), steel, 0, 0, 9, Math.PI / 2, 0, 0); put(head, new THREE.SphereGeometry(1.2, 6, 6), glow, 0, 2.8, 0);
       G.add(t); turrets.push(head); }
     for (let i = 0; i < (md.rok || 0); i++){ const a = Math.PI + i * 0.5; const g = new THREE.Group(); g.position.set(Math.cos(a) * 84, 6, Math.sin(a) * 84); g.rotation.y = -a; G.add(g);
       put(g, new THREE.BoxGeometry(6, 14, 18), dark, 0, 0, 0); for (let j = 0; j < 4; j++) put(g, new THREE.ConeGeometry(1.6, 5, 6), M(0xff5a6e, { emissive: 0x601018 }), 3.5, 9, -6 + j * 4); }
-    for (let i = 0; i < (md.tam || 0); i++){ const a = 2.2 + i * 0.7; const g = new THREE.Group(); g.position.set(Math.cos(a) * 60, 30, Math.sin(a) * 60); g.rotation.y = -a; G.add(g);
+    if (modReady('vinc')) for (let i = 0; i < (md.tam || 0); i++){ const a = 2.3 + i * 0.75, m = modMesh('vinc', 30, 7); m.position.set(Math.cos(a) * 92, 24, Math.sin(a) * 92); m.rotation.y = -a; G.add(m); }
+    else for (let i = 0; i < (md.tam || 0); i++){ const a = 2.2 + i * 0.7; const g = new THREE.Group(); g.position.set(Math.cos(a) * 60, 30, Math.sin(a) * 60); g.rotation.y = -a; G.add(g);
       put(g, new THREE.BoxGeometry(4, 40, 4), M(0xd0a040), 0, 18, 0); put(g, new THREE.BoxGeometry(34, 3, 3), M(0xd0a040), 15, 38, 0); put(g, new THREE.BoxGeometry(2, 10, 2), steel, 31, 32, 0); }
     // eklentiler
-    if (C.ad.panel) for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2 + Math.PI / 4; put(G, new THREE.BoxGeometry(40, 2, 2), steel, Math.cos(a) * 95, 0, Math.sin(a) * 95, 0, -a, 0);
+    if (C.ad.panel && modReady('panel')) for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2 + Math.PI / 4, m = modMesh('panel', 66, 2.4); m.position.set(Math.cos(a) * 150, 0, Math.sin(a) * 150); m.rotation.y = -a + Math.PI / 2; G.add(m); put(G, new THREE.BoxGeometry(44, 2.4, 2.4), steel, Math.cos(a) * 112, 0, Math.sin(a) * 112, 0, -a, 0); }
+    else if (C.ad.panel) for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2 + Math.PI / 4; put(G, new THREE.BoxGeometry(40, 2, 2), steel, Math.cos(a) * 95, 0, Math.sin(a) * 95, 0, -a, 0);
       put(G, new THREE.BoxGeometry(60, 1.5, 26), M(0x1a2c66, { emissive: 0x0a1640, metalness: 0.7, roughness: 0.25 }), Math.cos(a) * 140, 0, Math.sin(a) * 140, 0, -a, 0); }
-    if (C.ad.anten){ put(G, new THREE.CylinderGeometry(1.4, 1.8, 60, 6), steel, 0, 75, 0); const d = put(G, new THREE.SphereGeometry(20, 16, 8, 0, TAU, 0, 0.9), M(0xdfe6ef, { side: THREE.DoubleSide, metalness: 0.2 }), 0, 108, 0, -1.1, 0, 0);
+    if (C.ad.anten && modReady('anten')){ const m = modMesh('anten', 34); m.position.set(0, 66, 0); G.add(m);
+      const tip = put(G, new THREE.SphereGeometry(1.6, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff3040 }), 0, 92, 0); blink.push({ m: tip, p: 0, f: 1.2 }); }
+    else if (C.ad.anten){ put(G, new THREE.CylinderGeometry(1.4, 1.8, 60, 6), steel, 0, 75, 0); const d = put(G, new THREE.SphereGeometry(20, 16, 8, 0, TAU, 0, 0.9), M(0xdfe6ef, { side: THREE.DoubleSide, metalness: 0.2 }), 0, 108, 0, -1.1, 0, 0);
       const tip = put(G, new THREE.SphereGeometry(2, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff3040 }), 0, 106, 0); blink.push({ m: tip, p: 0, f: 1.2 }); }
     if (C.ad.isik) for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, l = put(G, new THREE.SphereGeometry(2.4, 6, 6), new THREE.MeshBasicMaterial({ color: col }), Math.cos(a) * 104, -12, Math.sin(a) * 104); blink.push({ m: l, p: i / 24 * TAU, f: 3 }); }
-    if (C.ad.kubbe){ put(G, new THREE.SphereGeometry(30, 20, 10, 0, TAU, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9fe0ff, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0.2, emissive: col, emissiveIntensity: 0.25, depthWrite: false }), 0, 42, 0);
+    if (C.ad.kubbe && modReady('kubbe')){ const m = domeMesh('kubbe', 28); m.position.y = 40; G.add(m); }
+    else if (C.ad.kubbe){ put(G, new THREE.SphereGeometry(30, 20, 10, 0, TAU, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9fe0ff, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0.2, emissive: col, emissiveIntensity: 0.25, depthWrite: false }), 0, 42, 0);
       put(G, new THREE.TorusGeometry(30, 2, 6, 32), steel, 0, 42, 0, Math.PI / 2, 0, 0); }
     if (C.ad.amblem && save.side){ const t = new THREE.TextureLoader().load('assets/img/fac_' + save.side + '.webp?v=' + (window.SD_VERSION || '')); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false })); sp.scale.set(54, 54, 1); sp.position.set(0, C.ad.anten ? 150 : 110, 0); G.add(sp); }
     baseSt.group.add(G);
