@@ -7973,4 +7973,20 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   `;
   document.head.appendChild(st);
 }
+
+// ---- v3.2: çakışmasız, daha küçük düğme kümesi (konumlar altıgen çakışma denetimiyle hesaplandı, aralık 4px)
+{
+  const st = document.createElement('style');
+  st.textContent = `
+  html body #stage #bLaser.btn,html body #bLaser.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 6px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 8px) !important;width:82px !important;height:82px !important}
+  html body #stage #bThrust.btn,html body #bThrust.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 84px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 8px) !important;width:56px !important;height:56px !important}
+  html body #stage #bLock.btn,html body #bLock.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 128px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 38px) !important;width:56px !important;height:56px !important}
+  html body #stage #bMissile.btn,html body #bMissile.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 172px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 8px) !important;width:56px !important;height:56px !important}
+  html body #stage #bBoost.btn,html body #bBoost.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 19px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 94px) !important;width:56px !important;height:56px !important}
+  html body #stage #bBrake.btn,html body #bBrake.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 66.5px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 70px) !important;width:56px !important;height:56px !important}
+  html body #bLaser.btn{font-size:8.5px !important}
+  html body .btn:not(#bDock)::before{width:42% !important;height:42% !important}
+  `;
+  document.head.appendChild(st);
+}
 })();
