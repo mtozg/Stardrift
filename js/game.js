@@ -119,11 +119,11 @@ scene.add(new THREE.AmbientLight(0x2a3566, 0.32));
 const rim = new THREE.DirectionalLight(0x4466ff, 0.28); rim.position.set(-0.5, -0.3, 0.8); scene.add(rim);
 
 // ---------- Dünya ----------
-const STATION = { ad: 'Ankora İstasyonu', kind: 'station', pos: V(0, 0, 0), r: 125, dock: 260, scale: 1, color: 0xffb454, dim: 0x7a5a2a, bias: { demir: 1.0, buz: 1.0, kristal: 1.1 }, stock: { demir: 120, buz: 80, kristal: 30 }, cap: 400, use: { demir: 0.18, buz: 0.14, kristal: 0.05 } };
+const STATION = { ad: 'Ankora İstasyonu', kind: 'station', pos: V(0, 0, 0), r: 125, dock: 260, scale: 1, color: 0xffb454, dim: 0x7a5a2a, bias: { demir: 1.0, buz: 1.0, kristal: 1.1, titan: 1, hurda: 1 }, stock: { demir: 120, buz: 80, kristal: 30, titan: 90, hurda: 70 }, cap: 400, use: { demir: 0.18, buz: 0.14, kristal: 0.05, titan: 0.12, hurda: 0.1 } };
 const STATIONS = [STATION,
-  { ad: 'Demirhan Üssü', kind: 'station', pos: V(1150, -60, -1500), r: 142, dock: 250, scale: 0.72, color: 0x7fd8ff, dim: 0x2a5a78, bias: { demir: 0.8, buz: 1.25, kristal: 1.0 }, stock: { demir: 260, buz: 40, kristal: 20 }, cap: 400, use: { demir: 0.1, buz: 0.2, kristal: 0.05 } },
-  { ad: 'Buzul Durağı', kind: 'station', pos: V(2700, -250, 2000), r: 125, dock: 255, scale: 0.72, color: 0x9fe8ff, dim: 0x2a5a78, bias: { demir: 1.2, buz: 0.7, kristal: 1.1 }, stock: { demir: 40, buz: 240, kristal: 30 }, cap: 400, use: { demir: 0.15, buz: 0.05, kristal: 0.08 } },
-  { ad: 'Kristal Kapısı', kind: 'station', pos: V(5700, 350, -2300), r: 100, dock: 230, scale: 0.72, color: 0xff6b8a, dim: 0x7a2a40, bias: { demir: 1.25, buz: 1.0, kristal: 0.8 }, stock: { demir: 30, buz: 60, kristal: 160 }, cap: 400, use: { demir: 0.2, buz: 0.1, kristal: 0.08 } }
+  { ad: 'Demirhan Üssü', kind: 'station', pos: V(1150, -60, -1500), r: 142, dock: 250, scale: 0.72, color: 0x7fd8ff, dim: 0x2a5a78, bias: { demir: 0.8, buz: 1.25, kristal: 1.0, titan: 1, hurda: 1 }, stock: { demir: 260, buz: 40, kristal: 20, titan: 90, hurda: 70 }, cap: 400, use: { demir: 0.1, buz: 0.2, kristal: 0.05, titan: 0.12, hurda: 0.1 } },
+  { ad: 'Buzul Durağı', kind: 'station', pos: V(2700, -250, 2000), r: 125, dock: 255, scale: 0.72, color: 0x9fe8ff, dim: 0x2a5a78, bias: { demir: 1.2, buz: 0.7, kristal: 1.1, titan: 1, hurda: 1 }, stock: { demir: 40, buz: 240, kristal: 30, titan: 90, hurda: 70 }, cap: 400, use: { demir: 0.15, buz: 0.05, kristal: 0.08, titan: 0.12, hurda: 0.1 } },
+  { ad: 'Kristal Kapısı', kind: 'station', pos: V(5700, 350, -2300), r: 100, dock: 230, scale: 0.72, color: 0xff6b8a, dim: 0x7a2a40, bias: { demir: 1.25, buz: 1.0, kristal: 0.8, titan: 1, hurda: 1 }, stock: { demir: 30, buz: 60, kristal: 160, titan: 90, hurda: 70 }, cap: 400, use: { demir: 0.2, buz: 0.1, kristal: 0.08, titan: 0.12, hurda: 0.1 } }
 ];
 const PLANET = { kind: 'planet', pos: V(-2600, 300, 3600), r: 800, ad: 'Veyra' };
 const MOON = { kind: 'planet', r: 160, ad: 'Lira', pos: null };
@@ -278,8 +278,12 @@ window.DEVI = ["assets/img/devi_0.webp", "assets/img/devi_1.webp", "assets/img/d
 const ORE = {
   demir:   { ad: 'Demir',   hex: 0x9aa6bd, css: '#9aa6bd', fiyat: 10 },
   buz:     { ad: 'Buz',     hex: 0x7fd8ff, css: '#7fd8ff', fiyat: 16 },
-  kristal: { ad: 'Kristal', hex: 0xff6b8a, css: '#ff6b8a', fiyat: 45 }
+  kristal: { ad: 'Kristal', hex: 0xff6b8a, css: '#ff6b8a', fiyat: 45 },
+  titan:   { ad: 'Titan',   hex: 0xb8a8ff, css: '#b8a8ff', fiyat: 20 },
+  hurda:   { ad: 'Hurda',   hex: 0xe0a060, css: '#e0a060', fiyat: 15 }
 };
+// her cevher yalnızca kendi haritasında: ev haritalarında titan ve enkaz (hurda)
+const SYSORE = { 0: 'titan', 1: 'demir', 2: 'buz', 3: 'kristal', 4: 'titan', 5: 'titan' };
 const UPG = {
   lazer: { ad: 'Lazer', not: 'Daha hızlı keser, daha uzağa yetişir', base: 80 },
   kargo: { ad: 'Kargo', not: '+8 yük kapasitesi', base: 60 },
@@ -303,8 +307,11 @@ const rockTex = (() => {
 const astMat = {
   demir:   new THREE.MeshStandardMaterial({ color: 0xa89a8c, map: rockTex, bumpMap: rockTex, bumpScale: 2.2, roughness: 0.96, metalness: 0.08 }),
   buz:     new THREE.MeshStandardMaterial({ color: 0xcfeaff, map: rockTex, bumpMap: rockTex, bumpScale: 1.2, roughness: 0.3, metalness: 0.1, emissive: 0x0a2a3a }),
-  kristal: new THREE.MeshStandardMaterial({ color: 0xff5a86, roughness: 0.25, metalness: 0.3, emissive: 0x7a1838, flatShading: true })
+  kristal: new THREE.MeshStandardMaterial({ color: 0xb08a96, map: rockTex, bumpMap: rockTex, bumpScale: 1.6, roughness: 0.7, metalness: 0.15, emissive: 0x000000 })
 };
+astMat.titan = new THREE.MeshStandardMaterial({ color: 0xc9c2ee, map: rockTex, bumpMap: rockTex, bumpScale: 0.8, roughness: 0.5, metalness: 0.2, emissive: 0x1c1638, flatShading: true });
+astMat.hurda = new THREE.MeshStandardMaterial({ color: 0xc4c9d4, map: rockTex, roughness: 0.55, metalness: 0.25, emissive: 0x15181e, flatShading: true });
+astMat.demir.flatShading = true; astMat.demir.metalness = 0.5; astMat.demir.roughness = 0.42;
 const oreMat = {}; for (const k in ORE) oreMat[k] = new THREE.MeshBasicMaterial({ color: ORE[k].hex });
 function smoothNormals(g){
   const p = g.attributes.position, nrm = new Float32Array(p.count * 3), map = new Map(), a = V(0, 0, 0), b = V(0, 0, 0), c = V(0, 0, 0), fn = V(0, 0, 0), ce = V(0, 0, 0);
@@ -331,6 +338,105 @@ for (let i = 0; i < 8; i++){
   smoothNormals(g); tmpl.push(g);
 }
 const crystalGeo = new THREE.OctahedronGeometry(1, 0);
+// ---- yeni cevher cisimleri: köşeli metal demir, kristal kümesi, sarkıtlı buz topu, titan, uzay enkazı
+const facetT = [], iceT = [];
+for (let i = 0; i < 6; i++){
+  const g = new THREE.IcosahedronGeometry(1, 1), p = g.attributes.position, mp = new Map(), q = new THREE.Vector3();
+  const cut = [0, 1, 2].map(() => ({ d: new THREE.Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize(), k: rand(0.62, 0.8) }));
+  for (let j = 0; j < p.count; j++){ q.fromBufferAttribute(p, j); const key = Math.round(q.x * 1e3) + ',' + Math.round(q.y * 1e3) + ',' + Math.round(q.z * 1e3);
+    let f = mp.get(key); if (f === undefined){ f = rand(0.72, 1.22); for (const c of cut){ const t = q.dot(c.d); if (t > c.k) f *= c.k / t; } mp.set(key, f); }
+    p.setXYZ(j, q.x * f * 1.1, q.y * f * 0.92, q.z * f); }
+  g.computeVertexNormals(); facetT.push(g);
+}
+for (let i = 0; i < 4; i++){
+  const g = new THREE.IcosahedronGeometry(1, 3), p = g.attributes.position, mp = new Map(), q = new THREE.Vector3();
+  for (let j = 0; j < p.count; j++){ q.fromBufferAttribute(p, j); const key = Math.round(q.x * 1e3) + ',' + Math.round(q.y * 1e3) + ',' + Math.round(q.z * 1e3);
+    let f = mp.get(key); if (f === undefined){ f = 0.92 + 0.14 * fbm(q.x * 2 + i * 7, q.y * 2, q.z * 2, 3); mp.set(key, f); } p.setXYZ(j, q.x * f, q.y * f, q.z * f); }
+  smoothNormals(g); iceT.push(g);
+}
+// çizimle gelen cevher kayaları (siyah arka plan → saydam, işlenmiş webp): listede varsa kaya o resimlerden biriyle görünür
+const ORE3 = {};
+(window.ORE3_LIST || ['demir', 'kristal', 'buz', 'titan', 'hurda'].flatMap(k => [1, 2, 3].map(i => 'ore3_' + k + '_' + i))).forEach(n => { const m = /^ore3_([a-z]+)_\d+$/.exec(n); if (!m) return; const im = new Image(); im.onload = () => { const t = new THREE.Texture(im); t.anisotropy = 4; t.needsUpdate = true; (ORE3[m[1]] = ORE3[m[1]] || []).push(t);
+  if (typeof asteroids !== 'undefined') asteroids.forEach(a => { if (a.type === m[1] && !a.mesh.isSprite){ const nm = rockMesh(a.type, a.r); nm.position.copy(a.mesh.position); scene.remove(a.mesh); scene.add(nm); a.mesh = nm; a.pos = nm.position; } }); };
+  im.src = 'assets/img/' + n + '.webp?v=' + (window.SD_VERSION || ''); });
+const ORP = {}; ['titan', 'hurda'].forEach(k => { const im = new Image(); im.onload = () => { const t = new THREE.Texture(im); t.needsUpdate = true; ORP[k] = t; }; im.src = 'assets/img/orep_' + k + '.webp?v=' + (window.SD_VERSION || ''); });
+const prismGeo = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.17, -0.44), new THREE.Vector2(0.17, 0.26), new THREE.Vector2(0.001, 0.5)], 6);
+// kristal sivrisi: dipte koyu kan kırmızısı, uca doğru açılan pembe-beyaz ışık (renk köşelere işlenir)
+const gemGeo = (() => { const g = new THREE.LatheGeometry([new THREE.Vector2(0.001, -0.5), new THREE.Vector2(0.15, -0.46), new THREE.Vector2(0.17, -0.1), new THREE.Vector2(0.16, 0.3), new THREE.Vector2(0.001, 0.5)], 6).toNonIndexed(), p = g.attributes.position, c = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++){ const t = Math.min(1, Math.max(0, (p.getY(i) + 0.5))), f = (i % 3 === 0 ? 1 : 0.86); c[i * 3] = (0.3 + 0.7 * t) * f; c[i * 3 + 1] = (0.01 + 0.78 * Math.pow(t, 2.2)) * f; c[i * 3 + 2] = (0.04 + 0.74 * Math.pow(t, 2.2)) * f; }
+  g.setAttribute('color', new THREE.BufferAttribute(c, 3)); g.computeVertexNormals(); return g; })();
+const gemGlowTex = glowTexture(255, 60, 70);
+const icicleGeo = new THREE.ConeGeometry(1, 1, 5); icicleGeo.rotateX(Math.PI); icicleGeo.translate(0, -0.5, 0);
+const lumpGeo = new THREE.IcosahedronGeometry(1, 1), boxGeo = new THREE.BoxGeometry(1, 1, 1), pipeGeo = new THREE.CylinderGeometry(1, 1, 1, 8);
+const gemMat = {
+  kristal: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0x3a0008, emissiveIntensity: 0.8, roughness: 0.08, metalness: 0.35, flatShading: true, transparent: true, opacity: 0.94 }),
+  kristalIc: new THREE.MeshBasicMaterial({ color: 0xff5a6a, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false }),
+  icicle: new THREE.MeshStandardMaterial({ color: 0xe2f6ff, emissive: 0x2e7aa6, emissiveIntensity: 0.6, roughness: 0.05, metalness: 0.1, flatShading: true, transparent: true, opacity: 0.85 }),
+  snow: new THREE.MeshStandardMaterial({ color: 0xf4fbff, emissive: 0x4a6a80, emissiveIntensity: 0.35, roughness: 0.85, metalness: 0 }),
+  titan: new THREE.MeshStandardMaterial({ color: 0xd8ccff, emissive: 0x6a4ad8, emissiveIntensity: 1.0, roughness: 0.15, metalness: 0.4, flatShading: true }),
+  rust: new THREE.MeshStandardMaterial({ color: 0xa8643a, roughness: 0.75, metalness: 0.2, emissive: 0x2a1006, flatShading: true }),
+  lamp: new THREE.MeshBasicMaterial({ color: 0xffa040 }),
+  panel: new THREE.MeshStandardMaterial({ color: 0x8a92a4, roughness: 0.45, metalness: 0.3, emissive: 0x101420, flatShading: true })
+};
+function rockMesh(type, r){
+  { const L = ORE3[type]; if (L && L.length){ const t = L[(Math.random() * L.length) | 0], sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: true, alphaTest: 0.35, rotation: rand(0, TAU) })); sp.scale.set(r * 2.7, r * 2.7, 1); return sp; } }
+  const pick = a => a[(Math.random() * a.length) | 0], add = (m, g, mat, sx, sy, sz, pos, quat) => { const c = new THREE.Mesh(g, mat); c.scale.set(sx, sy, sz); c.position.copy(pos); if (quat) c.quaternion.copy(quat); m.add(c); return c; };
+  const up = new THREE.Vector3(0, 1, 0);
+  let m;
+  if (type === 'kristal'){
+    // referans: kızıl damarlı kayadan fışkıran, uçları ışıyan büyük kristal kümesi
+    m = new THREE.Mesh(pick(facetT), astMat.kristal); m.scale.setScalar(r * 0.85);
+    const ax = new THREE.Vector3(rand(-0.25, 0.25), 1, rand(-0.25, 0.25)).normalize(), n = 16 + ((Math.random() * 7) | 0);
+    for (let i = 0; i < n; i++){
+      const main = i < 3, d = main ? ax.clone().add(new THREE.Vector3(rand(-0.25, 0.25), 0, rand(-0.25, 0.25))).normalize() : ax.clone().multiplyScalar(i < 12 ? 0.9 : 0.1).add(new THREE.Vector3(rand(-1, 1), rand(-0.5, 0.8), rand(-1, 1))).normalize();
+      const L = (main ? rand(2.0, 2.6) * (i === 0 ? 1.15 : 0.85) : i < 12 ? rand(0.8, 1.6) : rand(0.4, 0.7)) * 0.85, w = main ? rand(2.2, 2.8) : i < 12 ? rand(1.3, 2.1) : rand(0.9, 1.3);
+      const q = new THREE.Quaternion().setFromUnitVectors(up, d), pos = d.clone().multiplyScalar(0.5 + L * 0.42);
+      add(m, gemGeo, gemMat.kristal, w, L, w, pos, q);
+      if (main) add(m, gemGeo, gemMat.kristalIc, w * 0.45, L * 0.9, w * 0.45, pos, q);
+    }
+    const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: gemGlowTex, color: 0xff3a4a, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })); gl.scale.setScalar(4.2); gl.position.copy(ax).multiplyScalar(1.4); m.add(gl);
+  } else if (type === 'buz'){
+    m = new THREE.Mesh(pick(iceT), astMat.buz); m.scale.setScalar(r);
+    const n = 16 + ((Math.random() * 8) | 0);
+    for (let i = 0; i < n; i++){ const a = rand(0, TAU), y = rand(-0.6, -0.05), c = Math.sqrt(1 - y * y), L = rand(0.3, 0.85), w = rand(0.05, 0.09);
+      add(m, icicleGeo, gemMat.icicle, w, L, w, new THREE.Vector3(Math.cos(a) * c * 0.9, y * 0.9 - 0.04, Math.sin(a) * c * 0.9)); }
+    for (let i = 0; i < 5; i++){ const a = rand(0, TAU), y = rand(0.35, 0.9), c = Math.sqrt(1 - y * y), k = rand(0.22, 0.38);
+      add(m, lumpGeo, gemMat.snow, k, k * 0.3, k, new THREE.Vector3(Math.cos(a) * c * 0.95, y * 0.95, Math.sin(a) * c * 0.95)); }
+  } else if (type === 'hurda'){
+    m = new THREE.Mesh(boxGeo, astMat.hurda); m.scale.set(r * 1.5, r * 0.45, r * 0.95);
+    const k = 1 / 1.5, ky = 1 / 0.45, kz = 1 / 0.95, P = (x, y, z) => new THREE.Vector3(x * k, y * ky, z * kz);
+    add(m, boxGeo, gemMat.panel, 0.5, 0.06 * ky, 1.2 * kz, P(0.45, 0.32, 0.1), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.4, 0, 0.3)));
+    add(m, boxGeo, gemMat.rust, 1.6 * k, 0.12 * ky, 0.12 * kz, P(-0.2, -0.28, 0.4), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0.5, 0.2)));
+    add(m, boxGeo, gemMat.rust, 1.4 * k, 0.12 * ky, 0.12 * kz, P(0.1, 0.25, -0.45), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -0.7, -0.15)));
+    add(m, pipeGeo, gemMat.panel, 0.09 * k, 1.5 * ky * 0.5, 0.09 * kz, P(-0.55, 0.1, -0.2), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 1.2)));
+    add(m, boxGeo, gemMat.lamp, 0.07 * k, 0.07 * ky, 0.07 * kz, P(0.7, 0.26, 0.42));
+    add(m, boxGeo, gemMat.panel, 0.7 * k, 0.5 * ky, 0.05 * kz, P(-0.4, 0.1, 0.5), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.2, 0.3, 0)));
+  } else {
+    m = new THREE.Mesh(pick(facetT), astMat[type] || astMat.demir); m.scale.set(r * rand(0.85, 1.15), r * rand(0.85, 1.15), r * rand(0.85, 1.15));
+    if (type === 'titan'){ const n = 4 + ((Math.random() * 3) | 0);
+      for (let i = 0; i < n; i++){ const d = new THREE.Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize(), L = rand(0.3, 0.5); add(m, prismGeo, gemMat.titan, 0.9, L, 0.9, d.clone().multiplyScalar(0.82 + L * 0.3), new THREE.Quaternion().setFromUnitVectors(up, d)); } }
+    else { const n = 2 + ((Math.random() * 3) | 0);
+      for (let i = 0; i < n; i++){ const d = new THREE.Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize(), k = rand(0.2, 0.32); add(m, lumpGeo, gemMat.rust, k, k * 0.28, k, d.clone().multiplyScalar(0.9), new THREE.Quaternion().setFromUnitVectors(up, d)); } }
+  }
+  return m;
+}
+// kaya süsleri: kristal kayalardan pembe kristal sivrileri, buz kayalarından buz dikenleri, demir kayalarında metal damarlar parlar
+const shardGeo = new THREE.OctahedronGeometry(1, 0), nugGeo = new THREE.IcosahedronGeometry(1, 0);
+const shardMat = {
+  kristal: new THREE.MeshStandardMaterial({ color: 0xff7aa6, emissive: 0xd0306a, emissiveIntensity: 0.9, roughness: 0.15, metalness: 0.35, flatShading: true }),
+  buz: new THREE.MeshStandardMaterial({ color: 0xdff6ff, emissive: 0x3a86b0, emissiveIntensity: 0.55, roughness: 0.08, metalness: 0.25, flatShading: true, transparent: true, opacity: 0.88 }),
+  demir: new THREE.MeshStandardMaterial({ color: 0xc9a27a, emissive: 0x5a2c10, emissiveIntensity: 0.35, roughness: 0.3, metalness: 0.95, flatShading: true })
+};
+const _up = new THREE.Vector3(0, 1, 0);
+function decorRock(mesh, type){
+  const n = type === 'kristal' ? 5 + ((Math.random() * 3) | 0) : type === 'buz' ? 3 + ((Math.random() * 2) | 0) : 2 + ((Math.random() * 3) | 0);
+  for (let i = 0; i < n; i++){
+    const d = new THREE.Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize(), s = new THREE.Mesh(type === 'demir' ? nugGeo : shardGeo, shardMat[type]);
+    if (type === 'demir'){ s.scale.setScalar(rand(0.2, 0.3)); s.position.copy(d).multiplyScalar(0.98); }
+    else { const L = type === 'kristal' ? rand(0.35, 0.6) : rand(0.3, 0.5), w = type === 'kristal' ? rand(0.09, 0.14) : rand(0.08, 0.12); s.scale.set(w, L, w); s.position.copy(d).multiplyScalar(0.92 + L * 0.45); s.quaternion.setFromUnitVectors(_up, d); }
+    mesh.add(s);
+  }
+}
 const oreGeo = new THREE.OctahedronGeometry(1.5, 0);
 
 let asteroids = [], ores = [];
@@ -353,9 +459,9 @@ function makeAsteroid(far){
   if (!pos){ belt = BELTS[0]; pos = belt.c.clone(); }
   const dm = depthMul(pos); let roll = Math.random(), kc = (belt.rich ? 0.32 : 0.12) * SYSC.kr * (0.5 + 0.5 * dm), ic = 0.3 * SYSC.ice, type = roll < kc ? 'kristal' : roll < kc + ic ? 'buz' : 'demir';
   if (belt.ty && Math.random() < 0.7) type = belt.ty;
-  const r = type === 'kristal' ? rand(4, 9) : 6 + Math.pow(Math.random(), 1.6) * 20;
-  const mesh = new THREE.Mesh(type === 'kristal' ? crystalGeo : tmpl[(Math.random() * tmpl.length) | 0], astMat[type]);
-  if (type === 'kristal') mesh.scale.set(r * 0.7, r * 1.5, r * 0.7); else mesh.scale.set(r * rand(0.8, 1.2), r * rand(0.8, 1.2), r * rand(0.8, 1.2));
+  type = SYSORE[curSys] || 'titan'; if (type === 'titan' && Math.random() < 0.22) type = 'hurda';
+  const r = type === 'kristal' ? rand(5, 10) : 6 + Math.pow(Math.random(), 1.6) * 20;
+  const mesh = rockMesh(type, r);
   mesh.position.copy(pos); mesh.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU)); scene.add(mesh);
   const hp = r * r * 0.16 * (SYSC.rock || 1);
   return { mesh, pos: mesh.position, r, type, hp, max: hp, units: Math.max(1, Math.round(r / (type === 'kristal' ? 5 : 6) * dm)),
@@ -465,7 +571,9 @@ function hotMat(type){
 const oreChunkMat = {
   demir:   new THREE.MeshStandardMaterial({ color: 0x8c93a3, metalness: 0.9, roughness: 0.32, emissive: 0x2a1408, emissiveIntensity: 0.6 }),
   buz:     new THREE.MeshStandardMaterial({ color: 0xc4ecff, metalness: 0.0, roughness: 0.12, emissive: 0x0a4a66, emissiveIntensity: 0.8 }),
-  kristal: new THREE.MeshStandardMaterial({ color: 0xff5a86, metalness: 0.2, roughness: 0.2, emissive: 0xb01a4c, emissiveIntensity: 1.0 })
+  kristal: new THREE.MeshStandardMaterial({ color: 0xff5a86, metalness: 0.2, roughness: 0.2, emissive: 0xb01a4c, emissiveIntensity: 1.0 }),
+  titan:   new THREE.MeshStandardMaterial({ color: 0xc8bfff, metalness: 0.8, roughness: 0.3, emissive: 0x4a3a9a, emissiveIntensity: 0.7 }),
+  hurda:   new THREE.MeshStandardMaterial({ color: 0xc09060, metalness: 0.7, roughness: 0.45, emissive: 0x5a2a08, emissiveIntensity: 0.5 })
 };
 const oreGlowTex = glowTexture(255, 255, 255);
 function addDebris(p, vel, sc, life, type){
@@ -564,7 +672,7 @@ function explodeMissile(pos, hitA){
     a.hp -= dmg; tmp.copy(a.pos).sub(pos).normalize(); a.vel.addScaledVector(tmp, 6);
     if (a.hp <= 0) breakAsteroid(a, true);
   }
-  for (const n of npcs.slice()){ const d = n.pos.distanceTo(pos), reach = n.r + W.reach; if (d < reach) damageNpc(n, n === hitA ? W.direct : W.splash * (1 - d / reach), 'player'); }
+  for (const n of npcs.slice()){ const d = n.pos.distanceTo(pos), reach = n.r + W.reach; if (d < reach) damageNpc(n, (n === hitA ? W.direct : W.splash * (1 - d / reach)) * (window.__skRk || 1), 'player'); }
 }
 function updateMissiles(dt){
   missileCd -= dt;
@@ -644,7 +752,7 @@ function hoverPoint(st){ return st.pos.clone().add(V(rand(-1, 1), rand(-0.3, 0.3
 function setDest(n, p, arriveR){ if (!n.dest) n.dest = V(0, 0, 0); n.dest.copy(p); n.arriveR = arriveR || 0; }
 
 function oreVis(type){
-  const t = oreTex[ORE_IDX[type]];
+  const t = oreTex[ORE_IDX[type]] || ORP[type];
   if (t){ const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, fog: false, rotation: rand(0, TAU) })), k = rand(4.2, 6.5); sp.scale.set(k * t.image.width / t.image.height, k, 1); return sp; }
   const m = new THREE.Mesh(tmpl[(Math.random() * tmpl.length) | 0], oreChunkMat[type]); m.scale.setScalar(rand(1.0, 1.7)); return m;
 }
@@ -664,7 +772,7 @@ function spawnNpc(type, pos, home){
   g.position.copy(pos); scene.add(g);
   const n = { kind: 'npc', id: ++npcId, type, role: def.role, hostile: def.role === 'pirate', name: def.pre + '-' + (10 + (npcId * 7) % 90), g, pos: g.position, r: L * 0.4,
     hull: def.hull, hullMax: def.hull, vel: V(0, 0, 0), speed: rand(def.spd[0], def.spd[1]) * (def.role === 'trader' ? 1.6 : 1), spdMul: 1, state: 'idle', dest: null, arriveR: 0, tgt: null, aimAt: null,
-    cargo: { demir: 0, buz: 0, kristal: 0 }, load: 0, credits: 0, home: home || STATION, trade: null, wait: 0, think: rand(0, 0.5), fireT: rand(0, 1), alertT: 0, mineT: 0,
+    cargo: { demir: 0, buz: 0, kristal: 0, titan: 0, hurda: 0 }, load: 0, credits: 0, home: home || STATION, trade: null, wait: 0, think: rand(0, 0.5), fireT: rand(0, 1), alertT: 0, mineT: 0,
     eng, nav, parts: [body, wing], visual: false, strafe: Math.random() < 0.5 ? 1 : -1, phase: rand(0, 6), atkT: 0, fleeT: 0 };
   npcs.push(n);
   if (typeof shipTex !== 'undefined' && shipTex[def.skin] && shipTex[def.skin].top && shipTex[def.skin].side) dressNpcs(def.skin);
@@ -761,7 +869,7 @@ function unloadAt(n, st){
 }
 function planTrade(n){
   const def = NPC_DEF[n.type]; let best = null, bs = 0;
-  for (let _q52 = 0, src; _q52 < STATIONS.length && ((src = STATIONS[_q52]), true); _q52++) for (let _q8 = 0; _q8 < STATIONS.length; _q8++){ const dst = STATIONS[_q8];
+  for (let _q52 = 0, src; _q52 < STATIONS.length && ((src = STATIONS[_q52]), true); _q52++) for (let _q8 = 0; _q8 < STATIONS.length; _q8++){ const dst = STATIONS[_q8]; if (src.off || dst.off) continue;
     if (src === dst) continue;
     for (const k in ORE){
       const avail = src.stock[k]; if (avail < 8) continue;
@@ -895,7 +1003,7 @@ function updateNpc(n, dt){
 // ---- spawn yöneticisi: bölge büyür, tehdit zamanla ve oyuncu zenginleştikçe artar
 function spawnRole(role, initial){
   const kinds = { miner: ['mining'], trader: ['cargo', 'tanker', 'courier', 'cargo'], patrol: ['corvette'], pirate: ['raider', 'raider', 'brute', 'reaver'] }[role];
-  const type = kinds[(Math.random() * kinds.length) | 0], home = STATIONS[(Math.random() * STATIONS.length) | 0];
+  const type = kinds[(Math.random() * kinds.length) | 0], home = (a => a[(Math.random() * a.length) | 0])(STATIONS.filter(q => !q.off));
   let pos;
   if (role === 'pirate'){
     for (let t = 0; t < 14; t++){
@@ -946,7 +1054,7 @@ if (TESTM){
   const tb = document.createElement('div'); tb.textContent = 'TEST MODU'; tb.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 2px);transform:translateX(-50%);z-index:95;font:800 10px Barlow,sans-serif;letter-spacing:.12em;color:#1a0d00;background:#ffb454;padding:2px 8px;border-radius:6px;pointer-events:none;opacity:.85';
   document.body.appendChild(tb);
 }
-const cargo = { demir: 0, buz: 0, kristal: 0 };
+const cargo = { demir: 0, buz: 0, kristal: 0, titan: 0, hurda: 0 };
 const PSHIPS = [
   { id: 'kasif', ad: 'Kaşif', fiyat: 0, thr: 1, turn: 1, vmax: 1, hull: 1, shield: 1, cargo: 1, not: 'Dengeli, her işe uygun. Ücretsiz.' },
   { id: 'sahin', ad: 'Şahin', fiyat: 4500, thr: 1.3, turn: 1.3, vmax: 1.15, hull: 0.9, shield: 1.5, cargo: 0.7, not: 'Avcı gemisi: çevik, hızlı, güçlü kalkan. Kargosu küçük.' },
@@ -962,8 +1070,8 @@ const WPNS = [
 if (!Array.isArray(save.ships)) save.ships = ['kasif']; if (!PSHIPS.some(s => s.id === save.ship)) save.ship = 'kasif';
 if (!Array.isArray(save.weps)) save.weps = ['darbe']; if (!WPNS.some(s => s.id === save.wep)) save.wep = 'darbe';
 let SHP = PSHIPS.find(s => s.id === save.ship), WPN = WPNS.find(s => s.id === save.wep);
-const cargoCap = () => Math.round((12 + 8 * save.lv.kargo) * SHP.cargo) + crewCargo();
-const cargoSum = () => cargo.demir + cargo.buz + cargo.kristal;
+const cargoCap = () => Math.round((12 + (window.__skC || 0)) * SHP.cargo) + crewCargo();
+const cargoSum = () => cargo.demir + cargo.buz + cargo.kristal + cargo.titan + cargo.hurda;
 
 const vel = V(0, 0, 0);
 const rates = { yaw: 0, pitch: 0, roll: 0 };
@@ -1088,7 +1196,7 @@ const tName = t => t.mesh ? ORE[t.type].ad : t.kind === 'npc' ? t.name : t.ad;
 const tHp = t => t.mesh ? t.hp / t.max : t.kind === 'npc' ? t.hull / t.hullMax : null;
 const tAlive = t => t.mesh ? asteroids.indexOf(t) >= 0 : t.kind === 'npc' ? npcs.indexOf(t) >= 0 : true;
 // lazer menzili tek yerden: taban 450 m, her lazer seviyesi +50 m, mermi türü çarpanı
-function laserRange(){ return (450 + 50 * save.lv.lazer) * WPN.range; }
+function laserRange(){ return (450 + (window.__skL || 0)) * WPN.range; }
 const lockStand = (t, rngL) => t.mesh ? rngL * 0.8 : t.kind === 'npc' ? rngL * 0.6 : t.kind === 'station' ? t.dock * 0.8 - t.r : t.kind === 'ruin' ? 100 : 650;
 function setLock(a){
   lock = a;
@@ -1161,7 +1269,7 @@ const stationInRange = () => { for (let _q55 = 0, st; _q55 < STATIONS.length && 
 const nearStation = () => !!stationInRange();
 const SELLMAP = [null, 'demir', 'buz', 'kristal'];
 const stPrice0 = (st, k) => ORE[k].fiyat * (1.5 - 0.9 * clamp(st.stock[k] / st.cap, 0, 1)) * st.bias[k] * (SYSC.px[k] || 1) * (SYSC.pay || 1) * devMul(st, k);
-const stPrice = (st, k) => { if (st === STATIONS[0]){ const i = SELLMAP.indexOf(k); const sp = i > 0 ? STATIONS[i] : st; const full = Math.round(stPrice0(sp, k)); return Math.max(1, Math.round(Math.min(Math.round(stPrice0(sp, k) * 0.9), full - 1) * (devLv(st) >= 2 ? 1.06 : 1))); } return Math.max(1, Math.round(stPrice0(st, k) * (SELLMAP[STATIONS.indexOf(st)] === k ? 1 : 0.88))); };
+const stPrice = (st, k) => { if (st === STATIONS[0]){ const i = SELLMAP.indexOf(k); if (i < 0) return Math.max(1, Math.round(stPrice0(st, k) * (devLv(st) >= 2 ? 1.06 : 1))); const sp = i > 0 ? STATIONS[i] : st; const full = Math.round(stPrice0(sp, k)); return Math.max(1, Math.round(Math.min(Math.round(stPrice0(sp, k) * 0.9), full - 1) * (devLv(st) >= 2 ? 1.06 : 1))); } return Math.max(1, Math.round(stPrice0(st, k) * (SELLMAP[STATIONS.indexOf(st)] === k ? 1 : 0.88))); };
 function tryDock(){
   if (docked) return;
   if (!nearStation()){ toast('İstasyon çok uzakta. Haritayı (M) açıp istasyona dokunursan gemi seni götürür.'); return; }
@@ -1217,7 +1325,7 @@ function placeBeam(b, from, to){
 // sık kullanılan cisim listeleri: her karede yeni dizi kurmak yerine aynı diziler güncellenir
 const NEARB = { a: [], b: [],
   list(){ const a = this.a; let i = 0; const put = (c, r, z, m) => { const e = a[i] || (a[i] = [null, 0, 0, 0]); e[0] = c; e[1] = r; e[2] = z; e[3] = m; i++; };
-    for (let _q56 = 0, st; _q56 < STATIONS.length && ((st = STATIONS[_q56]), true); _q56++) put(st.pos, st.r, st.r + 560, 0.2);
+    for (let _q56 = 0, st; _q56 < STATIONS.length && ((st = STATIONS[_q56]), true); _q56++) if (!st.off) put(st.pos, st.r, st.r + 560, 0.2);
     put(PLANET.pos, PLANET.r, PLANET.r * 0.7 + 400, 0.28); put(GIANT.pos, GIANT.r, GIANT.r * 0.7 + 400, 0.28); put(PLANET2.pos, PLANET2.r, PLANET2.r * 0.8 + 400, 0.28); put(PLANET3.pos, PLANET3.r, PLANET3.r * 0.8 + 400, 0.28); put(moonMesh.position, MOON.r, MOON.r + 350, 0.3);
     a.length = i; return a; },
   bodies(){ if (!this.b.length) this.b = [[PLANET.pos, PLANET.r], [moonMesh.position, MOON.r], [GIANT.pos, GIANT.r], [PLANET2.pos, PLANET2.r], [PLANET3.pos, PLANET3.r]]; return this.b; }   // konum vektörleri yerinde güncellenir, dizi bir kez kurulur
@@ -1225,7 +1333,7 @@ const NEARB = { a: [], b: [],
 const _gl = V(0, 0, 0), _gr = V(0, 0, 0), _end = V(0, 0, 0), _qi = new THREE.Quaternion(), _rp = { px: 0, py: 0, y: 0 }, AXES = ['x', 'y', 'z'];
 function update(dt){
   time += dt;
-  for (let _q17 = 0; _q17 < STATIONS.length; _q17++){ const st = STATIONS[_q17];
+  for (let _q17 = 0; _q17 < STATIONS.length; _q17++){ const st = STATIONS[_q17]; if (st.off) continue;
     st.group.rotation.y += dt * 0.12 * (st.scale < 1 ? -1 : 1);
     st.lights.forEach((l, i) => l.material.color.setHex((Math.floor(time * 2) + i) % 6 === 0 ? 0xffe0a0 : st.dim));
     for (const k in ORE) st.stock[k] = Math.max(0, st.stock[k] - st.use[k] * dt);
@@ -1235,12 +1343,12 @@ function update(dt){
   planetMesh.rotation.y += dt * 0.01; cloudMesh.rotation.y += dt * 0.014; giantMesh.rotation.y += dt * 0.006;
   moonAng += dt * 0.01;
   moonMesh.position.set(PLANET.pos.x + Math.cos(moonAng) * 2300, PLANET.pos.y + Math.sin(moonAng * 1.7) * 300, PLANET.pos.z + Math.sin(moonAng) * 2300);
-  for (let _q18 = 0; _q18 < asteroids.length; _q18++){ const a = asteroids[_q18]; a.pos.addScaledVector(a.vel, dt); a.mesh.rotation.x += a.spin.x * dt; a.mesh.rotation.y += a.spin.y * dt; a.mesh.rotation.z += a.spin.z * dt; if (a.heat > 0){ a.heat -= dt; if (a.heat <= 0) a.mesh.material = astMat[a.type]; } }
+  for (let _q18 = 0; _q18 < asteroids.length; _q18++){ const a = asteroids[_q18]; a.pos.addScaledVector(a.vel, dt); a.mesh.rotation.x += a.spin.x * dt; a.mesh.rotation.y += a.spin.y * dt; a.mesh.rotation.z += a.spin.z * dt; if (a.mesh.isSprite) a.mesh.material.rotation += a.spin.z * dt * 0.35; if (a.heat > 0){ a.heat -= dt; if (a.heat <= 0){ if (a.mesh.isSprite) a.mesh.material.color.setHex(0xffffff); else a.mesh.material = astMat[a.type]; } } }
   updateEco(dt);
   for (let _q19 = 0; _q19 < ruins.length; _q19++){ const r = ruins[_q19]; r.group.rotation.y += dt * 0.05; r.core.rotation.y += dt; r.core.scale.setScalar(1 + 0.15 * Math.sin(time * 2 + r.i)); }
 
   fwd.set(0, 0, -1).applyQuaternion(rig.quaternion);
-  const lvM = save.lv.motor, lvL = save.lv.lazer;
+  const lvM = window.__skT0 || 0, lvL = window.__skD0 || 0;
   let speed = vel.length();
   thrustNow = 0; firing = false; aim = null; boosting = false;
   prevVel.copy(vel);
@@ -1283,7 +1391,7 @@ function update(dt){
     // hareket
     const thrust = brake ? 0 : (thrustOn || keys.KeyW || boosting || autoThrust ? 1 : 0);
     thrustNow = boosting ? 1.6 : thrust;
-    vel.addScaledVector(fwd, 52 * SHP.thr * (1 + 0.22 * lvM) * (boosting ? 4 : 1) * thrust * dt);
+    vel.addScaledVector(fwd, 52 * SHP.thr * (window.__skT || 1) * (1 + 0.22 * lvM) * (boosting ? 4 : 1) * thrust * dt);
     vel.multiplyScalar(Math.exp(-(brake ? 2.4 : 0.4) * dt));
     const vf = vel.dot(fwd);
     tmp.copy(vel).addScaledVector(fwd, -vf).multiplyScalar(Math.exp(-(boosting ? 1.4 : 0.6) * dt));   // yana kayma kendiliğinden azalır
@@ -1297,7 +1405,7 @@ function update(dt){
       }
       approachSlow += (slow - approachSlow) * (1 - Math.exp(-4 * dt));
     }
-    if (vel.length() > 650 * SHP.vmax) vel.setLength(650 * SHP.vmax);
+    if (vel.length() > 650 * SHP.vmax * (window.__skT || 1)) vel.setLength(650 * SHP.vmax * (window.__skT || 1));
     rig.position.addScaledVector(vel, dt);
     for (const ax of ['x', 'y', 'z']) if (Math.abs(rig.position[ax]) > BOUND){ rig.position[ax] = Math.sign(rig.position[ax]) * BOUND; vel[ax] *= -0.3; }
     speed = vel.length();
@@ -1368,7 +1476,7 @@ function update(dt){
     if (laser.over && laser.heat < 40) laser.over = false;
     if (laser.burstT > 0){
       if (!wantFire) laser.burstT = 0;
-      else { laser.burstT -= dt; laser.heat += 34 * WPN.heat * (1 - 0.08 * (save.lv.sogutma || 0)) * (window.__perkHeat || 1) * dt; if (laser.burstT <= 0) laser.gapT = 0.35; }
+      else { laser.burstT -= dt; laser.heat += 34 * WPN.heat * (1 - 0.08 * (save.lv.sogutma || 0)) * (window.__perkHeat || 1) * (window.__skH || 1) * dt; if (laser.burstT <= 0) laser.gapT = 0.35; }
     } else {
       if (laser.gapT > 0) laser.gapT -= dt;
       else if (wantFire && !laser.over) laser.burstT = WPN.burst;
@@ -1384,7 +1492,7 @@ function update(dt){
       let end;
       if (inRange){
         end = _end.copy(aim.pos).addScaledVector(tmp.copy(rig.position).sub(aim.pos).normalize(), aim.r * 0.9);
-        if (aim.mesh) aim.hp -= dps * WPN.mine * dt; else damageNpc(aim, dps * WPN.pvp * dt, 'player'); shake = Math.max(shake, 0.12);
+        if (aim.mesh) aim.hp -= dps * WPN.mine * (window.__skM || 1) * dt; else damageNpc(aim, dps * WPN.pvp * (window.__skP || 1) * dt, 'player'); shake = Math.max(shake, 0.12);
         impact.visible = true; impact.position.copy(end); impact.scale.setScalar(rand(5, 8)); impact.material.rotation = rand(0, TAU);
         tmp.copy(end).sub(aim.pos).normalize();
         for (let q = 0; q < 2; q++){
@@ -1392,7 +1500,7 @@ function update(dt){
           emit(end, d.x + aim.vel.x, d.y + aim.vel.y, d.z + aim.vel.z, Math.random() < 0.5 ? 0xffb070 : 0xfff0d8, rand(0.25, 0.55));
         }
         if (Math.random() < 0.12) addDebris(end, V(tmp.x * rand(3, 9) + rand(-3, 3), tmp.y * rand(3, 9) + rand(-3, 3), tmp.z * rand(3, 9) + rand(-3, 3)).add(aim.vel), rand(0.15, 0.4), rand(1.5, 3), aim.mesh ? aim.type : 'demir');
-        if (aim.mesh){ aim.heat = 0.25; aim.mesh.material = hotMat(aim.type); }
+        if (aim.mesh){ aim.heat = 0.25; if (aim.mesh.isSprite) aim.mesh.material.color.setHex(0xffa070); else aim.mesh.material = hotMat(aim.type); }
         if (aim.mesh && aim.hp <= 0){ shake = Math.max(shake, 0.4); breakAsteroid(aim, false); aim = null; }
         else if (aim && aim.kind === 'npc' && npcs.indexOf(aim) < 0){ shake = Math.max(shake, 0.4); aim = null; }
       } else end = _end.copy(rig.position).addScaledVector(fwd, range);
@@ -1405,10 +1513,10 @@ function update(dt){
       const o = ores[i]; o.life -= dt;
       if (o.life <= 0){ scene.remove(o.mesh); ores.splice(i, 1); continue; }
       tmp.copy(rig.position).sub(o.mesh.position); const d = tmp.length();
-      if (d < 70 && cargoSum() < cap) o.vel.addScaledVector(tmp.divideScalar(d || 1), 160 * dt);
+      const MR = window.__skR || 190; o.pull = d < MR && cargoSum() < cap; if (o.pull) o.vel.addScaledVector(tmp.divideScalar(d || 1), (120 + (MR - d) * 2.2) * dt);
       o.vel.multiplyScalar(Math.exp(-1.0 * dt)); o.mesh.position.addScaledVector(o.vel, dt); if (o.mesh.isSprite) o.mesh.material.rotation += dt * 1.2; else { o.mesh.rotation.x += dt * 2; o.mesh.rotation.y += dt * 3; }
-      if (d < 10){
-        if (cargoSum() < cap){ cargo[o.type]++; burst(o.mesh.position, 0xffffff, 4, 20, 0.3); if (pickupTex) spawnFx(o.mesh.position.clone(), 9, pickupTex, 0.5); ((window.__sfx && window.__sfx('toplama', 0.5)) || blip(900 + cargoSum() * 25, 0.1)); scene.remove(o.mesh); ores.splice(i, 1); }
+      if (d < 14){
+        if (cargoSum() < cap){ cargo[o.type]++; window.__oreGot && window.__oreGot(o.type); burst(o.mesh.position, 0xffffff, 4, 20, 0.3); if (pickupTex) spawnFx(o.mesh.position.clone(), 9, pickupTex, 0.5); ((window.__sfx && window.__sfx('toplama', 0.5)) || blip(900 + cargoSum() * 25, 0.1)); scene.remove(o.mesh); ores.splice(i, 1); }
         else if (time - fullWarn > 4){ fullWarn = time; toast('Kargo dolu. Üsse dön ve sat.'); }
       }
     }
@@ -1545,7 +1653,7 @@ function drawRadar(c, cx, cy, rr){
   for (let _q58 = 0, r; _q58 < ruins.length && ((r = ruins[_q58]), true); _q58++) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 3500)) plot(r.group.position, '#5ff0d0', 5, true);
   extraPlots(plot);
   for (const b of [PLANET, GIANT, PLANET2, PLANET3]) plot(b.pos, 'rgba(190,205,230,0.8)', 6, true);
-  for (let _q29 = 0; _q29 < STATIONS.length; _q29++){ const s = STATIONS[_q29]; const q = pt(s.pos); let px = q.px, py = q.py; const d = Math.hypot(px, py); if (d > rr - 7){ px = px / d * (rr - 7); py = py / d * (rr - 7); } c.fillStyle = s === STATION ? '#ffb454' : '#8fe9ff'; c.fillRect(cx + px - 3.5, cy + py - 3.5, 7, 7); }
+  for (let _q29 = 0; _q29 < STATIONS.length; _q29++){ const s = STATIONS[_q29]; if (s.off) continue; const q = pt(s.pos); let px = q.px, py = q.py; const d = Math.hypot(px, py); if (d > rr - 7){ px = px / d * (rr - 7); py = py / d * (rr - 7); } c.fillStyle = s === STATION ? '#ffb454' : '#8fe9ff'; c.fillRect(cx + px - 3.5, cy + py - 3.5, 7, 7); }
   c.restore();
   c.strokeStyle = '#2a3a66'; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, rr, 0, TAU); c.stroke();
   c.fillStyle = '#fff'; c.beginPath(); c.moveTo(cx, cy - 5); c.lineTo(cx - 4, cy + 4); c.lineTo(cx + 4, cy + 4); c.closePath(); c.fill();
@@ -1597,7 +1705,7 @@ function screenPanel(c, x, y, w, h, label){
   c.fillStyle = '#080d1a'; c.strokeStyle = '#2c3d6e'; c.lineWidth = 2; rrect(c, x, y, w, h, 10); c.fill(); c.stroke();
   const ix = x + 7, iy = y + 17, iw = w - 14, ih = h - 24;
   c.fillStyle = '#02060c'; rrect(c, ix, iy, iw, ih, 6); c.fill();
-  c.fillStyle = '#5d6a8f'; c.font = fnt(500, 10); c.textAlign = 'left'; c.fillText(label, x + 10, y + 12); if (window.__ic) window.__ic(c, label === 'Sistem' ? 'i_crate' : label === 'Radar' ? 'i_foe' : 'i_hull', x + 14 + c.measureText(label).width, y + 1, 13);
+  c.fillStyle = '#5d6a8f'; c.font = fnt(500, 10); c.textAlign = 'left'; c.fillText(label, x + 10, y + 12); if (window.__ic) window.__ic(c, label === 'Sistem' ? 'i_crate' : label === 'Radar' ? 'i_foe' : 'i_hull', x + 14 + c.measureText(label).width, y + 1, 13); if (label === 'Radar' && SYS[curSys]){ c.textAlign = 'right'; c.fillStyle = '#9fb4dc'; c.fillText(SYS[curSys].ad.toLocaleUpperCase('tr-TR'), x + w - 10, y + 12); c.textAlign = 'left'; }
   c.fillStyle = 'rgba(127,216,255,0.04)'; for (let yy = iy; yy < iy + ih; yy += 3) c.fillRect(ix, yy, iw, 1);
   return { x: ix, y: iy, w: iw, h: ih };
 }
@@ -1636,9 +1744,9 @@ function drawDash(c){
     if (I.h > 125){
       y += lh * 0.9;
       for (const k of ['lazer', 'kargo', 'motor']){
-        c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText(UPG[k].ad, I.x + 6, y + 5);
+        c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText({ lazer: 'Kazı', kargo: 'Kargo', motor: 'İtki' }[k], I.x + 6, y + 5);
         const sw = Math.min(16, (I.w - 66) / MAXLV - 3);
-        for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < save.lv[k] ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 58 + i * (sw + 3), y - 2, sw, 8); }
+        for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < ((save.sk || {})[{ lazer: 'kazi', kargo: 'kargo', motor: 'itki' }[k]] || 0) ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 58 + i * (sw + 3), y - 2, sw, 8); }
         y += lh * 0.8;
       }
     }
@@ -1735,7 +1843,7 @@ function scrBase(c, w, h, label){
   c.fillStyle = '#010409'; c.fillRect(0, 0, w, h);
   { const bg = label === 'Radar' ? MONIMG.blue : MONIMG.amber; if (bg){ c.globalAlpha = 0.9; c.drawImage(bg, 0, 0, w, h); c.globalAlpha = 1; } }
   { if (!scrBase.pat){ const pc = document.createElement('canvas'); pc.width = 4; pc.height = 3; const px = pc.getContext('2d'); px.fillStyle = 'rgba(127,216,255,0.045)'; px.fillRect(0, 0, 4, 1); scrBase.pat = c.createPattern(pc, 'repeat'); } c.fillStyle = scrBase.pat; c.fillRect(0, 0, w, h); }
-  c.fillStyle = '#5d6a8f'; c.font = fnt(500, 10); c.textAlign = 'left'; c.fillText(label, 8, 13); if (window.__ic) window.__ic(c, label === 'Sistem' ? 'i_crate' : label === 'Radar' ? 'i_foe' : 'i_hull', 12 + c.measureText(label).width, 2, 13);
+  c.fillStyle = '#5d6a8f'; c.font = fnt(500, 10); c.textAlign = 'left'; c.fillText(label, 8, 13); if (window.__ic) window.__ic(c, label === 'Sistem' ? 'i_crate' : label === 'Radar' ? 'i_foe' : 'i_hull', 12 + c.measureText(label).width, 2, 13); if (label === 'Radar' && SYS[curSys]){ c.textAlign = 'right'; c.fillStyle = '#9fb4dc'; c.fillText(SYS[curSys].ad.toLocaleUpperCase('tr-TR'), w - 8, 13); c.textAlign = 'left'; }
   return { x: 6, y: 18, w: w - 12, h: h - 24 };
 }
 function sysContent(c, I){
@@ -1754,9 +1862,9 @@ function sysContent(c, I){
   if (I.h > 125){
     y += lh * 0.9;
     for (const k of ['lazer', 'kargo', 'motor']){
-      c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText(UPG[k].ad, I.x + 4, y + 5);
+      c.textAlign = 'left'; c.fillStyle = '#8f9cc0'; c.font = fnt(500, lh * 0.48); c.fillText({ lazer: 'Kazı', kargo: 'Kargo', motor: 'İtki' }[k], I.x + 4, y + 5);
       const sw = Math.min(16, (I.w - 62) / MAXLV - 3);
-      for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < save.lv[k] ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 54 + i * (sw + 3), y - 2, sw, 8); }
+      for (let i = 0; i < MAXLV; i++){ c.fillStyle = i < ((save.sk || {})[{ lazer: 'kazi', kargo: 'kargo', motor: 'itki' }[k]] || 0) ? '#ffb454' : '#1a2442'; c.fillRect(I.x + 54 + i * (sw + 3), y - 2, sw, 8); }
       y += lh * 0.8;
     }
   }
@@ -1828,7 +1936,7 @@ function mapContent(c, I, opts){
   // kuşaklar: gerçek asteroitler
   for (let _q30 = 0; _q30 < asteroids.length; _q30++){ const a = asteroids[_q30]; const p = P(a.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 0, p, col: (ORE[a.type] || ORE.demir).css, sz: a.type === 'kristal' ? 1.8 : 1.2 }); }
   if (mapRange > 9000) for (let _q31 = 0; _q31 < BELTS.length; _q31++){ const b = BELTS[_q31]; if (!known(b.c)) continue; const p = P(b.c); c.fillStyle = b.rich ? 'rgba(255,107,138,0.12)' : 'rgba(150,160,185,0.1)'; c.beginPath(); c.ellipse(p.x, p.y, Math.max(3, b.r * k), Math.max(2, b.r * k * es), 0, 0, TAU); c.fill(); }
-  for (let _q32 = 0; _q32 < STATIONS.length; _q32++){ const st = STATIONS[_q32]; if (!known(st.pos)) continue; const p = P(st.pos); items.push({ y: p.gy, t: 1, p, obj: st, col: '#' + st.color.toString(16).padStart(6, '0') }); }
+  for (let _q32 = 0; _q32 < STATIONS.length; _q32++){ const st = STATIONS[_q32]; if (st.off || !known(st.pos)) continue; const p = P(st.pos); items.push({ y: p.gy, t: 1, p, obj: st, col: '#' + st.color.toString(16).padStart(6, '0') }); }
   for (const bd of [PLANET, GIANT, MOON, PLANET2, PLANET3]){ if (!known(bd.pos)) continue; const p = P(bd.pos); items.push({ y: p.gy, t: 2, p, obj: bd, name: bd.ad }); }
   for (let _q33 = 0; _q33 < ruins.length; _q33++){ const r = ruins[_q33]; if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
   { const o = window.__kadimObj && window.__kadimObj(); if (o){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); } }
@@ -2009,7 +2117,7 @@ function wreck(){
 }
 function hpTick(dt){
   hp.hit = Math.max(0, hp.hit - dt); hp.regenT -= dt;
-  if (hp.regenT <= 0 && hp.shield < hp.shieldMax) hp.shield = Math.min(hp.shieldMax, hp.shield + 6 * dt);
+  if (hp.regenT <= 0 && hp.shield < hp.shieldMax) hp.shield = Math.min(hp.shieldMax, hp.shield + 6 * (window.__skS || 1) * dt);
 }
 
 // ---------- Şeffaf paneller ----------
@@ -2027,7 +2135,7 @@ function drawShipHolo(c, cx, cy, sc, col){
 }
 function drawPanels(c, speed){
   const pw = clamp(W * 0.15, 104, 180), ph = clamp(H * 0.36, 112, 210), py = Math.round(H * 0.16), cs = cargoSum(), cap = cargoCap();
-  const lvL = save.lv.lazer, lvM = save.lv.motor;
+  const lvL = Math.min(5, (window.__skD0 || 0) / 0.55), lvM = Math.min(5, (window.__skT0 || 0) / 0.22);
   // sol: cephane, roket, hız, kalkan
   panelBox(c, 8, py, pw, ph);
   const cols = [['LAZ', (lvL + 1) / 6, '#ffb454'], ['ROK', (save.ammo + save.ammoD) / (AMMO_MAX + DMAX), '#ff6b8a'], ['MOT', (lvM + 1) / 6, '#7fd8ff'], ['HIZ', clamp(speed / 150, 0, 1), '#7be0a4'], ['KLK', hp.shield / hp.shieldMax, '#8ab4ff']];
@@ -2163,7 +2271,7 @@ function drawOverlay(c){
 }
 
 function drawRing(c, ox, oy, speed){
-  const R = clamp(Math.min(W, H) * 0.3, 90, 200), cs = cargoSum(), cap = cargoCap(), lvL = save.lv.lazer, A = d => d * Math.PI / 180;
+  const R = clamp(Math.min(W, H) * 0.3, 90, 200), cs = cargoSum(), cap = cargoCap(), lvL = Math.min(5, (window.__skD0 || 0) / 0.55), A = d => d * Math.PI / 180;
   c.save(); c.lineCap = 'round';
   c.strokeStyle = 'rgba(170,230,240,0.3)'; c.lineWidth = 1.5; c.beginPath(); c.arc(ox, oy, R, 0, TAU); c.stroke();
   c.strokeStyle = 'rgba(170,230,240,0.12)'; c.beginPath(); c.arc(ox, oy, R * 0.9, 0, TAU); c.stroke();
@@ -2205,7 +2313,7 @@ function drawHud(){
         c.beginPath(); c.arc(p.x, p.y, 7, 0, TAU); c.moveTo(p.x - 13, p.y); c.lineTo(p.x - 7, p.y); c.moveTo(p.x + 7, p.y); c.lineTo(p.x + 13, p.y); c.moveTo(p.x, p.y - 7); c.lineTo(p.x, p.y - 12); c.stroke();
       }
     }
-    for (let _q59 = 0, st; _q59 < STATIONS.length && ((st = STATIONS[_q59]), true); _q59++) if (known(st.pos)) drawMarker(c, st.pos, '#' + st.color.toString(16).padStart(6, '0'), st.ad.split(' ')[0], Math.max(0, rig.position.distanceTo(st.pos) - st.r));
+    for (let _q59 = 0, st; _q59 < STATIONS.length && ((st = STATIONS[_q59]), true); _q59++) if (!st.off && known(st.pos)) drawMarker(c, st.pos, '#' + st.color.toString(16).padStart(6, '0'), st.ad.split(' ')[0], Math.max(0, rig.position.distanceTo(st.pos) - st.r));
     if (known(PLANET.pos)) drawMarker(c, PLANET.pos, '#7fd8ff', PLANET.ad, rig.position.distanceTo(PLANET.pos) - PLANET.r, 5000);
     if (known(GIANT.pos)) drawMarker(c, GIANT.pos, '#ffc58a', GIANT.ad, rig.position.distanceTo(GIANT.pos) - GIANT.r, 5000);
     if (known(PLANET2.pos)) drawMarker(c, PLANET2.pos, '#ff9a6a', PLANET2.ad, rig.position.distanceTo(PLANET2.pos) - PLANET2.r, 5000);
@@ -2267,7 +2375,11 @@ const ART = {
   rock: null,
   ring: 'assets/img/env_ring.png'
 };
-function loadArt(src, cb){
+// sisteme özgü gezegen görselleri (pmap_N, a4_pN) yalnızca o sisteme girince ya da oyun açıldıktan sonra arka planda yüklenir
+const LAZY = {}; let lazyAll = false;
+function lazyFlush(k){ const q = LAZY[k]; if (!q) return; delete LAZY[k]; q.forEach(a => loadArt(a[0], a[1], true)); }
+function loadArt(src, cb, now){
+  if (!now && !lazyAll){ const m = /\/(?:pmap_|a4_p)(\d)/.exec(src); if (m && +m[1] !== curSys){ (LAZY[m[1]] = LAZY[m[1]] || []).push([src, cb]); return; } }
   const im = new Image();
   im.onload = () => {
     const t = new THREE.Texture(im); t.needsUpdate = true;
@@ -2343,11 +2455,11 @@ const A3 = {"ice_top": "assets/img/a3_ice_top.webp", "ice_side": "assets/img/a3_
 const MONIMG = {};
 function img3(key, cb){ const im = new Image(); im.onload = () => cb(im); im.src = A3[key]; }
 // kaya dokuları
-[['demir', 'tdemir', [1.2, 1.12, 1.05], 3, [2, 1]], ['buz', 'tbuz', [1.0, 1.05, 1.15], 2.2, [2, 1]], ['kristal', 'tkristal', [1.5, 1.15, 1.3], 2, [1, 1]]].forEach(([type, key, col, bump, rep]) => {
+[['demir', 'tdemir', [1.2, 1.12, 1.05], 1.1, [2, 1]], ['buz', 'tbuz', [1.0, 1.05, 1.15], 0.7, [2, 1]], ['kristal', 'tkristal', [1.35, 0.9, 0.92], 0.9, [2, 1]]].forEach(([type, key, col, bump, rep]) => {
   loadArt(A3[key], t => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; t.needsUpdate = true;
-    const m = astMat[type]; m.map = t; if (type !== 'kristal') m.bumpMap = t; m.bumpScale = bump; m.color.setRGB(col[0], col[1], col[2]); if (type === 'buz'){ m.emissiveMap = t; m.emissive.setHex(0x9ab8d0); m.emissiveIntensity = 0.42; } m.needsUpdate = true;
-    hotCache = {}; asteroids.forEach(a => { if (a.heat > 0) a.mesh.material = astMat[a.type]; });
+    const m = astMat[type]; m.map = t; m.bumpMap = t; m.bumpScale = bump; m.color.setRGB(col[0], col[1], col[2]); if (type === 'buz'){ m.emissiveMap = t; m.emissive.setHex(0x9ab8d0); m.emissiveIntensity = 0.42; } m.needsUpdate = true;
+    hotCache = {}; asteroids.forEach(a => { if (a.heat > 0 && !a.mesh.isSprite) a.mesh.material = astMat[a.type]; });
     if (type === 'demir'){ ROCKT.d = null; rockSys(); }
   });
 });
@@ -2720,7 +2832,7 @@ EXTRA.push(dt => {
 const LORE = [
   ['+450 kredi', 'Duvarda yazıyor: "Yıldızlar sönmedi, biz uzaklaştık."'],
   ['Roketlerin doldu', 'Eski cephanelik. Not: "Son nöbetçi kapıyı açık bıraktı."'],
-  ['Lazerin güçlendi', 'Soğutma çekirdeği. Not: "Işık, onu taşıyandan hızlıdır."'],
+  ['+1 yetenek puanı', 'Soğutma çekirdeği. Not: "Işık, onu taşıyandan hızlıdır."'],
   ['Yıldız haritası çözüldü', 'Tüm kalıntı sinyalleri haritada. Not: "Biz de bir gün aranacağız."']
 ];
 function onRuinFound(r){
@@ -2729,7 +2841,7 @@ function onRuinFound(r){
   let rw = LORE[r.i][0];
   if (r.i === 0){ const v = Math.round(450 * SYSC.bounty); save.kredi += v; rw = '+' + v + ' kredi'; }
   else if (r.i === 1){ save.ammo = AMMO_MAX; save.ammoD = DMAX; }
-  else if (r.i === 2){ if (save.lv.lazer < MAXLV) save.lv.lazer++; else { save.kredi += 300; rw = '+300 kredi'; } }
+  else if (r.i === 2){ save.sp = (save.sp || 0) + 1; rw = '+1 yetenek puanı'; }
   else { save.map = true; }
   if (!save.parts) save.parts = {}; save.parts.hucre = (save.parts.hucre || 0) + 2; save.parts.devre = (save.parts.devre || 0) + 1; rw += ' · +2 enerji hücresi, +1 devre kartı';
   persist();
@@ -2756,12 +2868,13 @@ function liveDock(){
 
 // =====================  SİSTEMLER + MESAJ KUTUSU  =====================
 const SYS = [
-  { ad: 'Ankora Sistemi', not: 'Burası senin evin. Kuşaklar dengeli, ortalık sakin. Zorluk: ★', names: null, tint: [1, 1, 1], sky: [1.18, 1.18, 1.28], kr: 1, ice: 1, danger: 1, px: {}, intro: 'Eve döndün.' },
-  { ad: 'Kızıl Geçit', not: 'Demir bol ama korsanlar çok. Zorluk ★★ · Düşman gemileri %60 daha dayanıklı, %25 daha sert vurur · Kayaları kırmak %50 daha zor · Cevher satış fiyatları %50, korsan ödülleri %80 daha yüksek', names: { st: ['Kor İstasyonu', 'Pas Üssü', 'Soğuk Kor Durağı', 'Köz Kapısı'], pl: ['Zerha', 'Kavrim', 'Ember', 'Pyra'], moon: 'Küle' }, tint: [1.45, 0.78, 0.62], sky: [1.55, 1.0, 0.95], kr: 0.5, ice: 0.4, danger: 1.7, px: { demir: 0.7, buz: 1.5, kristal: 1.5 }, rock: 1.5, pay: 1.5, hull: 1.6, bounty: 1.8, dmg: 1.25, intro: 'Kızıl bir güneşin altındasın. Korsanlar burada çok.' },
-  { ad: 'Buzul Halka', not: 'Buz bol ve ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
-  { ad: 'Zümrüt Sis', not: 'Kristal çok zengin, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
+  { ad: 'Ankora Sistemi', not: 'Burası senin evin. Titan kayaları ve hurda veren enkazlar var, ortalık sakin. Zorluk: ★', names: null, tint: [1, 1, 1], sky: [1.18, 1.18, 1.28], kr: 1, ice: 1, danger: 1, px: {}, intro: 'Eve döndün.' },
+  { ad: 'Kızıl Geçit', not: 'Demirin tek yurdu, ama korsanlar çok. Zorluk ★★ · Düşman gemileri %60 daha dayanıklı, %25 daha sert vurur · Kayaları kırmak %50 daha zor · Cevher satış fiyatları %50, korsan ödülleri %80 daha yüksek', names: { st: ['Kor İstasyonu', 'Pas Üssü', 'Soğuk Kor Durağı', 'Köz Kapısı'], pl: ['Zerha', 'Kavrim', 'Ember', 'Pyra'], moon: 'Küle' }, tint: [1.45, 0.78, 0.62], sky: [1.55, 1.0, 0.95], kr: 0.5, ice: 0.4, danger: 1.7, px: { demir: 0.7, buz: 1.5, kristal: 1.5 }, rock: 1.5, pay: 1.5, hull: 1.6, bounty: 1.8, dmg: 1.25, intro: 'Kızıl bir güneşin altındasın. Korsanlar burada çok.' },
+  { ad: 'Buzul Halka', not: 'Buzun tek yurdu; ortalık sakin ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
+  { ad: 'Zümrüt Sis', not: 'Kristalin tek yurdu, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
 ];
-const GATE_TO = [1, 2, 3, 0, 0, 0], JC = 150;
+const GATE_TO = [1, 2, 3, 0, 0, 0], JC0 = 150;
+const JCf = () => Math.round(JC0 * (window.__skG || 1));
 const LORE_S = {
   1: ['Duvarda kurum: "Ocaklar sönmeden son kuşak burada yandı."', 'Pas dolu cephanelik. Not: "Ateş, korkunun mimarıdır."', 'Eriyik bir çekirdek. Not: "Kızıl yıldız bizi tavlayıp güçlendirdi."', 'Haritanın kenarında: "Geçit sadece geri dönenlere açılır."'],
   2: ['Buza gömülü günlük: "Sessizlik de bir sinyaldir."', 'Donmuş cephanelik. Not: "Soğuk, hiçbir şeyi unutmaz."', 'Kırağılı çekirdek. Not: "Isı, yalnızca hareketin adıdır."', 'Buzdaki harita: "Her halka bir kapıya çıkar."'],
@@ -2882,10 +2995,10 @@ function renderJump(){
   let box = $('jumpBox');
   if (!box){
     box = document.createElement('div'); box.id = 'jumpBox'; const u = $('undock'); if (!u) return; u.parentNode.insertBefore(box, u);
-    box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JC) return; save.kredi -= JC; persist(); enterSystem(+b.dataset.j); });
+    box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JCf()) return; save.kredi -= JCf(); persist(); enterSystem(+b.dataset.j); });
   }
   let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
-  for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i>${SYS[k].ad}<span class="dim"><br>${SYS[k].not}</span></span><button class="act" data-j="${k}" ${save.kredi < JC ? 'disabled' : ''}>Hiperatla · ${JC} kredi</button></div>`;
+  for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i>${SYS[k].ad}<span class="dim"><br>${SYS[k].not}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
   const hid = SYS.length - save.open.length;
   if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
   box.innerHTML = h;
@@ -2947,7 +3060,7 @@ function attachBase(){
   const b = save.base; if (!b || b.sys !== curSys || baseSt) return;
   const belt = BELTS[b.bi]; if (!belt) return;
   const st = { ad: (save.pilot || 'Kaşif') + ' Üssü', kind: 'station', pos: belt.c.clone().add(V(belt.r * 1.15, 0, 0)), r: 42, dock: 140, scale: 0.6, color: 0x7be0a4, dim: 0x2a7a52,
-    bias: { demir: 1, buz: 1, kristal: 1 }, stock: { demir: 60, buz: 60, kristal: 60 }, cap: 300, use: { demir: 0.08, buz: 0.08, kristal: 0.08 }, isBase: true };
+    bias: { demir: 1, buz: 1, kristal: 1, titan: 1, hurda: 1 }, stock: { demir: 60, buz: 60, kristal: 60, titan: 90, hurda: 70 }, cap: 300, use: { demir: 0.08, buz: 0.08, kristal: 0.08, titan: 0.12, hurda: 0.1 }, isBase: true };
   buildOutpost(st); STATIONS.push(st); BODIES.push(st); baseSt = st;
 }
 function detachBase(){
@@ -2965,8 +3078,8 @@ attachBase();
 
 // --- kaynak: kaya üretici
 function mkRock(pos, type, r, vel, units){
-  const mesh = new THREE.Mesh(tmpl[(Math.random() * tmpl.length) | 0], astMat[type]);
-  mesh.scale.set(r * rand(0.8, 1.2), r * rand(0.8, 1.2), r * rand(0.8, 1.2)); mesh.position.copy(pos); mesh.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU)); scene.add(mesh);
+  if (type !== 'hurda' && SYSORE[curSys] && type !== SYSORE[curSys]) type = SYSORE[curSys];
+  const mesh = rockMesh(type, r); mesh.position.copy(pos); mesh.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU)); scene.add(mesh);
   const hp = r * r * 0.16 * (SYSC.rock || 1), a = { mesh, pos: mesh.position, r, type, hp, max: hp, units: units || Math.max(1, Math.round(r / 6)), vel: vel.clone(), spin: V(rand(-0.3, 0.3), rand(-0.3, 0.3), rand(-0.3, 0.3)) };
   asteroids.push(a); return a;
 }
@@ -3091,7 +3204,7 @@ function pickEvent(){
   const r = Math.random(), idle = !EV.comet && !EV.shower && !raids.length;
   if (!idle) return;
   if (r < 0.35) startComet(); else if (r < 0.65) startShower();
-  else { const pool = STATIONS.filter(s => !s.isBase); startRaid('st', pool[(Math.random() * pool.length) | 0]); }
+  else { const pool = STATIONS.filter(s => !s.isBase && !s.off); startRaid('st', pool[(Math.random() * pool.length) | 0]); }
 }
 { let evT = 150, caT = 200, raT = 240;
   EXTRA.push(dt => {
@@ -4083,7 +4196,7 @@ function showAwayCard(dur, items){
 function awayReport(dur, m, news, before){
   const L = news.map(x => ({ w: x[0], t: x[1], c: x[2] }));
   const ch = [];
-  STATIONS.forEach((s, i) => { for (const k in s.stock){ const d = s.stock[k] - before[i][k]; if (Math.abs(d) >= 25) ch.push({ s, k, d, a: before[i][k], b: s.stock[k] }); } });
+  STATIONS.forEach((s, i) => { if (s.off) return; for (const k in s.stock){ const d = s.stock[k] - before[i][k]; if (Math.abs(d) >= 25) ch.push({ s, k, d, a: before[i][k], b: s.stock[k] }); } });
   ch.sort((x, y) => Math.abs(y.d) - Math.abs(x.d));
   for (const c of ch.slice(0, 3)) L.push({ w: c.s.ad.split(' ')[0], t: ORE[c.k].ad + ' stoğu ' + Math.round(c.a) + ' → ' + Math.round(c.b) + (c.d < 0 ? ' · fiyat yükseldi.' : ' · fiyat düştü.'), c: c.d < 0 ? '#ffb454' : '#7fd8ff' });
   const trips = Math.max(1, Math.round(Math.min(m, 720) / 6 * rand(0.7, 1.2)));
@@ -4099,7 +4212,7 @@ function awayReport(dur, m, news, before){
   let mkT = 70;
   EXTRA.push(dt => {
     mkT -= dt; if (mkT > 0) return; mkT = rand(100, 190);
-    const si = (Math.random() * STATIONS.length) | 0, s = STATIONS[si], ks = Object.keys(ORE), k = ks[(Math.random() * ks.length) | 0], short = Math.random() < 0.5;
+    const _on = STATIONS.filter(q => !q.off), s = _on[(Math.random() * _on.length) | 0], ks = Object.keys(ORE), k = ks[(Math.random() * ks.length) | 0], short = Math.random() < 0.5;
     s.stock[k] = clamp(s.cap * (short ? rand(0.05, 0.15) : rand(0.85, 0.95)), 5, s.cap);
     liveSay('Piyasa', s.ad.split(' ')[0] + ': ' + ORE[k].ad.toLowerCase() + (short ? ' sıkıntısı var, fiyat yükseldi.' : ' bolluğu, fiyat düştü.'), short ? '#ffb454' : '#9ad8ff');
   });
@@ -4132,7 +4245,7 @@ function removeNpcQuiet(n){
   disposeNpc3(n); scene.remove(n.g); for (let _q75 = 0, a; _q75 < asteroids.length && ((a = asteroids[_q75]), true); _q75++) if (a.claim === n.id) a.claim = 0;
 }
 function spawnVisitor(){
-  const civ = CIVS[(Math.random() * CIVS.length) | 0], st = STATIONS[(Math.random() * STATIONS.length) | 0];
+  const civ = CIVS[(Math.random() * CIVS.length) | 0], st = (a => a[(Math.random() * a.length) | 0])(STATIONS.filter(q => !q.off));
   const dir = V(rand(-1, 1), rand(-0.15, 0.15), rand(-1, 1)).normalize();
   const pos = st.pos.clone().addScaledVector(dir, 5200);
   for (const ax of ['x', 'y', 'z']) pos[ax] = clamp(pos[ax], -BOUND * 0.92, BOUND * 0.92);
@@ -4200,7 +4313,7 @@ function commTarget(){
 }
 function sellPrices(k){
   let best = null, bp = -1;
-  STATIONS.forEach((st, i) => { if (i === 0 || SELLMAP[i] === k){ const p = stPrice(st, k); if (p > bp){ bp = p; best = st; } } });
+  STATIONS.forEach((st, i) => { if (!st.off && (i === 0 || SELLMAP[i] === k)){ const p = stPrice(st, k); if (p > bp){ bp = p; best = st; } } });
   return { st: best, p: bp };
 }
 function commRoot(n){
@@ -5957,14 +6070,14 @@ setTimeout(() => {
 
 // ---- şeffaflık ayarı + üs modülleri + akıllı istasyonlar
 {
-  const DEPCAP = [0, 40, 90, 160], ORES = ['demir', 'buz', 'kristal'];
+  const DEPCAP = [0, 40, 90, 160], ORES = ['demir', 'buz', 'kristal', 'titan', 'hurda'];
   const BMOD = {
     tam: { n: 'Tamirhane', d: l => 'Üste gemi onarımı %' + 25 * l + ' ucuz', c: [600, 1400, 2800] },
     dep: { n: 'Depo', d: l => 'Cevher saklama: ' + DEPCAP[l] + ' birim', c: [500, 1200, 2400] },
     rok: { n: 'Roket atölyesi', d: l => 'Ücretsiz roket ikmali: ' + ['', 'yarım', 'üçte iki', 'tam'][l] + ' depo', c: [450, 1100, 2200] },
     sav: { n: 'Savunma ağı', d: l => 'Baskında kayıp: %' + [60, 40, 20, 0][l], c: [700, 1600, 3000] }
   };
-  const bm = () => { const B = save.base; if (!B) return null; if (!B.m) B.m = { tam: 0, dep: 0, rok: 0, sav: 0 }; if (!B.store) B.store = { demir: 0, buz: 0, kristal: 0 }; return B; };
+  const bm = () => { const B = save.base; if (!B) return null; if (!B.m) B.m = { tam: 0, dep: 0, rok: 0, sav: 0 }; if (!B.store) B.store = { demir: 0, buz: 0, kristal: 0 }; for (const k of ORES) if (B.store[k] == null) B.store[k] = 0; return B; };
   const sum = o => ORES.reduce((t, k) => t + (o[k] || 0), 0);
   const _rd2 = rpDisc; rpDisc = () => _rd2() * ((curSt && curSt.isBase && save.base && save.base.m) ? 1 - 0.25 * (save.base.m.tam || 0) : 1);
 
@@ -5977,7 +6090,7 @@ setTimeout(() => {
         const M = BMOD[k], l = B.m[k], max = l >= 3, lock = l >= B.lv, price = M.c[l];
         h += '<div class="line fac"><span><b>' + M.n + '</b> <span class="dim">seviye ' + l + '/3<br>' + (l ? M.d(l) : 'Henüz yok') + (max ? '' : ' → ' + M.d(l + 1)) + '</span></span><button class="act" data-bm="' + k + '" ' + (max || lock || save.kredi < price ? 'disabled' : '') + '>' + (max ? 'En üst' : lock ? 'Üs sv. ' + (l + 1) : price + ' kredi') + '</button></div>';
       }
-      if (B.m.dep > 0) h += '<div class="line"><span>Depo: demir ' + Math.floor(B.store.demir) + ' · buz ' + Math.floor(B.store.buz) + ' · kristal ' + Math.floor(B.store.kristal) + '<span class="dim"><br>Doluluk ' + Math.floor(sum(B.store)) + ' / ' + DEPCAP[B.m.dep] + '</span></span><span><button class="act" data-bm="put">Depola</button> <button class="act" data-bm="take">Al</button></span></div>';
+      if (B.m.dep > 0) h += '<div class="line"><span>Depo: ' + (ORES.filter(k => B.store[k] >= 1).map(k => ORE[k].ad.toLowerCase() + ' ' + Math.floor(B.store[k])).join(' · ') || 'boş') + '<span class="dim"><br>Doluluk ' + Math.floor(sum(B.store)) + ' / ' + DEPCAP[B.m.dep] + '</span></span><span><button class="act" data-bm="put">Depola</button> <button class="act" data-bm="take">Al</button></span></div>';
       if (B.m.rok > 0) h += '<div class="line"><span>Roket ikmali<span class="dim"><br>Atölye roketleri bedava tamamlar</span></span><button class="act" data-bm="rk">Tamamla</button></div>';
       const sect = [...e.querySelectorAll(':scope > .sect')].find(x => x.textContent.trim() === 'Kendi üssün'), nx = sect && [...e.querySelectorAll(':scope > .sect')].find(x => sect.compareDocumentPosition(x) & 4);
       if (nx) nx.insertAdjacentHTML('beforebegin', h); else e.insertAdjacentHTML('beforeend', h);
@@ -5990,7 +6103,7 @@ setTimeout(() => {
     const b = e.target.closest && e.target.closest('button[data-bm]'); if (!b || b.disabled) return;
     const B = bm(); if (!B || curSt !== baseSt) return; const a = b.dataset.bm;
     if (BMOD[a]){ const l = B.m[a], p = BMOD[a].c[l]; if (l >= 3 || l >= B.lv || save.kredi < p) return; save.kredi -= p; B.m[a]++; toast(BMOD[a].n + ' geliştirildi'); ((window.__sfx && window.__sfx('gelistirme', 0.6)) || blip(660, 0.2)); }
-    else if (a === 'put'){ const cap = DEPCAP[B.m.dep]; for (const k of ORES){ const mv = Math.min(cargo[k] || 0, cap - sum(B.store)); if (mv > 0){ cargo[k] -= mv; B.store[k] += mv; } } toast('Cevher depolandı'); }
+    else if (a === 'put'){ const cap = DEPCAP[B.m.dep]; for (const k of ORES){ const mv = Math.min(cargo[k] || 0, cap - sum(B.store)); if (mv > 0){ cargo[k] -= mv; B.store[k] = (B.store[k] || 0) + mv; } } toast('Cevher depolandı'); }
     else if (a === 'take'){ for (const k of ORES){ const mv = Math.min(B.store[k] || 0, cargoCap() - sum(cargo)); if (mv > 0){ B.store[k] -= mv; cargo[k] = (cargo[k] || 0) + mv; } } toast('Depodan alındı'); }
     else if (a === 'rk'){ const f = [0, 0.5, 0.67, 1][B.m.rok]; save.ammo = Math.max(save.ammo, Math.ceil(AMMO_MAX * f)); save.ammoD = Math.max(save.ammoD, Math.ceil(DMAX * f)); toast('Roketler tamamlandı'); }
     persist(); renderDock();
@@ -6019,7 +6132,7 @@ setTimeout(() => {
   let gT = 0;
   EXTRA.push(dt => {
     gT += dt; if (gT < 20) return; gT = 0;
-    for (let _q48 = 0; _q48 < STATIONS.length; _q48++){ const s = STATIONS[_q48]; if (s.isBase) continue; let tr = 0; for (let _q81 = 0, n; _q81 < npcs.length && ((n = npcs[_q81]), true); _q81++) if (!n.hostile && n.pos && n.pos.distanceTo(s.pos) < 1800) tr++; devAdd(s, 0.6 + 0.3 * Math.min(tr, 6)); }
+    for (let _q48 = 0; _q48 < STATIONS.length; _q48++){ const s = STATIONS[_q48]; if (s.isBase || s.off) continue; let tr = 0; for (let _q81 = 0, n; _q81 < npcs.length && ((n = npcs[_q81]), true); _q81++) if (!n.hostile && n.pos && n.pos.distanceTo(s.pos) < 1800) tr++; devAdd(s, 0.6 + 0.3 * Math.min(tr, 6)); }
   });
 }
 
@@ -6045,10 +6158,10 @@ setTimeout(() => {
     let box = $('jumpBox');
     if (!box){
       box = document.createElement('div'); box.id = 'jumpBox'; const u = $('undock'); if (!u) return; u.parentNode.insertBefore(box, u);
-      box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JC) return; save.kredi -= JC; persist(); enterSystem(+b.dataset.j); });
+      box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b || b.disabled) return; if (save.kredi < JCf()) return; save.kredi -= JCf(); persist(); enterSystem(+b.dataset.j); });
     }
     let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
-    for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i><b>${SYS[k].ad}</b><span class="dim sysi">${window.__fmtNot(SYS[k].not)}</span></span><button class="act" data-j="${k}" ${save.kredi < JC ? 'disabled' : ''}>Hiperatla · ${JC} kredi</button></div>`;
+    for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i><b>${SYS[k].ad}</b><span class="dim sysi">${window.__fmtNot(SYS[k].not)}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
     const hid = SYS.length - save.open.length;
     if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
     box.innerHTML = h;
@@ -6127,19 +6240,19 @@ setTimeout(() => {
     const cl = $('cargoList'); if (!cl) return;
     const rows = [...cl.children].filter(e => e.querySelector && e.querySelector('img.oi')); if (!rows.length) return;
     const here = STATIONS.indexOf(curSt), mulR = (typeof repMul === 'function') ? repMul(curSt) : 1;
-    let h = '<table class="tbl"><thead><tr><th>Cevher</th><th>Yük</th><th>Değer</th>' + STATIONS.map((s, i) => `<th class="${i === here ? 'here' : ''}">${s.ad.split(' ')[0]}</th>`).join('') + '</tr></thead><tbody>';
+    let h = '<table class="tbl"><thead><tr><th>Cevher</th><th>Yük</th><th>Değer</th>' + STATIONS.map((s, i) => s.off ? '' : `<th class="${i === here ? 'here' : ''}">${s.ad.split(' ')[0]}</th>`).join('') + '</tr></thead><tbody>';
     for (const k in ORE){
-      const base = ORE[k].fiyat, ok = canSell(k), prs = STATIONS.map((s, i) => (i === 0 || SELLMAP[i] === k) ? stPrice(s, k) : null), best = Math.max(...prs.filter(p => p != null));
+      const base = ORE[k].fiyat, ok = canSell(k), prs = STATIONS.map((s, i) => s.off ? undefined : (i === 0 || SELLMAP[i] === k) ? stPrice(s, k) : null), best = Math.max(...prs.filter(p => p != null));
       h += `<tr><td><img class="oi" src="${window.OREI[k]}">${ORE[k].ad}</td><td class="own">${cargo[k]}</td><td>${ok && cargo[k] ? Math.round(cargo[k] * stPrice(curSt, k) * mulR) : '<span class="na">—</span>'}</td>`;
       h += prs.map((p, i) => {
-        if (p == null) return `<td class="na ${i === here ? 'here' : ''}">—</td>`;
+        if (p === undefined) return ''; if (p == null) return `<td class="na ${i === here ? 'here' : ''}">—</td>`;
         const tr = p > base * 1.12 ? ' ▲' : p < base * 0.88 ? ' ▼' : '';
         return `<td class="${i === here ? 'here ' : ''}${p === best ? 'best' : ''}">${p}${tr}${i === here ? `<small>stok ${Math.round(curSt.stock[k])}</small>` : ''}</td>`;
       }).join('') + '</tr>';
     }
     const v = sellValue();
     h += `</tbody><tfoot><tr><td colspan="${3 + STATIONS.length}"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span>Satış değeri: <b>${v}</b> kredi<small style="display:inline;margin-left:8px">▲ pahalı · ▼ ucuz · yeşil: en iyi fiyat</small></span><button class="act full go" id="tblSell" style="width:auto;min-width:130px" ${v ? '' : 'disabled'}>${v ? 'Hepsini sat' : 'Satacak yük yok'}</button></div></td></tr></tfoot></table>`;
-    h += '<div class="dim" style="margin-top:8px;font-size:12.5px">Her cevheri yalnızca kendi istasyonu alır: demiri Demirhan, buzu Buzul Durağı, kristali Kristal Kapısı. Ankora hepsini alır ama %10 daha az öder. Yeşil fiyat en çok ödeyen yerdir.</div>';
+    h += '<div class="dim" style="margin-top:8px;font-size:12.5px">Her cevher yalnızca kendi haritasında çıkar: demir Kızıl Geçit\'te, buz Buzul Halka\'da, kristal Zümrüt Sis\'te; ev haritalarında titan ve enkazdan hurda. Ana istasyon hepsini alır, başka haritanın cevherine %10 daha az öder. Yeşil fiyat en çok ödeyen yerdir.</div>';
     const w = document.createElement('div'); w.className = 'line'; w.style.cssText = 'display:block;border-bottom:0'; w.innerHTML = h;
     rows[0].replaceWith(w); rows.slice(1).forEach(e => e.remove());
     const b = w.querySelector('#tblSell'); if (b) b.onclick = () => $('sellAll').click();
@@ -6215,10 +6328,10 @@ setTimeout(() => {
   }
   const lib = {}, get = (k, f) => lib[k] || (lib[k] = f());
   const MAP = {
-    ankora: { 0x5a6270: m => [get('a1', () => plate(sc(96, 88, 76), { tag: 'A-07' })), 1.6], 0x6a7480: m => [get('a2', () => crate(sc(104, 94, 82), sc(210, 140, 40), { tag: 'ANKORA' })), 1.4] },
+    ankora: { 0x5a6270: m => [get('a1', () => plate(sc(96, 88, 76), { tag: 'A-07' })), 1.6], 0x6a7480: m => [get('a2' + curSys, () => crate(sc(104, 94, 82), sc(210, 140, 40), { tag: curSys === 4 ? 'LONCA' : 'ANKORA' })), 1.4] },
     ice: { 0x2e4558: m => [get('i1', () => plate(sc(56, 84, 108), { frost: 1, tag: 'B-12' })), 1.6], 0xbfe6ff: m => [get('i2', ice), 1] },
     kristal: { 0x120509: m => [get('k1', () => plate(sc(34, 14, 20), { vein: 1 })), 1.6], 0x2a0410: m => [get('k2', crystal), 1], 0x3a0a16: m => [get('k3', rock), 1] },
-    demirhan: { 0x241a16: m => [get('d1', () => plate(sc(52, 38, 32), { rust: 1, tag: 'D-03' })), 1.6], 0x3a2214: m => [get('d2', pipe), 1], 0x2c1a10: m => [get('d3', () => crate(sc(60, 38, 24), sc(100, 60, 28), { rust: 1, tag: 'DEMİR' })), 1.4] }
+    demirhan: { 0x241a16: m => [get('d1', () => plate(sc(52, 38, 32), { rust: 1, tag: 'D-03' })), 1.6], 0x3a2214: m => [get('d2', pipe), 1], 0x2c1a10: m => [get('d3' + curSys, () => crate(sc(60, 38, 24), sc(100, 60, 28), { rust: 1, tag: curSys === 5 ? 'KARA' : 'DEMİR' })), 1.4] }
   };
   function uvBox(geo, tile){
     if (geo.userData.uvd) return; geo.userData.uvd = 1; const p = geo.parameters, uv = geo.attributes.uv, d = [[p.depth, p.height], [p.depth, p.height], [p.width, p.depth], [p.width, p.depth], [p.width, p.height], [p.width, p.height]];
@@ -6668,6 +6781,8 @@ window.__xpal = {
       + line('Düğme boyutu', 'Uçuş düğmelerini büyüt ya da küçült', '<button class="act" data-set="bs">' + BSN[BSI()] + '</button>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
+      + '<div class="sect">Kayıt</div>'
+      + line('Kayıt kodu', 'Kaydını başka cihaza ya da tarayıcıya taşı: burada kodu al, öbür cihazda yapıştır', '<span style="display:flex;gap:6px"><button class="act" data-sv="exp">Kodu al</button><button class="act" data-sv="imp">Kod gir</button></span>')
       + '<div class="sect">Teknik</div>'
       + line('Ses dosyaları', 'Yüklenen ses efektleri', '<button class="act" data-sfxst="1">' + (window.__sfxStat ? window.__sfxStat() : '0/0') + '</button>')
       + line('Oyun sürümü', 'Güncel sürümü görmüyorsan sayfayı zorla yenile', '<button class="act" data-set="ver" style="color:#ffc477;font-weight:800">' + (window.SD_VERSION || '?') + '</button>')
@@ -6808,12 +6923,12 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   const MAXA = 3;
   const stNow = () => STATIONS.indexOf(curSt);
   const T = {
-    teslim: () => { const si = 1 + ((Math.random() * 3) | 0), k = SELLMAP[si], n = Math.round(rand(10, 26) / 2) * 2; return { type: 'teslim', ore: k, n, si, sys: curSys, stAd: STATIONS[si].ad, reward: Math.round(60 + n * ORE[k].fiyat * rand(0.45, 0.7)), xp: n * 4,   /* satış parasının üstüne prim */ txt: n + ' ' + ORE[k].ad.toLowerCase() + ' → ' + STATIONS[si].ad }; },
+    teslim: () => { const nat = STATIONS.findIndex((q, i) => i > 0 && i < 4 && !q.off), si = nat > 0 ? nat : 0, k = nat > 0 ? SELLMAP[nat] : (Math.random() < 0.7 ? 'titan' : 'hurda'), n = Math.round(rand(10, 26) / 2) * 2; return { type: 'teslim', ore: k, n, si, sys: curSys, stAd: STATIONS[si].ad, reward: Math.round(60 + n * ORE[k].fiyat * rand(0.45, 0.7)), xp: n * 4,   /* satış parasının üstüne prim */ txt: n + ' ' + ORE[k].ad.toLowerCase() + ' → ' + STATIONS[si].ad }; },
     av: () => { const n = 2 + ((Math.random() * 3) | 0) + Math.min(2, rankOf(save.xp)); return { type: 'av', n, reward: Math.round(110 * n * (SYSC.danger || 1)), xp: 45 * n, txt: n + ' korsan gemisi düşür' }; },
     kaya: () => { const n = 5 * (3 + ((Math.random() * 4) | 0)); return { type: 'kaya', n, reward: 9 * n, xp: 4 * n, txt: n + ' kaya kır' }; },
     derin: () => ({ type: 'derin', n: 1, reward: 320, xp: 140, txt: 'Üsten 6 km ötedeki bir derin kuşağa git' }),
     kalinti: () => ({ type: 'kalinti', n: 1, reward: 450, xp: 180, txt: 'Bir kalıntı sinyali bul (herhangi bir evrende)' }),
-    ziyaret: () => { let si = (Math.random() * STATIONS.length) | 0; if (si === stNow()) si = (si + 1) % STATIONS.length; const st = STATIONS[si]; return { type: 'ziyaret', n: 1, si, sys: curSys, stAd: st.ad, reward: 160, xp: 70, txt: st.ad + ' istasyonuna kenetlen' }; }
+    ziyaret: () => { const _c = STATIONS.map((q, i) => i).filter(i => !STATIONS[i].off && !STATIONS[i].isBase && i !== stNow()); const si = _c.length ? _c[(Math.random() * _c.length) | 0] : 0; const st = STATIONS[si]; return { type: 'ziyaret', n: 1, si, sys: curSys, stAd: st.ad, reward: 160, xp: 70, txt: st.ad + ' istasyonuna kenetlen' }; }
   };
   ctGen = function(){
     const keys = ['teslim', 'av', 'kaya', 'derin', 'ziyaret'].concat(ruins.some(r => !r.found && !r.gate) ? ['kalinti'] : []), o = [];
@@ -6825,7 +6940,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     for (const c of save.ct.active.slice()){
       if (c.type !== type || (test && !test(c))) continue;
       c.prog = Math.min(c.n, c.prog + amt); ch = true;
-      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += c.reward; persist(); addXp(c.xp); window.__fac && window.__fac(c.type === 'av' ? 'filo' : 'lonca', 4); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gorev_tamam', 0.8) || sfxP('gelistirme', 0.7); }
+      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += Math.round(c.reward * (window.__skQ || 1)); persist(); addXp(c.xp); window.__fac && window.__fac(c.type === 'av' ? 'filo' : 'lonca', 4); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gorev_tamam', 0.8) || sfxP('gelistirme', 0.7); }
       else if (c.n > 1) toast('Görev: ' + c.txt + ' · ' + c.prog + '/' + c.n, 1800);
     }
     if (ch){ persist(); drawTrack(); }
@@ -7008,7 +7123,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     const sNow = Object.values(save.rep || {}).reduce((a, b) => a + (b || 0), 0); if (sNow !== repSum){ fac('lonca', (sNow - repSum) * 1.5); repSum = sNow; }
     if (docked) return;
     if (save.fac.filo >= 30){ for (let _q84 = 0, q; _q84 < npcs.length && ((q = npcs[_q84]), true); _q84++) if (q.hostile && q.state === 'attack' && q.tgt === 'player' && q.pos.distanceTo(rig.position) < 900){ eco.alerts.push({ pos: rig.position.clone(), t: time }); break; } }
-    else if (save.fac.filo <= -60){ for (let _q85 = 0, q; _q85 < npcs.length && ((q = npcs[_q85]), true); _q85++) if (q.role === 'patrol' && !q.escort && q.pos.distanceTo(rig.position) < 900){ q.rev = time + 30; if (time - warned > 40){ warned = time; radio(q.name, 'Aranan pilot tespit edildi! Ateş serbest!', '#ff5a6e'); } } }
+    else if (save.fac.filo <= -60 && !(save.grace > 0)){ for (let _q85 = 0, q; _q85 < npcs.length && ((q = npcs[_q85]), true); _q85++) if (q.role === 'patrol' && !q.escort && q.pos.distanceTo(rig.position) < 900){ q.rev = time + 30; if (time - warned > 40){ warned = time; radio(q.name, 'Aranan pilot tespit edildi! Ateş serbest!', '#ff5a6e'); } } }
   });
   const _sr = spawnRole; spawnRole = function(role, initial){ const n = _sr(role, initial); if (role === 'pirate' && n && save.fac.korsan <= -60 && n.type !== 'leader' && Math.random() < 0.5){ const w = spawnNpc('raider', n.pos.clone().add(V(rand(-60, 60), rand(-20, 20), rand(-60, 60))), n.home); w.state = 'roam'; w.wingOf = n; } return n; };
   // arayüz: Görevler sekmesinde
@@ -8155,10 +8270,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 // =====================  iki yeni ev sistemi: Lonca Pazarı (4) ve Kara Liman (5)  =====================
 {
   SYS.push(
-    { ad: 'Lonca Pazarı', home: 'lonca', not: 'Tüccar Loncasının evi. Fiyatlar yüksek, ortalık sakin. Zorluk: ★ · Cevher satış fiyatları %25 daha yüksek · Kristal biraz daha bol',
+    { ad: 'Lonca Pazarı', home: 'lonca', not: 'Tüccar Loncasının evi. Titan ve enkaz var, fiyatlar yüksek, ortalık sakin. Zorluk: ★ · Cevher satış fiyatları %25 daha yüksek',
       names: { st: ['Lonca Pazarı', 'Altın Rıhtım', 'Kervan Durağı', 'Takas Kapısı'], pl: ['Sarnıç', 'Kehribar', 'Tuzla', 'Akik'], moon: 'Pul' },
       tint: [1.22, 1.05, 0.78], sky: [1.32, 1.16, 0.95], kr: 1.2, ice: 0.9, danger: 0.7, px: { kristal: 1.2 }, rock: 1, pay: 1.25, hull: 1, bounty: 1, dmg: 1, intro: 'Altın ışıklı rıhtımlar, durmayan kervanlar. Lonca Pazarı seni bekliyor.' },
-    { ad: 'Kara Liman', home: 'korsan', not: 'Korsan Birliğinin saklı sığınağı. Devriye yok ama herkes silahlı. Zorluk ★★ · Düşman gemileri %40 daha dayanıklı · Korsan ödülleri %60 daha yüksek · Demir bol',
+    { ad: 'Kara Liman', home: 'korsan', not: 'Korsan Birliğinin saklı sığınağı. Devriye yok ama herkes silahlı. Zorluk ★★ · Düşman gemileri %40 daha dayanıklı · Korsan ödülleri %60 daha yüksek · Titan ve bol enkaz',
       names: { st: ['Kara Liman', 'Hurda Rıhtımı', 'Kaçak Durağı', 'Sis Kapısı'], pl: ['Kurum', 'Zehir', 'Pas', 'Kül'], moon: 'Kemik' },
       tint: [1.28, 0.74, 0.72], sky: [1.2, 0.86, 0.9], kr: 0.9, ice: 0.6, danger: 1.5, px: { demir: 0.9 }, rock: 1.3, pay: 1.2, hull: 1.4, bounty: 1.6, dmg: 1.2, intro: 'Kurum, pas ve sessizlik. Kara Liman haritada yok; ama sen buradasın.' }
   );
@@ -8265,13 +8380,15 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   { const col = $('leftCol'); if (col) col.insertBefore(wEl, col.firstChild); }
   let lastW = '', huntT = 20, decT = 0, scanned = new WeakSet();
   EXTRA.push(dt => {
-    const t = save.wanted > 0 ? '<b>ARANIYOR</b> <i>' + STARS(save.wanted) + '</i><span>Başındaki ödül ' + bounty() + ' kredi' + (save.kacak ? ' · Kaçak mal ' + save.kacak : '') + '</span>' : save.kacak ? '<span>Kaçak mal ' + save.kacak + ' · devriyelerden uzak dur</span>' : '';
+    const t = save.wanted > 0 ? '<b>ARANIYOR</b> <i>' + STARS(save.wanted) + '</i><span>Başındaki ödül ' + bounty() + ' kredi' + (save.kacak ? ' · Gizli bölme ' + save.kacak + '/' + HOLD() : '') + '</span>' : save.kacak ? '<span>Gizli bölme: kaçak ' + save.kacak + '/' + HOLD() + ' · devriyelerden uzak dur</span>' : save.grace > 0 && save.side === 'korsan' ? '<span>Çaylak koruması · ' + Math.ceil(save.grace / 60) + ' dk</span>' : '';
     if (t !== lastW){ lastW = t; wEl.innerHTML = t; wEl.style.display = t ? 'block' : 'none'; }
+    if (save.side === 'korsan' && save.grace === undefined){ save.grace = (save.xp || 0) < 300 ? 600 : 0; if (save.grace) toast('Çaylak koruması: 10 dakika boyunca ödül avcıları ve devriyeler peşine düşmez.', 4200); }
     if (docked || paused) return;
+    if (save.grace > 0){ save.grace -= dt; if (save.grace <= 0){ save.grace = 0; persist(); toast('Çaylak koruman bitti. Artık devriyeler seni görünce ateş açar.', 3600); } }
     // zamanla unutulur
     decT += dt; if (decT > 30){ decT = 0; if (save.wanted > 0 && time - crimeT > 180){ save.wanted = Math.max(0, save.wanted - 0.25); persist(); } }
     // ödül avcıları (Kara Liman'da yok)
-    if (save.wanted >= 1 && curSys !== 5){ huntT -= dt;
+    if (save.wanted >= 1 && curSys !== 5 && !(save.grace > 0)){ huntT -= dt;
       if (huntT <= 0){ huntT = Math.max(45, 130 - save.wanted * 18);
         const n0 = 1 + Math.floor(save.wanted / 2), back = V(0, 0, 1).applyQuaternion(rig.quaternion);
         for (let i = 0; i < n0; i++){ const p = rig.position.clone().addScaledVector(back, 1400 + i * 120).add(V(rand(-300, 300), rand(-150, 150), rand(-300, 300)));
@@ -8279,35 +8396,36 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         eco.radioT = -9; radio('Ödül avcısı', 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
     // devriyeler: çok arananı görünce saldırır, kaçak mal tarar
     for (let i = 0; i < npcs.length; i++){ const q = npcs[i]; if (q.role !== 'patrol' || q.hostile || curSys === 5) continue; const d = q.pos.distanceTo(rig.position); if (d > 600) continue;
-      if (save.wanted >= 3 && !(q.rev > time)){ q.rev = time + 60; radio(q.name, 'Aranan pilot tespit edildi. Teslim ol!', '#ff5a6e'); }
-      if (save.kacak > 0 && !scanned.has(q)){ scanned.add(q); if (Math.random() < (save.side === 'lonca' ? 0.15 : 0.25)) seize(q.name); else { eco.radioT = -9; radio(q.name, 'Rutin tarama... temiz. Devam et.', '#7fd8ff'); } }
+      if (save.wanted >= 3 && !(save.grace > 0) && !(q.rev > time)){ q.rev = time + 60; radio(q.name, 'Aranan pilot tespit edildi. Teslim ol!', '#ff5a6e'); }
+      if (save.kacak > 0 && !scanned.has(q)){ scanned.add(q); if (Math.random() < (save.side === 'lonca' ? 0.2 : 0.3)) seize(q.name); else { eco.radioT = -9; radio(q.name, 'Rutin tarama... temiz. Devam et.', '#7fd8ff'); } }
     }
   });
-  function seize(who){ const n = save.kacak, fine = n * 40; save.kacak = 0; save.kredi = Math.max(0, save.kredi - fine); persist(); addWanted(1, 'kaçak mal');
+  function seize(who){ const n = save.kacak, fine = n * 60; save.kacak = 0; save.kredi = Math.max(0, save.kredi - fine); persist(); addWanted(1, 'kaçak mal');
     toast('Kaçak mal bulundu! ' + n + ' birime el konuldu, ' + fine + ' kredi ceza.', 4200); eco.radioT = -9; radio(who, 'Kaçak yüke el konuldu. Kaydına işlendi.', '#ff5a6e'); }
-  // kaçak mal kargo yerini kaplar
-  { const _cc = crewCargo; crewCargo = function(){ return _cc() - (save.kacak || 0); }; }
+  // kaçak mal kargoda değil, ayrı gizli bölmede taşınır (korsanların bölmesi daha geniş)
+  const HOLD = () => (save.side === 'korsan' ? 10 : 6) + (window.__skK || 0);
+  window.__kHold = HOLD;
   // istasyona yanaşınca gümrük taraması
   { const _td = tryDock; tryDock = function(){ const was = docked; const r = _td.apply(this, arguments);
-      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && Math.random() < (save.side === 'lonca' ? 0.2 : 0.35)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
+      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && Math.random() < (save.side === 'lonca' ? 0.25 : 0.4)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
   // istasyonda: Ticaret sekmesinde kaçak pazar ve kayıt silme
   const box = document.createElement('div'); box.id = 'kacakBox'; box.dataset.tab = 'trade';
-  const BUY = 70, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 230 : 170);
+  const BUY = 90, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 185 : 150);
   function renderK(){
     const dc = $('dcont'); if (!dc) return; if (box.parentNode !== dc) dc.appendChild(box);
-    const pir = curSys === 5, free = cargoCap() - cargoSum(); let h = '<div class="sect">' + (pir ? 'Kaçak pazar' : 'Kaçak mal') + '</div>';
+    const pir = curSys === 5, free = HOLD() - save.kacak; let h = '<div class="sect">' + (pir ? 'Kaçak pazar' : 'Kaçak mal') + '</div>';
     if (pir){
-      h += '<div class="line"><span>Kaçak mal al<span class="dim"><br>Birimi ' + BUY + ' kredi · Kara Liman dışında ' + 170 + ', Lonca Pazarı\'nda 230 kredi eder. Devriye ve gümrük taraması riski var.</span></span><span style="display:flex;gap:6px"><button class="act" data-kc="b1" ' + (save.kredi < BUY || free < 1 ? 'disabled' : '') + '>Al 1</button><button class="act go" data-kc="b5" ' + (save.kredi < BUY * 5 || free < 5 ? 'disabled' : '') + '>Al 5</button></span></div>';
+      h += '<div class="line"><span>Kaçak mal al<span class="dim"><br>Birimi ' + BUY + ' kredi · Kara Liman dışında 150, Lonca Pazarı\'nda 185 kredi eder. Gizli bölme ' + save.kacak + '/' + HOLD() + '. Yakalanırsan birim başı 60 kredi ceza.</span></span><span style="display:flex;gap:6px"><button class="act" data-kc="b1" ' + (save.kredi < BUY || free < 1 ? 'disabled' : '') + '>Al 1</button><button class="act go" data-kc="b5" ' + (save.kredi < BUY * 5 || free < 5 ? 'disabled' : '') + '>Al 5</button></span></div>';
       if (save.wanted > 0) h += '<div class="line"><span>Kayıtlarını sildir<span class="dim"><br>Aranma seviyen: ' + STARS(save.wanted) + '</span></span><button class="act go" data-kc="clr" ' + (save.kredi < bounty() ? 'disabled' : '') + '>Sil · ' + bounty() + ' kredi</button></div>';
     } else {
-      h += '<div class="line"><span>Kaçak mal sat · elinde ' + save.kacak + '<span class="dim"><br>Birimi ' + sellP() + ' kredi. Her yanaşmada gümrük taraması riski var.</span></span><button class="act go" data-kc="s" ' + (save.kacak ? '' : 'disabled') + '>Hepsini sat</button></div>';
+      h += '<div class="line"><span>Kaçak mal sat · gizli bölme ' + save.kacak + '/' + HOLD() + '<span class="dim"><br>Birimi ' + sellP() + ' kredi. Kargondan ayrı taşınır; her yanaşmada gümrük taraması riski var.</span></span><button class="act go" data-kc="s" ' + (save.kacak ? '' : 'disabled') + '>Hepsini sat</button></div>';
       if (save.wanted > 0 && curSt === STATIONS[0] && curSys === 0 && save.fac.filo > -60) h += '<div class="line"><span>Cezanı öde<span class="dim"><br>Filo kaydını temizler.</span></span><button class="act" data-kc="fine" ' + (save.kredi < Math.round(bounty() * 1.5) ? 'disabled' : '') + '>Öde · ' + Math.round(bounty() * 1.5) + ' kredi</button></div>';
     }
     if (!pir && !save.kacak && !(save.wanted > 0 && curSys === 0)) h = '';
     box.innerHTML = h;
   }
   box.addEventListener('click', e => { const b = e.target.closest('button[data-kc]'); if (!b || b.disabled) return; const a = b.dataset.kc;
-    if (a === 'b1' || a === 'b5'){ const n = a === 'b1' ? 1 : 5; if (save.kredi < BUY * n || cargoCap() - cargoSum() < n) return; save.kredi -= BUY * n; save.kacak += n; toast(n + ' birim kaçak mal yüklendi.', 1800); }
+    if (a === 'b1' || a === 'b5'){ const n = a === 'b1' ? 1 : 5; if (save.kredi < BUY * n || HOLD() - save.kacak < n) return; save.kredi -= BUY * n; save.kacak += n; toast(n + ' birim kaçak mal yüklendi.', 1800); }
     else if (a === 's'){ const v = save.kacak * sellP(); save.kredi += v; save.kacak = 0; toast('Kaçak mal satıldı: +' + v + ' kredi', 2400); window.__fac && window.__fac('korsan', 3); }
     else if (a === 'clr'){ save.kredi -= bounty(); save.wanted = 0; toast('Kayıtların silindi. Artık aranmıyorsun.', 2600); }
     else if (a === 'fine'){ save.kredi -= Math.round(bounty() * 1.5); save.wanted = 0; toast('Ceza ödendi. Kaydın temiz.', 2600); }
@@ -8321,7 +8439,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 
   // ---- ücra düşman kapıları: her ev sisteminin uzak bir köşesinde, rakip tarafın evine açılır
   const REMOTE = { 0: { to: 5, at: [13200, -1100, -12600] }, 5: { to: 4, at: [-12800, 900, 12900] }, 4: { to: 0, at: [12600, 1300, 13100] } };
-  const EN = { 0: 'ankora', 4: 'lonca', 5: 'korsan' }, FEE = 400;
+  const EN = { 0: 'ankora', 4: 'lonca', 5: 'korsan' }, FEEf = () => Math.round(400 * (window.__skG || 1));
   if (!save.rgate || typeof save.rgate !== 'object') save.rgate = {};
   const g = new THREE.Group(); scene.add(g); g.visible = false;
   const ringM = new THREE.MeshStandardMaterial({ color: 0x3a3236, metalness: 0.7, roughness: 0.45, emissive: 0x200608 });
@@ -8342,16 +8460,505 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     if (docked || paused) return; const d = rig.position.distanceTo(g.position);
     if (d < 3200 && !save.rgate[curSys]){ save.rgate[curSys] = 1; persist(); place(); eco.radioT = -9; radio('Tarayıcı', 'Ücra bir kapı sinyali! Yön: ' + SYS[R.to].ad + '. Düşman toprağına açılıyor.', '#ff6b8a'); toast('Ücra kapı keşfedildi → ' + SYS[R.to].ad, 3600); }
     if (d < 170 && cool <= 0 && !asked && window.__gateAsk){ asked = true; const to = R.to;
-      window.__gateAsk(to, () => { asked = false; if (save.kredi < FEE){ toast('Kaçak geçiş ' + FEE + ' kredi.', 2600); cool = 8; return; } save.kredi -= FEE; persist();
+      window.__gateAsk(to, () => { asked = false; if (save.kredi < FEEf()){ toast('Kaçak geçiş ' + FEEf() + ' kredi.', 2600); cool = 8; return; } save.kredi -= FEEf(); persist();
           if (!save.open.includes(to)){ save.open.push(to); persist(); }
           window.__gj2 = true; window.__afterJump = () => { docked = false; $('dock').classList.add('hidden'); curSt = null; const P = REMOTE[to] ? V(...REMOTE[to].at) : STATION.pos.clone(), dir = STATION.pos.clone().sub(P).normalize();
             rig.position.copy(P).addScaledVector(dir, 420); rig.lookAt(rig.position.clone().sub(dir)); vel.copy(dir).multiplyScalar(90); window.__gj2 = false; cool = 10; };
           enterSystem(to); },
         () => { asked = false; cool = 8; const away = rig.position.clone().sub(g.position).normalize(); rig.position.copy(g.position).addScaledVector(away, 420); vel.set(0, 0, 0); });
       const q = $('gateQ'), pp = q && q.querySelector('.p p'), yb = q && q.querySelector('button.y');
-      if (pp) pp.innerHTML = 'Ücra kapı: <b>düşman toprağına</b> açılır. Kaçak geçiş ücreti <b>' + FEE + ' kredi</b>.';
-      if (yb){ yb.disabled = save.kredi < FEE; yb.style.opacity = save.kredi < FEE ? '.45' : ''; yb.textContent = save.kredi < FEE ? 'Kredi yetersiz' : 'Geç · ' + FEE + ' kredi'; } }
+      if (pp) pp.innerHTML = 'Ücra kapı: <b>düşman toprağına</b> açılır. Kaçak geçiş ücreti <b>' + FEEf() + ' kredi</b>.';
+      if (yb){ yb.disabled = save.kredi < FEEf(); yb.style.opacity = save.kredi < FEEf() ? '.45' : ''; yb.textContent = save.kredi < FEEf() ? 'Kredi yetersiz' : 'Geç · ' + FEEf() + ' kredi'; } }
   });
   { const _dh = drawHud; drawHud = function(){ _dh(); try { if (R && save.rgate[curSys] && !docked) drawMarker(hctx, g.position, '#ff6b8a', 'Ücra kapı → ' + SYS[R.to].ad, rig.position.distanceTo(g.position), 5000); } catch (e) {} }; }
+}
+
+// ---------- toplama netliği: çekim ışını, "+1 Demir" yazıları, yakındaki cevher işaretleri ----------
+{
+  const N = 40, POS = new Float32Array(N * 6), COL = new Float32Array(N * 6), lg = new THREE.BufferGeometry();
+  lg.setAttribute('position', new THREE.BufferAttribute(POS, 3)); lg.setAttribute('color', new THREE.BufferAttribute(COL, 3));
+  const beam = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+  beam.frustumCulled = false; beam.visible = false; scene.add(beam);
+  const src = new THREE.Vector3(), cc = new THREE.Color(), pops = [];
+  window.__oreGot = k => { const q = pops.find(p => p.k === k && p.t < 1.1); if (q){ q.n++; q.t = 0; } else { pops.push({ k, n: 1, t: 0 }); if (pops.length > 3) pops.shift(); } };
+  EXTRA.push(dt => {
+    let n = 0;
+    if (!docked && ores.length){
+      src.set(0, -2.2, -5).applyQuaternion(rig.quaternion).add(rig.position);
+      for (let i = 0; i < ores.length && n < N; i++){
+        const o = ores[i]; if (!o.pull) continue; const p = o.mesh.position, j = n * 6;
+        POS[j] = src.x; POS[j + 1] = src.y; POS[j + 2] = src.z; POS[j + 3] = p.x; POS[j + 4] = p.y; POS[j + 5] = p.z;
+        cc.setHex(ORE[o.type].hex).multiplyScalar(0.55 + 0.45 * Math.sin(time * 18 + i));
+        COL[j] = cc.r * 0.25; COL[j + 1] = cc.g * 0.25; COL[j + 2] = cc.b * 0.25; COL[j + 3] = cc.r; COL[j + 4] = cc.g; COL[j + 5] = cc.b; n++;
+      }
+    }
+    beam.visible = n > 0; if (n){ lg.setDrawRange(0, n * 2); lg.attributes.position.needsUpdate = true; lg.attributes.color.needsUpdate = true; }
+    for (let i = pops.length - 1; i >= 0; i--){ pops[i].t += dt; if (pops[i].t > 1.9) pops.splice(i, 1); }
+  });
+  { const _ba = breakAsteroid; breakAsteroid = function(a, big, noOre){ const r = _ba.apply(this, arguments);
+      try { if (!noOre && a.units && !save.tipLoot){ save.tipLoot = 1; toast('Kaya parçalandı, cevherler döküldü! Yaklaş: 190 m içindekileri çekim ışını kendiliğinden toplar.', 6000); } } catch (e) {}
+      return r; }; }
+  { const _dh = drawHud; drawHud = function(){ _dh(); try {
+      if (docked) return; const c = hctx, full = cargoSum() >= cargoCap();
+      // yakındaki cevherler: küçük renkli elmas, çekim menzili dışında olanın üstünde mesafe
+      let best = null, bd = 1e9, k = 0;
+      for (let i = 0; i < ores.length && k < 24; i++){
+        const o = ores[i], d = o.mesh.position.distanceTo(rig.position); if (d > 1400) continue;
+        const p = proj(o.mesh.position); if (p.behind || p.x < VIEW.l || p.x > VIEW.r || p.y < VIEW.t || p.y > VIEW.b) continue; k++;
+        c.strokeStyle = ORE[o.type].css; c.globalAlpha = o.pull ? 0.95 : 0.7; c.lineWidth = 1.4; const r = o.pull ? 5 : 6;
+        c.beginPath(); c.moveTo(p.x, p.y - r); c.lineTo(p.x + r, p.y); c.lineTo(p.x, p.y + r); c.lineTo(p.x - r, p.y); c.closePath(); c.stroke();
+        if (!o.pull && d < bd){ bd = d; best = { p, o }; }
+      }
+      c.globalAlpha = 1;
+      if (best && !ores.some(o => o.pull)){
+        c.font = `600 ${innerHeight < 520 ? 10 : 11}px ${FONT}`; c.textAlign = 'center'; c.fillStyle = full ? '#ff8a8a' : ORE[best.o.type].css;
+        c.fillText(full ? 'Kargo dolu' : ORE[best.o.type].ad + ' · yaklaş ' + Math.round(bd - (window.__skR || 190)) + ' m', best.p.x, best.p.y + 18);
+      }
+      // "+1 Demir" yazıları: nişangâhın altında yükselip söner
+      pops.forEach((q, i) => {
+        const a = q.t < 0.15 ? q.t / 0.15 : clamp((1.9 - q.t) / 0.7, 0, 1), y = OY + Math.min(70, (VIEW.b - OY) * 0.55) - q.t * 10 - (pops.length - 1 - i) * 22;
+        c.globalAlpha = a; c.font = `600 ${innerHeight < 520 ? 14 : 17}px ${FONT}`; c.textAlign = 'center'; c.fillStyle = ORE[q.k].css;
+        c.shadowColor = 'rgba(0,0,0,.85)'; c.shadowBlur = 6; c.fillText('+' + q.n + ' ' + ORE[q.k].ad, OX, y); c.shadowBlur = 0;
+      });
+      c.globalAlpha = 1;
+    } catch (e) {} }; }
+}
+
+// ---------- cevher ve kredi simgeleri: ince çizgi tarzı (arayüzdeki diğer ikonlarla aynı) ----------
+{
+  const svg = (col, body) => 'data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='" + col + "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'>" + body + '</svg>');
+  window.OREI = {
+    demir: svg('#b4bfd2', "<path d='M4 10l5-6h7l4 6-3 9H8z'/><path d='M9 4l2 6h5l4 0M11 10l-3 9M16 10l1 9' stroke-width='1.1' opacity='.75'/>"),
+    buz: svg('#8fe0ff', "<path d='M12 2.5v19M3.8 7.2l16.4 9.6M20.2 7.2L3.8 16.8'/><path d='M9.6 4.2L12 5.8l2.4-1.6M9.6 19.8L12 18.2l2.4 1.6M4.6 10.2l2.6.1.3-2.7M19.4 13.8l-2.6-.1-.3 2.7M4.6 13.8l2.6-.1.3 2.7M19.4 10.2l-2.6.1-.3-2.7' stroke-width='1.2'/>"),
+    kristal: svg('#ff7c98', "<path d='M12 2l4 6.5L12 22 8 8.5z'/><path d='M8 8.5h8M12 2v20' stroke-width='1.1' opacity='.7'/><path d='M7 11.5l-3 3.5 3.5 5M17 11.5l3 3.5-3.5 5' stroke-width='1.3'/>")
+  };
+  const coin = svg('#ffc56e', "<circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='6.2' stroke-width='1.1' opacity='.7'/><path d='M14.4 9.4a3.2 3.2 0 1 0 0 5.2M8.6 11h4.6M8.6 13h4.6' stroke-width='1.4'/>");
+  window.__coinI = coin;
+  const st = document.createElement('style');
+  st.textContent = `html body #dkStat span:nth-child(1)::before{background-image:url("${coin}") !important}
+  img.oi,img.pi.oi2{filter:none !important;object-fit:contain}`;
+  document.head.appendChild(st);
+}
+
+// ---------- Lonca'ya özel: süreli acil siparişler ----------
+{
+  const mk = () => { const nat = STATIONS.findIndex((q, i) => i > 0 && i < 4 && !q.off), si = nat > 0 ? nat : 0, k = nat > 0 ? SELLMAP[nat] : (Math.random() < 0.65 ? 'titan' : 'hurda'), n = k === 'kristal' ? 4 + ((Math.random() * 4) | 0) : 6 + ((Math.random() * 7) | 0), mins = Math.round(7 + n * 0.6);
+    return { type: 'teslim', acil: 1, until: Date.now() + mins * 60000, ore: k, n, si, sys: curSys, stAd: STATIONS[si].ad, prog: 0, id: Date.now() + 77,
+      reward: Math.round(150 + n * ORE[k].fiyat * 1.4), xp: n * 7, txt: 'Acil sipariş: ' + n + ' ' + ORE[k].ad + ' → ' + STATIONS[si].ad + ' (' + mins + ' dk)' }; };
+  { const _g = ctGen; ctGen = function(){ _g(); try { if (save.side === 'lonca'){ const o = save.ct.offers; o[o.length - 1] = mk(); persist(); } } catch (e) { console.warn(e); } }; }
+  let acc = 0;
+  EXTRA.push(dt => { acc += dt; if (acc < 2) return; acc = 0; if (!save.ct || !save.ct.active) return; const now = Date.now();
+    for (const c of save.ct.active.slice()){ if (!c.acil) continue; const left = c.until - now;
+      if (left <= 0){ save.ct.active.splice(save.ct.active.indexOf(c), 1); window.__fac && window.__fac('lonca', -3); persist(); toast('Sipariş süresi doldu: ' + c.txt.replace(/ \(\d+ dk\)$/, '') + ' · Lonca memnun değil.', 4200); try { renderCt(); } catch (e) {} }
+      else if (left < 120000 && !c.warn){ c.warn = 1; toast('Acil siparişe 2 dakika kaldı: ' + c.stAd, 3000); } }
+    for (const c of save.ct.offers) if (c.acil && c.until < now + 60000) c.until = now + 8 * 60000;   // panoda bekleyen sipariş eskimez
+  });
+  // panoda kalan süre canlı görünsün
+  { const _rc = renderCt; renderCt = function(){ _rc(); try { const now = Date.now(); $('ctBox').querySelectorAll('.ctc').forEach(el => { const m = /Acil sipariş/.test(el.textContent); if (m) el.classList.add('acil'); }); } catch (e) {} }; }
+  { const _a = ctAct; ctAct = function(a){ const [t, id] = a.split(':'); const c = t === 'acc' && save.ct.offers.find(q => q.id === +id); if (c && c.acil){ const mins = +(c.txt.match(/\((\d+) dk\)/) || [0, 8])[1]; c.until = Date.now() + mins * 60000; } return _a(a); }; }
+  const st = document.createElement('style'); st.textContent = `#ctBox .ctc.acil{border-left:2px solid #ffc477;padding-left:8px}#ctBox .ctc.acil>span:first-child::before{content:'LONCA';display:block;font:700 9.5px/1.4 var(--font);letter-spacing:.22em;color:#ffc477}`;
+  document.head.appendChild(st);
+}
+
+// ---------- kayıt kodu: kaydı başka cihaza taşıma (dışa / içe aktarma) ----------
+{
+  const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const ub64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+  const pipe = async (u8, T) => new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new T('gzip'))).arrayBuffer());
+  async function encode(){ persist(); const j = new TextEncoder().encode(localStorage.getItem(SAVEKEY) || JSON.stringify(save));
+    if (window.CompressionStream) try { return 'SD2:' + b64(await pipe(j, CompressionStream)); } catch (e) {}
+    return 'SD1:' + b64(j); }
+  async function decode(code){ code = (code || '').replace(/\s+/g, ''); const m = /^SD([12]):(.+)$/.exec(code); if (!m) throw new Error('biçim');
+    let u8 = ub64(m[2]); if (m[1] === '2') u8 = await pipe(u8, DecompressionStream); const o = JSON.parse(new TextDecoder().decode(u8)); if (!o || !o.lv) throw new Error('içerik'); return o; }
+  function modal(title, body, foot){ const w = document.createElement('div'); w.id = 'svModal';
+    w.innerHTML = '<div class="bx"><b>' + title + '</b>' + body + '<div class="ft">' + foot + '<button class="act" data-x="1">Kapat</button></div></div>';
+    w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-x]')) w.remove(); }); document.body.appendChild(w); return w; }
+  document.addEventListener('click', async e => { const b = e.target.closest('button[data-sv]'); if (!b) return; e.stopPropagation();
+    if (b.dataset.sv === 'exp'){ let code; try { code = await encode(); } catch (er) { toast('Kayıt kodu oluşturulamadı.', 2600); return; }
+      const w = modal('Kayıt kodun', '<p>Bu kodu öbür cihazda <i>Ayarlar → Kayıt → Kod gir</i> bölümüne yapıştır. Kodu kimseyle paylaşma: kaydının tamamıdır.</p><textarea readonly></textarea>', '<button class="act go" data-cp="1">Kopyala</button>');
+      const ta = w.querySelector('textarea'); ta.value = code;
+      w.querySelector('[data-cp]').onclick = async () => { try { await navigator.clipboard.writeText(code); toast('Kayıt kodu kopyalandı.', 2000); } catch (er) { ta.focus(); ta.select(); try { document.execCommand('copy'); toast('Kayıt kodu kopyalandı.', 2000); } catch (e2) { toast('Kopyalanamadı: kodu elle seç.', 2400); } } };
+    } else {
+      const w = modal('Kayıt kodu gir', '<p>Öbür cihazdan aldığın kodu yapıştır. <b>Bu cihazdaki kayıt silinir</b> ve yerine kodun kaydı gelir.</p><textarea placeholder="SD2:..."></textarea>', '<button class="act go" data-ld="1">Yükle</button>');
+      const ta = w.querySelector('textarea'), ld = w.querySelector('[data-ld]');
+      ld.onclick = async () => { let o; try { o = await decode(ta.value); } catch (er) { toast('Kod geçersiz ya da eksik kopyalanmış.', 3000); return; }
+        if (!ld.dataset.ok){ ld.dataset.ok = 1; ld.textContent = 'Emin misin? ' + (o.kredi || 0) + ' kredi, ' + (o.xp || 0) + ' XP'; return; }
+        try { localStorage.setItem(SAVEKEY, JSON.stringify(o)); } catch (er) { toast('Kayıt yazılamadı.', 2600); return; }
+        window.__noPersist = true; persist = function(){}; toast('Kayıt yüklendi, oyun yeniden açılıyor...', 2000); setTimeout(() => location.reload(), 900); };
+    } }, true);
+  const st = document.createElement('style'); st.textContent = `
+  #svModal{position:fixed;inset:0;z-index:60;background:rgba(2,5,12,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+  #svModal .bx{width:min(440px,92vw);background:rgba(8,14,26,.96);border:1px solid rgba(220,235,245,.18);border-radius:10px;padding:16px;color:#e8edff;font:500 13.5px/1.45 var(--font)}
+  #svModal b{display:block;font-weight:600;letter-spacing:.06em;margin-bottom:6px}#svModal p{margin:0 0 10px;color:#aebfd0}
+  #svModal textarea{width:100%;height:110px;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(220,235,245,.16);border-radius:6px;color:#dfe8f2;font:500 11px/1.35 monospace;padding:8px;resize:none;word-break:break-all}
+  #svModal .ft{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}`;
+  document.head.appendChild(st);
+}
+
+// ---------- tembel yükleme: girilen sistemin gezegeni hemen, ötekiler oyun başladıktan sonra sırayla ----------
+{
+  const _aw = applyWorld; applyWorld = function(k){ try { lazyFlush(k); } catch (e) {} return _aw.apply(this, arguments); };
+  const drain = () => { const ks = Object.keys(LAZY); if (!ks.length){ lazyAll = true; return; } lazyFlush(ks[0]); setTimeout(drain, 1500); };
+  lazyFlush(curSys); setTimeout(drain, 25000);
+}
+
+// ---------- her harita yalnızca kendi istasyonunu barındırır (Demirhan → Kızıl Geçit, Buzul Durağı → Buzul Halka, Kristal Kapısı → Zümrüt Sis) ----------
+{
+  const NATIVE = { 1: 1, 2: 2, 3: 3 };
+  function stOff(){ STATIONS.forEach((st, i) => { if (i < 1 || i > 3 || st.isBase) return; const off = NATIVE[curSys] !== i; st.off = off;
+      if (off){ st.pos.set(0, -900000 - i * 5000, 0); st.group.position.copy(st.pos); st.group.visible = false; } else st.group.visible = true; }); }
+  window.__stOff = stOff;
+  const _aw = applyWorld; applyWorld = function(k){ const r = _aw.apply(this, arguments); try { stOff(); } catch (e) { console.warn(e); } return r; };
+  stOff();
+  // eski kayıttaki kayalar (ev haritası açılışında) yeni cevher türüne geçsin
+  setTimeout(() => { try { if (asteroids.some(a => a.type !== 'hurda' && a.type !== SYSORE[curSys])){ asteroids.forEach(a => scene.remove(a.mesh)); asteroids.length = 0; for (let i = 0; i < AST_TARGET; i++) asteroids.push(makeAsteroid(false)); } } catch (e) {} }, 0);
+  // cevher simgeleri: titan ve hurda
+  const svg = (col, body) => 'data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='" + col + "' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'>" + body + '</svg>');
+  window.OREI.titan = svg('#b8a8ff', "<path d='M12 2.5l7.5 4.3v8.6L12 19.7l-7.5-4.3V6.8z'/><path d='M12 7.5l3.8 2.2v4.4L12 16.3l-3.8-2.2V9.7z' stroke-width='1.2' opacity='.8'/>");
+  window.OREI.hurda = svg('#e0a060', "<path d='M4 15l3-7 6 1 2-4 5 3-2 6-6 1-2 4z'/><path d='M9 12h4M13 9l1 3' stroke-width='1.2' opacity='.75'/><circle cx='16.5' cy='9' r='.8'/>");
+}
+
+// =====================  seviye, katmanlı rütbe rozetleri, seviye atlama ekranı, yetenek puanları  =====================
+{
+  // ---- seviyeler: her rütbede 5 seviye (Efsane'de 5 seviye daha) → 30 seviye
+  const LV = [];
+  for (let r = 0; r < 5; r++){ const a = RANKS[r][1], b = RANKS[r + 1][1]; for (let j = 0; j < 5; j++) LV.push(Math.round(a + (b - a) * j / 5)); }
+  for (let j = 0; j < 5; j++) LV.push(RANKS[5][1] + 1800 * j);
+  const levelOf = xp => { let l = 0; for (let i = 0; i < LV.length; i++) if (xp >= LV[i]) l = i + 1; return Math.max(1, l); };
+  window.__level = () => levelOf(save.xp || 0); window.__lvXp = LV;
+  // ---- rozet: çerçeve rütbeyi, yıldızlar rütbe içindeki seviyeyi, şeritler yükselişi gösterir; Efsane hepsini birleştirir
+  // ---- rütbe rozeti: çerçeve rütbeyi, kuyruklu yıldız izleri yükselişi, parıltılar rütbe içindeki seviyeyi gösterir; Efsane hepsini birleştirir
+  const FRB = [
+    'M50 6 L88 28 L88 72 L50 94 L12 72 L12 28 Z',
+    'M50 5 L88 22 L88 60 L50 95 L12 60 L12 22 Z',
+    'M34 7 L66 7 L93 34 L93 66 L66 93 L34 93 L7 66 L7 34 Z',
+    'M50 9 L93 84 Q95 89 89 89 L11 89 Q5 89 7 84 Z',
+    'M50 8 A42 42 0 1 1 49.9 8 Z',
+    'M50 4 L97 86 Q99 92 92 92 L8 92 Q1 92 3 86 Z'];
+  const FILLB = [['#2b5a9c', '#0b1834'], ['#2b5a9c', '#0b1834'], ['#2b5a9c', '#0b1834'], ['#a0222f', '#3a0610'], ['#a0222f', '#3a0610'], ['#24487f', '#091428']];
+  const EDGEB = ['#d6e2f0', '#d6e2f0', '#d6e2f0', '#f2dccb', '#f2dccb', '#f4cf7e'];
+  const sparkB = (x, y, k) => `<path d='M${x} ${y - k}Q${x + k * 0.16} ${y - k * 0.16} ${x + k * 0.78} ${y}Q${x + k * 0.16} ${y + k * 0.16} ${x} ${y + k}Q${x - k * 0.16} ${y + k * 0.16} ${x - k * 0.78} ${y}Q${x - k * 0.16} ${y - k * 0.16} ${x} ${y - k}Z' fill='#fbfdff'/><circle cx='${x}' cy='${y}' r='${(k * 0.12).toFixed(1)}' fill='#7fd8ff'/>`;
+  const STARB = [[[50, 50, 14]], [[39, 51, 11], [61, 49, 11]], [[50, 40, 12], [38, 58, 10], [62, 58, 10]], [[50, 37, 12], [36, 51, 9.5], [64, 51, 9.5], [50, 65, 9.5]], [[50, 34, 11.5], [35, 47, 9], [65, 47, 9], [41, 64, 9], [59, 64, 9]]];
+  // kuyruklu yıldız izi: kuyrukta incecik, başta kalın, ucu yuvarlak
+  function comet(x0, y0, cx, cy, x1, y1, w, col){
+    const L = [], R = [], N = 14;
+    for (let i = 0; i <= N; i++){ const t = i / N, u = 1 - t, x = u * u * x0 + 2 * u * t * cx + t * t * x1, y = u * u * y0 + 2 * u * t * cy + t * t * y1;
+      const dx = 2 * u * (cx - x0) + 2 * t * (x1 - cx), dy = 2 * u * (cy - y0) + 2 * t * (y1 - cy), m = Math.hypot(dx, dy) || 1, h = w * 0.5 * Math.pow(t, 0.9);
+      L.push((x - dy / m * h).toFixed(1) + ' ' + (y + dx / m * h).toFixed(1)); R.push((x + dy / m * h).toFixed(1) + ' ' + (y - dx / m * h).toFixed(1)); }
+    return `<path d='M${L.join(' L')} A${w / 2} ${w / 2} 0 0 0 ${R[R.length - 1]} L${R.reverse().join(' L')} Z' fill='${col}'/>`;
+  }
+  const RIBB = [
+    () => comet(10, 82, 30, 52, 84, 26, 10, '#e8343f'),
+    () => comet(8, 66, 40, 50, 90, 34, 7, '#f2a640'),
+    () => comet(16, 94, 46, 68, 94, 52, 8, '#e8343f'),
+    () => comet(4, 50, 30, 36, 82, 14, 6, '#f6c35a'),
+    () => comet(24, 98, 58, 80, 98, 66, 6, '#c82838')];
+  const CYAN = (r) => `<path d='M${r === 5 ? 2 : 12} ${r === 5 ? 74 : 72} Q44 50 ${r === 5 ? 96 : 88} 30' stroke='#7fd8ff' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='.85'/>`;
+  function badge(L){
+    L = Math.max(1, Math.min(30, L)); const r = Math.min(5, Math.floor((L - 1) / 5)), st = (L - 1) % 5, ef = r === 5, id = 'b' + L;
+    const ribs = RIBB.slice(0, ef ? 5 : r + 1).map(f => f()).join('') + CYAN(r);
+    const sy = r === 3 || ef ? 9 : 0;
+    let stars = (ef ? STARB[4] : STARB[st]).map(q => sparkB(q[0], q[1] + sy, q[2])).join('');
+    if (ef) stars += [[18, 12], [82, 12], [12, 30], [88, 30]].slice(0, st).map(q => sparkB(q[0], q[1], 5)).join('');
+    const sv = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='-6 -6 112 112'><defs><radialGradient id='g${id}' cx='50%' cy='38%' r='70%'><stop offset='0' stop-color='${FILLB[r][0]}'/><stop offset='1' stop-color='${FILLB[r][1]}'/></radialGradient><clipPath id='c${id}'><path d='${FRB[r]}'/></clipPath></defs>`
+      + `<path d='${FRB[r]}' fill='url(#g${id})'/>` + (ef ? ribs : `<g clip-path='url(#c${id})'>${ribs}</g>`)
+      + `<path d='${FRB[r]}' fill='none' stroke='${EDGEB[r]}' stroke-width='${ef ? 4.6 : 3.6}' stroke-linejoin='round'/>`
+      + `<path d='${FRB[r]}' fill='none' stroke='rgba(127,216,255,.35)' stroke-width='1' transform='translate(50 50) scale(.86) translate(-50 -50)'/>` + stars + '</svg>';
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(sv);
+  }
+  window.__badge = badge;
+  // ---- yetenek ağacı: 4 dal, 3 kademe; üst kademe dalda harcanan puanla açılır
+  const BR = [['kazi', 'Madencilik', '#ffb454'], ['savas', 'Savaş', '#ff6b8a'], ['pilot', 'Pilotaj', '#7fd8ff'], ['ticaret', 'Ticaret', '#7be0a4']];
+  const SKL = [
+    { id: 'kazi', b: 'kazi', t: 1, m: 5, n: 'Derin kazı', d: l => 'Kaya kırma +%' + l * 15 },
+    { id: 'cekim', b: 'kazi', t: 1, m: 3, n: 'Çekim ışını', d: l => 'Toplama menzili ' + (190 + l * 50) + ' m' },
+    { id: 'kargo', b: 'kazi', t: 2, m: 5, n: 'Sıkı istif', d: l => 'Kargo +' + l * 6 },
+    { id: 'menzil', b: 'kazi', t: 2, m: 3, n: 'Uzun ışın', d: l => 'Lazer menzili +' + l * 40 + ' m' },
+    { id: 'damar', b: 'kazi', t: 3, m: 3, n: 'Zengin damar', d: l => 'Kayadan +1 cevher şansı %' + l * 15 },
+    { id: 'nisan', b: 'savas', t: 1, m: 5, n: 'Keskin nişan', d: l => 'Gemilere hasar +%' + l * 10 },
+    { id: 'sogut', b: 'savas', t: 1, m: 3, n: 'Soğutma hattı', d: l => 'Lazer ısınması −%' + l * 10 },
+    { id: 'kalkan', b: 'savas', t: 2, m: 3, n: 'Kalkan yenilemesi', d: l => 'Kalkan dolma hızı +%' + l * 25 },
+    { id: 'roket', b: 'savas', t: 2, m: 3, n: 'Roket ustası', d: l => 'Roket hasarı +%' + l * 15 },
+    { id: 'avci', b: 'savas', t: 3, m: 3, n: 'Ödül avcısı', d: l => 'Korsan ödülleri +%' + l * 15 },
+    { id: 'itki', b: 'pilot', t: 1, m: 5, n: 'İtki ayarı', d: l => 'İtiş gücü +%' + l * 10 },
+    { id: 'hiz', b: 'pilot', t: 1, m: 3, n: 'Hız sınırı', d: l => 'Azami hız +%' + l * 6 },
+    { id: 'isin', b: 'pilot', t: 2, m: 3, n: 'Işın odağı', d: l => 'Lazer gücü +%' + l * 8 },
+    { id: 'kapi', b: 'pilot', t: 2, m: 3, n: 'Atlama ustası', d: l => 'Hiperatlama ve ücra kapı ücreti −%' + l * 15 },
+    { id: 'dayan', b: 'pilot', t: 3, m: 3, n: 'Sağlam gövde', d: l => 'Alınan hasar −%' + l * 6 },
+    { id: 'pazar', b: 'ticaret', t: 1, m: 5, n: 'Pazarlıkçı', d: l => 'Cevher satışı +%' + l * 4 },
+    { id: 'tamir', b: 'ticaret', t: 1, m: 3, n: 'Tamir indirimi', d: l => 'Tamir −%' + l * 12 },
+    { id: 'kacak', b: 'ticaret', t: 2, m: 3, n: 'Kaçakçı', d: l => 'Gizli bölme +' + l * 2 },
+    { id: 'diplo', b: 'ticaret', t: 2, m: 3, n: 'Diplomat', d: l => 'İtibar kazancı +%' + l * 20 },
+    { id: 'tuccar', b: 'ticaret', t: 3, m: 3, n: 'Lonca ortağı', d: l => 'Görev ödülleri +%' + l * 10 }
+  ], TNEED = { 1: 0, 2: 3, 3: 7 };
+  if (!save.sk || typeof save.sk !== 'object'){ save.sk = {}; save.sp = levelOf(save.xp || 0) - 1; persist(); }
+  if (typeof save.sp !== 'number') save.sp = 0;
+  // ağaçta artık olmayan yetenekler (zırh vb.): puan iade
+  for (const k of Object.keys(save.sk)) if (!SKL.some(q => q.id === k)){ save.sp += save.sk[k]; delete save.sk[k]; }
+  // gemi geliştirmeleri kaldırıldı: harcanan kredi ve parçalar iade edilir
+  if (!save.upgRefund){ let back = 0; const UB = { lazer: 80, kargo: 60, motor: 90, kalkan: 100, zirh: 110, sogutma: 90 }, UPP2 = { lazer: ['devre', [1, 1, 2, 3, 4]], kargo: ['levha', [2, 3, 5, 7, 9]], motor: ['hucre', [1, 1, 2, 2, 3]], kalkan: ['levha', [2, 3, 4, 6, 8]] };
+    for (const k in UB){ const lv = (save.lv && save.lv[k]) || 0; for (let i = 0; i < lv; i++){ back += Math.round(UB[k] * Math.pow(1.9, i)); const P = UPP2[k]; if (P){ if (!save.parts) save.parts = {}; save.parts[P[0]] = (save.parts[P[0]] || 0) + P[1][i]; } } if (save.lv) save.lv[k] = 0; }
+    save.upgRefund = 1; if (back > 0){ save.kredi += back; setTimeout(() => toast('Gemi geliştirme kaldırıldı: ' + back + ' kredi ve parçaların iade edildi. Artık güç yetenek ağacından gelir.', 6500), 4000); } persist(); }
+  for (const k in UPG) delete UPG[k];
+  try { applyShip(false); } catch (e) {}
+  const SL = k => save.sk[k] || 0, inBr = b => SKL.filter(q => q.b === b).reduce((t, q) => t + SL(q.id), 0);
+  function skApply(){ const L = levelOf(save.xp || 0);
+    window.__skM = 1 + 0.15 * SL('kazi'); window.__skR = 190 + 50 * SL('cekim'); window.__skC = 6 * SL('kargo'); window.__skL = 40 * SL('menzil') + 5 * (L - 1);
+    window.__skP = 1 + 0.1 * SL('nisan'); window.__skH = 1 - 0.1 * SL('sogut'); window.__skS = 1 + 0.25 * SL('kalkan'); window.__skRk = 1 + 0.15 * SL('roket');
+    window.__skT0 = 0.45 * SL('itki'); window.__skT = 1 + 0.06 * SL('hiz'); window.__skD0 = 0.07 * (L - 1) + 0.15 * SL('isin');
+    window.__skG = 1 - 0.15 * SL('kapi'); window.__skCol = 1 - 0.06 * SL('dayan'); window.__skRep = 1 - 0.12 * SL('tamir'); window.__skK = 2 * SL('kacak'); window.__skF = 1 + 0.2 * SL('diplo'); window.__skQ = 1 + 0.1 * SL('tuccar'); window.__skA = 1 + 0.15 * SL('avci'); window.__skDm = 0.15 * SL('damar'); }
+  { const _rm = repMul; repMul = function(st){ return _rm(st) * (1 + 0.04 * SL('pazar')); }; }
+  skApply();
+  // seviye atlayınca seviyeye bağlı lazer gücü/menzil de güncellenir
+  { let lv0 = levelOf(save.xp || 0); EXTRA.push(() => { const L = levelOf(save.xp || 0); if (L !== lv0){ lv0 = L; skApply(); } }); }
+  // ---- yetenek penceresi: dal sekmeleri, kademe şeritleri, bağlantılı düğümler, alt bilgi panelleri (uçarken de açılır)
+  const PAR = { kargo: ['kazi'], menzil: ['cekim'], damar: ['kargo', 'menzil'], kalkan: ['sogut'], roket: ['nisan'], avci: ['roket', 'kalkan'],
+    isin: ['itki'], kapi: ['hiz'], dayan: ['isin', 'kapi'], kacak: ['pazar'], diplo: ['tamir'], tuccar: ['kacak', 'diplo'] };
+  // ---- yetenek çizimleri (Stardrift'e özgü): dolu siluetler, dal renginde vurgu parçaları (.a), çizgiler (.l), küçük yıldız parıltıları
+  const SPK = (x, y, k) => `<path class='s' d='M${x} ${y - k}Q${x} ${y} ${x + k} ${y}Q${x} ${y} ${x} ${y + k}Q${x} ${y} ${x - k} ${y}Q${x} ${y} ${x} ${y - k}Z'/>`;
+  const IC = {
+    kazi: "<path d='M2.5 21.5l1.6-6 4.6-2.2 4 2.6-.8 5.6z'/><path class='a' d='M6.2 16.6l1.5-.7.7 1.4-1.6.6zM9.3 18.3l1.2.4-.3 1.3-1.3-.3z'/><path d='M13.2 10.6l5.6-5.6 3 3-5.6 5.6z'/><path d='M12 12l2.1-2.1 1.9 1.9-2.1 2.1z'/><path class='a' d='M11.6 12.4l-3.4 3.2.9.9 3.4-3.2z'/>" + SPK(18, 15, 1.4) + SPK(5, 6, 1.1),
+    cekim: "<path d='M5 7.5Q12 1.5 19 7.5l-2 1.8H7z'/><path class='a' opacity='.45' d='M7.5 9.3h9l3.5 12H4z'/><path d='M12 12.5l2.4 2.6-2.4 2.8-2.4-2.8z'/><path class='a' d='M10.8 6.5h2.4v1.2h-2.4z'/>" + SPK(4, 3.5, 1.2) + SPK(20.5, 13, 1),
+    kargo: "<path d='M2.5 13.5h8.5v8H2.5zM13 13.5h8.5v8H13zM7.7 5h8.6v8H7.7z'/><path class='a' d='M5.9 13.5h1.7v8H5.9zM16.4 13.5h1.7v8h-1.7zM11.1 5h1.8v8h-1.8z'/>" + SPK(4.5, 6.5, 1.3) + SPK(20, 8, 1),
+    menzil: "<path d='M2 10.5h4l2-1.5h3v6H8l-2-1.5H2z'/><path class='a' d='M11 11h10v2H11z'/><circle class='l' cx='19.5' cy='12' r='3.2'/><circle class='a' cx='19.5' cy='12' r='1'/>" + SPK(6, 4.5, 1.3) + SPK(13, 19.5, 1.1),
+    damar: "<path d='M2.5 21.5l2.5-5 5 1.5 4-3 7 6.5z'/><path class='a' d='M9.5 16.5L11 6l2.2 8.3zM12.8 15l3.2-9.5 1 9zM7.4 17.5l-1-6 2.5 5.6z'/>" + SPK(5, 5, 1.3) + SPK(19.5, 8, 1.1),
+    nisan: "<circle class='l' cx='12' cy='12' r='7.5'/><circle class='l' cx='12' cy='12' r='3.6'/><path d='M11.2 1.8h1.6v5h-1.6zM11.2 17.2h1.6v5h-1.6zM1.8 11.2h5v1.6h-5zM17.2 11.2h5v1.6h-5z'/><circle class='a' cx='12' cy='12' r='1.5'/>" + SPK(19.5, 4.5, 1.2),
+    sogut: "<path d='M11 2h2v20h-2z'/><path d='M3.3 6.7l1-1.7 17.3 10-1 1.7zM20.7 6.7l-1-1.7-17.3 10 1 1.7z'/><path class='a' d='M12 7.5l3.2 1.8v3.7L12 16.5l-3.2-1.8V9.3z'/>" + SPK(4, 20, 1.2) + SPK(20, 20.5, 1),
+    kalkan: "<path d='M12 2l8 3.3v5.8c0 5.2-3.4 8.8-8 10.9-4.6-2.1-8-5.7-8-10.9V5.3z'/><path class='a' d='M12 5l5.2 2.2v4c0 3.6-2.2 6-5.2 7.6z'/>" + SPK(3, 19, 1.3) + SPK(21, 19, 1.1),
+    roket: "<path d='M12 1.5c3.4 3.2 4.6 7.6 3.6 12.5H8.4C7.4 9.1 8.6 4.7 12 1.5z'/><path d='M8.6 11.5l-3.3 3.8 3.4.6zM15.4 11.5l3.3 3.8-3.4.6z'/><circle class='a' cx='12' cy='7.5' r='1.6'/><path class='a' d='M9.8 14.8h4.4l-1.1 4.5-1.1 3-1.1-3z'/>" + SPK(4, 5, 1.3) + SPK(20, 4, 1),
+    avci: "<path fill-rule='evenodd' d='M12 3.5a7 7 0 0 0-7 7c0 2.3 1 3.7 2.3 4.6v2.7h9.4v-2.7c1.3-.9 2.3-2.3 2.3-4.6a7 7 0 0 0-7-7zM9.2 9.4a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zm5.6 0a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6z'/><path d='M8.5 18.6h7v2h-7z'/><path class='a' d='M11.3 13.6h1.4l-.7 1.7z'/>" + SPK(3.5, 4, 1.3) + SPK(20.5, 20, 1.1),
+    itki: "<path d='M4 8h9l4 2v4l-4 2H4z'/><path class='a' d='M17 10.2l5-1.2-2 3 2 3-5-1.2z'/><path d='M5.5 5.5h4v2.5h-4zM5.5 16h4v2.5h-4z'/>" + SPK(3, 12, 1.2) + SPK(21, 4.5, 1),
+    hiz: "<path d='M13 6l8 6-8 6-2.5-6z'/><path class='a' d='M2 8.5h8v1.5H2zM4 11.2h7v1.6H4zM2 14h8v1.5H2z'/>" + SPK(5, 4.5, 1.3) + SPK(18, 20, 1.1),
+    isin: "<path d='M2.5 6l7 6-7 6z' opacity='.55'/><path d='M9 5.5c1.6 1.8 1.6 11.2 0 13h1.8c1.6-1.8 1.6-11.2 0-13z'/><path class='a' d='M11 11.2h10.5v1.6H11z'/><circle class='a' cx='21' cy='12' r='1.6'/>" + SPK(17, 5.5, 1.3) + SPK(16, 19, 1),
+    kapi: "<path fill-rule='evenodd' d='M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19zm0 3.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12z'/><circle class='a' cx='12' cy='12' r='3.8' opacity='.85'/><path d='M11 1.5h2v2.5h-2zM11 20h2v2.5h-2zM1.5 11h2.5v2H1.5zM20 11h2.5v2H20z'/>" + SPK(12, 12, 1.6),
+    dayan: "<path d='M3 5.5L12 2l9 3.5v6.5c0 5-3.6 8.4-9 10-5.4-1.6-9-5-9-10z'/><path class='a' d='M5.5 7.2L12 4.8v7.4H5.5zM12 12.2h6.5c-.3 3.5-2.8 6-6.5 7.2z'/>" + SPK(20.5, 20.5, 1.2),
+    pazar: "<path d='M11.2 3h1.6v16h-1.6zM6.5 19h11v2.5h-11zM3.5 6h17v1.6h-17z'/><path class='a' d='M2 13.5h6.5a3.25 3.25 0 0 1-6.5 0zM15.5 13.5H22a3.25 3.25 0 0 1-6.5 0z'/><path class='l' d='M5.25 7.6l-3 5.9M5.25 7.6l3 5.9M18.75 7.6l-3 5.9M18.75 7.6l3 5.9'/>" + SPK(12, 1.5, 1),
+    tamir: "<path d='M15.5 2.5a5 5 0 0 0-5.3 6.6L2.5 16.8l4.7 4.7 7.7-7.7a5 5 0 0 0 6.6-5.3l-3.2 3.2-3.4-.8-.8-3.4z'/><circle class='a' cx='5.2' cy='18.8' r='1.2'/>" + SPK(20.5, 20, 1.3) + SPK(4, 4, 1.1),
+    kacak: "<path d='M2.5 9l2.5-4h14l2.5 4v12h-19z'/><path class='a' d='M5.5 14.5c3.6-3.4 9.4-3.4 13 0-3.6 3.4-9.4 3.4-13 0z'/><circle cx='12' cy='14.5' r='1.6'/><path d='M2.5 8.6h19v1.4h-19z' opacity='.6'/>" + SPK(20.5, 2.5, 1.2),
+    diplo: "<path d='M2 6.5h10a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 12 14.5H7l-3.5 3v-3H2A1.5 1.5 0 0 1 .5 13V8A1.5 1.5 0 0 1 2 6.5z' transform='translate(1 0)'/><path class='a' d='M12.5 10.5h9a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H20v3l-3.5-3h-4a1.5 1.5 0 0 1-1.5-1.5v-5a1.5 1.5 0 0 1 1.5-1.5z' transform='translate(-1 0)'/>" + SPK(19, 4.5, 1.3),
+    tuccar: "<path d='M5 2h10l4 4v13.5H5z'/><path class='l' d='M8 8.5h8M8 11.5h8M8 14.5h5'/><circle class='a' cx='16.5' cy='19' r='3'/><path class='a' d='M15 21.5l-.8 2.3 2.3-1 2.3 1-.8-2.3z'/>" + SPK(3, 5, 1.2)
+  };
+  // dal amblemleri (başlık ve sekmeler) ve dala özgü rozet biçimleri
+  const BEM = {
+    kazi: "<path d='M3 21l2-6 5-2 4 3-1 5z'/><path class='a' d='M11 14L13.5 3l3 10.5zM15.5 15l3.5-9 1.5 9.5z'/>" + SPK(6, 6, 1.6),
+    savas: "<circle class='l' cx='12' cy='12' r='8'/><path d='M12 3.5c2.4 2.2 3.2 5.3 2.6 8.8H9.4C8.8 8.8 9.6 5.7 12 3.5z'/><path class='a' d='M10 12.3h4l-1 4.2-1 2.5-1-2.5z'/>" + SPK(19.5, 19, 1.4),
+    pilot: "<path d='M12 2l3 8 7 3-7 2-3 7-3-7-7-2 7-3z'/><circle class='a' cx='12' cy='12.5' r='2'/>",
+    ticaret: "<ellipse cx='12' cy='17.5' rx='7' ry='2.8'/><ellipse cx='12' cy='13' rx='7' ry='2.8' opacity='.8'/><ellipse class='a' cx='12' cy='8.5' rx='7' ry='2.8'/>" + SPK(20.5, 4, 1.4)
+  };
+  const BSHAPE = {
+    kazi: "<path d='M50 4 L90 25 L90 70 L50 96 L10 70 L10 25 Z'/>",
+    savas: "<path d='M14 8 H86 Q90 8 90 12 V48 Q90 78 50 96 Q10 78 10 48 V12 Q10 8 14 8 Z'/>",
+    pilot: "<path d='M50 3 L80 20 L96 50 L80 80 L50 97 L20 80 L4 50 L20 20 Z'/>",
+    ticaret: "<path d='M32 5 H68 L94 31 V69 L68 95 H32 L6 69 V31 Z'/>"
+  };
+  const TIER = t => `<svg class='te' viewBox='0 0 40 44'><path d='M20 1 L38 11 L38 33 L20 43 L2 33 L2 11 Z'/>${[0, 1, 2].slice(0, t).map(i => `<path class='c' d='M10 ${30 - i * 7} L20 ${24 - i * 7} L30 ${30 - i * 7} L30 ${33 - i * 7} L20 ${27 - i * 7} L10 ${33 - i * 7} Z'/>`).join('')}</svg>`;
+  let skSel = null, skTab = 0;
+  function skOpen(tab){
+    let w = $('skModal'); if (!w){ w = document.createElement('div'); w.id = 'skModal'; document.body.appendChild(w);
+      w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-skx]')){ w.classList.remove('on'); return; }
+        const tb = e.target.closest('[data-skt]'); if (tb){ const v = tb.dataset.skt; skTab = v === 'p' ? (skTab + 3) % 4 : v === 'n' ? (skTab + 1) % 4 : +v; skSel = null; skRender(); return; }
+        const nd = e.target.closest('[data-skn]'); if (nd){ skSel = nd.dataset.skn; skRender(); return; }
+        const b = e.target.closest('button[data-sk]'); if (b && !b.disabled){ const q = SKL.find(x => x.id === b.dataset.sk); if (q && save.sp > 0 && SL(q.id) < q.m && inBr(q.b) >= TNEED[q.t]){ save.sp--; save.sk[q.id] = SL(q.id) + 1; persist(); skApply(); try { sfxP('gelistirme', 0.6); } catch (er) {} skRender(); try { renderCt(); } catch (er) {} } }
+        const r = e.target.closest('button[data-skr]'); if (r && !r.disabled){ if (!r.dataset.ok){ r.dataset.ok = 1; r.textContent = 'Emin misin? ' + RESET() + ' kredi'; return; } const n = Object.values(save.sk).reduce((a, b) => a + b, 0); save.kredi -= RESET(); save.sk = {}; save.sp += n; persist(); skApply(); skRender(); } });
+      addEventListener('resize', () => { if (w.classList.contains('on')) skLines(); }); }
+    if (typeof tab === 'number') skTab = tab;
+    w.classList.add('on'); skRender();
+  }
+  const RESET = () => 300 + 100 * Object.values(save.sk).reduce((a, b) => a + b, 0);
+  const nodeHtml = (q, bc) => { const l = SL(q.id), lock = inBr(q.b) < TNEED[q.t];
+    return '<div class="nd' + (l ? ' has' : '') + (l >= q.m ? ' max' : '') + (lock ? ' lk' : '') + (skSel === q.id ? ' sel' : '') + '" data-skn="' + q.id + '"><svg class="sh" viewBox="0 0 100 100">' + BSHAPE[q.b] + '</svg><svg class="sic" viewBox="0 0 24 24">' + IC[q.id] + '</svg><small>' + l + '/' + q.m + '</small><em>' + q.n + '</em></div>'; };
+  function skRender(){
+    const w = $('skModal'); if (!w) return; const L = levelOf(save.xp || 0), [b, bn, bc] = BR[skTab], bsp = inBr(b);
+    const list = SKL.filter(x => x.b === b); if (!skSel || !list.some(q => q.id === skSel)) skSel = list[0].id;
+    let h = '<div class="bx" style="--bc:' + bc + '"><div class="tabs"><button class="ar" data-skt="p">‹</button>' + BR.map((x, i) => '<button data-skt="' + i + '" class="' + (i === skTab ? 'on' : '') + '" style="--tc:' + x[2] + '"><svg class="bi" viewBox="0 0 24 24">' + BEM[x[0]] + '</svg>' + x[1] + '<i>' + inBr(x[0]) + '</i></button>').join('') + '<button class="ar" data-skt="n">›</button><button class="x" data-skx="1">✕</button></div>';
+    h += '<div class="body"><div class="tree"><div class="th"><svg class="bi" viewBox="0 0 24 24">' + BEM[b] + '</svg>' + bn.toLocaleUpperCase('tr-TR') + '</div><svg class="ln"></svg>';
+    for (const t of [1, 2, 3]){ const lock = bsp < TNEED[t];
+      h += '<div class="row t' + t + (lock ? ' lk' : '') + '"><span class="rl">' + TIER(t) + '<i>' + ['', 'I', 'II', 'III'][t] + '</i>' + (lock ? '<b>' + bsp + '/' + TNEED[t] + '</b>' : '') + '</span>' + list.filter(q => q.t === t).map(q => nodeHtml(q, bc)).join('') + '</div>'; }
+    const q = SKL.find(x => x.id === skSel), l = SL(q.id), lock = bsp < TNEED[q.t], can = save.sp > 0 && l < q.m && !lock;
+    const need = TNEED[q.t], prog = need ? Math.min(1, bsp / need) : 1;
+    h += '</div><div class="side"><div class="sp"><img src="' + badge(L) + '"><span>YETENEK PUANI<b>' + save.sp + '</b></span></div>'
+      + '<div class="pn"><div class="ph">GEREKSİNİM <i>' + (need ? Math.min(bsp, need) + '/' + need : 'açık') + '</i></div><div class="pb"><u style="width:' + (prog * 100) + '%"></u></div><p>' + (need ? (lock ? 'Bu kademe, ' + bn + ' dalında ' + need + ' puan harcayınca açılır.' : 'Kademe açık: ' + bn + ' dalında ' + need + ' puan harcadın.') : 'İlk kademe her zaman açık.') + '</p></div>'
+      + '<div class="pn"><div class="ph">' + q.n.toLocaleUpperCase('tr-TR') + ' <i>' + l + '/' + q.m + '</i></div><p>' + (l ? q.d(l) : 'Henüz yatırım yok.') + (l < q.m ? '<br><span class="nx">Sıradaki: ' + q.d(l + 1) + '</span>' : '<br><span class="nx">En üst basamak.</span>') + '</p>'
+      + '<div class="bt"><button class="act' + (can ? ' go' : '') + '" data-sk="' + q.id + '" ' + (can ? '' : 'disabled') + '>' + (l >= q.m ? 'Tamam' : 'Puan ver') + '</button>' + (Object.keys(save.sk).length ? '<button class="act" data-skr="1" ' + (save.kredi < RESET() ? 'disabled' : '') + '>Sıfırla</button>' : '') + '</div></div>'
+      + '<div class="ft">Seviye ' + L + ' · ' + RANKS[rankOf(save.xp)][0] + '. Her seviye 1 puan verir; seviye ayrıca lazer gücünü ve menzilini biraz artırır.</div></div></div></div>';
+    w.innerHTML = h; requestAnimationFrame(skLines);
+  }
+  function skLines(){
+    const w = $('skModal'), tr = w && w.querySelector('.tree'), sv = tr && tr.querySelector('svg.ln'); if (!sv) return; const R0 = tr.getBoundingClientRect(); let h = '';
+    sv.setAttribute('viewBox', '0 0 ' + R0.width + ' ' + R0.height); sv.setAttribute('width', R0.width); sv.setAttribute('height', R0.height);
+    for (const id in PAR){ const c = tr.querySelector('[data-skn="' + id + '"] .sh'); if (!c) continue; const rc = c.getBoundingClientRect();
+      for (const p of PAR[id]){ const pe = tr.querySelector('[data-skn="' + p + '"] .sh'); if (!pe) continue; const rp = pe.getBoundingClientRect(), rb = pe.parentNode.getBoundingClientRect(), on = SL(p) > 0;
+        const x1 = rp.left + rp.width / 2 - R0.left, y1 = rb.bottom - R0.top + 3, x2 = rc.left + rc.width / 2 - R0.left, y2 = rc.top - R0.top + 2, my = (y1 + y2) / 2;
+        h += '<path d="M' + x1 + ' ' + y1 + ' V' + my + ' H' + x2 + ' V' + y2 + '" class="' + (on ? 'on' : '') + '"/>'; } }
+    sv.innerHTML = h;
+  }
+  window.__skOpen = skOpen;
+  // ---- seviye atlama ekranı
+  let lastL = levelOf(save.xp || 0), lvT = null;
+  function lvShow(L, newRank){
+    let el = $('lvUp'); if (!el){ el = document.createElement('div'); el.id = 'lvUp'; document.body.appendChild(el); el.addEventListener('click', e => { if (e.target.closest('[data-lvs]')){ el.classList.remove('on'); skOpen(); return; } el.classList.remove('on'); }); }
+    el.innerHTML = '<div class="in"><div class="gl"></div><img src="' + badge(L) + '"><div class="lv">SEVİYE ' + L + '</div>' + (newRank ? '<div class="nr">YENİ RÜTBE · ' + RANKS[newRank][0].toLocaleUpperCase('tr-TR') + '</div>' : '') + '<div class="bar">YETENEK PUANI KAZANDIN</div><button class="sk" data-lvs="1"><span>YETENEKLER</span><i>' + save.sp + '</i></button></div>';
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); try { sfxP('gorev_tamam', 0.9) || sfxP('gelistirme', 0.8); } catch (e) {}
+    clearTimeout(lvT); lvT = setTimeout(() => el.classList.remove('on'), 5200);
+  }
+  window.__lvShow = lvShow;
+  EXTRA.push(() => { const L = levelOf(save.xp || 0); if (L > lastL){ const r0 = Math.min(5, Math.floor((lastL - 1) / 5)), r1 = Math.min(5, Math.floor((L - 1) / 5)); save.sp += L - lastL; lastL = L; persist(); lvShow(L, r1 > r0 ? r1 : 0); } else if (L < lastL) lastL = L; });
+  // ---- Görevler sekmesi: seviye rozeti, rütbe dizisi, yetenek düğmesi
+  { const _rc = renderCt; renderCt = function(){ _rc(); try {
+      const box = $('ctBox'), ln = box && box.querySelector('.line'); if (!ln || ln.querySelector('img.rkb')) return; const L = levelOf(save.xp || 0), nx = LV[L];
+      ln.innerHTML = '<img class="rkb" src="' + badge(L) + '" alt=""><span><b>' + RANKS[rankOf(save.xp)][0] + ' · Seviye ' + L + '</b><span class="dim"><br>' + (nx ? save.xp + ' / ' + nx + ' XP · sıradaki seviye' : save.xp + ' XP · en üst seviye') + '</span></span><button class="act' + (save.sp ? ' go' : '') + '" data-skopen="1">Yetenekler' + (save.sp ? ' · ' + save.sp : '') + '</button>';
+      const row = document.createElement('div'); row.className = 'rkrow'; const r = rankOf(save.xp);
+      row.innerHTML = RANKS.map((q, i) => '<span class="' + (i <= r ? 'on' : '') + '"><img src="' + badge(i * 5 + 5) + '" alt=""><small>' + q[0] + '</small></span>').join(''); ln.after(row);
+    } catch (e) { console.warn(e); } }; }
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button[data-skopen]')){ e.stopPropagation(); skOpen(); } }, true);
+  { const _dl = dockLayout; dockLayout = function(){ _dl(); try { const x = document.querySelector('#dkStat .rnk'); if (x && !x.querySelector('img')) x.insertAdjacentHTML('afterbegin', '<img class="rkb s" src="' + badge(levelOf(save.xp || 0)) + '" alt="">'); } catch (e) {} }; }
+  const st = document.createElement('style'); st.textContent = `
+  #ctBox .line img.rkb{width:54px;height:54px;margin-right:12px;flex:none}#ctBox .line:has(img.rkb){justify-content:flex-start;gap:0}#ctBox .line:has(img.rkb)>span{flex:1}
+  #dkStat .rnk img.rkb.s{width:20px;height:20px;vertical-align:-5px;margin-right:5px}
+  .rkrow{display:flex;gap:4px;margin:4px 0 8px}.rkrow span{flex:1;text-align:center;opacity:.32}.rkrow span.on{opacity:1}.rkrow img{width:34px;height:34px;display:block;margin:0 auto 2px}.rkrow small{font-size:9.5px;color:var(--dim);white-space:nowrap}
+  #lvUp{position:fixed;inset:0;z-index:58;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(4,8,18,.82) 0%,rgba(2,4,10,.6) 60%,rgba(0,0,0,.25) 100%);opacity:0;pointer-events:none;transition:opacity .35s}
+  #lvUp.on{opacity:1;pointer-events:auto}#lvUp .in{display:flex;flex-direction:column;align-items:center;position:relative;font-family:var(--font)}
+  #lvUp .gl{position:absolute;top:-30px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,200,120,.28),rgba(255,120,80,0) 65%)}
+  #lvUp img{width:min(150px,30vh);height:min(150px,30vh);position:relative;filter:drop-shadow(0 6px 18px rgba(0,0,0,.6))}
+  #lvUp.on img{animation:lvb .7s cubic-bezier(.2,1.5,.4,1) both}@keyframes lvb{0%{transform:scale(.3) rotate(-18deg);opacity:0}100%{transform:none;opacity:1}}
+  #lvUp .lv{margin-top:10px;font-weight:300;font-size:clamp(30px,7vh,46px);letter-spacing:.32em;color:#f4f7fb;padding-left:.32em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+  #lvUp .nr{margin-top:2px;font-weight:600;font-size:12px;letter-spacing:.3em;color:#f0cd84}
+  #lvUp .bar{margin-top:10px;background:rgba(0,0,0,.85);border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:7px 26px;font-weight:600;font-size:13px;letter-spacing:.24em;color:#fff}
+  #lvUp .sk{margin-top:14px;display:flex;align-items:center;gap:10px;background:none;border:0;color:#dfe8f2;font:600 12px var(--font);letter-spacing:.26em;cursor:pointer}
+  #lvUp .sk i{font-style:normal;width:24px;height:24px;border:1.4px solid #dfe8f2;border-radius:50%;display:flex;align-items:center;justify-content:center;letter-spacing:0;font-size:12px}
+  #skModal{position:fixed;inset:0;z-index:59;background:radial-gradient(ellipse at 50% 30%,rgba(14,26,48,.94),rgba(3,6,14,.97));display:none;align-items:center;justify-content:center;padding:10px}#skModal.on{display:flex}
+  #skModal .bx{width:min(1040px,98vw);height:min(640px,96vh);display:flex;flex-direction:column;color:#e8edff;font:500 13px/1.4 var(--font)}
+  #skModal .tabs{display:flex;align-items:stretch;gap:0;margin:0 auto 10px;width:min(760px,100%)}
+  #skModal .tabs button{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(220,235,245,.14);border-left-width:0;color:#b9c6da;font:600 11.5px var(--font);letter-spacing:.2em;padding:8px 4px;cursor:pointer;text-transform:uppercase}
+  #skModal .tabs button i{font-style:normal;margin-left:6px;color:var(--tc);letter-spacing:0}
+  #skModal .tabs button.on{background:var(--tc);color:#08101c;border-color:var(--tc)}#skModal .tabs button.on i{color:#08101c}
+  #skModal .tabs .ar{flex:0 0 34px;border:1px solid rgba(220,235,245,.3);border-radius:4px;margin:0 8px;font-size:18px;letter-spacing:0;padding:0}
+  #skModal .tabs .x{flex:0 0 34px;border:0;background:none;font-size:16px;letter-spacing:0;margin-left:4px}
+  #skModal .body{flex:1;min-height:0;display:flex;gap:12px}
+  #skModal .tree{flex:1;position:relative;display:flex;flex-direction:column;min-width:0}
+  #skModal .th{background:var(--bc);color:#08101c;text-align:center;font-weight:700;letter-spacing:.3em;font-size:12px;padding:6px 0;position:relative;z-index:2}
+  #skModal .ln{position:absolute;left:0;top:0;pointer-events:none;z-index:1}#skModal .ln path{fill:none;stroke:rgba(200,215,235,.22);stroke-width:2}#skModal .ln path.on{stroke:var(--bc);stroke-width:2.4}
+  #skModal .row{flex:1;display:flex;align-items:center;justify-content:center;gap:clamp(18px,6vw,70px);position:relative;border-bottom:1px solid rgba(0,0,0,.35)}
+  #skModal .row.t1{background:rgba(70,92,120,.28)}#skModal .row.t2{background:rgba(40,96,110,.24)}#skModal .row.t3{background:rgba(58,52,120,.26)}
+  #skModal .row .rl{position:absolute;left:10px;top:6px;font-size:10px;letter-spacing:.2em;color:#8fa3c4}#skModal .row .rl b{display:block;font-weight:600;color:#c9d4e6;letter-spacing:.05em}
+  #skModal .row.lk .nd{opacity:.42}
+  #skModal .nd{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;cursor:pointer;width:72px}
+  #skModal .nd .sh{width:56px;height:56px;fill:#0d1626;stroke:rgba(200,215,235,.4);stroke-width:3;transition:transform .15s}
+  #skModal .nd .sic{position:absolute;top:13px;width:28px;height:28px;fill:none;stroke:#7d8ca6;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  #skModal .nd.has .sh{fill:color-mix(in srgb,var(--bc) 22%,#0d1626);stroke:var(--bc)}#skModal .nd.has .sic{stroke:#f2f6fb}
+  #skModal .nd.max .sh{fill:color-mix(in srgb,var(--bc) 45%,#0d1626)}
+  #skModal .nd.sel .sh{stroke:#fff;stroke-width:5;transform:scale(1.08)}
+  #skModal .nd small{margin-top:2px;font-size:10.5px;font-weight:600;color:#c9d4e6;background:rgba(0,0,0,.45);padding:0 6px;border-radius:3px}#skModal .nd.has small{color:var(--bc)}
+  #skModal .nd em{font-style:normal;font-size:10.5px;color:#aab8cf;text-align:center;line-height:1.15;margin-top:2px;max-width:80px}
+  #skModal .side{width:clamp(220px,30%,300px);display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+  #skModal .sp{display:flex;align-items:center;gap:10px;border:1px solid rgba(220,235,245,.2);padding:8px 10px;background:rgba(0,0,0,.25)}#skModal .sp img{width:42px;height:42px}
+  #skModal .sp span{font-size:10.5px;letter-spacing:.22em;color:#9fb0c8}#skModal .sp b{display:block;font-size:24px;font-weight:300;color:#fff;letter-spacing:0;line-height:1.1}
+  #skModal .pn{border:1px solid rgba(220,235,245,.16);background:rgba(4,8,16,.55)}
+  #skModal .ph{display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid rgba(220,235,245,.1);font-size:11px;font-weight:600;letter-spacing:.16em}#skModal .ph i{font-style:normal;color:var(--bc)}
+  #skModal .pb{height:3px;margin:0 10px;background:rgba(255,255,255,.1);margin-top:6px}#skModal .pb u{display:block;height:100%;background:var(--bc)}
+  #skModal .pn p{margin:0;padding:7px 10px;color:#c9d4e6;font-size:12px}#skModal .pn .nx{color:#8fa3c4;font-size:11.5px}
+  #skModal .bt{display:flex;gap:6px;padding:0 10px 9px}#skModal .bt .act{flex:1}
+  #skModal .ft{font-size:10.5px;color:#7f8fa8;line-height:1.35}
+  @media (max-height:500px){#skModal{padding:6px}#skModal .tabs{margin-bottom:6px}#skModal .tabs button{padding:5px 2px;font-size:10px;letter-spacing:.12em}#skModal .th{padding:3px 0;font-size:10.5px}
+    #skModal .nd{width:64px}#skModal .nd .sh{width:42px;height:42px}#skModal .nd .sic{top:9px;width:22px;height:22px}#skModal .nd em{font-size:9.5px}#skModal .nd small{font-size:9.5px}
+    #skModal .side{gap:5px}#skModal .sp{padding:4px 8px}#skModal .sp img{width:30px;height:30px}#skModal .sp b{font-size:18px}#skModal .ph{padding:4px 8px}#skModal .pn p{padding:4px 8px;font-size:11px}#skModal .bt{padding:0 8px 6px}#skModal .ft{display:none}}
+  #skModal .bi{width:16px;height:16px;vertical-align:-3px;margin-right:6px;fill:currentColor}#skModal .bi .a{fill:currentColor;opacity:.6}#skModal .bi .l{fill:none;stroke:currentColor;stroke-width:1.6}#skModal .bi .s{fill:currentColor}
+  #skModal .th .bi{width:18px;height:18px;vertical-align:-4px}
+  #skModal .row .rl{display:flex;flex-direction:column;align-items:center;gap:1px;top:50%;transform:translateY(-50%);left:10px}#skModal .row .rl i{font-style:normal;font-size:9.5px;letter-spacing:.2em}
+  #skModal .te{width:26px;height:28px;fill:rgba(10,18,32,.8);stroke:rgba(200,215,235,.35);stroke-width:1.5}#skModal .te .c{fill:var(--bc);stroke:none}#skModal .row.lk .te .c{fill:#4c5a72}
+  #skModal .nd .sh{fill:#0b1422;stroke:rgba(190,205,228,.38)}
+  #skModal .nd .sic{fill:#7d8ca6;stroke:none;top:12px;width:32px;height:32px}#skModal .nd .sic .a{fill:#56647d}#skModal .nd .sic .l{fill:none;stroke:#7d8ca6;stroke-width:1.4}#skModal .nd .sic .s{fill:#a9b8d0;opacity:.75}
+  #skModal .nd.has .sh{fill:color-mix(in srgb,var(--bc) 26%,#0b1422)}#skModal .nd.has .sic{fill:#f2f6fb}#skModal .nd.has .sic .a{fill:var(--bc)}#skModal .nd.has .sic .l{stroke:#f2f6fb}#skModal .nd.has .sic .s{fill:#fff;opacity:1}
+  #skModal .nd.max .sh{fill:color-mix(in srgb,var(--bc) 55%,#0b1422)}#skModal .nd.max .sic .a{fill:#fff}
+  #skModal .nd.sel .sic{fill:#fff}
+  #skModal .nd .sh{width:66px;height:66px}#skModal .nd .sic{top:14px;width:38px;height:38px}#skModal .nd{width:84px}
+  @media (max-height:500px){#skModal .nd .sh{width:56px;height:56px}#skModal .nd .sic{top:12px;width:32px;height:32px}#skModal .nd{width:72px}#skModal .te{width:20px;height:22px}}
+  @media (max-width:640px){#skModal .body{flex-direction:column}#skModal .side{width:auto}}`;
+  document.head.appendChild(st);
+}
+
+// =====================  kendi üssünü özelleştir: ad, renk, eklentiler (hurda ile), modüller 3B görünür  =====================
+{
+  const PAL = [['Yeşil', 0x7be0a4], ['Amber', 0xffb454], ['Buz', 0x7fd8ff], ['Kızıl', 0xff5a6e], ['Mor', 0xc8a8ff]];
+  const COS = {
+    isik: { n: 'Işık dizisi', d: 'Halkada yanıp sönen renkli ışıklar', h: 10, k: 300 },
+    anten: { n: 'Anten çanağı', d: 'Tepede telsiz çanağı, ucunda yanıp sönen ışık', h: 15, k: 400 },
+    panel: { n: 'Güneş panelleri', d: 'Üs geliri +%10', h: 20, k: 500 },
+    amblem: { n: 'Taraf amblemi', d: 'Tarafının amblemi üssün üstünde parlar', h: 25, k: 600 },
+    kubbe: { n: 'Gözlem kubbesi', d: 'Cam kubbe; gece ışıl ışıl', h: 30, k: 800 }
+  };
+  const cz = () => { const B = save.base; if (!B) return null; if (!B.cz) B.cz = { name: '', col: 0, ad: {} }; if (!B.cz.ad) B.cz.ad = {}; return B.cz; };
+  const hurdaHave = () => (cargo.hurda || 0) + ((save.base && save.base.store && save.base.store.hurda) || 0);
+  const hurdaTake = n => { const a = Math.min(cargo.hurda || 0, n); cargo.hurda -= a; n -= a; if (n > 0 && save.base.store) save.base.store.hurda -= n; };
+  let G = null; const blink = [], turrets = [];
+  const M = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.5, metalness: 0.4, flatShading: true }, o || {}));
+  function put(g, geo, mat, x, y, z, rx, ry, rz){ const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx || 0, ry || 0, rz || 0); g.add(m); return m; }
+  function build(){
+    if (!baseSt || !baseSt.group || !save.base) return; const C = cz(), B = save.base, md = B.m || {}, col = PAL[C.col] ? PAL[C.col][1] : PAL[0][1];
+    if (G) baseSt.group.remove(G); G = new THREE.Group(); blink.length = 0; turrets.length = 0;
+    const steel = M(0x8a93a6), dark = M(0x2a3346), glow = new THREE.MeshBasicMaterial({ color: col });
+    // modüller: depo konteynerleri, savunma taretleri, roket rafları, tamir vinçleri
+    const cc = [0xc0603a, 0x3a7ac0, 0xd0b040, 0x5a9a5a, 0x9a5ac0];
+    for (let i = 0; i < (md.dep || 0) * 3; i++){ const a = 0.5 + i * 0.22, r = 92 + (i % 2) * 14; put(G, new THREE.BoxGeometry(16, 9, 9), M(cc[i % cc.length], { metalness: 0.3 }), Math.cos(a) * r, -18 + ((i / 2) | 0) % 2 * 10, Math.sin(a) * r, 0, -a, 0); }
+    for (let i = 0; i < (md.sav || 0) * 2; i++){ const a = i / Math.max(1, (md.sav || 0) * 2) * TAU + 0.3, t = new THREE.Group(); t.position.set(Math.cos(a) * 78, i % 2 ? 26 : -26, Math.sin(a) * 78);
+      put(t, new THREE.CylinderGeometry(6, 8, 6, 8), dark, 0, 0, 0); const head = new THREE.Group(); head.position.y = 5; t.add(head);
+      put(head, new THREE.BoxGeometry(8, 5, 8), steel, 0, 0, 0); put(head, new THREE.CylinderGeometry(1, 1, 16, 6), steel, 0, 0, 9, Math.PI / 2, 0, 0); put(head, new THREE.SphereGeometry(1.2, 6, 6), glow, 0, 2.8, 0);
+      G.add(t); turrets.push(head); }
+    for (let i = 0; i < (md.rok || 0); i++){ const a = Math.PI + i * 0.5; const g = new THREE.Group(); g.position.set(Math.cos(a) * 84, 6, Math.sin(a) * 84); g.rotation.y = -a; G.add(g);
+      put(g, new THREE.BoxGeometry(6, 14, 18), dark, 0, 0, 0); for (let j = 0; j < 4; j++) put(g, new THREE.ConeGeometry(1.6, 5, 6), M(0xff5a6e, { emissive: 0x601018 }), 3.5, 9, -6 + j * 4); }
+    for (let i = 0; i < (md.tam || 0); i++){ const a = 2.2 + i * 0.7; const g = new THREE.Group(); g.position.set(Math.cos(a) * 60, 30, Math.sin(a) * 60); g.rotation.y = -a; G.add(g);
+      put(g, new THREE.BoxGeometry(4, 40, 4), M(0xd0a040), 0, 18, 0); put(g, new THREE.BoxGeometry(34, 3, 3), M(0xd0a040), 15, 38, 0); put(g, new THREE.BoxGeometry(2, 10, 2), steel, 31, 32, 0); }
+    // eklentiler
+    if (C.ad.panel) for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2 + Math.PI / 4; put(G, new THREE.BoxGeometry(40, 2, 2), steel, Math.cos(a) * 95, 0, Math.sin(a) * 95, 0, -a, 0);
+      put(G, new THREE.BoxGeometry(60, 1.5, 26), M(0x1a2c66, { emissive: 0x0a1640, metalness: 0.7, roughness: 0.25 }), Math.cos(a) * 140, 0, Math.sin(a) * 140, 0, -a, 0); }
+    if (C.ad.anten){ put(G, new THREE.CylinderGeometry(1.4, 1.8, 60, 6), steel, 0, 75, 0); const d = put(G, new THREE.SphereGeometry(20, 16, 8, 0, TAU, 0, 0.9), M(0xdfe6ef, { side: THREE.DoubleSide, metalness: 0.2 }), 0, 108, 0, -1.1, 0, 0);
+      const tip = put(G, new THREE.SphereGeometry(2, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff3040 }), 0, 106, 0); blink.push({ m: tip, p: 0, f: 1.2 }); }
+    if (C.ad.isik) for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, l = put(G, new THREE.SphereGeometry(2.4, 6, 6), new THREE.MeshBasicMaterial({ color: col }), Math.cos(a) * 104, -12, Math.sin(a) * 104); blink.push({ m: l, p: i / 24 * TAU, f: 3 }); }
+    if (C.ad.kubbe){ put(G, new THREE.SphereGeometry(30, 20, 10, 0, TAU, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9fe0ff, transparent: true, opacity: 0.32, roughness: 0.05, metalness: 0.2, emissive: col, emissiveIntensity: 0.25, depthWrite: false }), 0, 42, 0);
+      put(G, new THREE.TorusGeometry(30, 2, 6, 32), steel, 0, 42, 0, Math.PI / 2, 0, 0); }
+    if (C.ad.amblem && save.side){ const t = new THREE.TextureLoader().load('assets/img/fac_' + save.side + '.webp?v=' + (window.SD_VERSION || '')); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false })); sp.scale.set(54, 54, 1); sp.position.set(0, C.ad.anten ? 150 : 110, 0); G.add(sp); }
+    baseSt.group.add(G);
+    (baseSt.lights || []).forEach(l => l.material && l.material.color && l.material.color.setHex(col));
+    baseSt.group.children.forEach(ch => { if (ch.isPointLight) ch.color.setHex(col); });
+    if (C.name) baseSt.ad = C.name;
+  }
+  window.__baseBuild = build;
+  { const _ab = attachBase; attachBase = function(){ const r = _ab.apply(this, arguments); try { build(); } catch (e) { console.warn(e); } return r; }; }
+  try { build(); } catch (e) {}
+  EXTRA.push(dt => { if (!G) return; for (const b of blink) b.m.visible = Math.sin(time * b.f * 2 + b.p) > -0.2; for (const h of turrets) h.rotation.y += dt * 0.4; });
+  // panel: üs geliri +%10
+  { let acc = 0; EXTRA.push(dt => { const B = save.base; if (!B || !B.cz || !B.cz.ad || !B.cz.ad.panel) return; acc += dt; if (acc < 30) return; acc = 0; const lv = B.lv || 1; B.bank = Math.min(BCAP[lv], B.bank + BRATE[lv] * 0.1 * 0.5); }); }
+  // arayüz: üsteyken "Üs görünümü"
+  const _rx = renderExtras; renderExtras = function(){ _rx(); try {
+    const e = $('exBox'); if (!e || !save.base || !curSt || curSt !== baseSt) return; const C = cz(), hh = hurdaHave();
+    let h = '<div class="sect">Üs görünümü</div><div class="line"><span>Üssün adı<span class="dim"><br>Haritada ve telsizde bu adla görünür</span></span><span style="display:flex;gap:6px;align-items:center"><input id="bzName" maxlength="22" value="' + (C.name || baseSt.ad).replace(/"/g, '&quot;') + '" style="width:150px;background:rgba(255,255,255,.04);border:1px solid rgba(220,235,245,.18);border-radius:6px;color:#e8edff;font:500 13px var(--font);padding:6px 8px"><button class="act" data-bz="name">Kaydet</button></span></div>';
+    h += '<div class="line"><span>Işık rengi</span><span class="bzc">' + PAL.map((p, i) => '<button data-bz="col:' + i + '" title="' + p[0] + '" class="' + (i === C.col ? 'on' : '') + '" style="--c:#' + p[1].toString(16).padStart(6, '0') + '"></button>').join('') + '</span></div>';
+    h += '<div class="dim" style="margin:4px 0 2px">Eklentiler hurda ile kurulur. Elindeki hurda (kargo + depo): <b style="color:#e0a060">' + hh + '</b> · Hurda ev haritalarındaki enkazlardan çıkar.</div>';
+    for (const k in COS){ const o = COS[k], has = !!C.ad[k], ok = hh >= o.h && save.kredi >= o.k;
+      h += '<div class="line"><span><b>' + o.n + '</b><span class="dim"><br>' + o.d + '</span></span>' + (has ? '<button class="act" data-bz="rm:' + k + '">Kaldır</button>' : '<button class="act go" data-bz="add:' + k + '" ' + (ok ? '' : 'disabled') + '>' + o.h + ' hurda · ' + o.k + '</button>') + '</div>'; }
+    const ss = [...e.querySelectorAll(':scope > .sect')], ki = ss.findIndex(x => x.textContent.trim() === 'Kendi üssün'), anchor = ki >= 0 ? ss[ki + 1] : null;
+    if (anchor) anchor.insertAdjacentHTML('beforebegin', h); else e.insertAdjacentHTML('beforeend', h);
+  } catch (er) { console.warn(er); } };
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-bz]'); if (!b || b.disabled || !save.base) return; const C = cz(), [a, k] = b.dataset.bz.split(':');
+    if (a === 'name'){ const v = ($('bzName').value || '').trim().slice(0, 22); C.name = v; if (baseSt) baseSt.ad = v || ((save.pilot || 'Kaşif') + ' Üssü'); toast('Üssün adı: ' + (baseSt ? baseSt.ad : v), 2000); }
+    else if (a === 'col'){ C.col = +k; }
+    else if (a === 'add' && COS[k]){ const o = COS[k]; if (hurdaHave() < o.h || save.kredi < o.k) return; hurdaTake(o.h); save.kredi -= o.k; C.ad[k] = 1; toast(o.n + ' kuruldu', 2000); try { sfxP('gelistirme', 0.6); } catch (er) {} }
+    else if (a === 'rm'){ delete C.ad[k]; }
+    persist(); build(); try { renderDock(); } catch (er) {} });
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button[data-bm]')) setTimeout(() => { try { build(); } catch (er) {} }, 50); });
+  const st = document.createElement('style'); st.textContent = '.bzc{display:flex;gap:7px}.bzc button{width:24px;height:24px;border-radius:50%;background:var(--c);border:2px solid rgba(0,0,0,.4);cursor:pointer;padding:0}.bzc button.on{outline:2px solid #fff;outline-offset:2px}';
+  document.head.appendChild(st);
+}
+
+// ---------- yetenek etkileri: hasar azaltma, ödül avcısı, zengin damar, diplomat, tamir indirimi ----------
+{
+  { const _h = hurt; hurt = function(n){ return _h.call(this, n * (window.__skCol || 1)); }; }
+  { const _kn = killNpc; killNpc = function(n, by){ const k0 = save.kredi, hos = n && n.hostile; const r = _kn.apply(this, arguments); if (by === 'player' && hos && (window.__skA || 1) > 1){ const d = save.kredi - k0; if (d > 0) save.kredi += Math.round(d * (window.__skA - 1)); } return r; }; }
+  { const _ba = breakAsteroid; breakAsteroid = function(a, big, noOre){ if (!noOre && a && Math.random() < (window.__skDm || 0)) a.units = (a.units || 1) + 1; return _ba.apply(this, arguments); }; }
+  { const _f = window.__fac; if (_f) window.__fac = function(k, d, q){ return _f(k, d > 0 ? d * (window.__skF || 1) : d, q); }; }
+  try { const _rd = rpDisc; rpDisc = () => _rd() * (window.__skRep || 1); } catch (e) {}
+  // Geliştir sekmesinde gemi geliştirme yerine yetenek ağacına yönlendirme
+  const _rdk = renderDock; renderDock = function(){ _rdk(); try { const up = $('upgrades'); if (up && !up.querySelector('[data-skopen]')){ up.querySelectorAll('.partsum').forEach(e => e.remove()); const sc = [...up.querySelectorAll('.sect')].find(x => /Gemi geliştirme/.test(x.textContent)); if (sc) sc.textContent = 'Pilot yetenekleri';
+      (sc || up).insertAdjacentHTML(sc ? 'afterend' : 'afterbegin', '<div class="line"><span>Yetenek ağacı<span class="dim"><br>Gemi geliştirme yerine artık seviye atladıkça puan kazanır, madencilik, savaş, pilotaj ve ticaret dallarına dağıtırsın. Silah ve roketler Silahlar sekmesinde.</span></span><button class="act' + (save.sp ? ' go' : '') + '" data-skopen="1">Yetenekler' + (save.sp ? ' · ' + save.sp : '') + '</button></div>'); } } catch (e) { console.warn(e); } };
 }
 })();
