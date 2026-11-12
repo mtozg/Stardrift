@@ -2182,7 +2182,7 @@ function drawRing(c, ox, oy, speed){
   let txt = null, kind = 'ok';
   if (banner && time < banner.until){ txt = banner.text; kind = banner.kind; } else if (lock){ txt = 'HEDEF KİLİTLİ'; }
   if (txt){
-    const bw = 190, bh = 22, bx = ox - bw / 2, by = Math.min(VIEW.b + 8, H - 60);
+    const bw = 190, bh = 22, bx = ox - bw / 2, by = oy + R * 0.42;
     if (!(window.__hzDraw && window.__hzDraw(c, kind, txt, ox, by))){
     c.fillStyle = kind === 'bad' ? 'rgba(255,60,80,0.92)' : 'rgba(127,216,255,0.92)'; c.fillRect(bx, by, bw, bh);
     c.strokeStyle = 'rgba(4,18,26,0.45)'; c.lineWidth = 2; c.beginPath();
@@ -5226,7 +5226,7 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
   const dc = $('dcont'), openMap = {}, SPEC = {
     cargoList: { rules: [['ore', 'Cevher satışı', el => !!el.querySelector('img.oi')], ['dev', 'İstasyon gelişimi', el => !!el.querySelector('img.db')], ['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)]], def: 'ore' },
     hgBox: { rules: [['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)], ['ships', 'Gemiler', () => true]], def: 'ships' },
-    wpBox: { sect: true, def: 's0' }, upgrades: { sect: true, def: 's0' }, exBox: { sect: true, def: '' }, jumpBox: { sect: true, def: '' }
+    wpBox: { sect: true, def: ['Lazer'] }, upgrades: { sect: true, def: ['Gemi geliştirme'] }, exBox: { sect: true, def: ['Kendi üssün'] }, jumpBox: { sect: true, def: ['Hiperatlama'] }, ctBox: { sect: true, def: ['Aktif görevler', 'Görev panosu'] }
   };
   for (const id of ['exBox', 'jumpBox']){ const e = $(id); if (e && e.parentNode !== dc) dc.appendChild(e); }
   const obs = {};
@@ -5237,24 +5237,25 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
     c.querySelectorAll(':scope > .acch:not(.sect)').forEach(h => h.remove());
     const kids = [...c.children]; let cur = null; const groups = []; let gi = 0;
     if (spec.sect){
-      for (const k of kids){ if (k.classList.contains('sect')){ cur = { key: 's' + gi++, title: k.textContent.replace(/·.*$/, '').trim(), head: k, items: [] }; groups.push(cur); } else if (cur) cur.items.push(k); }
+      for (const k of kids){ if (k.classList.contains('sect')){ const t = (k.dataset.t0 || (k.dataset.t0 = k.textContent)).replace(/[·(].*$/, '').trim(); cur = { key: t, title: t, head: k, items: [] }; groups.push(cur); } else if (cur) cur.items.push(k); }
     } else {
       for (const k of kids){ const r = spec.rules.find(r => r[2](k)), key = r ? r[0] : (cur ? cur.key : spec.rules[spec.rules.length - 1][0]); if (!cur || cur.key !== key){ cur = { key, title: (spec.rules.find(r => r[0] === key) || [])[1], items: [] }; groups.push(cur); } cur.items.push(k); }
     }
-    if (openMap[c.id] === undefined) openMap[c.id] = spec.def;
-    const open = openMap[c.id];
+    if (!openMap[c.id]) openMap[c.id] = new Set();
+    const open = openMap[c.id], seen = openMap[c.id + ':s'] || (openMap[c.id + ':s'] = new Set()), defs = [].concat(spec.def || []);
+    for (const g of groups) if (!seen.has(g.key)){ seen.add(g.key); if (defs.some(d => String(g.key).indexOf(d) === 0) || (!spec.sect && defs.length === 0)) open.add(g.key); }   // ilk görüşte varsayılan açıklar
     for (const g of groups){
       let head = g.head; if (!head){ head = document.createElement('div'); head.textContent = g.title; g.items[0].parentNode.insertBefore(head, g.items[0]); }
-      head.classList.add('acch'); head.dataset.k = g.key; head.dataset.c = c.id; head.classList.add('op');
-      for (const it of g.items) it.classList.remove('accx');   // v2 menü: tüm bölümler açık
+      const on = open.has(g.key); head.classList.add('acch'); head.dataset.k = g.key; head.dataset.c = c.id; head.classList.toggle('op', on);
+      for (const it of g.items) it.classList.toggle('accx', !on);
     }
-    if (c.id === 'cargoList'){ const sa = $('sellAll'); if (sa) sa.classList.remove('accx'); }
+    if (c.id === 'cargoList'){ const sa = $('sellAll'); if (sa) sa.classList.toggle('accx', !open.has('ore')); }
     c._seen = true;
     obs[c.id].observe(c, { childList: true });
   }
   for (const id in SPEC){ const c = $(id); if (!c) continue; obs[id] = new MutationObserver(() => accApply(c)); obs[id].observe(c, { childList: true }); accApply(c); }
   dc.addEventListener('click', e => {
-    if (e.target.closest('.acch')) return;
+    const h = e.target.closest('.acch'); if (h){ const id = h.dataset.c, k = h.dataset.k, o = openMap[id]; if (o){ o.has(k) ? o.delete(k) : o.add(k); accApply($(id)); } return; }
     const t = e.target.closest('.wpc > h4'); if (t){ const card = t.parentNode; const was = card.classList.contains('op'); card.parentNode.querySelectorAll('.wpc.op').forEach(x => x.classList.remove('op')); if (!was) card.classList.add('op'); }
   });
   // pilot adı satırı: yalnızca Diğer sekmesinde
@@ -7017,7 +7018,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     _rc(); const box = $('ctBox'); if (!box) return;
     let h = '<div class="sect">Gruplar</div>';
     for (const k in F){ const v = Math.round(save.fac[k]), w = Math.abs(v) / 2;
-      h += '<div class="facr"><img alt="" src="assets/img/' + F[k].img + '.webp" onerror="this.outerHTML=\'<i class=fd style=background:' + F[k].col + '></i>\'"><span><b style="color:' + F[k].col + '">' + F[k].ad + '</b> · ' + tier(v) + ' (' + (v > 0 ? '+' : '') + v + ')<div class="fb"><s></s><u style="background:' + F[k].col + ';' + (v >= 0 ? 'left:50%' : 'right:50%') + ';width:' + w + '%"></u></div><small>' + EFF[k](v) + '</small></span></div>'; }
+      h += '<div class="facr"><img alt="" src="assets/img/' + F[k].img + '.webp?v=' + (window.SD_VERSION || '') + '" onerror="this.outerHTML=\'<i class=fd style=background:' + F[k].col + '></i>\'"><span><b style="color:' + F[k].col + '">' + F[k].ad + '</b> · ' + tier(v) + ' (' + (v > 0 ? '+' : '') + v + ')<div class="fb"><s></s><u style="background:' + F[k].col + ';' + (v >= 0 ? 'left:50%' : 'right:50%') + ';width:' + w + '%"></u></div><small>' + EFF[k](v) + '</small></span></div>'; }
     h += '<div class="facb"><button class="act" data-fac="filo" ' + (save.kredi < 300 ? 'disabled' : '') + '>Filoya bağış · 300</button><button class="act" data-fac="korsan" ' + (save.kredi < 300 ? 'disabled' : '') + '>Korsanlara haraç · 300</button></div>';
     h += '<div class="dim" style="margin-top:6px">Korsan avlamak Filoyu, satış ve yardım Loncayı güçlendirir. Korsanlarla arayı haraçla düzeltebilirsin; ama Filo bunu sevmez.</div>';
     box.insertAdjacentHTML('beforeend', h);
@@ -7677,8 +7678,24 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #dock .sect,html body #dock .acch{border:0 !important;border-image:none !important;border-bottom:1px solid var(--v2l) !important;border-radius:0 !important;background:none !important;box-shadow:none !important;
     margin:18px 0 8px !important;padding:0 0 6px !important;font:600 11px/1.2 var(--font) !important;letter-spacing:.2em;text-transform:uppercase;color:var(--v2d) !important;cursor:default;text-shadow:none !important}
   html body #dock .acch::after,html body #dock .acch::before{display:none !important;content:none !important}
+
+  /* açılır bölüm başlıkları: dokunulabilir şerit + ok */
+  html body #dock .acch{display:flex !important;align-items:center;justify-content:space-between;cursor:pointer !important;margin:10px 0 4px !important;padding:11px 12px !important;
+    background:rgba(255,255,255,.04) !important;border:1px solid rgba(220,235,245,.1) !important;border-left:2px solid rgba(143,227,255,.55) !important;border-radius:3px !important;
+    font:600 12px/1.2 var(--font) !important;letter-spacing:.2em !important;color:#e9f1f7 !important;user-select:none}
+  html body #dock .acch::after{content:"" !important;display:block !important;width:7px;height:7px;border-right:1.6px solid #e9f1f7;border-bottom:1.6px solid #e9f1f7;transform:rotate(-45deg);transition:transform .2s;margin-right:4px;flex:0 0 auto}
+  html body #dock .acch.op::after{transform:rotate(45deg)}
+  html body #dock .acch.op{background:rgba(143,227,255,.07) !important}
+  html body #dock .acch:active{background:rgba(255,255,255,.09) !important}
+  /* satır içinde başlık belirgin, açıklama küçük ve soluk */
+  html body #dock .line > span:first-child,html body #dock .ctc > span:first-child{font-size:14px !important;font-weight:600 !important;color:#e9f1f7 !important;line-height:1.35}
+  html body #dock .line .dim,html body #dock .ctc .dim,html body #dock .wpc p{font-size:12px !important;font-weight:400 !important;color:#8ea2b6 !important;letter-spacing:.01em}
+  html body #dock #dcont > div > .dim,html body #dock #dcont > .dim,html body #dock .card div.dim:not(.line *):not(.ctc *){font-size:11.5px !important;color:#7d90a4 !important;font-style:normal}
+  html body #dock .line b{font-weight:600}
   html body #dock .pilotRow{display:flex !important;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);color:var(--v2t);font-size:13px}
   html body #dock:not([data-t="more"]) .pilotRow{display:none !important}
+  html body #dock .pilotRow.accx,html body #dock #dcont .accx{display:none !important}
+  html body #dock .facr img{width:44px !important;height:47px !important;object-fit:contain}
   html body #dock .pilotRow input{flex:1;padding:6px 10px !important;font-size:13px !important}
   html body #dock .hgstat{border:0 !important;border-image:none !important;background:none !important;box-shadow:none !important;padding:4px 0 !important;margin:6px 0 !important}
   html body #dock .hgstat i{background:rgba(255,255,255,.1) !important;border:0 !important;border-image:none !important;height:3px !important;border-radius:2px !important;box-shadow:none !important}
@@ -7928,6 +7945,19 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #awayCard .tl.m i{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='6' stroke-width='1.1'/><path d='M14.2 9.6a3 3 0 1 0 0 4.8' /></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='6' stroke-width='1.1'/><path d='M14.2 9.6a3 3 0 1 0 0 4.8' /></svg>")}
   html body #awayCard .tl.r i{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l2.2 6.5L20 12l-5.8 2.5L12 21l-2.2-6.5L4 12l5.8-2.5z'/><circle cx='12' cy='12' r='1.6' fill='white' stroke='none'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l2.2 6.5L20 12l-5.8 2.5L12 21l-2.2-6.5L4 12l5.8-2.5z'/><circle cx='12' cy='12' r='1.6' fill='white' stroke='none'/></svg>")}
   html body #awayCard .tl.g i{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><ellipse cx='12' cy='12' rx='9' ry='4'/><path d='M12 4v16'/><rect x='10' y='9.5' width='4' height='5' rx='.8' fill='white' stroke='none'/></svg>");mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><ellipse cx='12' cy='12' rx='9' ry='4'/><path d='M12 4v16'/><rect x='10' y='9.5' width='4' height='5' rx='.8' fill='white' stroke='none'/></svg>")}
+
+  /* karşılama kartı: rozet ikonlar ve küçük ayrıntı yazıları */
+  html body #awayCard .tl i,html body #awayCard .tl.m i,html body #awayCard .tl.r i,html body #awayCard .tl.g i{width:40px !important;height:40px !important;background:var(--c) !important;-webkit-mask:center/contain no-repeat !important;mask:center/contain no-repeat !important}
+  html body #awayCard .tl.m i{-webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.5%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpolygon%20points%3D%278%2C1.5%2024%2C1.5%2031%2C16%2024%2C30.5%208%2C30.5%201%2C16%27%20stroke-width%3D%271.2%27%20opacity%3D%27.55%27/%3E%3Cg%20transform%3D%27translate%2816%2016%29%20scale%280.857%29%20translate%28-10.75%20-11.75%29%27%20stroke-width%3D%271.75%27%3E%3Crect%20x%3D%273%27%20y%3D%2715%27%20width%3D%273.2%27%20height%3D%275%27%20rx%3D%27.6%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Crect%20x%3D%278.6%27%20y%3D%2712%27%20width%3D%273.2%27%20height%3D%278%27%20rx%3D%27.6%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Crect%20x%3D%2714.2%27%20y%3D%279%27%20width%3D%273.2%27%20height%3D%2711%27%20rx%3D%27.6%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Cpath%20d%3D%27M2.5%2011.5l5-4%204%202.5%207-6%27/%3E%3Cpath%20d%3D%27M15.5%204h3.5v3.5%27/%3E%3C/g%3E%3C/svg%3E") !important;mask-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.5%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpolygon%20points%3D%278%2C1.5%2024%2C1.5%2031%2C16%2024%2C30.5%208%2C30.5%201%2C16%27%20stroke-width%3D%271.2%27%20opacity%3D%27.55%27/%3E%3Cg%20transform%3D%27translate%2816%2016%29%20scale%280.857%29%20translate%28-10.75%20-11.75%29%27%20stroke-width%3D%271.75%27%3E%3Crect%20x%3D%273%27%20y%3D%2715%27%20width%3D%273.2%27%20height%3D%275%27%20rx%3D%27.6%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Crect%20x%3D%278.6%27%20y%3D%2712%27%20width%3D%273.2%27%20height%3D%278%27%20rx%3D%27.6%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Crect%20x%3D%2714.2%27%20y%3D%279%27%20width%3D%273.2%27%20height%3D%2711%27%20rx%3D%27.6%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Cpath%20d%3D%27M2.5%2011.5l5-4%204%202.5%207-6%27/%3E%3Cpath%20d%3D%27M15.5%204h3.5v3.5%27/%3E%3C/g%3E%3C/svg%3E") !important}
+  html body #awayCard .tl.r i{-webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.5%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpolygon%20points%3D%278%2C1.5%2024%2C1.5%2031%2C16%2024%2C30.5%208%2C30.5%201%2C16%27%20stroke-width%3D%271.2%27%20opacity%3D%27.55%27/%3E%3Cg%20transform%3D%27translate%2816%2016%29%20scale%280.765%29%20translate%28-12.00%20-11.25%29%27%20stroke-width%3D%271.96%27%3E%3Cpath%20d%3D%27M12%203.5l9%2015.5H3z%27/%3E%3Crect%20x%3D%2711.1%27%20y%3D%278.5%27%20width%3D%271.8%27%20height%3D%275.5%27%20rx%3D%27.9%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2716.3%27%20r%3D%271.1%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3C/g%3E%3C/svg%3E") !important;mask-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.5%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpolygon%20points%3D%278%2C1.5%2024%2C1.5%2031%2C16%2024%2C30.5%208%2C30.5%201%2C16%27%20stroke-width%3D%271.2%27%20opacity%3D%27.55%27/%3E%3Cg%20transform%3D%27translate%2816%2016%29%20scale%280.765%29%20translate%28-12.00%20-11.25%29%27%20stroke-width%3D%271.96%27%3E%3Cpath%20d%3D%27M12%203.5l9%2015.5H3z%27/%3E%3Crect%20x%3D%2711.1%27%20y%3D%278.5%27%20width%3D%271.8%27%20height%3D%275.5%27%20rx%3D%27.9%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2716.3%27%20r%3D%271.1%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3C/g%3E%3C/svg%3E") !important}
+  html body #awayCard .tl.g i{-webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.5%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpolygon%20points%3D%278%2C1.5%2024%2C1.5%2031%2C16%2024%2C30.5%208%2C30.5%201%2C16%27%20stroke-width%3D%271.2%27%20opacity%3D%27.55%27/%3E%3Cg%20transform%3D%27translate%2816%2016%29%20scale%280.728%29%20translate%28-12.00%20-12.35%29%27%20stroke-width%3D%272.06%27%3E%3Cellipse%20cx%3D%2712%27%20cy%3D%279%27%20rx%3D%279.5%27%20ry%3D%273.6%27/%3E%3Crect%20x%3D%279.6%27%20y%3D%273.5%27%20width%3D%274.8%27%20height%3D%2711%27%20rx%3D%271.4%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Cpath%20d%3D%27M12%2014.5v2.5%27%20stroke-width%3D%271.65%27/%3E%3Cpath%20d%3D%27M12%2018l3.6%203.2h-7.2z%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3C/g%3E%3C/svg%3E") !important;mask-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.5%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpolygon%20points%3D%278%2C1.5%2024%2C1.5%2031%2C16%2024%2C30.5%208%2C30.5%201%2C16%27%20stroke-width%3D%271.2%27%20opacity%3D%27.55%27/%3E%3Cg%20transform%3D%27translate%2816%2016%29%20scale%280.728%29%20translate%28-12.00%20-12.35%29%27%20stroke-width%3D%272.06%27%3E%3Cellipse%20cx%3D%2712%27%20cy%3D%279%27%20rx%3D%279.5%27%20ry%3D%273.6%27/%3E%3Crect%20x%3D%279.6%27%20y%3D%273.5%27%20width%3D%274.8%27%20height%3D%2711%27%20rx%3D%271.4%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3Cpath%20d%3D%27M12%2014.5v2.5%27%20stroke-width%3D%271.65%27/%3E%3Cpath%20d%3D%27M12%2018l3.6%203.2h-7.2z%27%20fill%3D%27white%27%20stroke%3D%27none%27/%3E%3C/g%3E%3C/svg%3E") !important}
+  html body #awayCard .tl b{font-size:20px !important;margin-top:3px}
+  html body #awayCard .tl span{font-size:11px !important;letter-spacing:.12em;text-transform:uppercase;color:#8ea2b6 !important}
+  html body #awayCard .sum{font-size:13px !important;line-height:1.45;color:#c9d6e2 !important;margin:10px 4px !important}
+  html body #awayCard li{font-size:12.5px !important;line-height:1.45 !important;margin:5px 0 !important;color:#c9d6e2}
+  html body #awayCard li b{font-weight:600 !important}
+  html body #awayCard li:before{width:5px !important;height:5px !important;top:7px !important}
+  html body #awayCard .det ul{margin:4px 0 10px !important;padding:0 6px !important}
   html body #awayCard h3{font:600 15px var(--font) !important;letter-spacing:.32em !important;color:#e9f1f7 !important;text-shadow:none !important;background:none !important;-webkit-text-fill-color:#e9f1f7 !important}
   /* beyaz (alınabilir) düğmelerde parça ikonları koyu */
   html body button.act.go img,html body button.act.buy img,html body button.act.go .pi,html body button.act.buy .pi{filter:brightness(0) !important;opacity:.85}
@@ -7940,6 +7970,65 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #stage #bBrake.btn,html body #bBrake.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 78px) !important}
   html body #stage #snd.btn,html body #snd.btn,html body #stage #msgBtn.btn,html body #msgBtn.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 6px) !important}
   html body #stage #bComm.btn,html body #bComm.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 42px) !important}
+  `;
+  document.head.appendChild(st);
+}
+
+// ---- v3.2: çakışmasız, daha küçük düğme kümesi (konumlar altıgen çakışma denetimiyle hesaplandı, aralık 4px)
+{
+  const st = document.createElement('style');
+  st.textContent = `
+  html body #stage #bLaser.btn,html body #bLaser.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 6px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 8px) !important;width:82px !important;height:82px !important}
+  html body #stage #bThrust.btn,html body #bThrust.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 84px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 8px) !important;width:56px !important;height:56px !important}
+  html body #stage #bLock.btn,html body #bLock.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 128px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 38px) !important;width:56px !important;height:56px !important}
+  html body #stage #bMissile.btn,html body #bMissile.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 172px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 8px) !important;width:56px !important;height:56px !important}
+  html body #stage #bBoost.btn,html body #bBoost.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 19px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 94px) !important;width:56px !important;height:56px !important}
+  html body #stage #bBrake.btn,html body #bBrake.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 66.5px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 70px) !important;width:56px !important;height:56px !important}
+  html body #bLaser.btn{font-size:8.5px !important}
+  html body .btn:not(#bDock)::before{width:42% !important;height:42% !important}
+  `;
+  document.head.appendChild(st);
+}
+
+// =====================  v3.3: bildirim düzeni — her tür bildirim hep aynı yerde  =====================
+//  ÜST ORTA: kısa sistem bildirimi (tek tek, sırayla)   SOL ÜST: telsiz (en çok 3 satır)
+//  SOL SÜTUN: rehber → sinyal kartı → görev takibi (alt alta, üst üste binmez)
+//  ORTA (nişangâh altı): kritik uyarı ve kenetlenme   ALT ORTA: konum/durum satırı
+{
+  // 1) sistem bildirimleri: kuyruk, aynı mesaj tekrar etmez
+  const TQ = []; let tBusy = false, tCur = '', tTimer = null;
+  const tShow = () => {
+    if (!TQ.length){ tBusy = false; tCur = ''; return; }
+    const [msg, ms] = TQ.shift(); tBusy = true; tCur = msg;
+    const t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(tTimer); tTimer = setTimeout(() => { t.classList.remove('on'); setTimeout(tShow, 220); }, Math.min(ms || 2400, TQ.length ? 1800 : 6000));
+  };
+  toast = function(msg, ms){
+    if (msg === tCur || TQ.some(q => q[0] === msg)) return;
+    TQ.push([msg, ms]); while (TQ.length > 3) TQ.shift();
+    if (!tBusy) tShow();
+  };
+  // 2) sol sütun: rehber, sinyal, görev takibi tek kapta
+  const col = document.createElement('div'); col.id = 'leftCol'; document.body.appendChild(col);
+  const adopt = () => { for (const id of ['radio', 'tut', 'sig', 'ctTrack']){ const e = $(id); if (e && e.parentNode !== col) col.appendChild(e); } };
+  adopt(); setTimeout(adopt, 0); setTimeout(adopt, 1500);
+  // 3) telsiz: en çok 3 satır
+  { const box = $('radio'); if (box) new MutationObserver(() => { while (box.children.length > 3) box.removeChild(box.children[0]); }).observe(box, { childList: true }); }
+  const st = document.createElement('style');
+  st.textContent = `
+  html body #toast{top:calc(env(safe-area-inset-top,0px) + 10px) !important;left:50% !important;transform:translateX(-50%) !important;max-width:min(460px,52vw) !important;text-align:center;z-index:8 !important}
+  body:has(#bossBar[style*="block"]) #toast{top:calc(env(safe-area-inset-top,0px) + 54px) !important}
+  html body #radio{max-width:100% !important;gap:3px !important}
+  html body #hint{display:none !important}
+  html body #sig button,html body #sig button.n{border:1px solid rgba(220,235,245,.32) !important;border-image:none !important;border-radius:999px !important;background:rgba(255,255,255,.04) !important;color:#e9f1f7 !important;font:600 12px var(--font) !important;letter-spacing:.06em;padding:6px 10px !important;text-shadow:none !important}
+  html body #sig button:not(.n){background:#e9f1f7 !important;color:#0a1220 !important;border-color:transparent !important}
+  html body #sig b{color:#e9f1f7 !important;letter-spacing:.06em}
+  #leftCol{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 70px);width:min(250px,30vw);z-index:7;display:flex;flex-direction:column;gap:8px;pointer-events:none;overflow:hidden}
+  #leftCol > *{position:relative !important;left:auto !important;top:auto !important;right:auto !important;bottom:auto !important;transform:none !important;width:100% !important;max-width:100% !important;margin:0 !important;flex:0 0 auto}
+  #leftCol > #tut,#leftCol > #sig{pointer-events:auto}
+  html body #sig{background:var(--v2bg) !important;border:1px solid var(--v2l) !important;border-left:2px solid rgba(143,227,255,.7) !important;border-radius:4px !important;box-shadow:0 8px 24px rgba(0,0,0,.4) !important}
+  body:has(#dock:not(.hidden)) #leftCol{display:none}
+  @media (max-height:520px){#leftCol{top:calc(env(safe-area-inset-top,0px) + 6px);width:min(240px,28vw);gap:6px}}
   `;
   document.head.appendChild(st);
 }
