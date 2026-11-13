@@ -9441,4 +9441,15 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         let i = bs.findIndex(b => b.classList.contains('on')); if (i < 0) i = 0; const n = bs[(i + (+a.dataset.nav) + bs.length) % bs.length]; n.click(); }, true);
       const st = document.createElement('style'); st.textContent = 'html body #dock #dtabs button.tnav{min-width:30px;padding:2px 8px !important;font:600 18px/1 var(--font) !important;letter-spacing:0 !important;color:var(--v2t,#e9f1f7) !important;background:rgba(255,255,255,.05) !important;border:1px solid var(--v2l,rgba(220,235,245,.14)) !important;border-radius:4px !important;margin:0 6px !important}html body #dock #dtabs button.tnav:active{background:rgba(255,255,255,.16) !important}';
       document.head.appendChild(st); } }
+
+  // =====  çevrimdışı: service worker'ı kaydet; bu oturumda yüklenen dosyaları (görsel, ses, kod) önbelleğe yolla
+  (function(){
+    if (!('serviceWorker' in navigator) || !(location.protocol === 'https:' || location.hostname === 'localhost')) return;
+    const report = () => { try { const c = navigator.serviceWorker.controller || (window.__swReg && window.__swReg.active); if (!c) return;
+      const urls = [...new Set(performance.getEntriesByType('resource').map(r => r.name).filter(u => u.indexOf(location.origin) === 0 && !/\/sw\.js/.test(u)))]; urls.push(location.href.split('#')[0]);
+      c.postMessage({ type: 'cache', urls }); } catch (e) {} };
+    navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(() => { setTimeout(report, 4000); setInterval(report, 60000); }); }).catch(() => {});
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') report(); });
+    try { performance.setResourceTimingBufferSize(2000); } catch (e) {}
+  })();
 })();

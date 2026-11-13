@@ -96,3 +96,4 @@ Görseller `assets/img/` içinde, adları kodda nerede kullanıldıklarını sö
 - Seviyeler (30) ve rütbe rozetleri (rütbeye göre çerçeve, yükseldikçe çoğalan parıltılar ve kuyruklu yıldız izleri; Efsane hepsini birleştirir); seviye atlama ekranı. Yetenek ağacı dal sekmeleri, kademe şeritleri ve bağlantılı düğümlerle.
 - Gemi geliştirme kaldırıldı; yerine yetenek ağacı: 4 dal (madencilik, savaş, pilotaj, ticaret), 3 kademe, 20 yetenek. Üst kademeler dalda harcanan puanla açılır. Gövde ve kalkan gemiden, hasar silah ve roketlerden gelir; eski geliştirmelerin kredisi ve parçaları iade edilir.
 
+- Çevrimdışı oyun: oyun bir kez internetle açıldıktan sonra internetsiz de açılır (service worker). Kod, sesler, müzik ve yazı tipleri hemen; görseller oynadıkça saklanır. İnternet varken her açılışta yeni sürüm gelir. Ana ekrana eklenince oyunun amblemiyle tam ekran uygulama gibi açılır.
