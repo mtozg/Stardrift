@@ -9013,7 +9013,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       + `<path d='M16 29 H48' stroke='#6b7789' stroke-width='1.2'/><circle cx='32' cy='27' r='6.5' fill='#1a2433'/><circle cx='32' cy='27' r='4.2' fill='${c}'/><circle cx='30.8' cy='25.8' r='1.4' fill='#fff' opacity='.8'/>`
       + `<path d='M18 38 L10 48 L14 52 M46 38 L54 48 L50 52' stroke='#aab4c2' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/><path d='M32 13 V6 M29 6 H35' stroke='#aab4c2' stroke-width='2' stroke-linecap='round'/>` + RIV([[22, 35], [42, 35], [25, 20], [39, 20]])
   };
-  const icon = (k, i) => { const c = HUE[i % HUE.length];
+  const icon = (k, i) => { if (window.__itIcon3d) return window.__itIcon3d(k, i); const c = HUE[i % HUE.length];
     return '<img class="iti" alt="" src="data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='mt' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#f2f5f8'/><stop offset='.45' stop-color='#c3ccd6'/><stop offset='1' stop-color='#8693a3'/></linearGradient></defs>" + ICO[k](c) + '</svg>') + '">'; };
   window.__itIcon = icon;
   const eqLines = s => EQ[s].items.map((q, i) => { const on = save.eq[s] === q.id, own = !q.f || save.eqOwn.includes(s + ':' + q.id);
@@ -9077,7 +9077,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #dock .acch,html body #dock .sect{text-transform:none !important;letter-spacing:.02em !important}html body #dock .acch{font-size:14px !important;font-weight:600 !important}
   html body #dock .pilotRow{display:none !important}
   html body #dock .acch,html body #dock .sect,.lq b,#skModal .nd em,#skModal .ph{text-transform:capitalize !important}html body #dock .acch *,html body #dock .sect *{text-transform:none !important}
-  img.iti{width:46px;height:46px;border-radius:8px;background:radial-gradient(circle at 50% 55%,rgba(40,70,100,.35),rgba(20,32,46,0) 70%);flex:none;margin-right:10px;vertical-align:middle}.line.itl{justify-content:flex-start !important}.line.itl>span{flex:1}.wpc h4 img.iti{width:34px;height:34px;margin-right:8px}.wpc h4{align-items:center}
+  img.iti{width:52px;height:52px;border-radius:8px;background:radial-gradient(circle at 50% 55%,rgba(40,70,100,.35),rgba(20,32,46,0) 70%);flex:none;margin-right:10px;vertical-align:middle}.line.itl{justify-content:flex-start !important}.line.itl>span{flex:1}.wpc h4 img.iti{width:34px;height:34px;margin-right:8px}.wpc h4{align-items:center}
   html body #dock #hgBox > .acch,html body #dock #lqBox > .acch,html body #dock #facBox > .acch:only-of-type{display:none !important}
   html body #dock #lqBox > .accx{display:block !important}
   #dkStat .rnk{cursor:pointer}html body #dock #dkStat .rnk img.rkc{display:inline-block !important;width:20px;height:20px;vertical-align:-5px;margin-right:4px}
@@ -9205,5 +9205,92 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #setP .kr .act{min-width:92px;padding:5px 10px}
   @media (max-height:480px){#ctrlSel{gap:8px}#ctrlSel .cc{padding:10px 12px}#ctrlSel .cc svg{max-height:22vh}#ctrlSel .cc p{font-size:11.5px;min-height:0}}`;
   document.head.appendChild(st);
+}
+
+// =====================  Cephanelik simgeleri: oyunun 3B motoruyla çizilen gerçek modeller (metal, perçin, holografik halka)  =====================
+{
+  const HUEC = [0x5fe3ff, 0xffb84a, 0xff5f80, 0x5fe39a, 0xb78cff];
+  let R3 = null, CACHE = {};
+  function rig(){
+    if (R3) return R3;
+    const cv = document.createElement('canvas'); cv.width = cv.height = 192;
+    const r = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, preserveDrawingBuffer: true }); r.setClearColor(0x000000, 0);
+    const cam = new THREE.PerspectiveCamera(24, 1, 0.1, 50); cam.position.set(2.6, 2.0, 3.2); cam.lookAt(0, -0.05, 0);
+    R3 = { r, cam, cv }; return R3;
+  }
+  const M = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, metalness: 0.5, roughness: 0.42 }, o || {}));
+  const lathe = (pts, seg) => new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), seg || 40);
+  function rivets(g, r, y, n, mat){ for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2, s = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), mat); s.position.set(Math.cos(a) * r, y, Math.sin(a) * r); g.add(s); } }
+  function band(g, r, y, h, mat){ const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 40, 1, true), mat); m.position.y = y; g.add(m); }
+  function ring(g, r, y, mat, tube){ const t = new THREE.Mesh(new THREE.TorusGeometry(r, tube || 0.02, 10, 64), mat); t.rotation.x = Math.PI / 2; t.position.y = y; g.add(t); return t; }
+  const BUILD = {
+    mermi(g, A){ const body = M(0xe4e9ef), dark = M(0x3b4658, { metalness: 0.4, roughness: 0.5 });
+      g.add(new THREE.Mesh(lathe([[0, -0.62], [0.24, -0.62], [0.3, -0.55], [0.3, -0.36], [0.27, -0.33], [0.27, 0.33], [0.3, 0.36], [0.3, 0.55], [0.24, 0.62], [0, 0.62]]), body));
+      const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.285, 0.285, 0.56, 40), M(A, { emissive: A, emissiveIntensity: 0.7, metalness: 0.1, roughness: 0.15 })); g.add(glass);
+      for (let i = 0; i < 4; i++){ const b = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.6, 0.06), body); const a = i * Math.PI / 2 + Math.PI / 4; b.position.set(Math.cos(a) * 0.29, 0, Math.sin(a) * 0.29); g.add(b); }
+      band(g, 0.305, 0.45, 0.05, dark); band(g, 0.305, -0.45, 0.05, dark); rivets(g, 0.305, 0.5, 10, dark); rivets(g, 0.305, -0.5, 10, dark);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.12, 20), dark); cap.position.y = 0.68; g.add(cap); g.rotation.z = -0.35; },
+    baslik(g, A){ const body = M(0xe4e9ef), dark = M(0x3b4658, { metalness: 0.4, roughness: 0.5 });
+      g.add(new THREE.Mesh(lathe([[0, -0.7], [0.3, -0.7], [0.32, -0.55], [0.26, -0.5], [0.26, -0.2], [0.2, 0.1], [0.15, 0.45], [0.17, 0.5], [0.17, 0.6], [0.0, 0.6]]), body));
+      for (const y of [-0.4, -0.25, 0.25]){ const t = ring(g, y > 0 ? 0.17 : 0.27, y, dark, 0.025); void t; }
+      const lens = new THREE.Mesh(new THREE.SphereGeometry(0.12, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), M(A, { emissive: A, emissiveIntensity: 0.8, metalness: 0, roughness: 0.1 })); lens.position.y = 0.6; g.add(lens);
+      for (let i = 0; i < 3; i++){ const f = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.35, 0.16), body); const a = i * Math.PI * 2 / 3; f.position.set(Math.cos(a) * 0.3, -0.45, Math.sin(a) * 0.3); f.rotation.y = -a; g.add(f); }
+      rivets(g, 0.3, -0.62, 10, dark); g.rotation.z = -0.9; g.rotation.x = 0.25; },
+    roket(g, A){ const body = M(0xe4e9ef), dark = M(0x3b4658, { metalness: 0.4, roughness: 0.5 });
+      g.add(new THREE.Mesh(lathe([[0, -0.75], [0.12, -0.75], [0.17, -0.6], [0.17, 0.3], [0.14, 0.5], [0.07, 0.68], [0, 0.75]]), body));
+      band(g, 0.175, 0.05, 0.12, M(A, { emissive: A, emissiveIntensity: 0.75, metalness: 0.1, roughness: 0.2 })); band(g, 0.176, -0.45, 0.04, dark);
+      for (let i = 0; i < 4; i++){ const f = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.3, 0.22), body); const a = i * Math.PI / 2; f.position.set(Math.cos(a) * 0.24, -0.6, Math.sin(a) * 0.24); f.rotation.y = -a; g.add(f); }
+      const noz = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.08, 20), dark); noz.position.y = -0.78; g.add(noz);
+      g.rotation.z = -0.95; g.rotation.x = 0.3; },
+    rbaslik(g, A){ const body = M(0xe4e9ef), dark = M(0x3b4658, { metalness: 0.4, roughness: 0.5 });
+      g.add(new THREE.Mesh(lathe([[0, 0.65], [0.08, 0.55], [0.2, 0.3], [0.3, 0.0], [0.34, -0.2], [0.34, -0.3], [0, -0.3]]), body));
+      band(g, 0.345, -0.25, 0.08, M(A, { emissive: A, emissiveIntensity: 0.75, metalness: 0.1, roughness: 0.2 }));
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.18, 40), dark); base.position.y = -0.4; g.add(base); rivets(g, 0.305, -0.4, 12, body);
+      ring(g, 0.22, 0.25, dark, 0.02); g.rotation.z = -0.25; },
+    kalkan(g, A){ const body = M(0xe4e9ef), dark = M(0x3b4658, { metalness: 0.4, roughness: 0.5 }), glow = M(A, { emissive: A, emissiveIntensity: 0.75, metalness: 0.1, roughness: 0.2 });
+      g.add(new THREE.Mesh(lathe([[0, -0.62], [0.28, -0.62], [0.34, -0.55], [0.34, -0.12], [0.3, -0.1], [0.3, 0.1], [0.34, 0.12], [0.34, 0.55], [0.28, 0.62], [0, 0.62]]), body));
+      band(g, 0.3, 0, 0.2, glow);
+      for (const y of [-0.42, -0.3, 0.3, 0.42]) ring(g, 0.345, y, dark, 0.018);
+      rivets(g, 0.345, 0.5, 12, dark); rivets(g, 0.345, -0.5, 12, dark);
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.1, 24), dark); top.position.y = 0.66; g.add(top);
+      for (let i = 0; i < 3; i++){ const c = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.012, 6, 48, Math.PI * 0.8), glow); c.rotation.set(Math.PI / 2, 0, i * 2.1); c.position.y = -0.02; g.add(c); }
+      g.rotation.z = -0.3; g.rotation.x = 0.15; },
+    motor(g, A){ const body = M(0xe4e9ef), dark = M(0x3b4658, { metalness: 0.4, roughness: 0.5 });
+      const bell = new THREE.Mesh(lathe([[0.18, 0.1], [0.2, 0.0], [0.28, -0.25], [0.4, -0.55], [0.42, -0.6], [0.36, -0.6], [0.24, -0.3], [0.15, 0.05]], 48), Object.assign(M(0xcfd6df), { side: THREE.DoubleSide })); g.add(bell);
+      const core = new THREE.Mesh(new THREE.CircleGeometry(0.34, 32), new THREE.MeshBasicMaterial({ color: A })); core.rotation.x = Math.PI / 2; core.position.y = -0.5; g.add(core);
+      const blk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.45, 8), body); blk.position.y = 0.32; g.add(blk);
+      band(g, 0.305, 0.32, 0.06, M(A, { emissive: A, emissiveIntensity: 1.2, metalness: 0.1 })); rivets(g, 0.31, 0.5, 8, dark); rivets(g, 0.31, 0.14, 8, dark);
+      for (let i = 0; i < 4; i++){ const p = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5, 8), dark); const a = i * Math.PI / 2 + 0.4; p.position.set(Math.cos(a) * 0.33, 0.1, Math.sin(a) * 0.33); p.rotation.z = 0.25 * Math.cos(a); g.add(p); }
+      g.rotation.z = 0.9; g.rotation.x = 0.35; },
+    robot(g, A){ const body = M(0xe8ecf1, { flatShading: true }), dark = M(0x3b4658, { metalness: 0.4, roughness: 0.5 });
+      const sh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.46, 0), body); g.add(sh);
+      const eyeR = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.06, 24), dark); eyeR.rotation.x = Math.PI / 2; eyeR.position.set(0, 0.04, 0.44); g.add(eyeR);
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.1, 20, 12), M(A, { emissive: A, emissiveIntensity: 0.8, metalness: 0, roughness: 0.1 })); eye.position.set(0, 0.04, 0.47); g.add(eye);
+      for (const s of [-1, 1]){ const a1 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8), dark); a1.position.set(s * 0.45, -0.25, 0.1); a1.rotation.z = s * 0.7; g.add(a1); const cl = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.08), body); cl.position.set(s * 0.6, -0.4, 0.1); g.add(cl); }
+      const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 6), dark); ant.position.set(0.15, 0.55, 0); ant.rotation.z = -0.3; g.add(ant);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshBasicMaterial({ color: A })); tip.position.set(0.2, 0.7, 0); g.add(tip);
+      for (let i = 0; i < 6; i++){ const r = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 16), dark); const a = i / 6 * Math.PI * 2; r.position.set(Math.cos(a) * 0.3, 0.2 * Math.sin(a * 2), Math.sin(a) * 0.3 + 0.18); r.lookAt(r.position.clone().multiplyScalar(2)); g.add(r); }
+      g.rotation.y = 0.65; g.rotation.x = 0.15; }
+  };
+  function render(k, i){
+    const key = k + i; if (CACHE[key]) return CACHE[key];
+    const { r, cam, cv } = rig(), A = HUEC[i % HUEC.length], sc = new THREE.Scene();
+    sc.add(new THREE.HemisphereLight(0xdfe8f5, 0x1a2438, 0.62));
+    const key_ = new THREE.DirectionalLight(0xffffff, 0.95); key_.position.set(-2, 3, 2.5); sc.add(key_);
+    const rim = new THREE.DirectionalLight(A, 0.45); rim.position.set(2, 0.5, -2.5); sc.add(rim);
+    const fill = new THREE.PointLight(A, 0.35, 4); fill.position.set(0, -0.8, 0.6); sc.add(fill);
+    const g = new THREE.Group(); BUILD[k](g, A); sc.add(g);
+    // holografik halka (örnekteki gibi alta yatık ince parlak çember)
+    const hol = new THREE.Group(); hol.position.y = -0.62; sc.add(hol);
+    const h1 = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.012, 8, 96), new THREE.MeshBasicMaterial({ color: A, transparent: true, opacity: 0.95 })); h1.rotation.x = Math.PI / 2; hol.add(h1);
+    const h2 = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.05, 8, 96), new THREE.MeshBasicMaterial({ color: A, transparent: true, opacity: 0.18, depthWrite: false, blending: THREE.AdditiveBlending })); h2.rotation.x = Math.PI / 2; hol.add(h2);
+    const h3 = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.7, 64), new THREE.MeshBasicMaterial({ color: A, transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false })); h3.rotation.x = -Math.PI / 2; hol.add(h3);
+    for (let j = 0; j < 4; j++){ const a = j / 4 * Math.PI * 2 + 0.4, tk = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.012, 0.02), new THREE.MeshBasicMaterial({ color: A })); tk.position.set(Math.cos(a) * 0.72, 0, Math.sin(a) * 0.72); tk.rotation.y = -a; hol.add(tk); }
+    r.render(sc, cam); const url = cv.toDataURL('image/png');
+    sc.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    return (CACHE[key] = url);
+  }
+  const prev = window.__itIcon;
+  window.__itIcon3d = (k, i) => { try { return '<img class="iti i3" alt="" src="' + render(k, i) + '">'; } catch (e) { console.warn(e); return prev ? prev(k, i) : ''; } };
 }
 })();
