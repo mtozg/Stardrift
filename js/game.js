@@ -797,7 +797,7 @@ function killNpc(n, by){
   for (const k in n.cargo) for (let q = 0; q < Math.min(6, n.cargo[k]); q++) spawnOre(p, k);
   if (n.hostile){
     if (by === 'player'){ const bounty = Math.round(rand(90, 160) * SYSC.bounty); save.kredi += bounty; persist(); toast('Korsan gemisi düştü: +' + bounty + ' kredi', 3200); }
-    for (let q = 0; q < 2; q++) spawnOre(p, Math.random() < 0.4 ? 'kristal' : 'demir');
+    for (let q = 0; q < 2; q++) spawnOre(p, Math.random() < 0.5 ? 'hurda' : (typeof SYSORE !== 'undefined' && SYSORE[curSys]) || 'hurda');   // enkaz: hurda ya da o haritanın cevheri
     try { window.__dropParts && window.__dropParts(n, by); } catch (er) {}
     eco.kills++; eco.threat = Math.max(0.6, eco.threat - 0.25); if (near(p, 3500)) radio('Devriye', 'Korsan etkisiz hale getirildi.', '#7be0a4');
   } else {
@@ -1428,7 +1428,7 @@ function update(dt){
         if (d < rr){
           rig.position.copy(n.pos).addScaledVector(tmp, rr);
           if (cl > 0 && time - ramT > 0.6){ ramT = time; const dmg = clamp((cl - 6) * 0.9, 3, 55); hurt(dmg); shake = Math.min(1, 0.3 + cl / 60); burst(rig.position, 0xffd9a0, 10, 45, 0.5); vel.addScaledVector(tmp, cl * 1.02); vel.multiplyScalar(0.75); n.vel.addScaledVector(tmp, -cl * 0.12); setBanner('ÇARPIŞMA! -' + Math.round(dmg), 'bad', 1.4); blip(110, 0.25); }
-        } else if (cl > 22 && d - rr < Math.min(140, cl * 2.2)) warn = n;
+        } else if (cl > 22 && -vel.dot(tmp) > 12 && d - rr < Math.min(140, cl * 2.2)) warn = n;   // yalnızca biz ona doğru gidiyorsak uyar (dururken üstümüze gelen gemi için değil)
       }
       if (warn && time - nwT > 5){ nwT = time; setBanner('ÇARPIŞMA UYARISI', 'bad', 1.2); blip(420, 0.035); }
     }
@@ -2872,7 +2872,7 @@ function liveDock(){
 const SYS = [
   { ad: 'Ankora Sistemi', not: 'Burası senin evin. Titan kayaları ve hurda veren enkazlar var, ortalık sakin. Zorluk: ★', names: null, tint: [1, 1, 1], sky: [1.18, 1.18, 1.28], kr: 1, ice: 1, danger: 1, px: {}, intro: 'Eve döndün.' },
   { ad: 'Kızıl Geçit', not: 'Demirin tek yurdu, ama korsanlar çok. Zorluk ★★ · Düşman gemileri %60 daha dayanıklı, %25 daha sert vurur · Kayaları kırmak %50 daha zor · Cevher satış fiyatları %50, korsan ödülleri %80 daha yüksek', names: { st: ['Kor İstasyonu', 'Pas Üssü', 'Soğuk Kor Durağı', 'Köz Kapısı'], pl: ['Zerha', 'Kavrim', 'Ember', 'Pyra'], moon: 'Küle' }, tint: [1.45, 0.78, 0.62], sky: [1.55, 1.0, 0.95], kr: 0.5, ice: 0.4, danger: 1.7, px: { demir: 0.7, buz: 1.5, kristal: 1.5 }, rock: 1.5, pay: 1.5, hull: 1.6, bounty: 1.8, dmg: 1.25, intro: 'Kızıl bir güneşin altındasın. Korsanlar burada çok.' },
-  { ad: 'Buzul Halka', not: 'Buzun tek yurdu; ortalık sakin ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
+  { ad: 'Buzul Halka', not: 'Buzun tek yurdu; ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
   { ad: 'Zümrüt Sis', not: 'Kristalin tek yurdu, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
 ];
 const GATE_TO = [1, 2, 3, 0, 0, 0], JC0 = 150;
@@ -9339,12 +9339,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // döndür uyarısı ölçeklenen sahnenin dışına: tüm ekranı kaplasın
   { const r = document.getElementById('rotate'); if (r && r.parentElement !== document.body) document.body.appendChild(r); }
   // küçük telefon yatay: sekmeler ikinci satıra, istatistikler sağ üstte kesilmeden
-  { const st = document.createElement('style'); st.textContent = '@media (max-height:520px) and (max-width:780px){html body #dock #dtabs{grid-column:1 / -1 !important;grid-row:2 !important;justify-self:start !important;margin-top:4px !important}html body #dock #dcont{grid-row:3 !important}html body #dock #dkStat{grid-row:1 !important;align-self:start}html body #dock .card > h2{grid-row:1 !important;align-self:center}}'; document.head.appendChild(st); }
+  { const st = document.createElement('style'); st.textContent = '@media (max-width:1320px){html body #dock #dtabs{grid-column:1 / -1 !important;grid-row:2 !important;justify-self:start !important;margin-top:4px !important}html body #dock #dcont{grid-row:3 !important}html body #dock #dkStat{grid-row:1 !important;align-self:start}html body #dock .card > h2{grid-row:1 !important;align-self:center}}'; document.head.appendChild(st); }
 
   // Diğer sekmesi: kayıt kodu (kaydı başka cihaza taşı)
   { const SVH = '<div class="line svx"><span>Kaydını başka cihaza taşı<span class="dim"><br>Burada kodu al, öbür cihazda Diğer → Hesap → Kod gir.</span></span><span style="display:flex;gap:6px"><button class="act" data-sv="exp">Kodu al</button><button class="act" data-sv="imp">Kod gir</button></span></div>';
     // Hesap başlığının altına: o bölümün son öğesinden sonra
-    const put = () => { const f = $('exBox'); if (!f) return; const h = [...f.children].find(c => c.classList.contains('sect') && /^Hesap/.test(c.textContent.trim())); if (!h) return;
+    const put = () => { const f = $('exBox'); if (!f) return;
+      if (!(window.claude && claude.use)) f.querySelectorAll('button[data-cl]').forEach(b => { const l = b.closest('.line'); if (l) l.remove(); });   // bulut kaydı yalnızca Claude içinde çalışır; GitHub Pages'te gizle
+      const h = [...f.children].find(c => c.classList.contains('sect') && /^Hesap/.test(c.textContent.trim())); if (!h) return;
       let last = h; for (let n = h.nextElementSibling; n && !n.classList.contains('sect'); n = n.nextElementSibling) last = n;
       let x = f.querySelector('.svx'); if (x && x.previousElementSibling === last) return; if (x && last === x) return; if (!x){ const t = document.createElement('div'); t.innerHTML = SVH; x = t.firstChild; } last.after(x); };
     const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { put(); } catch (e) {} return r; };
