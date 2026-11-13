@@ -9293,4 +9293,23 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const prev = window.__itIcon;
   window.__itIcon3d = (k, i) => { try { return '<img class="iti i3" alt="" src="' + render(k, i) + '">'; } catch (e) { console.warn(e); return prev ? prev(k, i) : ''; } };
 }
+
+  // =====  ayarlar: bölümler açılır-kapanır başlık (aynı anda tek bölüm açık)
+  (function(){
+    const sp = document.getElementById('setP'); if (!sp) return;
+    let open = null;
+    const apply = () => { sp.querySelectorAll('.sect').forEach(h => { const k = h.textContent.trim(), on = open === k; h.classList.add('acc'); h.classList.toggle('open', on);
+      for (let e = h.nextElementSibling; e && !e.classList.contains('sect') && e.id !== 'ctlSet'; e = e.nextElementSibling) e.hidden = !on; }); };
+    new MutationObserver(apply).observe(sp, { childList: true, subtree: true }); apply();
+    sp.addEventListener('click', e => { const h = e.target.closest('.sect'); if (!h) return; const k = h.textContent.trim(); open = open === k ? null : k; apply(); try { h.scrollIntoView({ block: 'nearest' }); } catch (x) {} });
+    { const _o = window.__openSet; if (_o) window.__openSet = function(){ open = null; const r = _o.apply(this, arguments); apply(); return r; }; }
+    const st = document.createElement('style'); st.textContent = `
+  html body #setP .card .sect.acc{display:flex !important;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;margin:0 !important;padding:13px 4px !important;font-size:12px !important;color:var(--v2t,#dff2ff) !important;border-bottom:1px solid var(--v2l,#18213b)}
+  html body #setP .card .sect.acc::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-4px 6px 0 0;opacity:.7;transition:transform .2s}
+  html body #setP .card .sect.acc.open{color:var(--amber,#ffb454) !important}
+  html body #setP .card .sect.acc.open::after{transform:rotate(-135deg);margin-top:4px}
+  html body #setP .card [hidden]{display:none !important}
+  html body #setP .card .top{margin-bottom:8px}`;
+    document.head.appendChild(st);
+  })();
 })();
