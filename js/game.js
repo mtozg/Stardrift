@@ -9448,7 +9448,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const report = () => { try { const c = navigator.serviceWorker.controller || (window.__swReg && window.__swReg.active); if (!c) return;
       const urls = [...new Set(performance.getEntriesByType('resource').map(r => r.name).filter(u => u.indexOf(location.origin) === 0 && !/\/sw\.js/.test(u)))]; urls.push(location.href.split('#')[0]);
       c.postMessage({ type: 'cache', urls }); } catch (e) {} };
-    navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(() => { setTimeout(report, 4000); setInterval(report, 60000); }); }).catch(() => {});
+    navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(r => { setTimeout(report, 4000); setInterval(report, 60000); try { (navigator.serviceWorker.controller || r.active).postMessage({ type: 'sync' }); } catch (e) {} }); }).catch(() => {});
+    // çevrimdışı paket durumu: Ayarlar'ın altında görünür; ilk kez tamamlanınca bir kez haber verilir
+    navigator.serviceWorker.addEventListener('message', e => { const d = e.data || {}; if (d.type !== 'offline') return; window.__offline = d;
+      const el = document.getElementById('offSt'); if (el) el.textContent = offTxt();
+      if (d.ready){ let seen = false; try { seen = localStorage.getItem('sd_offline') === '1'; } catch (er) {} if (!seen){ try { localStorage.setItem('sd_offline', '1'); } catch (er) {} try { toast('Oyun artık internetsiz de oynanabilir.', 4200); } catch (er) {} } } });
+    const offTxt = () => { const d = window.__offline; if (!d || !d.total) return 'Çevrimdışı paket hazırlanıyor…'; return d.ready ? 'Çevrimdışı oynanabilir' : 'Çevrimdışı paket iniyor: ' + d.done + '/' + d.total; };
+    window.__offTxt = offTxt;
+    const sp = document.getElementById('setP'); if (sp) new MutationObserver(() => { const v = sp.querySelector('.sver'); if (v && !v.querySelector('#offSt')){ v.insertAdjacentHTML('beforeend', '<br><span id="offSt" style="letter-spacing:.06em">' + offTxt() + '</span>'); try { (navigator.serviceWorker.controller || {}).postMessage && navigator.serviceWorker.controller.postMessage({ type: 'status' }); } catch (er) {} } }).observe(sp, { childList: true, subtree: true });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') report(); });
     try { performance.setResourceTimingBufferSize(2000); } catch (e) {}
   })();
