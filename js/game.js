@@ -2119,6 +2119,7 @@ function wreck(){
   const fine = Math.floor(save.kredi * 0.1); save.kredi -= fine; persist();
   rig.position.set(120, 20, 300); const d = BELTS[0].c.clone().sub(rig.position); rig.lookAt(rig.position.clone().sub(d));
   vel.set(0, 0, 0); hp.hull = hp.hullMax; hp.shield = hp.shieldMax; hp.regenT = 0; lock = null; boostBtn = false;
+  for (const n of npcs) if (n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; n.truce = time + 8; }   // yeniden doğunca hemen yine vurulmasın
   setBanner('GEMİ PARÇALANDI', 'bad', 3.5); toast('Gemin parçalandı. Üsse geri getirildin. Kargo kayıp, ' + fine + ' kredi ceza.', 4800);
 }
 function hpTick(dt){
