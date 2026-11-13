@@ -964,7 +964,7 @@ function thinkPirate(n){
       const tp = t === 'player' ? rig.position : t.pos, tv = t === 'player' ? vel : t.vel, d = tp.distanceTo(n.pos);
       if (d > 1100){ n.state = 'roam'; n.tgt = null; return; }
       n.phase += 0.4;
-      if (Math.sin(n.phase * 0.6) > 0.8){ _a.copy(n.pos).sub(tp).setLength(500); _d.copy(tp).add(_a); setDest(n, _d, 0); }     // saldırı turundan sonra çekil
+      if (Math.sin(n.phase * 0.6) > 0.8){ _a.copy(n.pos).sub(tp).setLength(t === 'player' ? Math.min(500, laserRange() * 0.9) : 500); /* oyuncudan çekilirken lazer menzilinin hemen içinde kalır */ _d.copy(tp).add(_a); setDest(n, _d, 0); }     // saldırı turundan sonra çekil
       else { _a.copy(tv).multiplyScalar(clamp(d / (n.speed * 1.1), 0, 3)); _d.copy(tp).add(_a); _l.set(n.strafe * 80, 0, 0).applyQuaternion(n.g.quaternion); _d.add(_l); setDest(n, _d, 60); }
       return;
     }
