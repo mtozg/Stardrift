@@ -9347,4 +9347,13 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       let x = f.querySelector('.svx'); if (x && x.previousElementSibling === last) return; if (x && last === x) return; if (!x){ const t = document.createElement('div'); t.innerHTML = SVH; x = t.firstChild; } last.after(x); };
     const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { put(); } catch (e) {} return r; };
     if (typeof renderExtras === 'function'){ const _x = renderExtras; renderExtras = function(){ const r = _x.apply(this, arguments); try { put(); } catch (e) {} return r; }; } }
+
+  // =====  güncelleme denetimi: tarayıcı eski sayfayı önbellekten açarsa yeni sürümü indirip bir kez yeniden yükle
+  (function(){
+    try { fetch(location.pathname + (location.search || ''), { cache: 'reload' }).then(r => r.ok ? r.text() : '').then(t => {
+      const m = /SD_VERSION\s*=\s*'([^']+)'/.exec(t || ''); if (!m || m[1] === window.SD_VERSION) return;
+      const k = 'sd_upd_' + m[1]; if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, '1');
+      try { if (typeof persist === 'function') persist(); } catch (e) {}
+      location.reload(); }).catch(() => {}); } catch (e) {}
+  })();
 })();
