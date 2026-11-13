@@ -9046,7 +9046,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // ---- sekmeler ve bölümlerin yeri
   const TAB = { trade: 'İstasyon', wp: 'Cephanelik', up: 'Yetenekler' };
   function tabNames(){ document.querySelectorAll('#dock button[data-t]').forEach(b => { const n = TAB[b.dataset.t]; if (!n) return; const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT); let x; while ((x = w.nextNode())) if (/Ticaret|Silahlar|Geliştir/.test(x.nodeValue)) x.nodeValue = x.nodeValue.replace(/Ticaret|Silahlar|Geliştir/, n); }); }
-  for (const ev of ['click', 'pointerdown', 'pointerup', 'touchstart', 'touchend']) document.addEventListener(ev, e => { const b = e.target.closest && e.target.closest('#dock button[data-t="up"]'); if (!b) return; e.stopPropagation(); e.preventDefault(); if (ev === 'click') window.__skOpen && window.__skOpen(); }, true);
+  // Yetenekler sekmesi: parmak kalkınca hemen aç (dokunmatikte click hiç gelmeyebilir), çift açılmayı önle
+  { let last = 0; for (const ev of ['click', 'pointerdown', 'pointerup', 'touchstart', 'touchend']) document.addEventListener(ev, e => { const b = e.target.closest && e.target.closest('#dock button[data-t="up"]'); if (!b) return; e.stopPropagation(); if (ev !== 'pointerup' && ev !== 'click') e.preventDefault();
+      if ((ev === 'pointerup' || ev === 'click') && Date.now() - last > 400){ last = Date.now(); window.__skOpen && window.__skOpen(); } }, true); }
   const grab = (srcId, re) => { const src = $(srcId); if (!src) return null; const h = [...src.children].find(k => k.classList.contains('sect') && re.test((k.dataset.t0 || k.textContent).trim())); if (!h) return null; const out = [h]; let n = h.nextElementSibling; while (n && !n.classList.contains('sect')){ out.push(n); n = n.nextElementSibling; } return out; };
   const move = (srcId, re, dstId) => { const g = grab(srcId, re), dst = $(dstId); if (g && dst){ dst.replaceChildren(...g); dst.dataset.src = srcId; } };
   const drop = (srcId, re) => { const g = grab(srcId, re); if (g) g.forEach(n => n.remove()); };
@@ -9347,4 +9349,37 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       let x = f.querySelector('.svx'); if (x && x.previousElementSibling === last) return; if (x && last === x) return; if (!x){ const t = document.createElement('div'); t.innerHTML = SVH; x = t.firstChild; } last.after(x); };
     const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { put(); } catch (e) {} return r; };
     if (typeof renderExtras === 'function'){ const _x = renderExtras; renderExtras = function(){ const r = _x.apply(this, arguments); try { put(); } catch (e) {} return r; }; } }
+
+  // =====  güncelleme denetimi: tarayıcı eski sayfayı önbellekten açarsa yeni sürümü indirip bir kez yeniden yükle
+  (function(){
+    try { fetch(location.pathname + (location.search || ''), { cache: 'reload' }).then(r => r.ok ? r.text() : '').then(t => {
+      const m = /SD_VERSION\s*=\s*'([^']+)'/.exec(t || ''); if (!m || m[1] === window.SD_VERSION) return;
+      const k = 'sd_upd_' + m[1]; if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, '1');
+      try { if (typeof persist === 'function') persist(); } catch (e) {}
+      location.reload(); }).catch(() => {}); } catch (e) {}
+  })();
+
+  // yetenek ağacı: arkadaki menü yazıları görünmesin, alçak ekranlarda (telefon yatay, adres çubuğu açık) sığsın
+  { const st = document.createElement('style'); st.textContent = `
+  html body #skModal{z-index:92;background:radial-gradient(ellipse at 50% 30%,#0e1a30,#03060e) #03060e}
+  @media (max-height:460px){
+    html body #skModal{padding:calc(env(safe-area-inset-top,0px) + 4px) calc(env(safe-area-inset-right,0px) + 6px) calc(env(safe-area-inset-bottom,0px) + 4px) calc(env(safe-area-inset-left,0px) + 6px)}
+    html body #skModal .bx{height:100%;width:100%}
+    html body #skModal .tabs{margin-bottom:5px}
+    html body #skModal .tabs button{padding:5px 3px;font-size:10px;letter-spacing:.14em}
+    html body #skModal .tabs .ar,html body #skModal .tabs .x{flex-basis:28px;font-size:15px}
+    html body #skModal .th{padding:3px 0;font-size:10.5px}
+    html body #skModal .body{gap:8px}
+    html body #skModal .tree{overflow-y:auto;overflow-x:hidden}
+  }`; document.head.appendChild(st); }
+
+  // istasyon menüsü: sekmeler arasında ‹ › düğmeleriyle geçiş (Yetenekler ayrı pencere açtığı için atlanır)
+  { const tb = document.getElementById('dtabs');
+    if (tb){ const add = () => { if (tb.querySelector('.tnav')) return; tb.insertAdjacentHTML('afterbegin', '<button class="tnav" data-nav="-1" aria-label="Önceki">‹</button>'); tb.insertAdjacentHTML('beforeend', '<button class="tnav" data-nav="1" aria-label="Sonraki">›</button>'); };
+      new MutationObserver(add).observe(tb, { childList: true }); add();
+      tb.addEventListener('click', e => { const a = e.target.closest('button[data-nav]'); if (!a) return; e.stopPropagation();
+        const bs = [...tb.querySelectorAll('button[data-t]')].filter(b => b.dataset.t !== 'up'); if (!bs.length) return;
+        let i = bs.findIndex(b => b.classList.contains('on')); if (i < 0) i = 0; const n = bs[(i + (+a.dataset.nav) + bs.length) % bs.length]; n.click(); }, true);
+      const st = document.createElement('style'); st.textContent = 'html body #dock #dtabs button.tnav{min-width:30px;padding:2px 8px !important;font:600 18px/1 var(--font) !important;letter-spacing:0 !important;color:var(--v2t,#e9f1f7) !important;background:rgba(255,255,255,.05) !important;border:1px solid var(--v2l,rgba(220,235,245,.14)) !important;border-radius:4px !important;margin:0 6px !important}html body #dock #dtabs button.tnav:active{background:rgba(255,255,255,.16) !important}';
+      document.head.appendChild(st); } }
 })();
