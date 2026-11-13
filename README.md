@@ -2,7 +2,7 @@
 
 **Kayıp Yıldızlar** — kokpit görünümlü, tarayıcıda oynanan bir uzay oyunu. Tek bir HTML dosyası, kurulum yok.
 
-Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dört farklı evrende yolunu çiz. Zorunlu görev yok; ne yapacağına sen karar verirsin.
+Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dört farklı evrende yolunu çiz. Ana görev hikâyesi seni sistemden sisteme götürür; yan görevler isteğe bağlıdır.
 
 ## Neler var
 
@@ -21,8 +21,10 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Pilot adı ve otomatik kayıt.
 - Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan, korsan kampı, terk edilmiş istasyon, göç eden kristaller. Hepsi isteğe bağlı; kabul et ya da yoksay.
 - Kilit (T): nişandaki hedefe, nişan boşsa 5 km içindeki en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; kaya kırılınca sıradakine geçer. Uzak yerler için haritada hedefe dokunulur. Lazer menzili 450 m'den başlar.
-- Rütbe ve görevler: satış, korsan avı, kaya, kalıntı ve görevler XP verir (Çaylak → Efsane). İstasyonlardaki Görevler sekmesinde isteğe bağlı görevler, en fazla 3 aktif.
-- Kapılar: Kızıl Geçit için Pilot + 250, Buzul Halka için Usta Pilot + 600, Zümrüt Sis için Kaptan + 1200 kredi. Ankora'ya dönüş serbest.
+- Ana görev: 6 bölümlük sıralı hikâye (İlk Uçuş → Kızıl Geçit → Buzul Halka → Zümrüt Sis → Kadim Kapı → Yıldız Bekçisi). Tarafın zinciri, Kadim yankılar ve Kendi Üssün adımları hikâyeye yerleşir; bölüm sonları yeni sistemlerin kapılarını açar.
+- Yan görevler: istasyon panosundaki kısa görevler, isteğe bağlı, aynı anda en fazla 2.
+- Rütbe ve seviye: satış, korsan avı, kaya, kalıntı ve görevler XP verir (Çaylak → Efsane, 30 seviye, seviye 30 ≈ 32.400 XP).
+- Kapılar: Kızıl Geçit, Buzul Halka ve Zümrüt Sis kapıları ilgili ana görev bölümü bitince açılır; geçiş ücreti 250 / 600 / 1200 kredi. Ankora'ya dönüş serbest.
 - Evrenlere özgü yerler: Ankora'da sökülebilir eski uydu tarlası, Kızıl'da lav akıntısı ve güneş fırtınaları, Buzul'da buz devleri, Zümrüt'te kristal monolitler ve korsanlardan saklayan sis bulutları.
 - Altı evren: Ankora, Kızıl, Buzul, Zümrüt ve iki ev sistemi. Lonca Pazarı (Tüccar Loncasının altın ticaret merkezi) ve Kara Liman (Korsan Birliğinin asteroid içine kurulmuş sığınağı). Lonca ve Korsan seçen pilot kendi evinde başlar; diğerleri ilgili grupla Dost olunca koordinatları alır. Ana istasyonlar kendilerine düşman olanı içeri almaz.
 - Aranma ve ödül: devriye ya da sivil gemi düşürmek aranma seviyesini (★1-5) yükseltir; ödül avcıları peşine düşer, ★3'ten sonra devriyeler saldırır. Kayıtlar Kara Liman'da silinir ya da Ankora'da ceza ödenir; zamanla da unutulur.

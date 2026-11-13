@@ -76,7 +76,12 @@ function resize(){
 }
 window.addEventListener('resize', resize); window.addEventListener('orientationchange', () => setTimeout(resize, 150)); resize();
 
+const GLOWC = {};   // aynı renkte parıltı dokusu bir kez üretilir: her NPC/efekt için yeni doku GPU belleğini şişiriyordu
 function glowTexture(r, g, b){
+  const key = r + ',' + g + ',' + b; if (GLOWC[key]) return GLOWC[key];
+  return (GLOWC[key] = glowTexture0(r, g, b));
+}
+function glowTexture0(r, g, b){
   const c = document.createElement('canvas'); c.width = c.height = 128;
   const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(0.25, `rgba(${r},${g},${b},0.35)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
@@ -797,7 +802,7 @@ function killNpc(n, by){
   for (const k in n.cargo) for (let q = 0; q < Math.min(6, n.cargo[k]); q++) spawnOre(p, k);
   if (n.hostile){
     if (by === 'player'){ const bounty = Math.round(rand(90, 160) * SYSC.bounty); save.kredi += bounty; persist(); toast('Korsan gemisi düştü: +' + bounty + ' kredi', 3200); }
-    for (let q = 0; q < 2; q++) spawnOre(p, Math.random() < 0.4 ? 'kristal' : 'demir');
+    for (let q = 0; q < 2; q++) spawnOre(p, Math.random() < 0.5 ? 'hurda' : (typeof SYSORE !== 'undefined' && SYSORE[curSys]) || 'hurda');   // enkaz: hurda ya da o haritanın cevheri
     try { window.__dropParts && window.__dropParts(n, by); } catch (er) {}
     eco.kills++; eco.threat = Math.max(0.6, eco.threat - 0.25); if (near(p, 3500)) radio('Devriye', 'Korsan etkisiz hale getirildi.', '#7be0a4');
   } else {
@@ -964,7 +969,7 @@ function thinkPirate(n){
       const tp = t === 'player' ? rig.position : t.pos, tv = t === 'player' ? vel : t.vel, d = tp.distanceTo(n.pos);
       if (d > 1100){ n.state = 'roam'; n.tgt = null; return; }
       n.phase += 0.4;
-      if (Math.sin(n.phase * 0.6) > 0.8){ _a.copy(n.pos).sub(tp).setLength(500); _d.copy(tp).add(_a); setDest(n, _d, 0); }     // saldırı turundan sonra çekil
+      if (Math.sin(n.phase * 0.6) > 0.8){ _a.copy(n.pos).sub(tp).setLength(t === 'player' ? Math.min(500, laserRange() * 0.9) : 500); /* oyuncudan çekilirken lazer menzilinin hemen içinde kalır */ _d.copy(tp).add(_a); setDest(n, _d, 0); }     // saldırı turundan sonra çekil
       else { _a.copy(tv).multiplyScalar(clamp(d / (n.speed * 1.1), 0, 3)); _d.copy(tp).add(_a); _l.set(n.strafe * 80, 0, 0).applyQuaternion(n.g.quaternion); _d.add(_l); setDest(n, _d, 60); }
       return;
     }
@@ -1053,7 +1058,7 @@ ruins.forEach((r, i) => { r.found = save.ruin.includes(i); });
 function persist(){ try { localStorage.setItem(SAVEKEY, JSON.stringify(save)); } catch (e) {} }
 const TESTM = /:test$/.test(SAVEKEY);
 if (TESTM){
-  const fill = () => { if (save.kredi < 900000) save.kredi = 999999; if (!save.parts) save.parts = {}; for (const k of ['levha', 'devre', 'hucre']) if (!(save.parts[k] >= 50)) save.parts[k] = 99; if (!(save.xp >= 9000)) save.xp = 9000; save.ammo = Math.max(save.ammo || 0, AMMO_MAX); save.ammoD = Math.max(save.ammoD || 0, DMAX); };
+  const fill = () => { if (save.kredi < 900000) save.kredi = 999999; if (!save.parts) save.parts = {}; for (const k of ['levha', 'devre', 'hucre']) if (!(save.parts[k] >= 50)) save.parts[k] = 99; if (!(save.xp >= 18620)) save.xp = 18620; save.ammo = Math.max(save.ammo || 0, AMMO_MAX); save.ammoD = Math.max(save.ammoD || 0, DMAX); };
   fill(); setInterval(fill, 1000);
   const tb = document.createElement('div'); tb.textContent = 'TEST MODU'; tb.style.cssText = 'position:fixed;left:calc(env(safe-area-inset-left,0px) + 4px);bottom:calc(env(safe-area-inset-bottom,0px) + 3px);z-index:95;font:800 8px Barlow,sans-serif;letter-spacing:.12em;color:#1a0d00;background:#ffb454;padding:1px 5px;border-radius:4px;pointer-events:none;opacity:.7';
   document.body.appendChild(tb);
@@ -1428,7 +1433,7 @@ function update(dt){
         if (d < rr){
           rig.position.copy(n.pos).addScaledVector(tmp, rr);
           if (cl > 0 && time - ramT > 0.6){ ramT = time; const dmg = clamp((cl - 6) * 0.9, 3, 55); hurt(dmg); shake = Math.min(1, 0.3 + cl / 60); burst(rig.position, 0xffd9a0, 10, 45, 0.5); vel.addScaledVector(tmp, cl * 1.02); vel.multiplyScalar(0.75); n.vel.addScaledVector(tmp, -cl * 0.12); setBanner('ÇARPIŞMA! -' + Math.round(dmg), 'bad', 1.4); blip(110, 0.25); }
-        } else if (cl > 22 && d - rr < Math.min(140, cl * 2.2)) warn = n;
+        } else if (cl > 22 && -vel.dot(tmp) > 12 && d - rr < Math.min(140, cl * 2.2)) warn = n;   // yalnızca biz ona doğru gidiyorsak uyar (dururken üstümüze gelen gemi için değil)
       }
       if (warn && time - nwT > 5){ nwT = time; setBanner('ÇARPIŞMA UYARISI', 'bad', 1.2); blip(420, 0.035); }
     }
@@ -2114,6 +2119,7 @@ function wreck(){
   const fine = Math.floor(save.kredi * 0.1); save.kredi -= fine; persist();
   rig.position.set(120, 20, 300); const d = BELTS[0].c.clone().sub(rig.position); rig.lookAt(rig.position.clone().sub(d));
   vel.set(0, 0, 0); hp.hull = hp.hullMax; hp.shield = hp.shieldMax; hp.regenT = 0; lock = null; boostBtn = false;
+  for (const n of npcs) if (n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; n.truce = time + 8; }   // yeniden doğunca hemen yine vurulmasın
   setBanner('GEMİ PARÇALANDI', 'bad', 3.5); toast('Gemin parçalandı. Üsse geri getirildin. Kargo kayıp, ' + fine + ' kredi ceza.', 4800);
 }
 function hpTick(dt){
@@ -2872,7 +2878,7 @@ function liveDock(){
 const SYS = [
   { ad: 'Ankora Sistemi', not: 'Burası senin evin. Titan kayaları ve hurda veren enkazlar var, ortalık sakin. Zorluk: ★', names: null, tint: [1, 1, 1], sky: [1.18, 1.18, 1.28], kr: 1, ice: 1, danger: 1, px: {}, intro: 'Eve döndün.' },
   { ad: 'Kızıl Geçit', not: 'Demirin tek yurdu, ama korsanlar çok. Zorluk ★★ · Düşman gemileri %60 daha dayanıklı, %25 daha sert vurur · Kayaları kırmak %50 daha zor · Cevher satış fiyatları %50, korsan ödülleri %80 daha yüksek', names: { st: ['Kor İstasyonu', 'Pas Üssü', 'Soğuk Kor Durağı', 'Köz Kapısı'], pl: ['Zerha', 'Kavrim', 'Ember', 'Pyra'], moon: 'Küle' }, tint: [1.45, 0.78, 0.62], sky: [1.55, 1.0, 0.95], kr: 0.5, ice: 0.4, danger: 1.7, px: { demir: 0.7, buz: 1.5, kristal: 1.5 }, rock: 1.5, pay: 1.5, hull: 1.6, bounty: 1.8, dmg: 1.25, intro: 'Kızıl bir güneşin altındasın. Korsanlar burada çok.' },
-  { ad: 'Buzul Halka', not: 'Buzun tek yurdu; ortalık sakin ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
+  { ad: 'Buzul Halka', not: 'Buzun tek yurdu; ortalık sakin, ama kayalar çok sert. Zorluk ★★ · Düşman gemileri %30 daha dayanıklı, %15 daha sert vurur · Kayaları kırmak %80 daha zor · Cevher satış fiyatları %40, korsan ödülleri %40 daha yüksek', names: { st: ['Kırağı İstasyonu', 'Aysberg Üssü', 'Hiem Durağı', 'Kutup Kapısı'], pl: ['Nivea', 'Glasya', 'Hiem', 'Krios'], moon: 'Sedef' }, tint: [0.78, 1.0, 1.4], sky: [0.95, 1.2, 1.55], kr: 0.5, ice: 2.4, danger: 0.6, px: { buz: 0.55, demir: 1.3, kristal: 1.8 }, rock: 1.8, pay: 1.4, hull: 1.3, bounty: 1.4, dmg: 1.15, intro: 'Her yer buz ve sessizlik.' },
   { ad: 'Zümrüt Sis', not: 'Kristalin tek yurdu, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
 ];
 const GATE_TO = [1, 2, 3, 0, 0, 0], JC0 = 150;
@@ -3996,7 +4002,7 @@ function renderCt(){
   if (!save.ct.offers.length || Date.now() - save.ct.t > 600000) ctGen();
   const line = c => `${c.n} ${ORE[c.ore].ad.toLowerCase()} → ${STATIONS[c.si].ad.split(' ')[0]}`;
   let h = '<div class="sect" style="margin-top:0">Aktif görevler (' + save.ct.active.length + '/2)</div>';
-  h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${line(c)}<br><span class="dim">Teslim: ${Math.min(c.prog, c.n)}/${c.n} · ${c.reward} kredi</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Panodan henüz görev almadın.</div>';
+  h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${line(c)}<br><span class="dim">Teslim: ${Math.min(c.prog, c.n)}/${c.n} · ${c.reward} kredi</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Yan görev almadın. İstersen panodan seç; zorunlu değil.</div>';
   h += '<div class="sect">Görev panosu</div>';
   h += save.ct.offers.map(c => `<div class="ctc"><span>${line(c)}<br><span class="dim">Ödül: ${c.reward} kredi · o istasyonda sat</span></span><button class="act go" data-ct="acc:${c.id}" ${save.ct.active.length >= 2 ? 'disabled' : ''}>Al</button></div>`).join('');
   h += '<div class="dim" style="margin-top:6px">Görev cevherini ilgili istasyonda satınca sayılır. Pano 10 dakikada bir yenilenir.</div>';
@@ -5343,7 +5349,7 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
   const dc = $('dcont'), openMap = {}, SPEC = {
     cargoList: { rules: [['ore', 'Cevher satışı', el => !!el.querySelector('img.oi')], ['dev', 'İstasyon gelişimi', el => !!el.querySelector('img.db')], ['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)]], def: 'ore' },
     hgBox: { rules: [['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)], ['ships', 'Gemiler', () => true]], def: 'ships' },
-    wpBox: { sect: true, def: ['Lazer'] }, eqBox: { sect: true, def: [] }, repBox: { sect: true, def: [] }, stBox: { sect: true, def: [] }, facBox: { sect: true, def: [] }, lqBox: { sect: true, def: ['Uzun görevler'] }, upgrades: { sect: true, def: ['Gemi geliştirme'] }, exBox: { sect: true, def: ['Kendi üssün'] }, jumpBox: { sect: true, def: ['Hiperatlama'] }, ctBox: { sect: true, def: ['Aktif görevler', 'Görev panosu'] }
+    wpBox: { sect: true, def: ['Lazer'] }, eqBox: { sect: true, def: [] }, repBox: { sect: true, def: [] }, stBox: { sect: true, def: [] }, facBox: { sect: true, def: [] }, lqBox: { sect: true, def: ['Ana görev'] }, upgrades: { sect: true, def: ['Gemi geliştirme'] }, exBox: { sect: true, def: ['Kendi üssün'] }, jumpBox: { sect: true, def: ['Hiperatlama'] }, ctBox: { sect: true, def: ['Aktif yan', 'Yan görev panosu'] }
   };
   for (const id of ['exBox', 'jumpBox']){ const e = $(id); if (e && e.parentNode !== dc) dc.appendChild(e); }
   const obs = {};
@@ -6903,7 +6909,7 @@ window.SFXB = window.SFXB || {};
 for (const k of ['kalinti_bul', 'yanki', 'kapi_uyan', 'agir_atis', 'yardim', 'tarayici', 'anomali', 'gecit_giris', 'gecit_cekim', 'gecit_atlama', 'gecit_varis', 'rutbe', 'gorev_tamam', 'firtina_uyari', 'firtina', 'patron_giris', 'patron_faz', 'patron_olum', 'itibar', 'salvo', 'sicrama_isinma', 'sicrama_patlama', 'hiper_tunel', 'hiper_cikis']) window.SFXB[k] = 'assets/sfx/' + k + '.mp3';
 const sfxP = (n, v) => { try { return !!(window.__sfx && window.__sfx(n, v)); } catch (e) { return false; } };
 // ---- ilerleme: rütbe (XP) + görev panosu. Görevler isteğe bağlı; açık dünya bozulmaz.
-const RANKS = [['Çaylak', 0], ['Pilot', 400], ['Usta Pilot', 1200], ['Kaptan', 2600], ['Komodor', 5000], ['Efsane', 9000]];
+const RANKS = [['Çaylak', 0], ['Pilot', 970], ['Usta Pilot', 2790], ['Kaptan', 5830], ['Komodor', 10780], ['Efsane', 18620]];   // 1.36: seviye atlama yavaşladı (eskisi 400/1200/2600/5000/9000)
 // kapı şartları: gidilen evren → [en düşük rütbe, ücret]. Ankora'ya dönüş serbest.
 const GATE_REQ = { 0: [0, 0], 1: [1, 250], 2: [2, 600], 3: [3, 1200] };
 const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp >= RANKS[i][1]) r = i; return r; };
@@ -6945,7 +6951,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     if (ch){ persist(); drawTrack(); }
   };
   window.__ctStep = step;
-  ctProgress = function(st, k, amt){ const si = STATIONS.indexOf(st); if (!(amt > 0)) return; addXp(amt * ORE[k].fiyat / 6); window.__fac && window.__fac('lonca', amt / 12, true); step('teslim', amt, c => c.si === si && c.ore === k && c.sys === curSys); };
+  ctProgress = function(st, k, amt){ const si = STATIONS.indexOf(st); if (!(amt > 0)) return; addXp(amt * ORE[k].fiyat / 8); window.__fac && window.__fac('lonca', amt / 12, true); step('teslim', amt, c => c.si === si && c.ore === k && c.sys === curSys); };
   ctAct = function(a){
     const [t, id] = a.split(':'), n = +id;
     if (t === 'acc'){ const i = save.ct.offers.findIndex(c => c.id === n); if (i < 0 || save.ct.active.length >= MAXA) return; save.ct.active.push(save.ct.offers.splice(i, 1)[0]); }
@@ -6956,10 +6962,10 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     if (!save.ct.offers.length || Date.now() - save.ct.t > 600000) ctGen();
     const r = rankOf(save.xp), nx = RANKS[r + 1];
     let h = '<div class="sect" style="margin-top:0">Rütbe</div><div class="line"><span><b>' + RANKS[r][0] + '</b><span class="dim"><br>' + (nx ? save.xp + ' / ' + nx[1] + ' XP · sıradaki: ' + nx[0] : save.xp + ' XP · en üst rütbe') + '</span></span></div>';
-    h += '<div class="dim" style="margin:2px 0 6px">Kazı satışı, korsan avı, kalıntı ve görevler XP kazandırır. Rütbe, uzak kapılardan geçmek için gerekir.</div>';
-    h += '<div class="sect">Aktif görevler (' + save.ct.active.length + '/' + MAXA + ')</div>';
-    h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${c.txt}<br><span class="dim">${c.n > 1 ? c.prog + '/' + c.n + ' · ' : ''}${c.reward} kredi · ${c.xp} XP</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Panodan henüz görev almadın.</div>';
-    h += '<div class="sect">Görev panosu</div><div class="dim" style="margin:2px 0 6px">Kısa görevler. Aynı anda en fazla ' + MAXA + ' tane alabilirsin.</div>';
+    h += '<div class="dim" style="margin:2px 0 6px">Kazı satışı, korsan avı, kalıntı ve görevler XP kazandırır. Uzak kapıları ana görev açar.</div>';
+    h += '<div class="sect">Aktif yan görevler (' + save.ct.active.length + '/' + MAXA + ')</div>';
+    h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${c.txt}<br><span class="dim">${c.n > 1 ? c.prog + '/' + c.n + ' · ' : ''}${c.reward} kredi · ${c.xp} XP</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Yan görev almadın. İstersen panodan seç; zorunlu değil.</div>';
+    h += '<div class="sect">Yan görev panosu</div><div class="dim" style="margin:2px 0 6px">İsteğe bağlı kısa görevler: ek kredi ve XP. Aynı anda en fazla ' + MAXA + ' tane alabilirsin.</div>';
     h += save.ct.offers.map(c => `<div class="ctc"><span>${c.txt}<br><span class="dim">Ödül: ${c.reward} kredi · ${c.xp} XP</span></span><button class="act go" data-ct="acc:${c.id}" ${save.ct.active.length >= MAXA ? 'disabled' : ''}>Al</button></div>`).join('');
     h += '<div class="dim" style="margin-top:6px">Görevler isteğe bağlı. Pano 10 dakikada bir yenilenir.</div>';
     $('ctBox').innerHTML = h;
@@ -6967,7 +6973,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   // ilerleme kancaları
   const _kn = killNpc; killNpc = function(n, by){ const was = npcs.indexOf(n) >= 0, hos = n.hostile; _kn(n, by); if (was && by === 'player' && hos){ addXp(30 * ({ brute: 1.3, reaver: 1.6, leader: 4 }[n.type] || 1) * (SYSC.danger || 1)); step('av', 1); } };
   const _ba = breakAsteroid; breakAsteroid = function(a, big, noOre){ const r = _ba(a, big, noOre); if (!noOre && a.pos.distanceTo(rig.position) < 2500){ addXp(2); step('kaya', 1); } return r; };
-  const _orf = onRuinFound; onRuinFound = function(r){ _orf(r); if (!r.gate){ addXp(120); step('kalinti', 1); } };
+  const _orf = onRuinFound; onRuinFound = function(r){ _orf(r); if (!r.gate){ addXp(60); step('kalinti', 1); } };
   const _dl = dockLayout; dockLayout = function(){ _dl(); if (docked && curSt) step('ziyaret', 1, c => c.sys === curSys && STATIONS.indexOf(curSt) === c.si);
     const ds = $('dkStat'); if (ds && !ds.querySelector('.rnk')){ const r = rankOf(save.xp); ds.insertAdjacentHTML('beforeend', '<span class="rnk">Rütbe <b>' + RANKS[r][0] + '</b></span>'); } };
   let dT = 0; EXTRA.push(dt => { dT += dt; if (dT < 2 || docked) return; dT = 0; if (depthMul(rig.position) >= 2) step('derin', 1); });
@@ -6975,22 +6981,23 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   const css = document.createElement('style'); css.textContent = '#ctTrack{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);top:42%;z-index:3;max-width:min(250px,34vw);font:600 12px/1.35 var(--font);color:#e8edff;pointer-events:none;display:none}#ctTrack.on{display:block}#ctTrack div{background:rgba(6,12,24,.62);border-left:2px solid #ffc477;padding:3px 8px;margin-bottom:3px;border-radius:3px}#ctTrack b{color:#ffc477}@media (max-height:520px){#ctTrack{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 150px);font-size:10.5px}#ctTrack div:nth-child(n+2){display:none}}body:has(#tut.on) #ctTrack,body:has(#sig.on) #ctTrack{display:none}';
   document.head.appendChild(css);
   const tr = document.createElement('div'); tr.id = 'ctTrack'; document.body.appendChild(tr);
-  function drawTrack(){ const a = save.ct.active; tr.innerHTML = a.map(c => '<div><b>Görev</b> ' + c.txt + (c.n > 1 ? ' · ' + c.prog + '/' + c.n : '') + '</div>').join(''); tr.classList.toggle('on', a.length > 0 && !docked); }
+  function drawTrack(){ const a = save.ct.active, m = window.__mqLine ? window.__mqLine() : ''; tr.innerHTML = (m ? '<div class="mq"><b>Ana görev</b> ' + m + '</div>' : '') + a.map(c => '<div><b>Yan görev</b> ' + c.txt + (c.n > 1 ? ' · ' + c.prog + '/' + c.n : '') + '</div>').join(''); tr.classList.toggle('on', (a.length > 0 || !!m) && !docked); }
   window.__drawTrack = drawTrack;
-  let tT = 0; EXTRA.push(dt => { tT += dt; if (tT > 0.5){ tT = 0; tr.classList.toggle('on', save.ct.active.length > 0 && !docked && !document.getElementById('title')); } });
+  let tT = 0; EXTRA.push(dt => { tT += dt; if (tT > 0.5){ tT = 0; drawTrack(); tr.classList.toggle('on', (save.ct.active.length > 0 || !!(window.__mqLine && window.__mqLine())) && !docked && !document.getElementById('title')); } });
   drawTrack();
   // kapı: rütbe + ücret şartı (daha önce açılmış evrenler rütbeden muaf)
   const _ga = window.__gateAsk;
   window.__gateAsk = (dn, yes, no) => {
-    const [rq, fee] = GATE_REQ[dn] || [0, 0], r = rankOf(save.xp), free = save.openFree.includes(dn), rankOk = free || r >= rq, payOk = save.kredi >= fee;
-    _ga(dn, () => { if (!(rankOk && save.kredi >= fee)) return no(); if (fee){ save.kredi -= fee; persist(); } addXp(save.open.includes(dn) ? 0 : 100); yes(); }, no);
+    // şart artık ana görev (o bölüm bitmiş olmalı) + geçiş ücreti; rütbe şartı kaldırıldı
+    const fee = (GATE_REQ[dn] || [0, 0])[1], g = window.__mqGate ? window.__mqGate(dn) : { ok: true }, mqOk = g.ok, payOk = save.kredi >= fee;
+    _ga(dn, () => { if (!(mqOk && save.kredi >= fee)) return no(); if (fee){ save.kredi -= fee; persist(); } addXp(save.open.includes(dn) ? 0 : 100); yes(); }, no);
     const q = $('gateQ'), pp = q && q.querySelector('.p p'), yb = q && q.querySelector('button.y');
-    if (pp) pp.innerHTML = (rq || fee) ? 'Şart: ' + (rq ? '<b>' + RANKS[rq][0] + '</b> rütbesi' + (free ? ' (muaf)' : '') : '') + (rq && fee ? ' · ' : '') + (fee ? '<b>' + fee + ' kredi</b> geçiş ücreti' : '') + '<br><span style="color:' + (rankOk && payOk ? '#7be0a4' : '#ff7a8a') + '">' + (rankOk ? (payOk ? 'Geçebilirsin.' : 'Kredin yetmiyor (' + save.kredi + ').') : 'Rütben ' + RANKS[r][0] + '. Görevler ve keşifle XP topla.') + '</span>' : 'Geçmek ücretsiz.';
-    if (yb){ if (!(rankOk && payOk)){ yb.disabled = true; yb.style.opacity = '.45'; yb.textContent = rankOk ? 'Kredi yetersiz' : 'Rütbe yetersiz'; } else if (fee) yb.textContent = 'Atla · ' + fee + ' kredi'; }
+    if (pp) pp.innerHTML = (!mqOk || fee) ? 'Şart: ' + (!mqOk ? '<b>' + g.why.replace('Ana görev: ', '') + '</b>' : '') + (!mqOk && fee ? ' · ' : '') + (fee ? '<b>' + fee + ' kredi</b> geçiş ücreti' : '') + '<br><span style="color:' + (mqOk && payOk ? '#7be0a4' : '#ff7a8a') + '">' + (mqOk ? (payOk ? 'Geçebilirsin.' : 'Kredin yetmiyor (' + save.kredi + ').') : 'Kapı kilitli. İstasyonda Görevler → Ana görev.') + '</span>' : 'Geçmek ücretsiz.';
+    if (yb){ if (!(mqOk && payOk)){ yb.disabled = true; yb.style.opacity = '.45'; yb.textContent = mqOk ? 'Kredi yetersiz' : 'Ana görev gerekli'; } else if (fee) yb.textContent = 'Atla · ' + fee + ' kredi'; }
   };
-  // istasyondan hiperatlama da aynı rütbe şartına uyar
-  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-j]'); if (!b) return; const dn = +b.dataset.j, rq = (GATE_REQ[dn] || [0])[0];
-    if (!save.openFree.includes(dn) && rankOf(save.xp) < rq){ e.stopImmediatePropagation(); e.preventDefault(); toast(SYS[dn].ad + ' için ' + RANKS[rq][0] + ' rütbesi gerekiyor.', 3000); } }, true);
+  // istasyondan hiperatlama da aynı ana görev şartına uyar
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-j]'); if (!b) return; const dn = +b.dataset.j, g = window.__mqGate ? window.__mqGate(dn) : { ok: true };
+    if (!g.ok){ e.stopImmediatePropagation(); e.preventDefault(); toast(SYS[dn].ad + ' kapalı. ' + g.why + '.', 3400); } }, true);
 }
 
 // ---- evrenlere özgü yerler ve doğa olayları (kodla kurulur, görsel gerekmez)
@@ -8623,7 +8630,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // ---- seviyeler: her rütbede 5 seviye (Efsane'de 5 seviye daha) → 30 seviye
   const LV = [];
   for (let r = 0; r < 5; r++){ const a = RANKS[r][1], b = RANKS[r + 1][1]; for (let j = 0; j < 5; j++) LV.push(Math.round(a + (b - a) * j / 5)); }
-  for (let j = 0; j < 5; j++) LV.push(RANKS[5][1] + 1800 * j);
+  for (let j = 0; j < 5; j++) LV.push(RANKS[5][1] + 3450 * j);
   const levelOf = xp => { let l = 0; for (let i = 0; i < LV.length; i++) if (xp >= LV[i]) l = i + 1; return Math.max(1, l); };
   window.__level = () => levelOf(save.xp || 0); window.__lvXp = LV;
   // ---- rozet: çerçeve rütbeyi, yıldızlar rütbe içindeki seviyeyi, şeritler yükselişi gösterir; Efsane hepsini birleştirir
@@ -8794,6 +8801,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   }
   window.__skOpen = skOpen;
   // ---- seviye atlama ekranı
+  // en yüksek ulaşılan seviye: eğri değişince seviye düşerse puanlar silinmez, ama aynı seviyeler için ikinci kez de verilmez
+  if (typeof save.lvTop !== 'number'){ const OLD = [0, 80, 160, 240, 320, 400, 560, 720, 880, 1040, 1200, 1480, 1760, 2040, 2320, 2600, 3080, 3560, 4040, 4520, 5000, 5800, 6600, 7400, 8200, 9000, 10800, 12600, 14400, 16200]; let l = 1; OLD.forEach((v, i) => { if ((save.xp || 0) >= v) l = i + 1; }); save.lvTop = Math.max(l, levelOf(save.xp || 0)); }
   let lastL = levelOf(save.xp || 0), lvT = null;
   function lvShow(L, newRank){
     let el = $('lvUp'); if (!el){ el = document.createElement('div'); el.id = 'lvUp'; document.body.appendChild(el); el.addEventListener('click', e => { if (e.target.closest('[data-lvs]')){ el.classList.remove('on'); skOpen(); return; } el.classList.remove('on'); }); }
@@ -8802,7 +8811,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     clearTimeout(lvT); lvT = setTimeout(() => el.classList.remove('on'), 5200);
   }
   window.__lvShow = lvShow;
-  EXTRA.push(() => { const L = levelOf(save.xp || 0); if (L > lastL){ const r0 = Math.min(5, Math.floor((lastL - 1) / 5)), r1 = Math.min(5, Math.floor((L - 1) / 5)); save.sp += L - lastL; lastL = L; persist(); lvShow(L, r1 > r0 ? r1 : 0); } else if (L < lastL) lastL = L; });
+  EXTRA.push(() => { const L = levelOf(save.xp || 0); if (L > lastL){ const r0 = Math.min(5, Math.floor((lastL - 1) / 5)), r1 = Math.min(5, Math.floor((L - 1) / 5)), gain = Math.max(0, L - Math.max(lastL, save.lvTop || 0)); save.sp += gain; save.lvTop = Math.max(save.lvTop || 0, L); lastL = L; persist(); if (gain > 0) lvShow(L, r1 > r0 ? r1 : 0); } else if (L < lastL) lastL = L; });
   // ---- Görevler sekmesi: seviye rozeti, rütbe dizisi, yetenek düğmesi
   { const _rc = renderCt; renderCt = function(){ _rc(); try {
       const box = $('ctBox'), ln = box && box.querySelector('.line'); if (!ln || ln.querySelector('img.rkb')) return; const L = levelOf(save.xp || 0), nx = LV[L];
@@ -8940,20 +8949,68 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const US_LV = CH.us.lv;
   const chains = () => Object.keys(CH).filter(k => (!CH[k].side || CH[k].side === save.side) && (!CH[k].lv || lvl() >= CH[k].lv || save.base));
   const rwTxt = r => [r.k ? r.k + ' kredi' : '', r.x ? r.x + ' XP' : '', r.f ? 'itibar +' + r.f[1] : '', r.sp ? '1 yetenek puanı' : ''].filter(Boolean).join(' · ');
+  // ---- ANA GÖREV: tek, sıralı hikâye zinciri. Bölüm sonları yeni sistemlerin kapılarını açar (zorunlu ilerleme).
+  //      Taraf zinciri, Kadim Yankılar ve Kendi Üssün adımları bu hikâyenin içine yerleşir. Panodaki görevler YAN görevdir (isteğe bağlı).
+  if (!Array.isArray(save.seen)) save.seen = [window.__homeSys ? window.__homeSys() : 0];
+  EXTRA.push(() => { if (!save.seen.includes(curSys)){ save.seen.push(curSys); persist(); } });   // ziyaret edilen sistemler (atlama kodu enterSystem'in eski kopyasını çağırdığı için sarmalamak yerine her karede bakılır)
+  const kad = () => (window.__kadimCount ? window.__kadimCount() : (window.__kadim ? window.__kadim.n : 0));
+  const side = () => (CH[save.side] ? save.side : 'filo');
+  const F = i => { const k = side(), S = CH[k].steps[i]; return { t: S[0], f: S[1], n: S[2], r: S[3], src: [k, i] }; };
+  const K = i => { const S = CH.kadim.steps[i]; return { t: S[0], f: kad, n: S[2], r: S[3], src: ['kadim', i] }; };
+  const U = i => { const S = CH.us.steps[i]; return { t: S[0], f: S[1], n: S[2], r: S[3], src: ['us', i] }; };
+  const home0 = () => (window.__homeSys ? window.__homeSys() : 0) === 0;
+  const MQ = [
+    { b: 'İlk Uçuş', col: '#7fd8ff', steps: () => [
+      { t: '10 birim cevher sat', f: () => save.st.sell, n: 10, r: { k: 200, x: 120 } },
+      F(0),
+      { t: 'Kızıl Geçit\'in kapı sinyalini bul' + (home0() ? '' : ' (Ankora\'da)'), f: () => save.open.includes(1) ? 1 : 0, n: 1, r: { k: 300, x: 160 }, opens: 1 } ] },
+    { b: 'Kızıl Geçit', col: '#ff8a6a', steps: () => [
+      { t: 'Kapıdan geçip Kızıl Geçit\'e var', f: () => save.seen.includes(1) ? 1 : 0, n: 1, r: { k: 250, x: 160 } },
+      K(0), F(1),
+      { t: 'Buzul Halka\'nın kapı sinyalini bul (Kızıl Geçit\'te)', f: () => save.open.includes(2) ? 1 : 0, n: 1, r: { k: 450, x: 220 }, opens: 2 } ] },
+    { b: 'Buzul Halka', col: '#9fe4ff', steps: () => [
+      { t: 'Buzul Halka\'ya var', f: () => save.seen.includes(2) ? 1 : 0, n: 1, r: { k: 350, x: 200 } },
+      K(1), F(2),
+      { t: 'Zümrüt Sis\'in kapı sinyalini bul (Buzul Halka\'da)', f: () => save.open.includes(3) ? 1 : 0, n: 1, r: { k: 600, x: 280 }, opens: 3 } ] },
+    { b: 'Zümrüt Sis', col: '#7be0a4', steps: () => [
+      { t: 'Zümrüt Sis\'e var', f: () => save.seen.includes(3) ? 1 : 0, n: 1, r: { k: 500, x: 260 } },
+      K(2), F(3), U(0) ] },
+    { b: 'Kadim Kapı', col: '#c8a8ff', steps: () => [
+      K(3),
+      { t: 'Ankora\'daki Kadim Kapı\'dan geç', f: () => save.kadimDone ? 1 : 0, n: 1, r: { x: 1000, sp: 1 } },
+      F(4) ] },
+    { b: 'Yıldız Bekçisi', col: '#ffc477', steps: () => [ U(1), U(2), U(3), F(5), U(4), U(5) ] }
+  ];
+  const flat = () => { const o = []; MQ.forEach((B, bi) => B.steps().forEach((S, si) => o.push(Object.assign({ bi, si, B }, S)))); return o; };
+  if (!save.mq || typeof save.mq !== 'object') save.mq = { i: 0 };
+  // eski kayıt: o güne kadar açılmış sistemler kilitsiz kalır; eski uzun görevlerde ödülü alınmış adımlar sessizce geçilir
+  if (!Array.isArray(save.mqFree)) save.mqFree = (save.open || []).slice();
+  const skipDone = () => { const L = flat(); while (save.mq.i < L.length){ const S = L[save.mq.i]; if (S.src && (save.lq[S.src[0]] || 0) > S.src[1]) save.mq.i++; else break; } };
+  skipDone();
+  const cur = () => flat()[save.mq.i] || null;
+  // kapı i'yi açan adım tamamlandı mı?
+  window.__mqGate = dn => { if (!(dn >= 1 && dn <= 3) || save.mqFree.includes(dn) || TESTM) return { ok: true }; const L = flat(), j = L.findIndex(S => S.opens === dn); if (j < 0 || save.mq.i > j) return { ok: true };
+    return { ok: false, why: 'Ana görev: «' + L[j].B.b + '» bölümünü bitir' }; };
+  window.__mqLine = () => { const S = cur(); if (!S) return ''; const v = Math.min(S.n, Math.floor(S.f() || 0)); return S.t + (S.n > 1 ? ' · ' + v + '/' + S.n : '') + (v >= S.n ? ' · ödül hazır' : ''); };
+  const baseOk = () => { const L = flat(), j = L.findIndex(S => S.src && S.src[0] === 'us' && S.src[1] === 0); return save.mq.i >= j; };
+  window.__mqBase = baseOk;
   function renderLq(){
-    const box = $('lqBox'); if (!box) return; let h = '<div class="sect">Uzun görevler</div><div class="dim lqn" style="margin:2px 0 6px">Hep sürer ve kendiliğinden ilerler, alman gerekmez. Adım bitince ödülü buradan al.</div>';
-    for (const k of chains()){ const C = CH[k], i = save.lq[k] || 0;
-      if (i >= C.steps.length){ h += '<div class="lq done" style="--c:' + C.col + '"><b>' + C.ad + '</b><span>Zincir tamamlandı.</span></div>'; continue; }
-      const [txt, fn, tg, rw] = C.steps[i], v = Math.min(tg, Math.floor(fn() || 0)), ok = v >= tg;
-      h += '<div class="lq" style="--c:' + C.col + '"><div class="t"><b>' + C.ad + '</b><i>' + (i + 1) + '/' + C.steps.length + '</i></div><span>' + txt + '</span><div class="pb"><u style="width:' + (v / tg * 100) + '%"></u></div><div class="f"><small>' + v + ' / ' + tg + ' · Ödül: ' + rwTxt(rw) + '</small><button class="act' + (ok ? ' go' : '') + '" data-lq="' + k + '" ' + (ok ? '' : 'disabled') + '>' + (ok ? 'Ödülü al' : 'Sürüyor') + '</button></div></div>'; }
-    if (!CH.us.lv || (lvl() < US_LV && !save.base)) h += '<div class="lq lk"><b>Kendi üssün</b><span>Seviye ' + US_LV + '\'de açılır: bir kuşağa kendi üssünü kurup geliştireceksin.</span></div>';
+    const box = $('lqBox'); if (!box) return; skipDone(); const L = flat(), S = cur(), NB = MQ.length;
+    let h = '<div class="sect">Ana görev</div><div class="dim lqn" style="margin:2px 0 6px">Hikâyeyi ilerletir ve yeni sistemlerin kapılarını açar. Sırayla gider; adım bitince ödülünü al, sıradaki açılır.</div>';
+    if (!S) h += '<div class="lq done" style="--c:#ffc477"><b>Ana hikâye tamamlandı</b><span>Artık bir Yıldız Bekçisisin. Yan görevler ve keşif seni bekliyor.</span></div>';
+    else { const v = Math.min(S.n, Math.floor(S.f() || 0)), ok = v >= S.n, inB = L.filter(x => x.bi === S.bi);
+      h += '<div class="lq mq" style="--c:' + S.B.col + '"><div class="t"><b>Bölüm ' + (S.bi + 1) + '/' + NB + ' · ' + S.B.b + '</b><i>' + (S.si + 1) + '/' + inB.length + '</i></div><span>' + S.t + '</span><div class="pb"><u style="width:' + (v / S.n * 100) + '%"></u></div><div class="f"><small>' + v + ' / ' + S.n + ' · Ödül: ' + rwTxt(S.r) + (S.opens ? ' · <b style="color:' + S.B.col + '">' + SYS[S.opens].ad + ' kapısı açılır</b>' : '') + '</small><button class="act' + (ok ? ' go' : '') + '" data-mq="1" ' + (ok ? '' : 'disabled') + '>' + (ok ? 'Ödülü al' : 'Sürüyor') + '</button></div>'
+        + '<div class="mql">' + inB.map(x => '<i class="' + (x.si < S.si ? 'ok' : x.si === S.si ? 'cur' : '') + '">' + (x.si < S.si ? '✓ ' : '') + x.t + '</i>').join('') + '</div></div>'; }
     if (box.dataset.h !== h){ box.dataset.h = h; box.innerHTML = h; }
   }
-  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-lq]'); if (!b || b.disabled) return; const k = b.dataset.lq, C = CH[k], i = save.lq[k] || 0, S = C.steps[i]; if (!S || (S[1]() || 0) < S[2]) return; const r = S[3];
-    save.lq[k] = i + 1; if (r.k) save.kredi += r.k; if (r.sp) save.sp = (save.sp || 0) + 1; persist(); if (r.x && window.__addXp) window.__addXp(r.x); if (r.f && window.__fac) window.__fac(r.f[0], r.f[1]);
-    toast(C.ad + ' · adım ' + (i + 1) + ' tamam: ' + rwTxt(r), 4200); try { sfxP('gorev_tamam', 0.8); } catch (er) {} renderLq(); try { renderDock(); } catch (er) {} });
-  // uçarken: tamamlanan adımı haber ver
-  { let acc = 0; const told = {}; EXTRA.push(dt => { acc += dt; if (acc < 5 || docked) return; acc = 0; for (const k of chains()){ const C = CH[k], i = save.lq[k] || 0, S = C.steps[i]; if (!S) continue; const key = k + i; if (!told[key] && (S[1]() || 0) >= S[2]){ told[key] = 1; toast('Uzun görev hazır: ' + C.ad + ' · ödülü istasyonda Görevler\'den al.', 4200); } } }); }
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-mq]'); if (!b || b.disabled) return; const S = cur(); if (!S || (S.f() || 0) < S.n) return; const r = S.r;
+    save.mq.i++; if (S.src) save.lq[S.src[0]] = Math.max(save.lq[S.src[0]] || 0, S.src[1] + 1);
+    if (r.k) save.kredi += r.k; if (r.sp) save.sp = (save.sp || 0) + 1; persist(); if (r.x && window.__addXp) window.__addXp(r.x); if (r.f && window.__fac) window.__fac(r.f[0], r.f[1]);
+    const N = cur(); toast('Ana görev tamam: ' + S.t + ' · ' + rwTxt(r) + (S.opens ? ' · ' + SYS[S.opens].ad + ' kapısı açıldı!' : '') + (N && N.bi !== S.bi ? ' · Yeni bölüm: ' + N.B.b : ''), 5200);
+    try { sfxP('gorev_tamam', 0.8); } catch (er) {} renderLq(); try { renderDock(); } catch (er) {} try { window.__drawTrack && window.__drawTrack(); } catch (er) {} });
+  // uçarken: ana görev adımı bitince haber ver
+  { let acc = 0; const told = {}; EXTRA.push(dt => { acc += dt; if (acc < 3 || docked) return; acc = 0; const S = cur(); if (!S) return; const key = save.mq.i; if (!told[key] && (S.f() || 0) >= S.n){ told[key] = 1; toast('Ana görev hazır: ' + S.t + ' · ödülü istasyonda Görevler\'den al.', 4600); try { window.__drawTrack && window.__drawTrack(); } catch (er) {} } }); }
+  { const st = document.createElement('style'); st.textContent = '#lqBox .mql{display:flex;flex-direction:column;gap:2px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)}#lqBox .mql i{font-style:normal;font-size:11.5px;color:var(--dim,#8f9cc0);opacity:.75}#lqBox .mql i.ok{color:#7be0a4;opacity:.9}#lqBox .mql i.cur{color:var(--c);opacity:1;font-weight:600}#lqBox .mql i.cur::before{content:"▸ "}#ctTrack div.mq{border-left-color:#7fd8ff !important}#ctTrack div.mq b{color:#7fd8ff !important}'; document.head.appendChild(st); }
 
   // ---- cephanelik donanımı: motor, kalkan jeneratörü, tamir robotu
   const EQ = {
@@ -9062,7 +9119,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       move('ctBox', /^Gruplar/, 'facBox'); drop('ctBox', /^Rütbe/);
       drop('exBox', /^Kadim/); drop('exBox', /^Pilot/);
       // üs kurma: görev açılana kadar kapalı
-      { const bb = document.querySelector('#exBox button[data-a="build"]'); if (bb && lvl() < US_LV){ bb.disabled = true; bb.textContent = 'Seviye ' + US_LV + '\'de açılır'; } }
+      { const bb = document.querySelector('#exBox button[data-a="build"]'); if (bb && lvl() < US_LV && !(window.__mqBase && window.__mqBase())){ bb.disabled = true; bb.textContent = 'Seviye ' + US_LV + '\'de açılır'; } }
       // rütbe çipi
       { const x = document.querySelector('#dkStat .rnk'); if (x){ x.querySelectorAll('img').forEach(i => i.remove()); const b = x.querySelector('b'); if (b && window.__badge) b.insertAdjacentHTML('beforebegin', '<img class="rkc" src="' + window.__badge(lvl()) + '" alt="">'); x.dataset.rk = 1; } }
       renderLq(); renderEq();
@@ -9339,12 +9396,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // döndür uyarısı ölçeklenen sahnenin dışına: tüm ekranı kaplasın
   { const r = document.getElementById('rotate'); if (r && r.parentElement !== document.body) document.body.appendChild(r); }
   // küçük telefon yatay: sekmeler ikinci satıra, istatistikler sağ üstte kesilmeden
-  { const st = document.createElement('style'); st.textContent = '@media (max-height:520px) and (max-width:780px){html body #dock #dtabs{grid-column:1 / -1 !important;grid-row:2 !important;justify-self:start !important;margin-top:4px !important}html body #dock #dcont{grid-row:3 !important}html body #dock #dkStat{grid-row:1 !important;align-self:start}html body #dock .card > h2{grid-row:1 !important;align-self:center}}'; document.head.appendChild(st); }
+  { const st = document.createElement('style'); st.textContent = '@media (max-width:1320px){html body #dock #dtabs{grid-column:1 / -1 !important;grid-row:2 !important;justify-self:start !important;margin-top:4px !important}html body #dock #dcont{grid-row:3 !important}html body #dock #dkStat{grid-row:1 !important;align-self:start}html body #dock .card > h2{grid-row:1 !important;align-self:center}}'; document.head.appendChild(st); }
 
   // Diğer sekmesi: kayıt kodu (kaydı başka cihaza taşı)
   { const SVH = '<div class="line svx"><span>Kaydını başka cihaza taşı<span class="dim"><br>Burada kodu al, öbür cihazda Diğer → Hesap → Kod gir.</span></span><span style="display:flex;gap:6px"><button class="act" data-sv="exp">Kodu al</button><button class="act" data-sv="imp">Kod gir</button></span></div>';
     // Hesap başlığının altına: o bölümün son öğesinden sonra
-    const put = () => { const f = $('exBox'); if (!f) return; const h = [...f.children].find(c => c.classList.contains('sect') && /^Hesap/.test(c.textContent.trim())); if (!h) return;
+    const put = () => { const f = $('exBox'); if (!f) return;
+      if (!(window.claude && claude.use)) f.querySelectorAll('button[data-cl]').forEach(b => { const l = b.closest('.line'); if (l) l.remove(); });   // bulut kaydı yalnızca Claude içinde çalışır; GitHub Pages'te gizle
+      const h = [...f.children].find(c => c.classList.contains('sect') && /^Hesap/.test(c.textContent.trim())); if (!h) return;
       let last = h; for (let n = h.nextElementSibling; n && !n.classList.contains('sect'); n = n.nextElementSibling) last = n;
       let x = f.querySelector('.svx'); if (x && x.previousElementSibling === last) return; if (x && last === x) return; if (!x){ const t = document.createElement('div'); t.innerHTML = SVH; x = t.firstChild; } last.after(x); };
     const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { put(); } catch (e) {} return r; };
