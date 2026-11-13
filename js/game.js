@@ -4002,7 +4002,7 @@ function renderCt(){
   $('ctBox').innerHTML = h;
 }
 function renderWp(){
-  let h = '<div class="sect" style="margin-top:0">Lazer başlıkları</div><div class="dim" style="margin-bottom:8px">Lazerin ucuna takılan başlığı seç. Gemiden bağımsız.</div>';
+  let h = '<div class="sect" style="margin-top:0">Lazer başlığı</div><div class="dim" style="margin-bottom:8px">Lazerin ucuna takılan başlığı seç. Gemiden bağımsız.</div>';
   for (const w of WPNS){
     const own = save.weps.includes(w.id), cur = save.wep === w.id;
     h += `<div class="wpc ${cur ? 'cur' : ''}"><h4><span>${w.ad}</span><small class="dim">${cur ? 'takılı' : own ? 'sahipsin' : w.fiyat + ' kredi'}</small></h4><p>${w.not}</p><div class="hgstat"><span>Hasar</span>${bar(w.pvp / 1.7)}<span>Menzil</span>${bar(w.range / 1.2)}<span>Madencilik</span>${bar(w.mine / 2.2)}<span>Isınma</span>${bar(w.heat / 1.8)}</div><button class="act full ${own ? 'go' : ''}" data-a="${own ? 'use' : 'buy'}:w:${w.id}" ${cur || (!own && save.kredi < w.fiyat) ? 'disabled' : ''}>${cur ? 'Takılı' : own ? 'Tak' : 'Satın al · ' + w.fiyat + ' kredi'}</button></div>`;
@@ -9018,6 +9018,18 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   window.__itIcon = icon;
   const eqLines = s => EQ[s].items.map((q, i) => { const on = save.eq[s] === q.id, own = !q.f || save.eqOwn.includes(s + ':' + q.id);
     return '<div class="line itl' + (s === 'robot' ? ' rbl' : '') + '">' + icon(s, i) + '<span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + '</span></span><button class="act' + (on ? ' on' : own || save.kredi >= q.f ? ' go' : '') + '" data-eq="' + s + ':' + q.id + '" ' + (on || (!own && save.kredi < q.f) ? 'disabled' : '') + '>' + (on ? 'Takılı' : own ? 'Tak' : q.f + ' kredi') + '</button></div>'; }).join('');
+  // lazer başlığı, roket ve roket başlığı kartlarını mermi satırlarıyla aynı düzene çevir: simge · Başlık + açıklama · düğme
+  const tcase = t => t.split(' ').map(w => w ? w.charAt(0).toLocaleUpperCase('tr') + w.slice(1) : w).join(' ');
+  function tidyWp(){ const wb = $('wpBox'); if (!wb) return; let cat = null, i = 0;
+    for (const el of [...wb.children]){ if (el.classList.contains('sect')){ const t = (el.dataset.t0 || el.textContent); cat = /Lazer/.test(t) ? 'baslik' : /Roket başlığı/i.test(t) ? 'rbaslik' : /Roket/.test(t) ? 'roket' : null; i = 0; continue; }
+      if (!cat || !el.classList.contains('wpc')) { if (el.classList.contains('itl')) i++; continue; }
+      const nm = el.querySelector('h4 > span'), sm = el.querySelector('h4 small'), pp = el.querySelector(':scope > p'), bt = el.querySelector('button'); if (!nm || !bt) continue;
+      let d = pp ? pp.textContent : ''; if (cat === 'roket' && sm) d = sm.textContent + ' · ' + d;
+      const row = document.createElement('div'); row.className = 'line itl wpr' + (el.classList.contains('cur') ? ' cur' : '');
+      row.innerHTML = icon(cat, i) + '<span><b>' + tcase(nm.textContent.replace(/\s*✓\s*$/, '').trim()) + '</b><span class="dim"><br>' + d + '</span></span>';
+      bt.classList.remove('full'); bt.textContent = bt.textContent.replace(/^Satın al · /, ''); if (bt.disabled && /Takılı/.test(bt.textContent)) bt.classList.add('on');
+      row.appendChild(bt); el.replaceWith(row); i++; } }
+  { const _w = renderWp; renderWp = function(){ const r = _w.apply(this, arguments); try { tidyWp(); } catch (e) {} return r; }; }
   function renderEq(){
     const box = $('eqBox'); if (!box) return; let h = '';
     for (const s in EQ){ if (s === 'robot') continue; h += '<div class="sect">' + EQ[s].ad + '</div>' + eqLines(s); }
@@ -9028,8 +9040,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       rb.querySelectorAll('b, span, div').forEach(n => { if (n.children.length === 0 && n.textContent.trim() === 'Tamirhane') n.textContent = 'Onarım'; });
       rb.querySelectorAll(':scope > .rbl').forEach(n => n.remove()); if (isHome()) rb.insertAdjacentHTML('beforeend', eqLines('robot')); const on = !hd.classList.contains('acch') || hd.classList.contains('op'); rb.querySelectorAll(':scope > .rbl').forEach(n => n.classList.toggle('accx', !on)); }
     // lazer başlıkları ve roketlerin simgeleri
-    const wb = $('wpBox'); if (wb){ let cat = null, i = 0; for (const el of wb.children){ if (el.classList.contains('sect')){ const t = (el.dataset.t0 || el.textContent); cat = /Lazer/.test(t) ? 'baslik' : /Roket başlığı/i.test(t) ? 'rbaslik' : /Roket/.test(t) ? 'roket' : null; i = 0; continue; }
-        if (cat && el.classList.contains('wpc')){ const h4 = el.querySelector('h4'); if (h4 && !h4.querySelector('.iti')) h4.insertAdjacentHTML('afterbegin', icon(cat, i)); i++; } } }
+    tidyWp();
   }
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-eq]'); if (!b || b.disabled) return; const [s, id] = b.dataset.eq.split(':'), q = EQ[s] && EQ[s].items.find(x => x.id === id); if (!q) return; const key = s + ':' + id;
     if (q.f && !save.eqOwn.includes(key)){ if (save.kredi < q.f) return; save.kredi -= q.f; save.eqOwn.push(key); }
