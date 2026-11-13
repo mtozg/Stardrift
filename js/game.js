@@ -1356,7 +1356,7 @@ function update(dt){
   if (!docked){
     // yönlendirme
     let yawIn = 0, pitchIn = 0, rollIn = 0;
-    if (stick.on){ yawIn = curve(stick.dx / STICK_R); pitchIn = curve(-stick.dy / STICK_R); }
+    if (stick.on){ const sv = window.__sens || 1; yawIn = clamp(curve(stick.dx / STICK_R) * sv, -1, 1); pitchIn = clamp(curve(-stick.dy / STICK_R) * sv, -1, 1); }
     else {
       yawIn = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
       pitchIn = (keys.ArrowUp ? 1 : 0) - (keys.ArrowDown ? 1 : 0);
@@ -6776,12 +6776,12 @@ window.__xpal = {
       + line('Müzik sesi', '', '<input type="range" min="0" max="100" step="5" data-vol="musVol" value="' + pct(save.musVol, 0.35) + '">')
       + line('Ana müzik', 'Başlangıç ekranı ve ana tema', '<button class="act" data-ana="1">' + (ANA[save.anaTema] || ANA.sakin) + '</button>')
       + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
+      + '<div id="ctlSet"></div>'
       + '<div class="sect">Görünüm</div>'
       + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
-      + line('Düğme boyutu', 'Uçuş düğmelerini büyüt ya da küçült', '<button class="act" data-set="bs">' + BSN[BSI()] + '</button>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
       + '<div class="sect">Kayıt</div>'
@@ -6799,7 +6799,7 @@ window.__xpal = {
   bsApply();
   function open(){ verTap = 0; render(); P.classList.add('on'); window.__menuOn = true; }
   function close(){ P.classList.remove('on'); window.__menuOn = false; persist(); }
-  window.__openSet = open;
+  window.__openSet = open; window.__bsName = () => BSN[BSI()];
   P.addEventListener('pointerdown', e => e.stopPropagation());
   P.addEventListener('click', e => {
     if (e.target === P) return close();
@@ -9100,5 +9100,110 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     devre: svg('#6fe0a8', "<rect x='4' y='5' width='16' height='14' rx='1.5'/><rect x='9.5' y='9.5' width='5' height='5'/><path d='M4 9h3M4 15h3M17 9h3M17 15h3M9.5 5v2M14.5 5v2M9.5 17v2M14.5 17v2' stroke-width='1.2'/>"),
     hucre: svg('#8fe0ff', "<rect x='8' y='4.5' width='8' height='16' rx='2'/><path d='M10.5 2.5h3v2h-3z'/><path d='M12.8 8.5l-2.2 4h2.8l-2.2 4' stroke-width='1.4'/>")
   });
+}
+
+// =====================  kontrol yöntemi: seçim ekranı, klavye tuş atama, dokunmatik ayarları  =====================
+{
+  const ACT = [
+    ['KeyW', 'İleri (itiş)'], ['KeyS', 'Fren'], ['KeyA', 'Sola dön'], ['KeyD', 'Sağa dön'], ['ArrowUp', 'Burun aşağı'], ['ArrowDown', 'Burun yukarı'],
+    ['KeyQ', 'Sola yuvarlan'], ['KeyE', 'Sağa yuvarlan'], ['ShiftLeft', 'Hızlan'], ['Space', 'Lazer'], ['KeyT', 'Kilit'], ['KeyR', 'Roket'],
+    ['KeyF', 'Kenetlen / kalk'], ['KeyM', 'Harita'], ['KeyO', 'Ayarlar']
+  ];
+  const DEF = Object.fromEntries(ACT.map(a => [a[0], a[0]]));
+  const ld = () => { try { return JSON.parse(localStorage.getItem('sd_keys') || '{}'); } catch (e) { return {}; } };
+  let MAP = Object.assign({}, DEF, ld());   // eylem (varsayılan kod) -> fiziksel tuş
+  const svK = () => { try { localStorage.setItem('sd_keys', JSON.stringify(MAP)); } catch (e) {} };
+  const keyName = c => ({ Space: 'Boşluk', ShiftLeft: 'Sol Shift', ShiftRight: 'Sağ Shift', ControlLeft: 'Sol Ctrl', ControlRight: 'Sağ Ctrl', AltLeft: 'Sol Alt', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Enter: 'Enter', Tab: 'Tab', Backspace: '⌫', Escape: 'Esc' }[c] || c.replace(/^Key|^Digit|^Numpad/, ''));
+  // fiziksel tuşu oyunun beklediği koda çevir (oyun kodu değişmeden)
+  let capture = null;
+  const tr = e => {
+    if (!e.isTrusted) return;
+    if (capture){ if (e.type === 'keydown'){ e.preventDefault(); e.stopImmediatePropagation(); capture(e.code); } return; }
+    const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    const act = Object.keys(MAP).find(a => MAP[a] === e.code), taken = Object.values(MAP).includes(e.code);
+    if (act === e.code) return;                                     // değişmemiş tuş
+    if (!act && !DEF[e.code]) return;                               // oyunun bilmediği tuş (rakamlar, Esc vb.)
+    e.stopImmediatePropagation(); if (e.code === 'Space' || /^Arrow/.test(e.code)) e.preventDefault();
+    if (!act) return;                                               // varsayılanı başka tuşa taşınmış tuş: yut
+    window.dispatchEvent(new KeyboardEvent(e.type, { code: act, key: act, repeat: e.repeat, bubbles: true }));
+    void taken;
+  };
+  window.addEventListener('keydown', tr, true); window.addEventListener('keyup', tr, true);
+
+  // ---- mod: klavye-fare ya da dokunmatik
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const mode = () => save.ctrl || (coarse ? 'touch' : 'kbm');
+  const sens = () => { try { const v = parseFloat(localStorage.getItem(mode() === 'kbm' ? 'sd_msens' : 'sd_tsens')); return v > 0 ? v : 1; } catch (e) { return 1; } };
+  function apply(){ document.body.classList.toggle('kbm', mode() === 'kbm'); window.__sens = sens(); }
+  apply();
+
+  // ---- seçim ekranı
+  const ART = {
+    kbm: "<svg viewBox='0 0 260 120' fill='none' stroke-linecap='round' stroke-linejoin='round'><rect x='10' y='28' width='176' height='70' rx='8' stroke='#9fd8ff' stroke-width='2'/>"
+      + Array.from({ length: 4 }, (_, r) => Array.from({ length: 11 - (r === 3 ? 4 : 0) }, (_, c) => `<rect x='${20 + c * 15 + (r === 3 ? 30 : r * 3)}' y='${37 + r * 14}' width='${r === 3 && c === 3 ? 50 : 11}' height='10' rx='2' stroke='${['#7fe6ff', '#7be0a4', '#ffc56e', '#c8a8ff'][(c + r) % 4]}' stroke-width='1.3' opacity='.9'/>`).join('')).join('')
+      + "<path d='M222 26 C244 26 248 46 248 66 C248 92 236 104 222 104 C208 104 196 92 196 66 C196 46 200 26 222 26 Z' stroke='#9fd8ff' stroke-width='2'/><path d='M222 26 V54 M196 54 H248' stroke='#9fd8ff' stroke-width='1.4'/><rect x='219' y='34' width='6' height='12' rx='3' stroke='#7fe6ff' stroke-width='1.6'/><path d='M222 26 C222 14 214 8 204 6' stroke='#9fd8ff' stroke-width='1.4' opacity='.6'/></svg>",
+    touch: "<svg viewBox='0 0 260 120' fill='none' stroke-linecap='round' stroke-linejoin='round'><rect x='48' y='20' width='164' height='84' rx='12' stroke='#9fd8ff' stroke-width='2'/><rect x='58' y='28' width='144' height='68' rx='6' stroke='#5a7a98' stroke-width='1.2'/>"
+      + "<circle cx='90' cy='70' r='15' stroke='#7fe6ff' stroke-width='1.6'/><circle cx='90' cy='70' r='6' fill='#7fe6ff' opacity='.5'/>"
+      + "<polygon points='170,58 180,64 180,76 170,82 160,76 160,64' stroke='#ff7c98' stroke-width='1.6'/><polygon points='150,40 157,44 157,52 150,56 143,52 143,44' stroke='#ffc56e' stroke-width='1.4'/><polygon points='186,40 193,44 193,52 186,56 179,52 179,44' stroke='#7be0a4' stroke-width='1.4'/>"
+      + "<path d='M40 112 C34 90 38 70 54 62 C62 58 70 64 74 72 L84 74' stroke='#ffb37a' stroke-width='2'/><path d='M220 112 C226 90 222 70 206 62 C198 58 188 62 184 70 L174 72' stroke='#ffb37a' stroke-width='2'/></svg>"
+  };
+  function pick(cb){
+    if ($('ctrlSel')) return; let sel = mode();
+    const d = document.createElement('div'); d.id = 'ctrlSel';
+    const card = (k, t, p) => '<div class="cc' + (sel === k ? ' on' : '') + '" data-k="' + k + '"><b>' + t + '</b>' + ART[k] + '<p>' + p + '</p><button class="act sel">' + (sel === k ? 'Seçildi' : 'Seç') + '</button></div>';
+    const draw = () => { d.innerHTML = '<h2>KONTROL YÖNTEMİ</h2><div class="sub">Nasıl oynamak istersin? Sonradan Ayarlar\'dan değiştirebilirsin.</div><div class="cards">'
+      + card('kbm', 'Klavye ve Fare', 'Klavye ve fareyle oyna. Tuşları Ayarlar\'dan istediğin gibi atayabilirsin.')
+      + card('touch', 'Dokunmatik', 'Ekrandaki düğmelerle oyna. Telefon ve tablet için. Düğme boyutu ve hassasiyet ayarlanabilir.')
+      + '</div><div class="ft"><button class="act go" data-go="1">Devam</button></div>'; };
+    draw(); document.body.appendChild(d); window.__menuOn = true;
+    d.addEventListener('click', e => { const c = e.target.closest('.cc'); if (c){ sel = c.dataset.k; draw(); try { blip(620, 0.06); } catch (er) {} return; }
+      if (e.target.closest('[data-go]')){ save.ctrl = sel; persist(); apply(); d.classList.add('done'); setTimeout(() => { d.remove(); window.__menuOn = false; cb && cb(); }, 300);
+        toast(sel === 'kbm' ? 'Klavye: W itiş, A/D dönüş, fare sürükle: bakış, Boşluk lazer, T kilit, R roket, F kenetlen. Ayarlar: O' : 'Dokunmatik: sol yarıda sürükle: bakış; sağ alttaki düğmelerle ateş et.', 6000); } });
+  }
+  window.__ctrlPick = pick;
+  // taraf seçildikten (ve eski oyuncular için oyun açıldıktan) sonra bir kez sor
+  { let acc = 0; EXTRA.push(dt => { acc += dt; if (acc < 0.3) return; acc = 0; if (save.ctrl || !save.side || $('sideSel') || $('ctrlSel')) return; const t = $('title'); if (t && t.offsetParent && getComputedStyle(t).display !== 'none' && !t.classList.contains('hidden')) return; pick(); }); }
+
+  // ---- Ayarlar > Kontroller
+  function setHtml(){
+    const m = mode(), sv = Math.round(sens() * 100);
+    let h = '<div class="sect">Kontroller</div><div class="line"><span>Kontrol yöntemi<span class="dim"><br>' + (m === 'kbm' ? 'Klavye ve fare' : 'Ekrandaki düğmeler') + '</span></span><button class="act" data-ct="mode">' + (m === 'kbm' ? 'Klavye ve Fare' : 'Dokunmatik') + '</button></div>';
+    h += '<div class="line"><span>' + (m === 'kbm' ? 'Fare hassasiyeti' : 'Bakış hassasiyeti') + '<span class="dim"><br>' + (m === 'kbm' ? 'Fareyle sürükleyerek dönüş hızı' : 'Parmakla sürükleyerek dönüş hızı') + '</span></span><span style="display:flex;align-items:center;gap:8px"><input type="range" id="ctSens" min="50" max="200" step="10" value="' + sv + '" style="width:110px"><b id="ctSensV">%' + sv + '</b></span></div>';
+    if (m === 'touch') h += '<div class="line"><span>Düğme boyutu<span class="dim"><br>Uçuş düğmelerini büyüt ya da küçült</span></span><button class="act" data-set="bs">' + (window.__bsName ? window.__bsName() : 'Normal') + '</button></div>';
+    else { h += '<div class="keys">' + ACT.map(([a, n]) => '<div class="kr"><span>' + n + '</span><button class="act" data-key="' + a + '">' + keyName(MAP[a]) + '</button></div>').join('') + '</div>'
+      + '<div class="line"><span class="dim">Bir eyleme dokun, sonra yeni tuşa bas. Esc iptal eder.</span><button class="act" data-ct="reset">Varsayılana dön</button></div>'; }
+    return h;
+  }
+  const fill = () => { const c = $('ctlSet'); if (c && !c.dataset.f){ c.dataset.f = 1; c.innerHTML = setHtml(); } };
+  const sp = $('setP'); if (sp){ new MutationObserver(fill).observe(sp, { childList: true, subtree: true }); fill(); { const _o = window.__openSet; window.__openSet = function(){ const r = _o.apply(this, arguments); fill(); return r; }; }
+    const redraw = () => { const c = $('ctlSet'); if (c) c.innerHTML = setHtml(); };
+    sp.addEventListener('click', e => {
+      const b = e.target.closest('button[data-ct], button[data-key]'); if (!b) return; e.stopPropagation();
+      if (b.dataset.ct === 'mode'){ save.ctrl = mode() === 'kbm' ? 'touch' : 'kbm'; persist(); apply(); redraw(); }
+      else if (b.dataset.ct === 'reset'){ MAP = Object.assign({}, DEF); svK(); redraw(); toast('Tuşlar varsayılana döndü.', 1800); }
+      else if (b.dataset.key){ const a = b.dataset.key; b.textContent = 'Bir tuşa bas…'; b.classList.add('go');
+        capture = code => { capture = null; if (code !== 'Escape'){ const other = Object.keys(MAP).find(x => MAP[x] === code && x !== a); if (other) MAP[other] = MAP[a]; MAP[a] = code; svK(); if (other) toast(keyName(code) + ' artık ' + ACT.find(x => x[0] === a)[1] + '; ' + ACT.find(x => x[0] === other)[1] + ' eski tuşa geçti.', 3000); } redraw(); }; }
+    });
+    sp.addEventListener('input', e => { if (e.target.id !== 'ctSens') return; const v = +e.target.value; try { localStorage.setItem(mode() === 'kbm' ? 'sd_msens' : 'sd_tsens', String(v / 100)); } catch (er) {} window.__sens = v / 100; const l = $('ctSensV'); if (l) l.textContent = '%' + v; });
+  }
+
+  const st = document.createElement('style'); st.textContent = `
+  html body.kbm #bLaser,html body.kbm #bThrust,html body.kbm #bBrake,html body.kbm #bBoost,html body.kbm #bLock,html body.kbm #bMissile,html body.kbm #stage #bLaser,html body.kbm #stage #bThrust,html body.kbm #stage #bBrake,html body.kbm #stage #bBoost,html body.kbm #stage #bLock,html body.kbm #stage #bMissile{display:none !important;visibility:hidden !important}
+  #ctrlSel{position:fixed;inset:0;z-index:96;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px calc(env(safe-area-inset-bottom,0px) + 12px);background:radial-gradient(ellipse at 50% 40%,rgba(20,30,52,.94),rgba(3,5,12,.97));color:#e9f1fb;font-family:var(--font);transition:opacity .3s}
+  #ctrlSel.done{opacity:0}#ctrlSel h2{margin:0;font:600 18px/1.2 var(--font);letter-spacing:.38em;padding-left:.38em;color:#dff2ff}
+  #ctrlSel .sub{color:#8ea2b6;font-size:13px;text-align:center;margin-top:-4px}
+  #ctrlSel .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:min(760px,100%)}
+  #ctrlSel .cc{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 14px 14px;border:1px solid rgba(160,200,230,.22);border-radius:14px;background:rgba(10,18,32,.72);cursor:pointer;transition:border-color .2s,box-shadow .2s}
+  #ctrlSel .cc.on{border-color:#7fd8ff;box-shadow:0 0 0 1px #7fd8ff inset,0 0 26px rgba(127,216,255,.22)}
+  #ctrlSel .cc b{font-weight:600;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#dff2ff}
+  #ctrlSel .cc svg{width:100%;max-width:280px;height:auto;max-height:24vh}
+  #ctrlSel .cc p{margin:0;text-align:center;color:#b6c6d8;font-size:12.5px;line-height:1.45;min-height:3em}
+  #ctrlSel .cc .sel{min-width:130px}#ctrlSel .cc.on .sel{background:#7fd8ff;color:#06101c;border-color:#7fd8ff}
+  #ctrlSel .ft .act{min-width:180px}
+  #setP .keys{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 16px;margin:4px 0 6px}
+  #setP .kr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+  #setP .kr .act{min-width:92px;padding:5px 10px}
+  @media (max-height:480px){#ctrlSel{gap:8px}#ctrlSel .cc{padding:10px 12px}#ctrlSel .cc svg{max-height:22vh}#ctrlSel .cc p{font-size:11.5px;min-height:0}}`;
+  document.head.appendChild(st);
 }
 })();
