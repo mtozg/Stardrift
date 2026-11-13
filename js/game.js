@@ -70,7 +70,7 @@ function resize(){
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
-  paused = (vw < 460 || (window.matchMedia && matchMedia('(pointer: coarse)').matches)) && vh > vw * 1.15 && deviceLandscape() !== true && !forcePlay; $('rotate').classList.toggle('hidden', !paused);
+  paused = vh > vw && deviceLandscape() !== true; /* oyun yalnızca yatay oynanır */ $('rotate').classList.toggle('hidden', !paused);
   camera.aspect = W / H; baseFov = W / H < 0.8 ? 80 : (LAND && IMG.ok ? 86 : 66);
   applyCam(0);
 }
@@ -1154,7 +1154,7 @@ function audioUpdate(speed){
   las.g.gain.setTargetAtTime(on * fly * (firing ? 0.016 : 0), t, 0.04);
   las.o.frequency.setTargetAtTime(aim && firing ? 240 : 170, t, 0.05);
 }
-$('forcePlay').addEventListener('click', () => { forcePlay = true; resize(); });
+
 $('snd').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); if (window.__openSet) window.__openSet(); });
 $('snd').textContent = 'Ayarlar'; $('snd').setAttribute('aria-label', 'Ayarlar');
 

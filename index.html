@@ -79,7 +79,7 @@ body,button{font-size-adjust:.5}
   button.act.full{width:100%;margin-top:10px}
   button.go{border-color:var(--ok);background:rgba(123,224,164,.14)}
   .sect{margin:16px 0 4px;font-size:15px;color:var(--amber);font-weight:700}
-  #rotate{position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at 50% 40%,#0e1a38,#03050c 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;touch-action:none}
+  #rotate{position:fixed;inset:0;z-index:2147483000;background:radial-gradient(ellipse at 50% 40%,#0e1a38,#03050c 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;touch-action:none}
   #rotate h2{margin:6px 0 0;font-size:24px}
   #rotate p{margin:0;color:var(--dim);font-size:15px;max-width:300px;line-height:1.45}
   #rotate p.sm{font-size:13px;opacity:.8;margin-top:6px}
@@ -122,14 +122,14 @@ body,button{font-size-adjust:.5}
   </div>
 </div>
 
-<div id="rotate" class="hidden"><div class="ph"></div><h2>Cihazı yan çevir</h2><p>Bu oyun yatay ekranda oynanır. Cihazı yan çevirince devam eder.</p><p class="sm">Ekran zaten yataysa ve bu uyarı çıkıyorsa aşağıdan devam et.</p><button class="act" id="forcePlay">Yine de oyna</button></div>
+<div id="rotate" class="hidden"><div class="ph"></div><h2>Cihazı yan çevir</h2><p>Bu oyun yatay ekranda oynanır. Cihazı yan çevirince devam eder.</p></div>
 </div>
 <script src="vendor/three.min.js"></script>
 <script>window.THREE || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');</script>
 <script>
 /* SÜRÜM: her güncellemede bu numarayı artır. Tarayıcı eski game.js dosyasını önbellekten getirmez,
    ayarlar panelinin altında da bu numara görünür. */
-window.SD_VERSION = '1.34.0';
+window.SD_VERSION = '1.34.1';
 document.write('<script src="vendor/three-bloom.js?v=' + window.SD_VERSION + '"><\/script>');
 document.write('<script src="js/game.js?v=' + window.SD_VERSION + '"><\/script>');
 </script>
