@@ -70,7 +70,7 @@ function resize(){
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
-  paused = vw < 460 && H > W * 1.15 && deviceLandscape() !== true && !forcePlay; $('rotate').classList.toggle('hidden', !paused);
+  paused = (vw < 460 || (window.matchMedia && matchMedia('(pointer: coarse)').matches)) && vh > vw * 1.15 && deviceLandscape() !== true && !forcePlay; $('rotate').classList.toggle('hidden', !paused);
   camera.aspect = W / H; baseFov = W / H < 0.8 ? 80 : (LAND && IMG.ok ? 86 : 66);
   applyCam(0);
 }
@@ -1055,7 +1055,7 @@ const TESTM = /:test$/.test(SAVEKEY);
 if (TESTM){
   const fill = () => { if (save.kredi < 900000) save.kredi = 999999; if (!save.parts) save.parts = {}; for (const k of ['levha', 'devre', 'hucre']) if (!(save.parts[k] >= 50)) save.parts[k] = 99; if (!(save.xp >= 9000)) save.xp = 9000; save.ammo = Math.max(save.ammo || 0, AMMO_MAX); save.ammoD = Math.max(save.ammoD || 0, DMAX); };
   fill(); setInterval(fill, 1000);
-  const tb = document.createElement('div'); tb.textContent = 'TEST MODU'; tb.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 2px);transform:translateX(-50%);z-index:95;font:800 10px Barlow,sans-serif;letter-spacing:.12em;color:#1a0d00;background:#ffb454;padding:2px 8px;border-radius:6px;pointer-events:none;opacity:.85';
+  const tb = document.createElement('div'); tb.textContent = 'TEST MODU'; tb.style.cssText = 'position:fixed;left:calc(env(safe-area-inset-left,0px) + 4px);bottom:calc(env(safe-area-inset-bottom,0px) + 3px);z-index:95;font:800 8px Barlow,sans-serif;letter-spacing:.12em;color:#1a0d00;background:#ffb454;padding:1px 5px;border-radius:4px;pointer-events:none;opacity:.7';
   document.body.appendChild(tb);
 }
 const cargo = { demir: 0, buz: 0, kristal: 0, titan: 0, hurda: 0 };
@@ -1679,8 +1679,9 @@ function layoutCockpit(){
       const q = d.q.map(p => { const vx = cx - p[0], vy = cy - p[1], l = Math.hypot(vx, vy) || 1; return mp(p[0] + vx / l * 2.5, p[1] + vy / l * 2.5); });
       const lw = Math.round((Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[3][0], q[2][1] - q[3][1])) / 2);
       const lh = Math.round((Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1])) / 2);
-      const cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * SCRK); cv.height = Math.round(lh * DPR * SCRK);
-      return { q, lw, lh, cv, g: cv.getContext('2d'), kind: d.kind };
+      // küçük ekranlarda içerik üst üste binmesin: ekran içi en az 96 birim yükseklikte çizilir, sonra ekrana küçültülür
+      const kz = Math.max(1, 96 / Math.max(1, lh)), cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * SCRK); cv.height = Math.round(lh * DPR * SCRK);
+      return { q, lw: Math.round(lw * kz), lh: Math.round(lh * kz), ps: DPR * SCRK / kz, cv, g: cv.getContext('2d'), kind: d.kind };
     });
     return;
   }
@@ -2014,7 +2015,7 @@ function drawCockpitImg(c){
   // ekranlar: içerik önce küçük bir tuvale çizilir, sonra eğik ekran yüzeyine oturtulur
   const ui = scrTick++ % Math.max(1, SCR.length);   // her karede tek ekranın içeriği yenilenir (sırayla, ~20 Hz); hepsi her karede yerine oturtulur
   SCR.forEach((sc, i) => {
-    if (i === ui || !sc.drawn){ sc.drawn = true; const g = sc.g; g.setTransform(DPR * SCRK, 0, 0, DPR * SCRK, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
+    if (i === ui || !sc.drawn){ sc.drawn = true; const g = sc.g; g.setTransform(sc.ps, 0, 0, sc.ps, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
       const I = scrBase(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde');
       (sc.kind === 'bars' ? barsScreen : sc.kind === 'map' ? radarScreen : hullScreen)(g, I); }
     drawQuad(c, sc);
@@ -3995,7 +3996,7 @@ function renderCt(){
   if (!save.ct.offers.length || Date.now() - save.ct.t > 600000) ctGen();
   const line = c => `${c.n} ${ORE[c.ore].ad.toLowerCase()} → ${STATIONS[c.si].ad.split(' ')[0]}`;
   let h = '<div class="sect" style="margin-top:0">Aktif görevler (' + save.ct.active.length + '/2)</div>';
-  h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${line(c)}<br><span class="dim">Teslim: ${Math.min(c.prog, c.n)}/${c.n} · ${c.reward} kredi</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Henüz görev almadın.</div>';
+  h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${line(c)}<br><span class="dim">Teslim: ${Math.min(c.prog, c.n)}/${c.n} · ${c.reward} kredi</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Panodan henüz görev almadın.</div>';
   h += '<div class="sect">Görev panosu</div>';
   h += save.ct.offers.map(c => `<div class="ctc"><span>${line(c)}<br><span class="dim">Ödül: ${c.reward} kredi · o istasyonda sat</span></span><button class="act go" data-ct="acc:${c.id}" ${save.ct.active.length >= 2 ? 'disabled' : ''}>Al</button></div>`).join('');
   h += '<div class="dim" style="margin-top:6px">Görev cevherini ilgili istasyonda satınca sayılır. Pano 10 dakikada bir yenilenir.</div>';
@@ -6771,24 +6772,20 @@ window.__xpal = {
       + '<div class="sect">Ses</div>'
       + line('Tüm sesler', 'Hepsini tek dokunuşla aç ya da kapat', '<button class="act" data-set="mute">' + (soundOn ? 'Açık' : 'Kapalı') + '</button>')
       + line('Oyun sesi', 'Lazer, motor, patlama, arayüz', '<input type="range" min="0" max="100" step="5" data-vol="sfxVol" value="' + pct(save.sfxVol, 1) + '">')
-      + '<div class="sect">Müzik</div>'
       + line('Müzik', 'Sistemine göre değişen arka plan müziği', '<button class="act" data-snd="mus">' + (save.mus === false ? 'Kapalı' : 'Açık') + '</button>')
       + line('Müzik sesi', '', '<input type="range" min="0" max="100" step="5" data-vol="musVol" value="' + pct(save.musVol, 0.35) + '">')
       + line('Ana müzik', 'Başlangıç ekranı ve ana tema', '<button class="act" data-ana="1">' + (ANA[save.anaTema] || ANA.sakin) + '</button>')
       + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
       + '<div id="ctlSet"></div>'
-      + '<div class="sect">Görünüm</div>'
+      + '<div class="sect">Grafik</div>'
       + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
-      + '<div class="sect">Kayıt</div>'
-      + line('Kayıt kodu', 'Kaydını başka cihaza ya da tarayıcıya taşı: burada kodu al, öbür cihazda yapıştır', '<span style="display:flex;gap:6px"><button class="act" data-sv="exp">Kodu al</button><button class="act" data-sv="imp">Kod gir</button></span>')
-      + '<div class="sect">Teknik</div>'
-      + line('Oyun sürümü', 'Güncel sürümü görmüyorsan sayfayı zorla yenile', '<button class="act" data-set="ver" style="color:#ffc477;font-weight:800">' + (window.SD_VERSION || '?') + '</button>')
       + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
+      + '<div class="sver">Sürüm <button data-set="ver">' + (window.SD_VERSION || '?') + '</button></div>'
       + '</div>';
   }
   let verTap = 0;
@@ -6922,7 +6919,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   // ---- görevler
   if (!save.ct || !Array.isArray(save.ct.offers)) save.ct = { offers: [], active: [], t: 0 };
   save.ct.active = save.ct.active.filter(c => c.type); save.ct.offers = save.ct.offers.filter(c => c.type);   // eski biçimdeki görevler temizlenir
-  const MAXA = 3;
+  const MAXA = 2;
   const stNow = () => STATIONS.indexOf(curSt);
   const T = {
     teslim: () => { const nat = STATIONS.findIndex((q, i) => i > 0 && i < 4 && !q.off), si = nat > 0 ? nat : 0, k = nat > 0 ? SELLMAP[nat] : (Math.random() < 0.7 ? 'titan' : 'hurda'), n = Math.round(rand(10, 26) / 2) * 2; return { type: 'teslim', ore: k, n, si, sys: curSys, stAd: STATIONS[si].ad, reward: Math.round(60 + n * ORE[k].fiyat * rand(0.45, 0.7)), xp: n * 4,   /* satış parasının üstüne prim */ txt: n + ' ' + ORE[k].ad.toLowerCase() + ' → ' + STATIONS[si].ad }; },
@@ -6961,8 +6958,8 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     let h = '<div class="sect" style="margin-top:0">Rütbe</div><div class="line"><span><b>' + RANKS[r][0] + '</b><span class="dim"><br>' + (nx ? save.xp + ' / ' + nx[1] + ' XP · sıradaki: ' + nx[0] : save.xp + ' XP · en üst rütbe') + '</span></span></div>';
     h += '<div class="dim" style="margin:2px 0 6px">Kazı satışı, korsan avı, kalıntı ve görevler XP kazandırır. Rütbe, uzak kapılardan geçmek için gerekir.</div>';
     h += '<div class="sect">Aktif görevler (' + save.ct.active.length + '/' + MAXA + ')</div>';
-    h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${c.txt}<br><span class="dim">${c.n > 1 ? c.prog + '/' + c.n + ' · ' : ''}${c.reward} kredi · ${c.xp} XP</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Henüz görev almadın.</div>';
-    h += '<div class="sect">Görev panosu</div>';
+    h += save.ct.active.length ? save.ct.active.map(c => `<div class="ctc act"><span>${c.txt}<br><span class="dim">${c.n > 1 ? c.prog + '/' + c.n + ' · ' : ''}${c.reward} kredi · ${c.xp} XP</span></span><button class="act" data-ct="drop:${c.id}">Bırak</button></div>`).join('') : '<div class="dim">Panodan henüz görev almadın.</div>';
+    h += '<div class="sect">Görev panosu</div><div class="dim" style="margin:2px 0 6px">Kısa görevler. Aynı anda en fazla ' + MAXA + ' tane alabilirsin.</div>';
     h += save.ct.offers.map(c => `<div class="ctc"><span>${c.txt}<br><span class="dim">Ödül: ${c.reward} kredi · ${c.xp} XP</span></span><button class="act go" data-ct="acc:${c.id}" ${save.ct.active.length >= MAXA ? 'disabled' : ''}>Al</button></div>`).join('');
     h += '<div class="dim" style="margin-top:6px">Görevler isteğe bağlı. Pano 10 dakikada bir yenilenir.</div>';
     $('ctBox').innerHTML = h;
@@ -7848,7 +7845,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #dock input[type=text],html body #dock input:not([type]){border:1px solid var(--v2l) !important;border-image:none !important;border-radius:4px !important;background:rgba(255,255,255,.04) !important;color:var(--v2t) !important}
   html body #dock .hgstat u,html body #dock .hgstat i u{background:var(--v2a) !important;left:0 !important;top:0 !important;bottom:0 !important;max-width:100% !important;border-radius:2px !important}
   /* tablet dikey ve dar ekran: içerik tam genişlik, gemi üstte değil arka planda */
-  @media (max-width:820px){html body #dock .card{grid-template-columns:1fr;column-gap:0}html body #dock #dtabs{grid-column:1;grid-row:2;justify-self:start;margin-top:8px !important;flex-wrap:wrap}html body #dock .card > .sub{display:none !important}
+  @media (max-width:820px) and (min-height:521px){html body #dock .card{grid-template-columns:1fr;column-gap:0}html body #dock #dtabs{grid-column:1;grid-row:2;justify-self:start;margin-top:8px !important;flex-wrap:wrap}html body #dock .card > .sub{display:none !important}
     html body #dock #dkStat{grid-column:1;grid-row:1;justify-self:end}html body #dock #dcont{grid-column:1;width:100% !important}html body #dock #hgStage{left:0 !important;opacity:.35}html body #dock #undock{right:50% !important}}
   /* telefon yatay (alçak ekran) */
   @media (max-height:520px){
@@ -8944,7 +8941,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const chains = () => Object.keys(CH).filter(k => (!CH[k].side || CH[k].side === save.side) && (!CH[k].lv || lvl() >= CH[k].lv || save.base));
   const rwTxt = r => [r.k ? r.k + ' kredi' : '', r.x ? r.x + ' XP' : '', r.f ? 'itibar +' + r.f[1] : '', r.sp ? '1 yetenek puanı' : ''].filter(Boolean).join(' · ');
   function renderLq(){
-    const box = $('lqBox'); if (!box) return; let h = '<div class="sect">Uzun görevler</div>';
+    const box = $('lqBox'); if (!box) return; let h = '<div class="sect">Uzun görevler</div><div class="dim lqn" style="margin:2px 0 6px">Hep sürer ve kendiliğinden ilerler, alman gerekmez. Adım bitince ödülü buradan al.</div>';
     for (const k of chains()){ const C = CH[k], i = save.lq[k] || 0;
       if (i >= C.steps.length){ h += '<div class="lq done" style="--c:' + C.col + '"><b>' + C.ad + '</b><span>Zincir tamamlandı.</span></div>'; continue; }
       const [txt, fn, tg, rw] = C.steps[i], v = Math.min(tg, Math.floor(fn() || 0)), ok = v >= tg;
@@ -9089,8 +9086,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #dock .pilotRow{display:none !important}
   html body #dock .acch,html body #dock .sect,.lq b,#skModal .nd em,#skModal .ph{text-transform:capitalize !important}html body #dock .acch *,html body #dock .sect *{text-transform:none !important}
   img.iti{width:52px;height:52px;border-radius:8px;background:radial-gradient(circle at 50% 55%,rgba(40,70,100,.35),rgba(20,32,46,0) 70%);flex:none;margin-right:10px;vertical-align:middle}.line.itl{justify-content:flex-start !important}.line.itl>span{flex:1}.wpc h4 img.iti{width:34px;height:34px;margin-right:8px}.wpc h4{align-items:center}
-  html body #dock #hgBox > .acch,html body #dock #lqBox > .acch,html body #dock #facBox > .acch:only-of-type{display:none !important}
-  html body #dock #lqBox > .accx{display:block !important}
+  html body #dock #hgBox > .acch,html body #dock #facBox > .acch:only-of-type{display:none !important}
   #dkStat .rnk{cursor:pointer}html body #dock #dkStat .rnk img.rkc{display:inline-block !important;width:20px;height:20px;vertical-align:-5px;margin-right:4px}
   #rkPop{position:fixed;z-index:70;display:flex;gap:12px;align-items:center;padding:12px 14px;background:rgba(8,14,26,.97);border:1px solid rgba(220,235,245,.2);border-radius:10px;color:#e8edff;font:500 12.5px/1.45 var(--font);max-width:min(330px,92vw)}
   #rkPop img{width:58px;height:58px;flex:none}#rkPop b{display:block;font-weight:600;font-size:14px}#rkPop span{display:block;color:#aebfd0}#rkPop .sp{color:#ffc56e}
@@ -9310,7 +9306,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const sp = document.getElementById('setP'); if (!sp) return;
     let open = null;
     const apply = () => { sp.querySelectorAll('.sect').forEach(h => { const k = h.textContent.trim(), on = open === k; h.classList.add('acc'); h.classList.toggle('open', on);
-      for (let e = h.nextElementSibling; e && !e.classList.contains('sect') && e.id !== 'ctlSet'; e = e.nextElementSibling) e.hidden = !on; }); };
+      for (let e = h.nextElementSibling; e && !e.classList.contains('sect') && !e.classList.contains('sver') && e.id !== 'ctlSet'; e = e.nextElementSibling) e.hidden = !on; }); };
     new MutationObserver(apply).observe(sp, { childList: true, subtree: true }); apply();
     sp.addEventListener('click', e => { const h = e.target.closest('.sect'); if (!h) return; const k = h.textContent.trim(); open = open === k ? null : k; apply(); try { h.scrollIntoView({ block: 'nearest' }); } catch (x) {} });
     { const _o = window.__openSet; if (_o) window.__openSet = function(){ open = null; const r = _o.apply(this, arguments); apply(); return r; }; }
@@ -9320,7 +9316,26 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #setP .card .sect.acc.open{color:var(--amber,#ffb454) !important}
   html body #setP .card .sect.acc.open::after{transform:rotate(-135deg);margin-top:4px}
   html body #setP .card [hidden]{display:none !important}
-  html body #setP .card .top{margin-bottom:8px}`;
+  html body #setP .card .top{margin-bottom:8px}
+  html body #setP .card .sver{margin-top:12px;text-align:center;font-size:11px;letter-spacing:.12em;color:var(--dim)}
+  html body #setP .card .sver button{all:unset;cursor:pointer;color:#ffc477;font-weight:700;letter-spacing:.06em}`;
     document.head.appendChild(st);
   })();
+
+  // =====  tam ekran: tarayıcı çubuğunu gizle (Android, iPad, masaüstü); iPhone Safari buna izin vermez → bir kez "Ana Ekrana Ekle" ipucu
+  (function(){
+    const standalone = () => window.matchMedia && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+    const de = document.documentElement, req = de.requestFullscreen || de.webkitRequestFullscreen;
+    const go = () => { if (standalone() || document.fullscreenElement || document.webkitFullscreenElement) return;
+      if (req && matchMedia('(pointer: coarse)').matches){ try { const r = req.call(de, { navigationUI: 'hide' }); if (r && r.then) r.then(() => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {}); } catch (e) {} return; }
+      const iph = /iPhone|iPod/.test(navigator.userAgent); let seen = false; try { seen = localStorage.getItem('sd_a2hs') === '1'; } catch (e) {}
+      if (iph && !seen){ try { localStorage.setItem('sd_a2hs', '1'); } catch (e) {} setTimeout(() => { try { toast('Tam ekran için: Safari\'de Paylaş → Ana Ekrana Ekle. Oyun oradan adres çubuğu olmadan açılır.', 7000); } catch (e) {} }, 2500); } };
+    const tg = document.getElementById('titleGo'); if (tg) tg.addEventListener('click', go);
+    window.__fullscreen = go;
+  })();
+
+  // döndür uyarısı ölçeklenen sahnenin dışına: tüm ekranı kaplasın
+  { const r = document.getElementById('rotate'); if (r && r.parentElement !== document.body) document.body.appendChild(r); }
+  // küçük telefon yatay: sekmeler ikinci satıra, istatistikler sağ üstte kesilmeden
+  { const st = document.createElement('style'); st.textContent = '@media (max-height:520px) and (max-width:780px){html body #dock #dtabs{grid-column:1 / -1 !important;grid-row:2 !important;justify-self:start !important;margin-top:4px !important}html body #dock #dcont{grid-row:3 !important}html body #dock #dkStat{grid-row:1 !important;align-self:start}html body #dock .card > h2{grid-row:1 !important;align-self:center}}'; document.head.appendChild(st); }
 })();
