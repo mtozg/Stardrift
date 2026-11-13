@@ -8575,7 +8575,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-x]')) w.remove(); }); document.body.appendChild(w); return w; }
   document.addEventListener('click', async e => { const b = e.target.closest('button[data-sv]'); if (!b) return; e.stopPropagation();
     if (b.dataset.sv === 'exp'){ let code; try { code = await encode(); } catch (er) { toast('Kayıt kodu oluşturulamadı.', 2600); return; }
-      const w = modal('Kayıt kodun', '<p>Bu kodu öbür cihazda <i>İstasyon → Diğer → Kayıt Kodu → Kod gir</i> bölümüne yapıştır. Kodu kimseyle paylaşma: kaydının tamamıdır.</p><textarea readonly></textarea>', '<button class="act go" data-cp="1">Kopyala</button>');
+      const w = modal('Kayıt kodun', '<p>Bu kodu öbür cihazda <i>İstasyon → Diğer → Hesap → Kod gir</i> bölümüne yapıştır. Kodu kimseyle paylaşma: kaydının tamamıdır.</p><textarea readonly></textarea>', '<button class="act go" data-cp="1">Kopyala</button>');
       const ta = w.querySelector('textarea'); ta.value = code;
       w.querySelector('[data-cp]').onclick = async () => { try { await navigator.clipboard.writeText(code); toast('Kayıt kodu kopyalandı.', 2000); } catch (er) { ta.focus(); ta.select(); try { document.execCommand('copy'); toast('Kayıt kodu kopyalandı.', 2000); } catch (e2) { toast('Kopyalanamadı: kodu elle seç.', 2400); } } };
     } else {
@@ -9340,7 +9340,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   { const st = document.createElement('style'); st.textContent = '@media (max-height:520px) and (max-width:780px){html body #dock #dtabs{grid-column:1 / -1 !important;grid-row:2 !important;justify-self:start !important;margin-top:4px !important}html body #dock #dcont{grid-row:3 !important}html body #dock #dkStat{grid-row:1 !important;align-self:start}html body #dock .card > h2{grid-row:1 !important;align-self:center}}'; document.head.appendChild(st); }
 
   // Diğer sekmesi: kayıt kodu (kaydı başka cihaza taşı)
-  { const SVH = '<div class="sect">Kayıt Kodu</div><div class="line svx"><span>Kaydını başka cihaza taşı<span class="dim"><br>Burada kodu al, öbür cihazda Diğer → Kayıt Kodu → Kod gir.</span></span><span style="display:flex;gap:6px"><button class="act" data-sv="exp">Kodu al</button><button class="act" data-sv="imp">Kod gir</button></span></div>';
-    const put = () => { const f = $('exBox'); if (f && !f.querySelector('.svx')) f.insertAdjacentHTML('beforeend', SVH); };
-    const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { put(); } catch (e) {} return r; }; }
+  { const SVH = '<div class="line svx"><span>Kaydını başka cihaza taşı<span class="dim"><br>Burada kodu al, öbür cihazda Diğer → Hesap → Kod gir.</span></span><span style="display:flex;gap:6px"><button class="act" data-sv="exp">Kodu al</button><button class="act" data-sv="imp">Kod gir</button></span></div>';
+    // Hesap başlığının altına: o bölümün son öğesinden sonra
+    const put = () => { const f = $('exBox'); if (!f) return; const h = [...f.children].find(c => c.classList.contains('sect') && /^Hesap/.test(c.textContent.trim())); if (!h) return;
+      let last = h; for (let n = h.nextElementSibling; n && !n.classList.contains('sect'); n = n.nextElementSibling) last = n;
+      let x = f.querySelector('.svx'); if (x && x.previousElementSibling === last) return; if (x && last === x) return; if (!x){ const t = document.createElement('div'); t.innerHTML = SVH; x = t.firstChild; } last.after(x); };
+    const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { put(); } catch (e) {} return r; };
+    if (typeof renderExtras === 'function'){ const _x = renderExtras; renderExtras = function(){ const r = _x.apply(this, arguments); try { put(); } catch (e) {} return r; }; } }
 })();
