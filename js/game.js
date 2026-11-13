@@ -76,7 +76,12 @@ function resize(){
 }
 window.addEventListener('resize', resize); window.addEventListener('orientationchange', () => setTimeout(resize, 150)); resize();
 
+const GLOWC = {};   // aynı renkte parıltı dokusu bir kez üretilir: her NPC/efekt için yeni doku GPU belleğini şişiriyordu
 function glowTexture(r, g, b){
+  const key = r + ',' + g + ',' + b; if (GLOWC[key]) return GLOWC[key];
+  return (GLOWC[key] = glowTexture0(r, g, b));
+}
+function glowTexture0(r, g, b){
   const c = document.createElement('canvas'); c.width = c.height = 128;
   const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(0.25, `rgba(${r},${g},${b},0.35)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
