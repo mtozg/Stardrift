@@ -10286,13 +10286,13 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
     const ED = -0.33;
     const SHIPS3 = {
-      kasif:   { glow: 0x43d2ff, rim: 0x9cc2ff, U0: 0.86, ET: 0.5, rO: 0.05, rT: 0.03, panel: [0.02, 0.78, 0.32, 0.99], strip: [0.005, 0.12, 0.045, 0.55],
+      kasif:   { glow: 0x43d2ff, rim: 0x9cc2ff, U0: 0.86, ET: 0.5, topA: 1, scr: [['bars', -0.5, 0.92, -0.56, 0.36, 0.28, 0.14, 'tab'], ['map', 0, 0.98, -0.56, 0.3, 0.3, 0.12, 'tab'], ['hull', 0.5, 0.92, -0.56, 0.36, 0.28, 0.14, 'tab'], ['tgt', -0.95, 1.15, -0.53, 0.28, 0.17, 0.4, 'flat'], ['mq', 0.95, 1.15, -0.53, 0.28, 0.17, 0.4, 'flat']], rO: 0.05, rT: 0.03, panel: [0.02, 0.78, 0.32, 0.99], strip: [0.005, 0.12, 0.045, 0.55],
                  inner: [{ p: [[-0.3, ED], [-0.33, 0.5]], r: 0.022 }, { p: [[0.3, ED], [0.33, 0.5]], r: 0.022 }] },
-      sahin:   { glow: 0xff4d6a, rim: 0xa9b8d6, U0: 0.9, ET: 0.58, rO: 0.05, rT: 0.026, panel: [0.02, 0.78, 0.30, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
+      sahin:   { glow: 0xff4d6a, rim: 0xa9b8d6, U0: 0.9, ET: 0.58, hood: 0x7a1f2b, scr: [['bars', -0.4, 0.98, -0.53, 0.4, 0.26, 0.35, 'flat'], ['map', 0, 1.0, -0.53, 0.32, 0.26, 0.35, 'flat'], ['hull', 0.4, 0.98, -0.53, 0.4, 0.26, 0.35, 'flat'], ['tgt', -0.82, 0.95, -0.53, 0.24, 0.16, 0.6, 'flat'], ['mq', 0.82, 0.95, -0.53, 0.24, 0.16, 0.6, 'flat']], rO: 0.05, rT: 0.026, panel: [0.02, 0.78, 0.30, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
                  inner: [{ p: [[-0.14, ED], [-0.34, 0.12], [-0.6, 0.42], [-0.84, 0.58]], r: 0.03 }, { p: [[0.14, ED], [0.34, 0.12], [0.6, 0.42], [0.84, 0.58]], r: 0.03 }] },
-      yuk:     { glow: 0xffb454, rim: 0xc9d2b0, U0: 0.84, ET: 0.44, rO: 0.065, rT: 0.042, panel: [0.03, 0.80, 0.30, 0.99], strip: [0.005, 0.1, 0.05, 0.55], sill: 0.03,
+      yuk:     { glow: 0xffb454, rim: 0xc9d2b0, U0: 0.84, ET: 0.44, rail: 0.04, scr: [['bars', -0.56, 0.97, -0.56, 0.5, 0.25, 0.28, 'tab'], ['map', 0, 0.94, -0.56, 0.3, 0.24, 0.32, 'tab'], ['hull', 0.56, 0.97, -0.56, 0.5, 0.25, 0.28, 'tab'], ['tgt', -1.0, 1.15, -0.53, 0.26, 0.16, 0.4, 'flat'], ['mq', 1.0, 1.15, -0.53, 0.26, 0.16, 0.4, 'flat']], rO: 0.065, rT: 0.042, panel: [0.03, 0.80, 0.30, 0.99], strip: [0.005, 0.1, 0.05, 0.55], sill: 0.03,
                  inner: [{ p: [[-0.42, ED], [-0.42, 0.44]], r: 0.026 }, { p: [[0, ED], [0, 0.44]], r: 0.026 }, { p: [[0.42, ED], [0.42, 0.44]], r: 0.026 }] },
-      hayalet: { glow: 0xa77bff, rim: 0x8f9cc8, U0: 0.92, ET: 0.6, rO: 0.045, rT: 0.024, panel: [0.36, 0.86, 0.64, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
+      hayalet: { glow: 0xa77bff, rim: 0x8f9cc8, U0: 0.92, ET: 0.6, web: 1, scr: [['bars', -0.46, 1.02, -0.54, 0.46, 0.19, 0.42, 'slim'], ['map', 0, 1.04, -0.54, 0.36, 0.19, 0.42, 'slim'], ['hull', 0.46, 1.02, -0.54, 0.46, 0.19, 0.42, 'slim'], ['tgt', -0.92, 1.1, -0.54, 0.26, 0.14, 0.5, 'slim'], ['mq', 0.92, 1.1, -0.54, 0.26, 0.14, 0.5, 'slim']], rO: 0.045, rT: 0.024, panel: [0.36, 0.86, 0.64, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
                  inner: [{ p: [[0, ED], [0, 0.6]], r: 0.016 }, { p: [[-0.26, ED], [-0.56, 0.25], [-0.88, 0.6]], r: 0.03 }, { p: [[0.26, ED], [0.56, 0.25], [0.88, 0.6]], r: 0.03 }] }
     };
     const cpos = (u, e) => { const r = 1.75 - 0.55 * Math.abs(Math.sin(u)); return [Math.sin(u) * Math.cos(e) * r, Math.sin(e) * r, -Math.cos(u) * Math.cos(e) * r]; };
@@ -10337,25 +10337,38 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         tube(c.getPoints(20).map(q => [q.x + sx * 0.05, q.y, q.z + 0.03]), 0.01, cable, 6);
         for (const t of [0.25, 0.6]){ const q = c.getPoint(t); const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.045, 0.07), metal); b.position.copy(q); b.lookAt(0, q.y, 0); G.add(b); }
       }
-      { const ue = []; for (let k = 0; k <= 12; k++) ue.push([-C.U0 * 0.9 + 1.8 * C.U0 * k / 12, C.ET + (C.top === 'v' ? 0 : 0.02 * Math.sin(Math.PI * k / 12))]); ctube(ue, C.rT, pil, 4); }
+      if (C.topA) ctube([[-C.U0 * 0.9, C.ET], [-0.34, C.ET + 0.08], [0.34, C.ET + 0.08], [C.U0 * 0.9, C.ET]], C.rT, pil, 4);   // köşeli üst çerçeve
+      else { const ue = []; for (let k = 0; k <= 12; k++) ue.push([-C.U0 * 0.9 + 1.8 * C.U0 * k / 12, C.ET + 0.02 * Math.sin(Math.PI * k / 12)]); ctube(ue, C.rT, pil, 4); }
+      if (C.rail) ctube([[-C.U0 * 0.97, 0.06], [0, 0.06], [C.U0 * 0.97, 0.06]], C.rail * 0.6, pil, 4);   // camları ızgaraya bölen yatay ara kiriş
+      if (C.web){ for (const sx of [-1, 1]){ ctube([[0, C.ET], [sx * 0.42, 0.22]], 0.014, pil, 4); ctube([[sx * 0.42, 0.22], [sx * C.U0 * 0.9, C.ET]], 0.014, pil, 4); ctube([[sx * 0.42, 0.22], [sx * 0.26, ED]], 0.014, pil, 4); ctube([[sx * 0.42, 0.22], [sx * C.U0 * 0.97, 0.12]], 0.012, pil, 4); } }   // kafes tavan
       tube([cpos(-C.U0 * 0.9, C.ET), [-0.5, 1.2, -1.0], [0, 1.26, -0.95], [0.5, 1.2, -1.0], cpos(C.U0 * 0.9, C.ET)], C.rT * 1.3, pil, 4);   // tavan kemeri
       if (C.sill) ctube([[-C.U0, ED], [0, ED], [C.U0, ED]], C.sill, pil, 4);
       for (const P of C.inner){ ctube(P.p, P.r, pil, 6); ctube(P.p.map(([u, e]) => [u + 0.004, e]), P.r * 0.25, rimM, 4); }   /* ince dikmenin kenarı dışarıdaki ışığı yakalar */
       // ekranlar: beş ekran, panelin hafif yukarısında, pilota dönük
       const scr = [];
       const extra = () => { const cv = document.createElement('canvas'); cv.width = 360; cv.height = 220; return { cv, g: cv.getContext('2d') }; };
-      const defs = [{ a: -1.06, w: 0.4, k: 'tgt' }, { a: -0.53, w: 0.45, k: 'bars' }, { a: 0, w: 0.48, k: 'map' }, { a: 0.53, w: 0.45, k: 'hull' }, { a: 1.06, w: 0.4, k: 'mq' }];
-      for (const d of defs){ const R = 1.06, h = d.w * 0.6, tilt = 0.32, by = -0.52;
-        const holder = new THREE.Group(); holder.position.set(Math.sin(d.a) * R, by, -Math.cos(d.a) * R); holder.rotation.y = -d.a; G.add(holder);
+      const btnM = [new THREE.MeshBasicMaterial({ color: C.glow }), new THREE.MeshBasicMaterial({ color: 0xffb454 }), new THREE.MeshBasicMaterial({ color: 0x5a6270 })];
+      const knobM = new THREE.MeshStandardMaterial({ color: 0x1a1d22, roughness: 0.5, metalness: 0.6 });
+      for (const [k, a, R, by, w, h, tilt, kind] of C.scr){ const d = { k, a, w };
+        const holder = new THREE.Group(); holder.position.set(Math.sin(a) * R, by, -Math.cos(a) * R); holder.rotation.y = -a; G.add(holder);
         const t = new THREE.Group(); t.rotation.x = -tilt; holder.add(t);
-        const bz = new THREE.Mesh(new THREE.BoxGeometry(d.w + 0.05, h + 0.05, 0.035), metal); bz.position.set(0, h / 2 + 0.02, -0.02); t.add(bz);
-        const st = new THREE.Mesh(new THREE.BoxGeometry(d.w * 0.3, 0.06, 0.05), dark); st.position.set(0, -0.02, -0.04); t.add(st);   // ekranı panelin üstünde tutan kısa ayak
-        const ex = d.k === 'tgt' || d.k === 'mq' ? extra() : null;
+        if (kind === 'tab'){   // dik gösterge paneli: gövde, yan düğme sütunu, düğmeler ve ayak
+          const W2 = w + 0.13, H2 = h + 0.1; const bz = new THREE.Mesh(new THREE.BoxGeometry(W2, H2, 0.05), metal); bz.position.set(0.03, h / 2 + 0.02, -0.026); t.add(bz);
+          for (let r = 0; r < 5; r++) for (let c = 0; c < 2; c++){ const b = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.008), btnM[(r + c * 2) % 3]); b.position.set(w / 2 + 0.035 + c * 0.028, h * 0.85 - r * h * 0.17, 0.002); t.add(b); }
+          for (let r = 0; r < 2; r++){ const kn = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.02, 10), knobM); kn.rotation.x = Math.PI / 2; kn.position.set(-w / 2 - 0.035, h * 0.7 - r * h * 0.4, 0.01); t.add(kn); }
+          const st = new THREE.Mesh(new THREE.BoxGeometry(w * 0.35, 0.5, 0.05), dark); st.position.set(0, -0.25, -0.05); t.add(st); }
+        else if (kind === 'slim'){ const bz = new THREE.Mesh(new THREE.BoxGeometry(w + 0.02, h + 0.02, 0.02), dark); bz.position.set(0, h / 2 + 0.02, -0.012); t.add(bz); }
+        else { const bz = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, h + 0.05, 0.035), metal); bz.position.set(0, h / 2 + 0.02, -0.02); t.add(bz);
+          const st = new THREE.Mesh(new THREE.BoxGeometry(w * 0.3, 0.06, 0.05), dark); st.position.set(0, -0.02, -0.04); t.add(st); }
+        const ex = k === 'tgt' || k === 'mq' ? extra() : null;
         const tex = new THREE.CanvasTexture(ex ? ex.cv : document.createElement('canvas')); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
-        const sm = new THREE.Mesh(new THREE.PlaneGeometry(d.w, h), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })); sm.position.set(0, h / 2 + 0.02, 0.001); t.add(sm);
-        const edge = new THREE.Mesh(new THREE.BoxGeometry(d.w + 0.05, 0.006, 0.006), glow); edge.position.set(0, -0.005, 0.0); t.add(edge);
+        const sm = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })); sm.position.set(0, h / 2 + 0.02, 0.001); t.add(sm);
+        const edge = new THREE.Mesh(new THREE.BoxGeometry(w + 0.03, 0.005, 0.005), glow); edge.position.set(0, kind === 'tab' ? -0.03 : -0.005, 0.0); t.add(edge);
         scr.push({ d, tex, sm, ex, ver: -1, cv: null });
       }
+      if (C.hood){   // Şahin: ekranların üstünde sarmal siper
+        const g = new THREE.CylinderGeometry(1.0, 1.0, 0.06, 40, 1, true, Math.PI - 0.6, 1.2); const hm = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: C.hood, roughness: 0.55, metalness: 0.35, side: THREE.DoubleSide })); hm.position.y = -0.22; G.add(hm);
+        const g2 = new THREE.RingGeometry(0.9, 1.0, 40, 1, Math.PI / 2 - 0.6, 1.2); g2.rotateX(-Math.PI / 2); const tp = new THREE.Mesh(g2, hm.material); tp.position.y = -0.19; G.add(tp); }
       // ışıklar
       const amb = new THREE.AmbientLight(0x1b2638, 0.6); S.add(amb);
       const sky = new THREE.DirectionalLight(C.rim, 0.6); sky.position.set(0, 4, -3); S.add(sky);
