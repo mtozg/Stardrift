@@ -15,7 +15,9 @@ const FONT = '"Barlow","Segoe UI",system-ui,sans-serif';
 const glc = $('gl'), hud = $('hud'), hctx = hud.getContext('2d');
 // kokpit resmi kendi katmanında bir kez çizilir; üstteki hud2 ekranları ve göstergeleri taşır
 const ckc = document.createElement('canvas'), hud2 = document.createElement('canvas'); ckc.id = 'ckc'; hud2.id = 'hud2';
+const CKM = 26;   /* kokpit katmanı ekrandan her yönde bu kadar taşar: dönerken sallandığında kenarda boşluk görünmez */
 for (const cv of [ckc, hud2]){ cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;display:block;z-index:1;pointer-events:none'; }
+ckc.style.left = ckc.style.top = -CKM + 'px'; ckc.style.width = ckc.style.height = 'calc(100% + ' + 2 * CKM + 'px)';
 hud.after(ckc); ckc.after(hud2);
 const ckx = ckc.getContext('2d'), hctx2 = hud2.getContext('2d');
 const renderer = new THREE.WebGLRenderer({ canvas: glc, antialias: true });
@@ -60,15 +62,13 @@ function resize(){
   const vw = window.innerWidth, vh = window.innerHeight, st = $('stage');
   SX = 0; SY = 0; SK = 1; W = vw; H = vh;
   if ((deviceLandscape() === true || vw >= 460) && vw / vh < 1.45){
-    SK = vw < 900 ? vw / 900 : 1; W = Math.round(vw / SK); H = Math.round(W / 1.6);
-    if (H * SK > vh){ SK = vh / H; }
-    SX = Math.round((vw - W * SK) / 2); SY = Math.round((vh - H * SK) / 2);
+    SK = vw < 900 ? vw / 900 : 1; W = Math.round(vw / SK); H = Math.round(vh / SK);   /* eskiden 16:10'a sıkıştırılıp üstte-altta siyah şerit kalıyordu (iPad): artık ekranın tamamı */
   }
   DPR = DPR * SK;
   st.style.transformOrigin = '0 0'; st.style.transform = 'scale(' + SK + ')';
   st.style.left = SX + 'px'; st.style.top = SY + 'px'; st.style.width = W + 'px'; st.style.height = H + 'px';
   renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); if (window.__bloomResize) window.__bloomResize();
-  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round(W * DPR); ckc.height = Math.round(H * DPR); ckDirty = true;
+  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round((W + 2 * CKM) * DPR); ckc.height = Math.round((H + 2 * CKM) * DPR); ckDirty = true;
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
@@ -1679,11 +1679,13 @@ function layoutCockpit(){
   OX = W / 2; IMGMODE = false; $('toast').style.top = ''; { const hs = $('hint').style; hs.top = ''; hs.fontSize = ''; hs.maxWidth = ''; }
   if (LAND && IMG.ok){
     const s0 = Math.max(W / IMG.iw, H / IMG.ih) * 1.04, s = IMG.cfg ? s0 : Math.max(s0, H / 582 * 1.02, Math.min(s0 * 1.45, W / 1000)), dx = (W - IMG.iw * s) / 2, dy = H - (IMG.cfg ? IMG.ih : 582) * s;
-    const CK = ckMapping(); IM.s = s; IM.dx = dx; IM.dy = dy; IM.R1 = CK.R1; IM.a = CK.a; IM.b = CK.b; IMGMODE = true; WINS = [];
+    const CK = ckMapping(); IM.s = s; IM.dx = dx; IM.dy = dy; IM.R1 = CK.R1; IM.a = CK.a; IM.b = CK.b; IM.T = 0; IMGMODE = true; WINS = [];
+    // iPad gibi dar oranlı ekran: resmi yüksekliğe göre büyütmek yanları kesiyordu. Genişliğe sığdır, üstteki cam bölgesini ekranı dolduracak kadar uzat
+    if (IMG.cfg && CK.R1 && W / H < 1.6){ const sw = W / IMG.iw * 1.04, T = H / sw; if (T > IMG.ih){ IM.s = sw; IM.dx = (W - IMG.iw * sw) / 2; IM.dy = 0; IM.T = T; IM.a = CK.a = (T - (IMG.ih - CK.R1) * CK.b) / CK.R1; } }
     const my = y => CK.R1 ? (y <= CK.R1 ? y * CK.a : CK.R1 * CK.a + (y - CK.R1) * CK.b) : y; IM.my = my;
-    const mp = (x, y) => [dx + x * s, dy + my(y) * s], K = IMG.cfg, c0 = mp(800, K ? 215 : 265), a0 = mp(K ? 250 : 340, K ? 30 : 150), b0 = mp(K ? 1350 : 1260, K ? 392 : 385);
+    const mp = (x, y) => [IM.dx + x * IM.s, IM.dy + my(y) * IM.s], K = IMG.cfg, c0 = mp(800, K ? 215 : 265), a0 = mp(K ? 250 : 340, K ? 30 : 150), b0 = mp(K ? 1350 : 1260, K ? 392 : 385);
     { const hs = $('hint').style; hs.top = '5px'; hs.fontSize = '10.5px'; hs.maxWidth = Math.round(W * 0.5) + 'px'; hs.lineHeight = '1.25'; }
-    $('toast').style.top = Math.max(6, Math.round(dy + my(74) * s - 17)) + 'px';
+    $('toast').style.top = Math.max(6, Math.round(IM.dy + my(74) * IM.s - 17)) + 'px';
     OX = c0[0]; OY = c0[1]; VIEW = { l: a0[0], t: a0[1], r: b0[0], b: b0[1] }; Hv = mp(0, 393)[1];
     SCR = SCR_DEF.map(d => {
       const cx = d.q.reduce((t, p) => t + p[0], 0) / 4, cy = d.q.reduce((t, p) => t + p[1], 0) / 4;
@@ -2013,14 +2015,51 @@ function radarContent(c, I){
   c.fillStyle = '#ffb454'; c.fillText(stDist + ' m', tx, I.y + I.h * 0.8 + 12);
   c.restore();
 }
+// ---- kokpit camı: yalnızca pencere boşluklarına (resmin saydam yerlerine) çizilir, kokpitle birlikte bir kez hazırlanır
+//      çerçevenin cama düşen gölgesi + ince ışık kenarı (cam kalınlığı), hafif renk, eğik yansıma şeritleri, panel ışıklarının yansıması, toz ve çizikler
+function glassLayer(k, paint){
+  if (window.__noGlass) return;
+  k.save(); k.globalCompositeOperation = 'destination-over';
+  // 1) çerçeve kenarında ince açık parıltı (camın kesik kenarı ışığı yakalar)
+  k.shadowColor = 'rgba(200,232,255,0.5)'; k.shadowBlur = 1.8 * DPR; k.shadowOffsetX = -1 * DPR; k.shadowOffsetY = -1 * DPR; paint();
+  // 2) çerçevenin cama düşen yumuşak gölgesi (derinlik)
+  k.shadowColor = 'rgba(0,4,10,0.75)'; k.shadowBlur = 22 * DPR; k.shadowOffsetX = 0; k.shadowOffsetY = 5 * DPR; paint();
+  k.shadowColor = 'transparent'; k.shadowBlur = 0; k.shadowOffsetX = k.shadowOffsetY = 0;
+  // 3) toz ve ince çizikler (her açılışta aynı desen)
+  let sd = 1337; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 260; i++){ const x = rnd() * W, y = rnd() * H * 0.8, r = 0.35 + rnd() * 0.9; k.fillStyle = 'rgba(220,235,255,' + (0.05 + rnd() * 0.09).toFixed(3) + ')'; k.beginPath(); k.arc(x, y, r, 0, 6.283); k.fill(); }
+  k.lineCap = 'round';
+  for (let i = 0; i < 26; i++){ const x = rnd() * W, y = rnd() * H * 0.75, L = 14 + rnd() * 60, a = -0.5 + rnd() * 1.0; k.strokeStyle = 'rgba(210,230,255,' + (0.035 + rnd() * 0.05).toFixed(3) + ')'; k.lineWidth = 0.6;
+    k.beginPath(); k.moveTo(x, y); k.quadraticCurveTo(x + Math.cos(a) * L * 0.5 + rnd() * 6, y + Math.sin(a) * L * 0.5, x + Math.cos(a) * L, y + Math.sin(a) * L); k.stroke(); }
+  // 4) eğik yansıma şeritleri (sol üstten sağ alta)
+  k.save(); k.translate(W * 0.5, H * 0.4); k.rotate(-0.62);
+  for (const [off, wd, al] of [[-0.34, 0.07, 0.11], [-0.24, 0.022, 0.09], [0.18, 0.11, 0.07], [0.31, 0.028, 0.1]]){
+    const x = off * W * 1.4, w = wd * W * 1.4, g = k.createLinearGradient(x - w, 0, x + w, 0);
+    g.addColorStop(0, 'rgba(225,240,255,0)'); g.addColorStop(0.5, 'rgba(225,240,255,' + al + ')'); g.addColorStop(1, 'rgba(225,240,255,0)'); k.fillStyle = g; k.fillRect(x - w, -H * 1.2, w * 2, H * 2.4); }
+  k.restore();
+  // 5) panelin camdaki yansıması: alt kenarda soğuk mavi-yeşil, köşelerde koyulaşma
+  { let g = k.createLinearGradient(0, H * 0.35, 0, H * 0.85); g.addColorStop(0, 'rgba(90,200,220,0)'); g.addColorStop(1, 'rgba(90,200,220,0.1)'); k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
+    g = k.createRadialGradient(W / 2, H * 0.42, Math.min(W, H) * 0.3, W / 2, H * 0.42, Math.max(W, H) * 0.75); g.addColorStop(0, 'rgba(8,16,28,0)'); g.addColorStop(1, 'rgba(8,16,28,0.22)'); k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); }
+  // 6) camın kendi rengi: çok hafif mavi
+  k.fillStyle = 'rgba(120,170,210,0.035)'; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
+  k.restore();
+}
 function drawCockpitImg(c){
   const s = IM.s, my = IM.my || (y => y), mp = (x, y) => [IM.dx + x * s, IM.dy + my(y) * s];
-  if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, 0, 0); k.clearRect(0, 0, W, H); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
-    if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
+  if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, CKM * DPR, CKM * DPR); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
+    const paint = () => { if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
       const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
       k.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
       k.drawImage(im, 0, y1, im.naturalWidth, im.naturalHeight - y1, IM.dx, IM.dy + h1, IMG.iw * s, (IMG.ih - IM.R1) * IM.b * s);
-    } else k.drawImage(IMG.img, IM.dx, IM.dy, IMG.iw * s, IMG.ih * s); }
+    } else k.drawImage(IMG.img, IM.dx, IM.dy, IMG.iw * s, IMG.ih * s); };
+    paint();
+    // kenar payı: resmin dışında kalan şerit, resmin kendi kenar pikselleri uzatılarak doldurulur
+    { const im = IMG.img, nw = im.naturalWidth, nh = im.naturalHeight, x0 = IM.dx, x1 = IM.dx + IMG.iw * s, y1 = IM.dy + (IM.T || IMG.ih) * s, y0 = IM.dy;
+      if (y1 < H + CKM) k.drawImage(im, 0, nh - 3, nw, 3, x0, y1 - 0.5, x1 - x0, H + CKM - y1 + 1);
+      if (y0 > -CKM) k.drawImage(im, 0, 0, nw, 3, x0, -CKM, x1 - x0, y0 + CKM + 0.5);
+      if (x0 > -CKM) k.drawImage(ckc, Math.round((x0 + CKM) * DPR) + 1, 0, 2, ckc.height, -CKM, -CKM, x0 + CKM + 0.5, H + 2 * CKM);
+      if (x1 < W + CKM) k.drawImage(ckc, Math.round((x1 + CKM) * DPR) - 3, 0, 2, ckc.height, x1 - 0.5, -CKM, W + CKM - x1 + 1, H + 2 * CKM); }
+    glassLayer(k, paint); }
   { const sw = 'translate(' + sway.x.toFixed(1) + 'px,' + sway.y.toFixed(1) + 'px)'; if (sw !== ckSway){ ckSway = sw; ckc.style.transform = sw; } }
   c.save(); c.translate(sway.x, sway.y);
   // ekranlar: içerik önce küçük bir tuvale çizilir, sonra eğik ekran yüzeyine oturtulur
@@ -9790,7 +9829,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   (function(){
     const V_ = window.SD_VERSION || '';
     const PAGES = [
-      { t: 'KADİM KAPI SUSTU', img: '<div class="fx"><svg class="gt" viewBox="0 0 240 240" aria-hidden="true"><defs><radialGradient id="igC" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#b48cff" stop-opacity=".55"/><stop offset=".55" stop-color="#5b3fa8" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><linearGradient id="igR" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9aa8c4"/><stop offset="1" stop-color="#3c465e"/></linearGradient></defs><circle cx="120" cy="120" r="112" fill="url(#igC)"/><g class="sp"><circle cx="120" cy="120" r="78" fill="none" stroke="url(#igR)" stroke-width="13"/><circle cx="120" cy="120" r="78" fill="none" stroke="#0a0f1c" stroke-width="2.2" stroke-dasharray="3 19"/><g fill="#c9b2ff" class="rn"><circle cx="120" cy="42" r="3.2"/><circle cx="198" cy="120" r="3.2"/><circle cx="120" cy="198" r="3.2"/><circle cx="42" cy="120" r="3.2"/></g><path d="M64 70 l9 6 -3 8 M176 172 l-8 -5 2 -9" fill="none" stroke="#0a0f1c" stroke-width="2"/></g><circle cx="120" cy="120" r="58" fill="none" stroke="#c9b2ff" stroke-opacity=".25" stroke-width="1" stroke-dasharray="2 6" class="ds"/><g class="o o1"><path d="M120 18 l-9 4 -9 -4 9 -2z" fill="none"/><path d="M120 14 l10 7 -10 3 -10 -3z" fill="#7fd8ff"/><path d="M120 24 v14" stroke="#7fd8ff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g><g class="o o2"><path d="M120 14 l10 7 -10 3 -10 -3z" fill="#ffc477"/><path d="M120 24 v14" stroke="#ffc477" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g><g class="o o3"><path d="M120 14 l10 7 -10 3 -10 -3z" fill="#ff6b8a"/><path d="M120 24 v14" stroke="#ff6b8a" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g><circle cx="120" cy="120" r="5" fill="#e6dcff" class="pl"/></svg></div>', p: [
+      { t: 'KADİM KAPI SUSTU', img: '<div class="fx"><img class="pic" src="assets/img/intro_kadim.webp?v=' + V_ + '" alt=""></div>', p: [
         'Bir zamanlar dört güneşi tek bir kapı birbirine bağlıyordu. Onu, adını bile unuttuğumuz bir uygarlık yapmıştı: <b>Kadimler</b>. Gemiler, cevher ve haberler o kapıdan geçerdi.',
         'Sonra kapı sustu. Halkaları karardı, dört sistem birbirinden koptu. Yollar kesildi, istasyonlar yalnız kaldı.',
         'Kaostan üç güç doğdu.' ] },
@@ -9804,6 +9843,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #intro.vis{opacity:1}
   #intro .in{display:flex;gap:28px;align-items:center;max-width:920px;width:100%}
   #intro .art{flex:0 0 34%;display:flex;justify-content:center}
+  #intro .fx img.pic{width:min(330px,38vw,62vh);aspect-ratio:1;object-fit:cover;display:block;opacity:0;animation:inPic 1.4s ease-out forwards,inDrift 24s ease-in-out 1.4s infinite alternate}
+  @keyframes inPic{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:none}}@keyframes inDrift{from{transform:none}to{transform:scale(1.05) translate(-1.5%,1%)}}
   #intro .fx svg{width:min(250px,31vw);height:auto;display:block;overflow:visible;filter:drop-shadow(0 0 22px rgba(170,120,255,.35))}
   #intro .fx .sp{transform-origin:120px 120px;animation:inSpin 90s linear infinite}#intro .fx .ds{transform-origin:120px 120px;animation:inSpin 30s linear infinite reverse}
   #intro .fx .o{transform-origin:120px 120px}#intro .fx .o1{animation:inO1 7s ease-in-out infinite}#intro .fx .o2{animation:inO2 7s ease-in-out infinite}#intro .fx .o3{animation:inO3 7s ease-in-out infinite}
@@ -9821,7 +9862,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #intro button{font:700 13px var(--font);letter-spacing:.16em;padding:9px 20px;border-radius:999px;cursor:pointer}
   #intro .nx{border:1px solid #ffb454;background:#ffb454;color:#2b1300}#intro .sk{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 16px);border:1px solid rgba(255,255,255,.25);background:none;color:#c6d2e2;font-size:11.5px;padding:6px 14px}
   @keyframes inSpin{to{transform:rotate(360deg)}}@keyframes inUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @media (max-height:460px){#intro h2{font-size:15px;margin-bottom:8px}#intro p{font-size:13px;line-height:1.45;margin-bottom:6px}#intro .fx svg{width:min(180px,26vw)}#intro .fac img{width:min(58px,9vw)}#intro .in{gap:18px}}`;
+  @media (max-height:460px){#intro h2{font-size:15px;margin-bottom:8px}#intro p{font-size:13px;line-height:1.45;margin-bottom:6px}#intro .fx svg{width:min(180px,26vw)}#intro .fx img.pic{width:min(240px,34vw,64vh)}#intro .fac img{width:min(58px,9vw)}#intro .in{gap:18px}}`;
     document.head.appendChild(css);
     window.__story = done => {
       const d = document.createElement('div'); d.id = 'intro'; document.body.appendChild(d); window.__menuOn = true;
