@@ -2987,8 +2987,8 @@ function enterSystem(k){
   save.base = (save.bases && save.bases[k]) || null; attachBase();
   curSt = STATION; docked = true; scrFlash = 1; persist();
   renderDock();
-  toast('Sıçrama tamamlandı: ' + SYS[k].ad, 4200); blip(300, 0.3); setTimeout(() => blip(700, 0.4), 200);
-  liveSay('Sıçrama', SYS[k].ad + '. ' + SYS[k].intro, '#7fd8ff');
+  if (!window.__quietJump){ toast('Sıçrama tamamlandı: ' + SYS[k].ad, 4200); blip(300, 0.3); setTimeout(() => blip(700, 0.4), 200);
+  liveSay('Sıçrama', SYS[k].ad + '. ' + SYS[k].intro, '#7fd8ff'); }
 }
 {
   const _persist = persist;
@@ -5646,10 +5646,13 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     { t: 'Uçuş', x: () => K('W', 'İtiş') + ' ile ilerle. Yön için ' + (touch ? 'ekranın sol yarısında parmağını sürükle' : K('A / D', '') + ' ve ' + K('↑ / ↓', '')) + '. ' + K('S', 'Fren') + ' yavaşlatır.', ok: () => vel.length() > 25 },
     { t: 'Asteroit kır', x: () => 'Kuşaktaki bir kayayı nişangâhın ortasına al, ' + K('Boşluk', 'Lazer') + ' ile ateş et. Lazer menzili yaklaşık ' + Math.round(laserRange()) + ' m; uzaksa nişanda "MENZİL DIŞI" yazar.', ok: () => ores.length > 0 || cargoSum() > 0 },
     { t: 'Cevheri topla', x: () => 'Kırılan kayadan parlayan parçalar saçılır. Yanlarından geç, kendiliğinden kargoya çekilir. (' + cargoSum() + '/3)', ok: () => cargoSum() >= 3 },
-    { t: 'Üsse dön', x: () => 'Sarı işaret Ankora üssünü gösteriyor. Yaklaşınca ' + K('F', 'Kenetlen') + ' ile istasyona kenetlen.', ok: () => docked },
-    { t: 'Sat', x: () => '<span class="k">Ticaret</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.', enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
-    { t: 'Gemini geliştir', x: () => '<span class="k">Gemi</span> sekmesinden bir geliştirme al, ya da şimdilik ' + '<span class="k">Kalkış</span> de.', enter: () => { lv0 = lvSum(); }, ok: () => lvSum() > lv0 || !docked },
-    { t: 'Gerisi senin', x: () => 'Zorunlu bir şey yok. Gez, kaz, savaş. Arada telsizden sinyaller gelecek; istersen kabul et, istersen yoksay. ' + K('T', 'Kilit') + ' nişandaki hedefe, yoksa 5 km içindeki en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; kilitliyken lazer kendiliğinden vurur. Uzak yerlere gitmek için ' + K('M', 'haritayı') + ' aç, hedefe dokun.', last: true }
+    { t: 'Üsse dön', x: () => 'Sarı işaret ' + (STATION && STATION.ad || 'ev istasyonunu') + ' gösteriyor. Yaklaşınca ' + K('F', 'Kenetlen') + ' ile kenetlen.', ok: () => docked },
+    { t: 'Sat', x: () => '<span class="k">İstasyon</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.' + (save.side === 'korsan' ? ' Kaçak malı yalnızca Kara Liman alır.' : ''), enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
+    { t: 'Ana görev', x: () => '<span class="k">Görevler</span> sekmesinde <b>Ana görev</b> hikâyeyi anlatır ve seni yönlendirir; bölüm bitirdikçe yeni sistemlerin kapıları açılır. Panodaki <b>yan görevler</b> isteğe bağlıdır. Uçarken sol tarafta sıradaki adım yazar.', ok: () => (document.getElementById('dock') || {}).dataset && document.getElementById('dock').dataset.t === 'ct' || !docked },
+    { t: 'Tarafın', x: () => (save.side === 'korsan' ? 'Korsan Birliği\'ndesin: korsanlar sana dokunmaz, sen de onlara dokunma. Yıldız Filosu devriyeleri ve Filo avcıları seni avlar; aranma yıldızın arttıkça daha çok gelirler. Kaçak malı gizli bölmede taşı, Kara Liman\'da sat.'
+        : save.side === 'lonca' ? 'Tüccar Loncası\'ndasın: kazancın ticaretten. İstasyon fiyatlarını karşılaştır, acil siparişleri yetiştir, cevherini en iyi fiyata sat. Korsanlar yükünü ister; kaçmak da bir seçenek.'
+        : 'Yıldız Filosu\'ndasın: devriyeler yanında, korsanlar karşında. Korsan avladıkça ödül ve itibar kazanırsın; reisleri yenmek Filo\'nun en büyük işidir.')
+        + ' ' + K('T', 'Kilit') + ' nişandaki hedefe kilitlenir; kilitliyken lazer kendiliğinden vurur. Haritayı ' + K('M', '') + ' ile aç.', last: true }
   ];
   let i = -1, wait = 0, doneT = 0, lastHtml = '';
   function finish(skip){ save.tut = 1; persist(); window.__tutOn = false; card.classList.remove('on'); if (skip) toast('Rehber kapatıldı. İyi uçuşlar pilot.', 2400); }
@@ -7119,7 +7122,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   };
   const _dn = damageNpc; damageNpc = function(n, dmg, by){ const first = by === 'player' && !n.provoked; if (by === 'player') n.provoked = true; _dn(n, dmg, by); if (first && n.hostile && npcs.indexOf(n) >= 0 && save.fac.korsan >= 30){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.truce = 0; } };
   const _tp = thinkPirate; thinkPirate = function(n){
-    if (save.fac.korsan >= 30 && !n.leader && !n.provoked && !n.sg){ n.truce = time + 5; if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; } }
+    if ((save.side === 'korsan' || save.fac.korsan >= 30) && (!n.leader || save.side === 'korsan') && !n.provoked && !n.sg && !n.hunter){ n.truce = time + 5; if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; } } /* Korsan tarafındaysan korsanlar (patronlar dahil) sen vurmadıkça saldırmaz */
     _tp(n);
   };
   // istasyon itibarı değişince Lonca da etkilenir
@@ -7176,7 +7179,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   window.__bossDbg = () => ({ L, phase, lairPos, mark });
   function setLair(k){
     if (lair){ scene.remove(lair); lair = null; } mark = null; lairSys = k; L = null; guards = []; bar.classList.remove('on');
-    if (save.boss.includes(k) || !BOSS[k]) return;
+    if (save.boss.includes(k) || !BOSS[k] || save.side === 'korsan') return;   /* Korsan tarafında korsan reisleri müttefik: korsan ini çıkmaz */
     lairPos.set(...BOSS[k].at); for (const b of [PLANET, GIANT, PLANET2, PLANET3, ...STATIONS]) if (b.pos.distanceTo(lairPos) < (b.r || 100) + 1500) lairPos.y += 2600;
     lair = new THREE.Group(); const md = window.__olayModel && window.__olayModel('kamp'); if (md){ md.scale.setScalar(520); lair.add(md); }
     const gl = sprite(glowTexture(255, 60, 60), 900, 0.4); lair.add(gl); lair.position.copy(lairPos); lair.rotation.set(0.3, rand(0, 6), 0.2); scene.add(lair);
@@ -8399,8 +8402,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (huntT <= 0){ huntT = Math.max(45, 130 - save.wanted * 18);
         const n0 = 1 + Math.floor(save.wanted / 2), back = V(0, 0, 1).applyQuaternion(rig.quaternion);
         for (let i = 0; i < n0; i++){ const p = rig.position.clone().addScaledVector(back, 1400 + i * 120).add(V(rand(-300, 300), rand(-150, 150), rand(-300, 300)));
-          const h = spawnNpc(save.wanted >= 3 && i === 0 ? 'brute' : 'raider', p, STATION); if (!h) continue; h.hunter = true; h.hostile = true; h.name = 'Ödül avcısı ' + (h.name || '').split(' ').pop(); h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
-        eco.radioT = -9; radio('Ödül avcısı', 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
+          const ks = save.side === 'korsan', h = spawnNpc(ks ? 'corvette' : (save.wanted >= 3 && i === 0 ? 'brute' : 'raider'), p, STATION); if (!h) continue; h.hunter = true; h.hostile = true; if (ks){ h.role = 'pirate'; h.hullMax = h.hull = Math.round(h.hull * (save.wanted >= 3 && i === 0 ? 1.6 : 1.1)); } h.name = (ks ? 'Filo avcısı ' : 'Ödül avcısı ') + (h.name || '').split('-').pop(); /* Korsan oyuncuyu Filo gemileri avlar */ h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
+        eco.radioT = -9; radio(save.side === 'korsan' ? 'Filo avcısı' : 'Ödül avcısı', save.side === 'korsan' ? 'Korsan gemisi, Filo adına dur! Başındaki ödül ' + bounty() + ' kredi.' : 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
     // devriyeler: çok arananı görünce saldırır, kaçak mal tarar
     for (let i = 0; i < npcs.length; i++){ const q = npcs[i]; if (q.role !== 'patrol' || q.hostile || curSys === 5) continue; const d = q.pos.distanceTo(rig.position); if (d > 600) continue;
       if (save.wanted >= 3 && !(save.grace > 0) && !(q.rev > time)){ q.rev = time + 60; radio(q.name, 'Aranan pilot tespit edildi. Teslim ol!', '#ff5a6e'); }
@@ -9458,5 +9461,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const sp = document.getElementById('setP'); if (sp) new MutationObserver(() => { const v = sp.querySelector('.sver'); if (v && !v.querySelector('#offSt')){ v.insertAdjacentHTML('beforeend', '<br><span id="offSt" style="letter-spacing:.06em">' + offTxt() + '</span>'); try { (navigator.serviceWorker.controller || {}).postMessage && navigator.serviceWorker.controller.postMessage({ type: 'status' }); } catch (er) {} } }).observe(sp, { childList: true, subtree: true });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') report(); });
     try { performance.setResourceTimingBufferSize(2000); } catch (e) {}
+  })();
+
+  // =====  bulunduğun sistem kayda yazılır; oyun açılınca oradan devam edilir (eskiden hep Ankora'dan başlıyordu: Lonca/Korsan kendini Filo bölgesinde buluyordu)
+  (function(){
+    const target = () => { const c = save.cur; if (typeof c === 'number' && SYS[c] && (c === 0 || save.open.includes(c))) return c; return window.__homeSys ? window.__homeSys() : 0; };
+    let restored = false;
+    const restore = () => { if (restored) return; restored = true; const k = target(); if (k !== curSys && SYS[k]){ window.__quietJump = true; try { enterSystem(k); } catch (e) { console.warn(e); } window.__quietJump = false; } };
+    const tg = document.getElementById('titleGo'); if (tg && save.side) tg.addEventListener('click', () => setTimeout(restore, 50)); else if (save.side) setTimeout(restore, 300);
+    EXTRA.push(() => { if (!restored && save.side && !document.getElementById('titleGo')) restore(); if (restored && save.cur !== curSys){ save.cur = curSys; persist(); } });
   })();
 })();
