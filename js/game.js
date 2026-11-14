@@ -10282,87 +10282,88 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   (function(){
     const want = () => { try { return localStorage.getItem('sd_ck3') === '1'; } catch (e) { return false; } };
     let K = null;
-    // ---- gemiye göre kokpit: renk, ışık ve cam yerleşimi
+    // ---- gemiye göre kokpit: cam/dikme düzeni eski çizim kokpitlerden; kaplama doğrudan o çizimlerden kesilir (gerçekçi boyalı metal)
+    //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
+    const ED = -0.33;
     const SHIPS3 = {
-      kasif:   { base: '#2a3644', seam: '#141b24', hi: '#55687e', glow: 0x43d2ff, glowS: '#43d2ff', inner: [-0.46, 0.46], top: 'arch', rim: 0x9cc2ff },
-      sahin:   { base: '#2b2c31', seam: '#121317', hi: '#5a5c66', glow: 0xff4d6a, glowS: '#ff4d6a', inner: [], top: 'bubble', rim: 0xa9b8d6, accent: '#7a1f2b' },
-      yuk:     { base: '#3a3e2a', seam: '#1b1d12', hi: '#6d7350', glow: 0xffb454, glowS: '#ffb454', inner: [-0.62, 0, 0.62], top: 'flat', rim: 0xc9d2b0, stripes: true },
-      hayalet: { base: '#17181c', seam: '#08090b', hi: '#34363e', glow: 0xa77bff, glowS: '#a77bff', inner: [0], top: 'v', rim: 0x8f9cc8 }
+      kasif:   { glow: 0x43d2ff, rim: 0x9cc2ff, U0: 0.86, ET: 0.5, rO: 0.05, rT: 0.03, panel: [0.02, 0.78, 0.32, 0.99], strip: [0.005, 0.12, 0.045, 0.55],
+                 inner: [{ p: [[-0.3, ED], [-0.33, 0.5]], r: 0.022 }, { p: [[0.3, ED], [0.33, 0.5]], r: 0.022 }] },
+      sahin:   { glow: 0xff4d6a, rim: 0xa9b8d6, U0: 0.9, ET: 0.58, rO: 0.05, rT: 0.026, panel: [0.02, 0.78, 0.30, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
+                 inner: [{ p: [[-0.14, ED], [-0.34, 0.12], [-0.6, 0.42], [-0.84, 0.58]], r: 0.03 }, { p: [[0.14, ED], [0.34, 0.12], [0.6, 0.42], [0.84, 0.58]], r: 0.03 }] },
+      yuk:     { glow: 0xffb454, rim: 0xc9d2b0, U0: 0.84, ET: 0.44, rO: 0.065, rT: 0.042, panel: [0.03, 0.80, 0.30, 0.99], strip: [0.005, 0.1, 0.05, 0.55], sill: 0.03,
+                 inner: [{ p: [[-0.42, ED], [-0.42, 0.44]], r: 0.026 }, { p: [[0, ED], [0, 0.44]], r: 0.026 }, { p: [[0.42, ED], [0.42, 0.44]], r: 0.026 }] },
+      hayalet: { glow: 0xa77bff, rim: 0x8f9cc8, U0: 0.92, ET: 0.6, rO: 0.045, rT: 0.024, panel: [0.36, 0.86, 0.64, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
+                 inner: [{ p: [[0, ED], [0, 0.6]], r: 0.016 }, { p: [[-0.26, ED], [-0.56, 0.25], [-0.88, 0.6]], r: 0.03 }, { p: [[0.26, ED], [0.56, 0.25], [0.88, 0.6]], r: 0.03 }] }
     };
-    // yordamsal kaplama: boyalı metal paneller, ek yerleri, perçinler, kenar aşınması ve çizikler (renk + kabartma)
-    function panelTex(C, stripes){
-      const N = 512, cv = document.createElement('canvas'); cv.width = cv.height = N; const x = cv.getContext('2d');
-      x.fillStyle = C.base; x.fillRect(0, 0, N, N);
-      let sd = 7; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-      for (let i = 0; i < 1400; i++){ x.fillStyle = 'rgba(' + (r() < 0.5 ? '0,0,0,' : '255,255,255,') + (r() * 0.05).toFixed(3) + ')'; x.fillRect(r() * N, r() * N, 2 + r() * 10, 2 + r() * 10); }   // leke ve boya farkı
-      const cells = [[0, 0, 256, 192], [256, 0, 256, 128], [256, 128, 256, 192], [0, 192, 256, 192], [0, 384, 512, 128], [256, 320, 256, 64]];
-      for (const [a, b, w, h] of cells){
-        x.strokeStyle = C.seam; x.lineWidth = 4; x.strokeRect(a + 2, b + 2, w - 4, h - 4);            // ek yeri
-        x.strokeStyle = C.hi; x.lineWidth = 1; x.globalAlpha = 0.5; x.strokeRect(a + 5, b + 5, w - 10, h - 10); x.globalAlpha = 1;   // kenar parlaması
-        x.fillStyle = C.seam; for (const [px, py] of [[a + 12, b + 12], [a + w - 12, b + 12], [a + 12, b + h - 12], [a + w - 12, b + h - 12]]){ x.beginPath(); x.arc(px, py, 3.2, 0, 6.283); x.fill(); }
-        x.fillStyle = C.hi; for (const [px, py] of [[a + 12, b + 12], [a + w - 12, b + 12]]){ x.beginPath(); x.arc(px - 0.8, py - 0.8, 1.2, 0, 6.283); x.fill(); } }
-      if (stripes){ x.save(); x.beginPath(); x.rect(0, 384, 512, 40); x.clip(); for (let k = -40; k < 560; k += 40){ x.fillStyle = '#c99a2e'; x.beginPath(); x.moveTo(k, 384); x.lineTo(k + 20, 384); x.lineTo(k - 20, 424); x.lineTo(k - 40, 424); x.fill(); } x.restore(); }
-      if (C.accent){ x.fillStyle = C.accent; x.fillRect(0, 440, 512, 18); }
-      x.strokeStyle = 'rgba(200,215,230,0.10)'; x.lineWidth = 1; for (let i = 0; i < 60; i++){ const a = r() * N, b = r() * N, l = 6 + r() * 40, t = r() * 6.28; x.beginPath(); x.moveTo(a, b); x.lineTo(a + Math.cos(t) * l, b + Math.sin(t) * l); x.stroke(); }   // çizikler
-      const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
-    }
+    const cpos = (u, e) => { const r = 1.75 - 0.55 * Math.abs(Math.sin(u)); return [Math.sin(u) * Math.cos(e) * r, Math.sin(e) * r, -Math.cos(u) * Math.cos(e) * r]; };
+    // eski kokpit resminden bir bölgeyi doku olarak kes (rot: şerit dikme boyunca uzansın diye çevir)
+    const imgCache = {};
+    function shipImg(id, cb){ const src = CK[id]; if (!src) return; if (imgCache[id]){ if (imgCache[id].complete) cb(imgCache[id]); else imgCache[id].addEventListener('load', () => cb(imgCache[id])); return; }
+      const im = new Image(); im.onload = () => cb(im); im.src = src; imgCache[id] = im; }
+    function cropTex(im, r, rot, rep){ const cv = document.createElement('canvas'), w = im.naturalWidth, h = im.naturalHeight, sx = r[0] * w, sy = r[1] * h, sw = (r[2] - r[0]) * w, sh = (r[3] - r[1]) * h;
+      cv.width = rot ? 512 : 512; cv.height = rot ? 128 : 256; const x = cv.getContext('2d');
+      if (rot){ x.translate(512, 0); x.rotate(Math.PI / 2); x.drawImage(im, sx, sy, sw, sh, 0, 0, 128, 512); } else x.drawImage(im, sx, sy, sw, sh, 0, 0, 512, 256);
+      const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; return t; }
     function build(id){
       const C = SHIPS3[id] || SHIPS3.kasif;
       const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.05, 20), G = new THREE.Group(); S.add(G);
-      const tx = panelTex(C, C.stripes), txP = panelTex(Object.assign({}, C, { accent: null }), false); txP.repeat.set(6, 1);
-      const metal = new THREE.MeshStandardMaterial({ map: tx, bumpMap: tx, bumpScale: 0.004, roughness: 0.62, metalness: 0.55, side: THREE.DoubleSide });
-      const pil = new THREE.MeshStandardMaterial({ map: txP, bumpMap: txP, bumpScale: 0.003, roughness: 0.45, metalness: 0.75 });
-      const dark = new THREE.MeshStandardMaterial({ color: new THREE.Color(C.seam), roughness: 0.75, metalness: 0.4, side: THREE.DoubleSide });
+      const metal = new THREE.MeshStandardMaterial({ color: 0x8a96a6, roughness: 0.6, metalness: 0.45, side: THREE.DoubleSide });
+      const pil = new THREE.MeshStandardMaterial({ color: 0x6f7a88, roughness: 0.42, metalness: 0.7, emissive: 0x1c2531 });
+      const rimM = new THREE.MeshBasicMaterial({ color: new THREE.Color(C.rim).multiplyScalar(0.55), transparent: true, opacity: 0.55 });
+      const dark = new THREE.MeshStandardMaterial({ color: 0x0e1218, roughness: 0.85, metalness: 0.3, side: THREE.DoubleSide });
+      const panelM = new THREE.MeshStandardMaterial({ color: 0x6a7482, roughness: 0.65, metalness: 0.4 });
       const glow = new THREE.MeshBasicMaterial({ color: C.glow }), cable = new THREE.MeshStandardMaterial({ color: 0x0b0d10, roughness: 0.9, metalness: 0.1 });
+      shipImg(id, im => { try { metal.map = cropTex(im, C.panel, false, [1, 1]); metal.bumpMap = metal.map; metal.bumpScale = 0.003; metal.color.setHex(0xffffff); metal.needsUpdate = true;
+        const pt = cropTex(im, C.panel, false, [1, 1]); pt.center.set(0.5, 0.5); pt.rotation = Math.PI / 2; panelM.map = pt; panelM.bumpMap = pt; panelM.bumpScale = 0.003; panelM.color.setHex(0xd8dde4); panelM.needsUpdate = true;
+        pil.map = cropTex(im, C.strip, true, [3, 1]); pil.bumpMap = pil.map; pil.bumpScale = 0.002; pil.color.setHex(0xffffff); pil.needsUpdate = true; } catch (e) { console.warn(e); } });
       const tube = (pts, r, m, seg) => { const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p))); const me = new THREE.Mesh(new THREE.TubeGeometry(c, 48, r, seg || 6, false), m); G.add(me); return { me, c }; };
-      const box = (w, h, d, m, x, y, z, ry, rx) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.position.set(x, y, z); if (ry) me.rotation.y = ry; if (rx) me.rotation.x = rx; G.add(me); return me; };
+      const ctube = (ue, r, m, seg) => { const pts = []; for (let k = 0; k < ue.length - 1; k++){ const [u0, e0] = ue[k], [u1, e1] = ue[k + 1]; for (let q = 0; q < 8; q++){ const t = q / 8; pts.push(cpos(u0 + (u1 - u0) * t, e0 + (e1 - e0) * t)); } } pts.push(cpos(...ue[ue.length - 1])); return tube(pts, r, m, seg); };
       const A = 1.4;
-      // konsol: yalnızca ekranların arkasında ince bir sırt; ekranlar en altta, alt kenardan kesilir (kol ve geniş yüzey yok)
-      { const g = new THREE.RingGeometry(1.14, 1.5, 48, 1, Math.PI / 2 - A, A * 2); g.rotateX(-Math.PI / 2); const me = new THREE.Mesh(g, metal); me.position.y = -0.66; G.add(me); }
-      { const g = new THREE.CylinderGeometry(1.5, 1.5, 0.08, 48, 1, true, Math.PI - A, A * 2); const me = new THREE.Mesh(g, dark); me.position.y = -0.7; G.add(me); }
+      // konsol: pilota doğru uzanan üst yüzey (ekranlar bunun üstünde, hafif yukarıda); kol ve düğme sırası yok
+      { const g = new THREE.RingGeometry(0.75, 1.52, 48, 2, Math.PI / 2 - A, A * 2); g.rotateX(-Math.PI / 2); const me = new THREE.Mesh(g, dark); me.position.y = -0.565; G.add(me); }
+      // konsol üstü: kaplamanın düzgün oturduğu ayrı düz paneller (her biri eski çizimden kesilmiş gerçekçi panel)
+      { const N = 12, ri = 0.77, ro = 1.5, dA = 2 * A / N; for (let k = 0; k < N; k++){ const a = -A + dA * (k + 0.5), rm = (ri + ro) / 2, w = 2 * rm * Math.sin(dA / 2) * 0.985;
+          const g = new THREE.PlaneGeometry(w, ro - ri); g.rotateX(-Math.PI / 2); const me = new THREE.Mesh(g, panelM); me.position.set(Math.sin(a) * rm, -0.56, -Math.cos(a) * rm); me.rotation.y = -a; G.add(me); } }
+      { const g = new THREE.CylinderGeometry(1.52, 1.52, 0.1, 48, 1, true, Math.PI - A, A * 2); const me = new THREE.Mesh(g, dark); me.position.y = -0.61; G.add(me); }
+      { const g = new THREE.CylinderGeometry(0.75, 0.75, 1.6, 48, 1, true, Math.PI - A, A * 2); const me = new THREE.Mesh(g, dark); me.position.y = -1.36; G.add(me); }
       { const g = new THREE.CylinderGeometry(1.75, 1.75, 1.6, 48, 1, true); const me = new THREE.Mesh(g, dark); me.position.y = -1.5; G.add(me); }
-      { const pts = []; for (let i = 0; i <= 30; i++){ const a = -A + 2 * A * i / 30; pts.push([Math.sin(a) * 1.49, -0.655, -Math.cos(a) * 1.49]); } tube(pts, 0.005, glow, 6); }
-      // yan dikmeler: kameraya çok yakın, köşeli, kalın; üzerinde bağlantı parçaları ve kablo
-      const sideTop = C.top === 'bubble' ? 0.55 : 0.78;
+      { const pts = []; for (let i = 0; i <= 30; i++){ const a = -A + 2 * A * i / 30; pts.push([Math.sin(a) * 1.5, -0.555, -Math.cos(a) * 1.5]); } tube(pts, 0.005, glow, 6); }
+      { const pts = []; for (let i = 0; i <= 30; i++){ const a = -A + 2 * A * i / 30; pts.push([Math.sin(a) * 0.76, -0.557, -Math.cos(a) * 0.76]); } tube(pts, 0.004, new THREE.MeshBasicMaterial({ color: new THREE.Color(C.glow).multiplyScalar(0.45) }), 6); }
+      // dış çerçeve: iki yan dikme, üst çerçeve, yanlara uzanan alt kenar ve arka dikmeler (yakında, kalın, köşeli)
       for (const sx of [-1, 1]){
-        const P = [[sx * 1.36, -0.72, -0.5], [sx * 1.26, -0.12, -0.92], [sx * 1.04, 0.48, -1.32], [sx * sideTop, 0.9, -1.62]];
-        const { c } = tube(P, C.top === 'v' ? 0.06 : 0.075, pil, 4);
-        tube(P.map(p => [p[0] + sx * 0.05, p[1] + 0.01, p[2] + 0.05]), 0.012, cable, 6);
-        for (const t of [0.18, 0.42, 0.66]){ const q = c.getPoint(t); const b = box(0.11, 0.05, 0.09, metal, q.x + sx * 0.02, q.y, q.z, 0, 0); b.lookAt(0, q.y, 0); }
-        const g2 = c.getPoint(0.3); box(0.016, 0.06, 0.016, glow, g2.x - sx * 0.07, g2.y, g2.z, 0, 0);
-        tube([[sx * 1.36, -0.72, -0.5], [sx * 1.7, -0.68, 0.1]], 0.05, pil, 4);                                                 // yan pencere alt kenarı
-        tube([[sx * 1.66, -0.68, 0.0], [sx * 1.56, 0.22, -0.42], [sx * 1.28, 0.78, -0.88], [sx * 0.98, 1.0, -1.2]], 0.04, pil, 4); // arka yan dikme
+        const { c } = ctube([[sx * C.U0, ED - 0.02], [sx * C.U0 * 0.97, 0.15], [sx * C.U0 * 0.9, C.ET]], C.rO, pil, 4);
+        const near = [cpos(sx * C.U0, ED - 0.02), [sx * 1.7, -0.62, 0.05]]; tube(near, C.rO * 0.9, pil, 4);
+        tube([[sx * 1.66, -0.62, 0.0], [sx * 1.56, 0.22, -0.42], [sx * 1.28, 0.78, -0.88], cpos(sx * C.U0 * 0.9, C.ET)], C.rO * 0.7, pil, 4);
+        tube(c.getPoints(20).map(q => [q.x + sx * 0.05, q.y, q.z + 0.03]), 0.01, cable, 6);
+        for (const t of [0.25, 0.6]){ const q = c.getPoint(t); const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.045, 0.07), metal); b.position.copy(q); b.lookAt(0, q.y, 0); G.add(b); }
       }
-      // üst çerçeve ve ön camı bölen dikmeler (gemiye göre)
-      if (C.top === 'bubble'){ tube([[-1.04, 0.48, -1.32], [-0.55, 1.05, -1.5], [0, 1.18, -1.55], [0.55, 1.05, -1.5], [1.04, 0.48, -1.32]], 0.03, pil, 6); }
-      else if (C.top === 'flat'){ tube([[-0.78, 0.9, -1.62], [0, 0.92, -1.72], [0.78, 0.9, -1.62]], 0.04, pil, 4); }
-      else if (C.top === 'v'){ tube([[-0.78, 0.9, -1.62], [0, 1.02, -1.78], [0.78, 0.9, -1.62]], 0.025, pil, 4); }
-      else tube([[-0.78, 0.9, -1.62], [-0.38, 0.95, -1.72], [0, 0.97, -1.75], [0.38, 0.95, -1.72], [0.78, 0.9, -1.62]], 0.03, pil, 4);
-      tube([[-0.98, 1.0, -1.2], [-0.5, 1.16, -1.0], [0, 1.22, -0.95], [0.5, 1.16, -1.0], [0.98, 1.0, -1.2]], 0.045, pil, 4);   // tavan kemeri
-      for (const x0 of C.inner){ const xt = C.top === 'v' ? 0 : x0 * 0.82; tube([[x0, -0.64, -1.5], [x0 * 0.94, 0.2, -1.62], [xt, C.top === 'v' ? 1.0 : 0.94, C.top === 'v' ? -1.78 : -1.72]], C.top === 'flat' ? 0.02 : 0.013, pil, 6); }
-      // ekranlar: beş ekran, pilota dönük, alt kenarları görüntünün altından taşar
+      { const ue = []; for (let k = 0; k <= 12; k++) ue.push([-C.U0 * 0.9 + 1.8 * C.U0 * k / 12, C.ET + (C.top === 'v' ? 0 : 0.02 * Math.sin(Math.PI * k / 12))]); ctube(ue, C.rT, pil, 4); }
+      tube([cpos(-C.U0 * 0.9, C.ET), [-0.5, 1.2, -1.0], [0, 1.26, -0.95], [0.5, 1.2, -1.0], cpos(C.U0 * 0.9, C.ET)], C.rT * 1.3, pil, 4);   // tavan kemeri
+      if (C.sill) ctube([[-C.U0, ED], [0, ED], [C.U0, ED]], C.sill, pil, 4);
+      for (const P of C.inner){ ctube(P.p, P.r, pil, 6); ctube(P.p.map(([u, e]) => [u + 0.004, e]), P.r * 0.25, rimM, 4); }   /* ince dikmenin kenarı dışarıdaki ışığı yakalar */
+      // ekranlar: beş ekran, panelin hafif yukarısında, pilota dönük
       const scr = [];
       const extra = () => { const cv = document.createElement('canvas'); cv.width = 360; cv.height = 220; return { cv, g: cv.getContext('2d') }; };
-      const defs = [{ a: -1.08, w: 0.46, k: 'tgt' }, { a: -0.55, w: 0.5, k: 'bars' }, { a: 0, w: 0.52, k: 'map' }, { a: 0.55, w: 0.5, k: 'hull' }, { a: 1.08, w: 0.46, k: 'mq' }];
-      for (const d of defs){ const R = 1.08, h = d.w * 0.66, tilt = 0.22, by = -0.86;
+      const defs = [{ a: -1.06, w: 0.4, k: 'tgt' }, { a: -0.53, w: 0.45, k: 'bars' }, { a: 0, w: 0.48, k: 'map' }, { a: 0.53, w: 0.45, k: 'hull' }, { a: 1.06, w: 0.4, k: 'mq' }];
+      for (const d of defs){ const R = 1.06, h = d.w * 0.6, tilt = 0.32, by = -0.52;
         const holder = new THREE.Group(); holder.position.set(Math.sin(d.a) * R, by, -Math.cos(d.a) * R); holder.rotation.y = -d.a; G.add(holder);
         const t = new THREE.Group(); t.rotation.x = -tilt; holder.add(t);
-        const bz = new THREE.Mesh(new THREE.BoxGeometry(d.w + 0.05, h + 0.05, 0.04), metal); bz.position.set(0, h / 2 + 0.02, -0.022); t.add(bz);
-        const st = new THREE.Mesh(new THREE.BoxGeometry(d.w * 0.5, 0.6, 0.05), dark); st.position.set(0, -0.28, -0.04); t.add(st);   // ekranı taşıyan ayak (aşağıya iner)
+        const bz = new THREE.Mesh(new THREE.BoxGeometry(d.w + 0.05, h + 0.05, 0.035), metal); bz.position.set(0, h / 2 + 0.02, -0.02); t.add(bz);
+        const st = new THREE.Mesh(new THREE.BoxGeometry(d.w * 0.3, 0.06, 0.05), dark); st.position.set(0, -0.02, -0.04); t.add(st);   // ekranı panelin üstünde tutan kısa ayak
         const ex = d.k === 'tgt' || d.k === 'mq' ? extra() : null;
         const tex = new THREE.CanvasTexture(ex ? ex.cv : document.createElement('canvas')); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
         const sm = new THREE.Mesh(new THREE.PlaneGeometry(d.w, h), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })); sm.position.set(0, h / 2 + 0.02, 0.001); t.add(sm);
-        const edge = new THREE.Mesh(new THREE.BoxGeometry(d.w + 0.05, 0.006, 0.006), glow); edge.position.set(0, h + 0.046, 0.0); t.add(edge);
+        const edge = new THREE.Mesh(new THREE.BoxGeometry(d.w + 0.05, 0.006, 0.006), glow); edge.position.set(0, -0.005, 0.0); t.add(edge);
         scr.push({ d, tex, sm, ex, ver: -1, cv: null });
       }
       // ışıklar
-      const amb = new THREE.AmbientLight(0x1b2638, 0.75); S.add(amb);
-      const sky = new THREE.DirectionalLight(C.rim, 0.7); sky.position.set(0, 4, -3); S.add(sky);
-      const side = new THREE.DirectionalLight(C.rim, 0.35); side.position.set(-3, 1, -1); S.add(side);
+      const amb = new THREE.AmbientLight(0x1b2638, 0.6); S.add(amb);
+      const sky = new THREE.DirectionalLight(C.rim, 0.6); sky.position.set(0, 4, -3); S.add(sky);
+      const side = new THREE.DirectionalLight(C.rim, 0.3); side.position.set(-3, 1, -1); S.add(side);
       const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); S.add(sun.target);
       const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 1.6, -2.6); S.add(fl);
       const lz = new THREE.PointLight(0xff6a8c, 0, 4); lz.position.set(0, -0.3, -1.6); S.add(lz);
-      const sl = new THREE.PointLight(C.glow, 0.5, 1.2); sl.position.set(0, -0.5, -0.8); S.add(sl);
+      const sl = new THREE.PointLight(C.glow, 0.5, 1.2); sl.position.set(0, -0.35, -0.85); S.add(sl);
       return { id, S, cam, G, scr, sun, fl, lz, sl, tq: new THREE.Quaternion(), v: new THREE.Vector3(), t: 0 };
     }
     function drawExtra(e, kind){ const g = e.g, w = e.cv.width / 2, h = e.cv.height / 2; g.setTransform(2, 0, 0, 2, 0, 0); g.clearRect(0, 0, w, h);
