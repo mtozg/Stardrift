@@ -7746,7 +7746,7 @@ function frame(now){
   drawHud();
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
   $('bLock').classList.toggle('on', !!lock);
-  { const lab = 'Roket ' + (lock ? 'G' + save.ammo : 'D' + save.ammoD); if (frameAmmo !== lab){ frameAmmo = lab; $('bMissile').textContent = (lock ? 'G' : 'D') + ' ' + (lock ? save.ammo : save.ammoD); } }
+  /* roket düğmesi etiketi artık seçili türe göre (roket seçimi bloğu) */
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -9043,7 +9043,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   if (!save.eq.mermi) save.eq.mermi = 'std';
   if (!Array.isArray(save.eqOwn)) save.eqOwn = [];
   const eqIt = s => EQ[s].items.find(q => q.id === save.eq[s]) || EQ[s].items[0];
-  function eqApply(){ const m = eqIt('motor'), k = eqIt('kalkan'), am = eqIt('mermi'); window.__amP = am.p || 1; window.__amM = am.mn || 1; window.__amH = am.h || 1; window.__eqV = m.v || 1; window.__eqT = m.t || 1; window.__eqS = k.s || 1; try { applyShip(false); } catch (e) {} }
+  function eqApply(){ const m = eqIt('motor'), k = eqIt('kalkan'), am = (save.eq.mermi === 'std' || (save.amm && save.amm[save.eq.mermi] > 0)) ? eqIt('mermi') : EQ.mermi.items[0]; window.__amP = am.p || 1; window.__amM = am.mn || 1; window.__amH = am.h || 1; window.__eqV = m.v || 1; window.__eqT = m.t || 1; window.__eqS = k.s || 1; try { applyShip(false); } catch (e) {} }
   { const _as = applyShip; applyShip = function(full){ _as(full); const k = eqIt('kalkan'); if (k.m){ hp.shieldMax = Math.round(hp.shieldMax * k.m); if (full) hp.shield = hp.shieldMax; } }; }
   eqApply();
   EXTRA.push(dt => { const r = eqIt('robot').r; if (!r || docked || hp.regenT > 0 || hp.hull <= 0 || hp.hull >= hp.hullMax) return; hp.hull = Math.min(hp.hullMax, hp.hull + r * dt); });
@@ -9084,15 +9084,51 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (!cat || !el.classList.contains('wpc')) { if (el.classList.contains('itl')) i++; continue; }
       const nm = el.querySelector('h4 > span'), sm = el.querySelector('h4 small'), pp = el.querySelector(':scope > p'), bt = el.querySelector('button'); if (!nm || !bt) continue;
       let d = pp ? pp.textContent : ''; if (cat === 'roket' && sm) d = sm.textContent + ' · ' + d;
-      const row = document.createElement('div'); row.className = 'line itl wpr' + (el.classList.contains('cur') ? ' cur' : '');
+      const row = document.createElement('div'); row.className = 'line itl wpr' + (el.classList.contains('cur') ? ' cur' : ''); row.dataset.cat = cat;
       row.innerHTML = icon(cat, i) + '<span><b>' + tcase(nm.textContent.replace(/\s*✓\s*$/, '').trim()) + '</b><span class="dim"><br>' + d + '</span></span>';
       bt.classList.remove('full'); bt.textContent = bt.textContent.replace(/^Satın al · /, ''); if (bt.disabled && /Takılı/.test(bt.textContent)) bt.classList.add('on');
-      row.appendChild(bt); el.replaceWith(row); i++; } }
+      row.appendChild(bt); el.replaceWith(row); i++; }
+    arrange(); }
   { const _w = renderWp; renderWp = function(){ const r = _w.apply(this, arguments); try { tidyWp(); } catch (e) {} return r; }; }
+  // ---- lazer mermisi artık roket gibi adetli: standart sınırsız; diğerleri hazneye doldurulur, ateş ettikçe harcanır, bitince standarda dönülür
+  const AMC = 300, AMUSE = 6, AMP = { yogun: 8, kazici: 6, soguk: 10, ustun: 24 };   // hazne, saniyede harcanan, 10 adet fiyatı
+  if (!save.amm || typeof save.amm !== 'object'){ save.amm = {}; for (const k in AMP) if (save.eqOwn.includes('mermi:' + k)) save.amm[k] = AMC; }   // eski satın alanlara bir dolu hazne
+  for (const k in AMP) if (typeof save.amm[k] !== 'number') save.amm[k] = 0;
+  if (save.eq.mermi !== 'std' && !(save.amm[save.eq.mermi] > 0)) save.eq.mermi = 'std';
+  window.__AMP = AMP; window.__AMC = AMC;
+  const amRows = () => EQ.mermi.items.map((q, i) => { const on = save.eq.mermi === q.id, std = q.id === 'std', n = std ? 0 : Math.floor(save.amm[q.id] || 0), pr = AMP[q.id] || 0, need = AMC - n, nb = std ? 0 : Math.min(need, Math.floor(save.kredi * 10 / pr)), cost = Math.ceil(nb * pr / 10);
+    return '<div class="line itl amr">' + icon('mermi', i) + '<span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + (std ? ' · Sınırsız' : ' · <b class="amn">' + n + '/' + AMC + '</b> · 10 adet ' + pr + ' kredi') + '</span></span><span class="bb">'
+      + (std ? '' : '<button class="act' + (need > 0 && nb > 0 ? ' go' : '') + '" data-am="fill:' + q.id + '" ' + (need > 0 && nb > 0 ? '' : 'disabled') + '>' + (need <= 0 ? 'Dolu' : 'Doldur · ' + cost) + '</button>')
+      + '<button class="act' + (on ? ' on' : '') + '" data-am="use:' + q.id + '" ' + (on || (!std && n <= 0) ? 'disabled' : '') + '>' + (on ? 'Takılı' : 'Tak') + '</button></span></div>'; }).join('');
+  // Sarsıntı roketi (3. roket): patladığı yerdeki gemileri kısa süre felç eder
+  if (typeof save.ammoE !== 'number') save.ammoE = 0;
+  const EMAX = 4, ECOST = 25; window.__EMAX = EMAX;
+  const empRow = () => { const need = EMAX - save.ammoE, c = Math.round(ECOST * (typeof RWM === 'function' ? RWM() : 1)), nb = Math.min(need, Math.floor(save.kredi / c));
+    return '<div class="line itl amr">' + icon('roket', 2) + '<span><b>Sarsıntı Roketi</b><span class="dim"><br>' + save.ammoE + '/' + EMAX + ' · adedi ' + c + ' kredi · Düz uçar; patladığı yerdeki gemileri 5 sn felç eder (ateş edemez, kaçamaz). Hasarı az.</span></span><span class="bb"><button class="act' + (need > 0 && nb > 0 ? ' go' : '') + '" data-am="rk:e" ' + (need > 0 && nb > 0 ? '' : 'disabled') + '>' + (need <= 0 ? 'Dolu' : 'Doldur · ' + nb * c) + '</button></span></div>'; };
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-am]'); if (!b || b.disabled) return; const [op, id] = b.dataset.am.split(':');
+    if (op === 'use'){ if (id !== 'std' && !(save.amm[id] > 0)) return; save.eq.mermi = id; persist(); eqApply(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' takıldı', 1800); }
+    else if (op === 'fill'){ const pr = AMP[id], need = AMC - Math.floor(save.amm[id] || 0), nb = Math.min(need, Math.floor(save.kredi * 10 / pr)); if (nb <= 0) return; const c = Math.ceil(nb * pr / 10); save.kredi -= c; save.amm[id] = Math.floor(save.amm[id] || 0) + nb; persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' +' + nb + ' · ' + c + ' kredi', 1800); }
+    else if (op === 'rk'){ const c = Math.round(ECOST * (typeof RWM === 'function' ? RWM() : 1)), nb = Math.min(EMAX - save.ammoE, Math.floor(save.kredi / c)); if (nb <= 0) return; save.kredi -= nb * c; save.ammoE += nb; persist(); toast('Sarsıntı roketi +' + nb, 1800); }
+    try { sfxP('gelistirme', 0.5); } catch (er) {} try { renderDock(); } catch (er) {} });
+  // ateş ettikçe mermi harcanır
+  { let warn = 0; EXTRA.push(dt => { const id = save.eq.mermi; if (id === 'std' || !firing || docked) return; save.amm[id] = Math.max(0, (save.amm[id] || 0) - AMUSE * dt);
+      if (save.amm[id] <= 0){ save.eq.mermi = 'std'; eqApply(); persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' bitti · standart mermiye geçildi', 3200); }
+      else if (save.amm[id] < 30 && time - warn > 20){ warn = time; toast(EQ.mermi.items.find(x => x.id === id).ad + ' azaldı: ' + Math.floor(save.amm[id]), 2200); } }); }
+  // mermi rengi: ışın, namlu parlaması ve çarpma ışığı merminin rengine boyanır (standartta başlığın kendi rengi)
+  { const AMCOL = { yogun: [1.5, 1.0, 0.35], kazici: [1.5, 0.5, 0.75], soguk: [0.5, 1.45, 0.8], ustun: [1.1, 0.65, 1.6] };
+    EXTRA.push(() => { const c = AMCOL[save.eq.mermi]; if (!c) return; boltMat.color.setRGB(c[0], c[1], c[2]);
+      const m = [Math.min(1, c[0] * 0.7), Math.min(1, c[1] * 0.7), Math.min(1, c[2] * 0.7)]; muzzle.forEach(q => q.material.color.setRGB(m[0], m[1], m[2])); impact.material.color.setRGB(m[0], m[1], m[2]); }); }
+  // ---- Cephanelik düzeni: Lazer (Başlık, Mermi) · Roket (Başlık, Roket) · Jeneratör (Motor, Kalkan)
+  function arrange(){ const wb = $('wpBox'); if (!wb) return; const R = { baslik: [], roket: [], rbaslik: [] };
+    [...wb.children].forEach(n => { if (n.classList.contains('wpr') && R[n.dataset.cat]) R[n.dataset.cat].push(n); else n.remove(); });
+    const add = h => wb.insertAdjacentHTML('beforeend', h), sub = (t, d) => add('<div class="sub2">' + t + (d ? '<small>' + d + '</small>' : '') + '</div>'), put = a => a.forEach(n => wb.appendChild(n));
+    add('<div class="sect">Lazer</div>'); sub('Başlık', 'Lazerin ucuna takılır: hasar, menzil, ısınma.'); put(R.baslik); sub('Mermi', 'Standart sınırsız; diğerleri harcanır, kendi renginde yanar.'); add(amRows());
+    add('<div class="sect">Roket</div>'); sub('Başlık', 'Bütün roketlerde kullanılır.'); put(R.rbaslik); sub('Roket', 'Uçarken roket düğmesine basılı tut: türünü seç.'); put(R.roket); add(empRow());
+    add('<div class="sect">Jeneratör</div>'); sub('Motor'); add(eqLines('motor')); sub('Kalkan'); add(eqLines('kalkan'));
+  }
   function renderEq(){
     const box = $('eqBox'); if (!box) return; let h = '';
-    for (const s in EQ){ if (s === 'robot') continue; h += '<div class="sect">' + EQ[s].ad + '</div>' + eqLines(s); }
-    if (box.dataset.h !== h){ box.dataset.h = h; box.innerHTML = h; }
+    if (box.innerHTML) box.innerHTML = '';   /* mermi, motor ve kalkan artık Cephanelik'te Lazer ve Jeneratör başlıkları altında */
     // Tamir Robotu: onarım düğmeleri (eski tamirhane) + robot seçenekleri tek bölümde
     const rb = $('repBox'); if (rb){ rb.dataset.tab = isHome() ? 'wp' : 'trade'; let hd = rb.querySelector(':scope > .sect'); if (!hd){ hd = document.createElement('div'); hd.className = 'sect'; rb.appendChild(hd); }
       if (hd.textContent.replace(/\s+/g, ' ').trim().indexOf('Tamir Robotu') !== 0){ hd.textContent = 'Tamir Robotu'; hd.dataset.t0 = 'Tamir Robotu'; }
@@ -9602,8 +9638,65 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const busy = bannerOn() || (t && t.classList.contains('on'));
       document.body.classList.toggle('uiBusy', !!busy);
       if (hint) hint.classList.toggle('gone', docked || !!busy || !!document.getElementById('title'));
+      document.body.classList.toggle('isDocked', !!docked);
     });
-    const st = document.createElement('style'); st.textContent = 'html body.uiBusy #cine b{opacity:0 !important;transition:opacity .2s}html body #hint.gone{visibility:hidden !important}';
+    const st = document.createElement('style'); st.textContent = 'html body.uiBusy #cine b{opacity:0 !important;transition:opacity .2s}html body #hint.gone{visibility:hidden !important}html body.isDocked #toast{top:auto !important;bottom:calc(env(safe-area-inset-bottom,0px) + 74px) !important;z-index:30 !important}';
+    document.head.appendChild(st);
+  })();
+
+  // =====  ROKET SEÇİMİ + SARSINTI ROKETİ
+  (function(){
+    const RT = { d: { ad: 'Düz Roket', k: 'D', ic: 0 }, g: { ad: 'Güdümlü Roket', k: 'G', ic: 1 }, e: { ad: 'Sarsıntı Roketi', k: 'S', ic: 2 } };
+    if (!RT[save.rSel]) save.rSel = 'd';
+    const cnt = k => k === 'd' ? save.ammoD : k === 'g' ? save.ammo : (save.ammoE || 0);
+    const EMPW = { direct: 22, splash: 14, reach: 150, col: 0xa98cff, sz: 1.5, emp: true };
+    const _f = fireMissile;
+    fireMissile = function(){
+      if (docked || missileCd > 0) return;
+      const sel = save.rSel || 'd';
+      if (sel === 'g'){ if (!(save.ammo > 0)) return toast('Güdümlü roket kalmadı. Basılı tutup başka roket seç ya da üste dön.', 2600);
+        if (!(lock && (lock.mesh || lock.kind === 'npc') && tAlive(lock))) return toast('Güdümlü roket için önce hedefe kilitlen (Kilit).', 2400); return _f(); }
+      const L = lock; lock = null;   // düz ve sarsıntı roketi kilit olsa da düz gider
+      try {
+        if (sel === 'd'){ if (!(save.ammoD > 0)) { toast('Düz roket kalmadı. Basılı tutup başka roket seç ya da üste dön.', 2600); return; } _f(); return; }
+        if (!(save.ammoE > 0)){ toast('Sarsıntı roketi kalmadı. Cephanelik → Roket\'ten doldur.', 2600); return; }
+        const a = save.ammoD, n0 = missiles.length; save.ammoD = Math.max(1, a); _f(); save.ammoD = a;
+        if (missiles.length > n0){ save.ammoE--; persist(); const m = missiles[missiles.length - 1]; m.w = EMPW; m.emp = true;
+          m.g.traverse(o => { if (o.material && o.material.color) o.material.color.setHex(0xc4b0ff); }); }
+      } finally { lock = L; }
+    };
+    // sarsıntı patlaması: menzildeki gemiler 5 sn felç
+    const _x = explodeMissile; explodeMissile = function(pos, hitA){ const W = typeof explW !== 'undefined' ? explW : null; const r = _x.apply(this, arguments);
+      if (W && W.emp){ let k = 0; for (const n of npcs){ if (n.pos.distanceTo(pos) < n.r + W.reach){ n.stunT = time + 5; k++; } } burst(pos, 0xa98cff, 60, 160, 1.2); if (k) toast('Sarsıntı: ' + k + ' gemi felç oldu', 1800); }
+      return r; };
+    const _u = updateNpc; updateNpc = function(n, dt){ if (n.stunT > time){ n.vel.multiplyScalar(Math.pow(0.4, dt)); n.pos.addScaledVector(n.vel, dt); n.g.position.copy(n.pos); n.g.rotation.z += dt * 2.2; n.fireT = Math.max(n.fireT, 0.4); n.aimAt = null; return; } return _u.apply(this, arguments); };
+    // roket düğmesi: dokun = ateş, basılı tut = tür seçimi
+    const old = $('bMissile'); if (!old) return;
+    const btn = old.cloneNode(true); old.replaceWith(btn);
+    const pick = document.createElement('div'); pick.id = 'rkPick'; document.body.appendChild(pick);
+    const label = () => { const r = RT[save.rSel]; const t = r.k + ' ' + cnt(save.rSel); if (btn.textContent !== t) btn.textContent = t; };
+    const close = () => { pick.classList.remove('on'); };
+    const openPick = () => { pick.innerHTML = Object.keys(RT).map(k => '<button data-rs="' + k + '" class="' + (save.rSel === k ? 'on' : '') + '">' + (window.__itIcon3d ? window.__itIcon3d('roket', RT[k].ic) : '') + '<b>' + RT[k].ad + '</b><i>' + cnt(k) + '</i></button>').join('');
+      const r = btn.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right) + 'px'; pick.style.bottom = (innerHeight - r.top + 8) + 'px'; pick.classList.add('on'); try { blip(620, 0.05); } catch (e) {} };
+    let hold = null, opened = false;
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); initAudio(); opened = false; btn.classList.add('down'); hold = setTimeout(() => { opened = true; openPick(); }, 380); });
+    const up = e => { if (!btn.classList.contains('down')) return; btn.classList.remove('down'); clearTimeout(hold); if (!opened) fireMissile(); };
+    btn.addEventListener('pointerup', up); btn.addEventListener('pointercancel', () => { btn.classList.remove('down'); clearTimeout(hold); });
+    pick.addEventListener('pointerdown', e => { e.stopPropagation(); const b = e.target.closest('button[data-rs]'); if (!b) return; e.preventDefault(); save.rSel = b.dataset.rs; persist(); close(); label(); toast(RT[save.rSel].ad + ' seçildi', 1400); });
+    document.addEventListener('pointerdown', e => { if (pick.classList.contains('on') && !e.target.closest('#rkPick')) close(); });
+    // klavye: C ile roket türü değişir
+    document.addEventListener('keydown', e => { if (e.code !== 'KeyC' || e.repeat || docked || window.__menuOn) return; const ks = Object.keys(RT); save.rSel = ks[(ks.indexOf(save.rSel) + 1) % ks.length]; persist(); label(); toast('Roket: ' + RT[save.rSel].ad + ' (' + cnt(save.rSel) + ')', 1400); });
+    EXTRA.push(() => { label(); if (docked) close(); });
+    const st = document.createElement('style'); st.textContent = `
+  #rkPick{position:fixed;z-index:30;display:none;flex-direction:column;gap:4px;padding:6px;border-radius:12px;background:rgba(8,14,26,.94);border:1px solid rgba(220,235,245,.16);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  #rkPick.on{display:flex}
+  #rkPick button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:8px;font:600 12.5px var(--font);color:#dbe6f3}
+  #rkPick button img{width:34px;height:34px}#rkPick button b{flex:1;font-weight:600}#rkPick button i{font-style:normal;font-weight:700;color:#ffc477;min-width:22px;text-align:right}
+  #rkPick button.on{background:rgba(127,216,255,.16);box-shadow:inset 0 0 0 1px #7fd8ff}
+  html body #wpBox .sub2{margin:12px 0 4px;font:700 11px var(--font);letter-spacing:.2em;text-transform:uppercase;color:var(--v2a,#8fe3ff);display:flex;flex-direction:column;gap:2px}
+  html body #wpBox .sub2 small{font:500 11.5px var(--font);letter-spacing:0;text-transform:none;color:var(--v2d,#8ea2b6)}
+  html body #wpBox .amr .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}html body #wpBox .amr .amn{color:#ffc477}
+  html body #eqBox{display:none !important}`;
     document.head.appendChild(st);
   })();
 })();
