@@ -9833,4 +9833,135 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #wpBox .qty input::-webkit-inner-spin-button,html body #wpBox .qty input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}`;
     document.head.appendChild(st);
   })();
+
+  // =====  BULUT HESAP (Cloudflare Worker): e-posta ile kayıt + aktivasyon kodu, giriş, şifre sıfırlama, kayıt eşitleme; hesapsız kısa cihaz kodu
+  (function(){
+    const API = (() => { try { const o = localStorage.getItem('sd_api'); if (o && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)) return o; } catch (e) {} return window.SD_API || ''; })();
+    window.__cloudApi = API;
+    const getC = () => { try { return JSON.parse(localStorage.getItem('sd-cloud') || 'null'); } catch (e) { return null; } };
+    const setC = c => { try { if (c) localStorage.setItem('sd-cloud', JSON.stringify(c)); else localStorage.removeItem('sd-cloud'); } catch (e) {} };
+    const call = async (m, path, body, tok) => { if (!API) throw new Error('Bulut sunucusu henüz ayarlı değil.'); const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 12000);
+      try { const r = await fetch(API + path, { method: m, headers: Object.assign({ 'Content-Type': 'application/json' }, tok ? { Authorization: 'Bearer ' + tok } : {}), body: body ? JSON.stringify(body) : undefined, signal: ctl.signal });
+        const j = await r.json().catch(() => ({ ok: false, error: 'Sunucu yanıtı okunamadı.' })); j.status = r.status; return j; }
+      catch (e) { return { ok: false, error: navigator.onLine === false ? 'İnternet bağlantısı yok.' : 'Sunucuya ulaşılamadı.', net: true }; } finally { clearTimeout(t); } };
+    window.__cloudCall = call;
+    // kayıt zaman damgası: her persist'te güncellenir (hangi cihazın kaydı daha yeni, anlamak için)
+    { const _p = persist; persist = function(){ if (!window.__noPersist) save._t = Date.now(); return _p.apply(this, arguments); }; }
+    const raw = () => { persist(); return localStorage.getItem(SAVEKEY) || JSON.stringify(save); };
+    const sum = o => { try { const L = window.__lvXp || []; let l = 1; L.forEach((v, i) => { if ((o.xp || 0) >= v) l = i + 1; }); return 'Seviye ' + l + ' · ' + (o.kredi || 0) + ' kredi' + (o.side ? ' · ' + ({ filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' })[o.side] : '') + (o.pilot ? ' · ' + o.pilot : ''); } catch (e) { return ''; } };
+    const apply = (data, why) => { let o; try { o = JSON.parse(data); } catch (e) { toast('Kayıt okunamadı.', 2600); return; } try { localStorage.setItem(SAVEKEY, JSON.stringify(o)); } catch (e) { toast('Kayıt yazılamadı.', 2600); return; }
+      window.__noPersist = true; persist = function(){}; toast((why || 'Kayıt yüklendi') + ', oyun yeniden açılıyor…', 2000); setTimeout(() => location.reload(), 900); };
+    const esc = x => String(x == null ? '' : x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    // ---- pencere
+    function box(html){ const w = document.createElement('div'); w.id = 'cloudBox'; w.innerHTML = '<div class="p">' + html + '</div>'; document.body.appendChild(w); window.__menuOn = true;
+      for (const ev of ['keydown', 'keyup', 'keypress', 'pointerdown', 'touchstart']) w.addEventListener(ev, e => e.stopPropagation());
+      w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-x]')) close(w); }); return w; }
+    const close = w => { w.remove(); if (!document.getElementById('cloudBox')) window.__menuOn = !!document.getElementById('dock') && !document.getElementById('dock').classList.contains('hidden') ? window.__menuOn : false; };
+    // ---- giriş / kayıt / etkinleştirme / şifre sıfırlama
+    function account(mode, email){
+      const w = box(''); let m = mode, em = email || '';
+      const draw = (msg, ok) => { const P = w.querySelector('.p');
+        const tabs = (m === 'in' || m === 'reg') ? '<div class="tb"><button data-m="in" class="' + (m === 'in' ? 'on' : '') + '">Giriş yap</button><button data-m="reg" class="' + (m === 'reg' ? 'on' : '') + '">Kayıt ol</button></div>' : '';
+        const f = m === 'reg' ? '<input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '"><input id="cN" placeholder="Pilot adı" maxlength="14" value="' + esc(save.pilot || '') + '"><input id="cP" type="password" placeholder="Şifre (en az 6)" autocomplete="new-password"><input id="cP2" type="password" placeholder="Şifre tekrar" autocomplete="new-password">'
+          : m === 'in' ? '<input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '"><input id="cP" type="password" placeholder="Şifre" autocomplete="current-password"><a class="lk" data-m="forgot">Şifremi unuttum</a>'
+          : m === 'verify' ? '<p><b>' + esc(em) + '</b> adresine 6 haneli bir kod gönderdik. Gelmediyse istenmeyen (spam) klasörüne bak.</p><input id="cC" inputmode="numeric" maxlength="6" placeholder="Etkinleştirme kodu" class="code"><a class="lk" data-a="resend">Kodu tekrar gönder</a>'
+          : m === 'forgot' ? '<p>Hesabının e-postasını yaz; şifre sıfırlama kodu gönderelim.</p><input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '">'
+          : '<p><b>' + esc(em) + '</b> adresine gelen kodu ve yeni şifreni yaz.</p><input id="cC" inputmode="numeric" maxlength="6" placeholder="Sıfırlama kodu" class="code"><input id="cP" type="password" placeholder="Yeni şifre (en az 6)" autocomplete="new-password">';
+        const go = { reg: 'Kayıt ol', in: 'Giriş yap', verify: 'Etkinleştir', forgot: 'Kod gönder', reset: 'Şifreyi değiştir' }[m];
+        P.innerHTML = '<b class="h">' + ({ reg: 'HESAP AÇ', in: 'GİRİŞ', verify: 'HESABI ETKİNLEŞTİR', forgot: 'ŞİFREMİ UNUTTUM', reset: 'YENİ ŞİFRE' })[m] + '</b>' + tabs + '<div class="f">' + f + '</div><div class="er' + (ok ? ' ok' : '') + '">' + (msg || '') + '</div><button class="go">' + go + '</button>'
+          + (m === 'forgot' || m === 'reset' ? '<a class="lk" data-m="in">Girişe dön</a>' : '') + '<a class="lk x" data-x="1">Kapat</a><div class="nt">Hesabın kaydını buluta yazar; başka cihazda aynı e-postayla girince kaldığın yerden devam edersin.</div>';
+        const f1 = P.querySelector('input'); if (f1 && !f1.value) setTimeout(() => f1.focus(), 50); };
+      const done = async r => { setC({ email: r.email, token: r.token, pilot: r.pilot || '' }); close(w); toast('Giriş yapıldı: ' + r.email, 2200); refreshRow(); await syncAfterLogin(); };
+      draw();
+      w.addEventListener('click', async e => {
+        const t = e.target.closest('[data-m]'); if (t){ em = (w.querySelector('#cE') || {}).value || em; m = t.dataset.m; draw(); return; }
+        const er = msg => draw(msg), btn = e.target.closest('.go');
+        if (e.target.closest('[data-a="resend"]')){ const r = await call('POST', '/resend', { email: em, kind: 'verify' }); draw(r.ok ? 'Yeni kod gönderildi.' + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : '') : r.error, r.ok); return; }
+        if (!btn) return; btn.disabled = true; btn.textContent = 'Bekle…';
+        const v = id => ((w.querySelector('#' + id) || {}).value || '').trim();
+        if (m === 'reg'){ em = v('cE'); const pw = (w.querySelector('#cP') || {}).value || '', pw2 = (w.querySelector('#cP2') || {}).value || '';
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); if (pw.length < 6) return er('Şifre en az 6 karakter olmalı.'); if (pw !== pw2) return er('Şifreler aynı değil.');
+          const r = await call('POST', '/register', { email: em, password: pw, pilot: v('cN') }); if (!r.ok) return er(r.error); m = 'verify'; draw('Kod gönderildi.' + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : ''), true); return; }
+        if (m === 'in'){ em = v('cE'); const r = await call('POST', '/login', { email: em, password: (w.querySelector('#cP') || {}).value || '' });
+          if (r.ok) return done(r); if (r.need === 'verify'){ m = 'verify'; return draw(r.error + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : ''), true); } return er(r.error); }
+        if (m === 'verify'){ const r = await call('POST', '/verify', { email: em, code: v('cC') }); if (!r.ok) return er(r.error); return done(r); }
+        if (m === 'forgot'){ em = v('cE'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); const r = await call('POST', '/forgot', { email: em }); if (!r.ok) return er(r.error); m = 'reset'; return draw('Hesap varsa kod gönderildi.' + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : ''), true); }
+        if (m === 'reset'){ const pw = (w.querySelector('#cP') || {}).value || ''; if (pw.length < 6) return er('Şifre en az 6 karakter olmalı.'); const r = await call('POST', '/reset', { email: em, code: v('cC'), password: pw }); if (!r.ok) return er(r.error); return done(r); }
+      });
+      w.addEventListener('keydown', e => { if (e.key === 'Enter'){ const b = w.querySelector('.go'); b && b.click(); } });
+    }
+    window.__cloudAccount = account;
+    // ---- eşitleme
+    let lastPut = '', lastPutT = 0, syncing = false;
+    async function push(force){ const c = getC(); if (!c || syncing) return; const d = raw(); if (!force && d === lastPut) return; syncing = true;
+      const r = await call('PUT', '/save', { data: d }, c.token); syncing = false;
+      if (r.ok){ lastPut = d; lastPutT = Date.now(); c.t = r.t; setC(c); } else if (r.status === 401){ setC(null); refreshRow(); toast('Bulut oturumu sona erdi. Yeniden giriş yap.', 3200); } }
+    window.__cloudPush = push;
+    async function syncAfterLogin(){ const c = getC(); if (!c) return; const r = await call('GET', '/save', null, c.token); if (!r.ok) return;
+      if (!r.data){ await push(true); toast('Bu cihazdaki kayıt hesabına yüklendi.', 2600); return; }
+      if (r.data === raw()){ lastPut = r.data; return; }
+      let o = null; try { o = JSON.parse(r.data); } catch (e) {}
+      const w = box('<b class="h">HANGİ KAYIT?</b><p>Hesabında kayıtlı bir oyun var. Hangisiyle devam etmek istersin?</p><button class="opt" data-k="cloud"><b>Buluttaki kayıt</b><span>' + esc(o ? sum(o) : '') + '</span></button><button class="opt" data-k="local"><b>Bu cihazdaki kayıt</b><span>' + esc(sum(save)) + '</span></button><div class="nt">Seçmediğin kayıt silinir.</div>');
+      w.addEventListener('click', async e => { const b = e.target.closest('[data-k]'); if (!b) return; if (b.dataset.k === 'cloud'){ close(w); apply(r.data, 'Buluttaki kayıt yüklendi'); } else { close(w); await push(true); toast('Bu cihazdaki kayıt hesabına yazıldı.', 2400); } });
+    }
+    // açılışta: hesap varsa buluttaki kayıt bu cihazdakinden yeniyse sor
+    setTimeout(async () => { const c = getC(); if (!c || !API) return; const r = await call('GET', '/save', null, c.token); if (!r.ok){ if (r.status === 401){ setC(null); refreshRow(); } return; }
+      if (!r.data){ push(true); return; } if (r.data === raw()){ lastPut = r.data; return; }
+      let o = null; try { o = JSON.parse(r.data); } catch (e) {} if (o && (o._t || 0) > (save._t || 0) + 5000){
+        const w = box('<b class="h">BULUTTA DAHA YENİ KAYIT</b><p>Başka bir cihazda daha yeni oynamışsın.</p><button class="opt" data-k="cloud"><b>Buluttakini yükle</b><span>' + esc(sum(o)) + '</span></button><button class="opt" data-k="local"><b>Bu cihazdakiyle devam et</b><span>' + esc(sum(save)) + '</span></button>');
+        w.addEventListener('click', async e => { const b = e.target.closest('[data-k]'); if (!b) return; close(w); if (b.dataset.k === 'cloud') apply(r.data, 'Buluttaki kayıt yüklendi'); else push(true); }); }
+      else push(); }, 2500);
+    setInterval(() => { if (getC() && document.visibilityState === 'visible') push(); }, 60000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && getC()){ const c = getC(), d = raw(); if (d !== lastPut && API) try { fetch(API + '/save', { method: 'PUT', keepalive: d.length < 60000, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.token }, body: JSON.stringify({ data: d }) }).then(() => { lastPut = d; }).catch(() => {}); } catch (e) {} } });
+    // ---- giriş ekranı satırı (eski 'yalnızca bu cihazda' hesap yerine)
+    function refreshRow(){ const r = document.getElementById('accRow'); if (!r) return; const c = getC();
+      r.innerHTML = c ? '<span>Hesap: <b style="color:#ffc477">' + esc(c.email) + '</b></span><a data-o="out">Çıkış yap</a>' : '<a data-o="in">Giriş yap</a><a data-o="reg">Kayıt ol</a>'; }
+    window.__cloudRow = refreshRow;
+    setTimeout(() => { const old = document.getElementById('accRow'); if (!old) return; const row = old.cloneNode(false); old.replaceWith(row); refreshRow();
+      row.addEventListener('click', async e => { const a = e.target.closest('a[data-o]'); if (!a) return; e.stopPropagation(); const o = a.dataset.o;
+        if (o === 'out'){ const c = getC(); await push(true); if (c) call('POST', '/logout', {}, c.token); setC(null); refreshRow(); toast('Çıkış yapıldı. Kayıt bu cihazda kalır.', 2400); }
+        else account(o); }); }, 300);
+    // ---- Diğer → Hesap: hesap satırı + kısa cihaz kodu (eski uzun kod yalnızca çevrimdışıyken)
+    const hesapRows = () => { const c = getC(); return '<div class="line cldx"><span>' + (c ? 'Hesap: <b style="color:#ffc477">' + esc(c.email) + '</b><span class="dim"><br>Kayıt buluta kendiliğinden yazılır' + (lastPutT ? ' · son: ' + new Date(lastPutT).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '') + '</span>' : 'Hesabın yok<span class="dim"><br>E-postayla kayıt ol: kaydın bulutta durur, her cihazda açılır.</span>') + '</span><span class="bb">'
+      + (c ? '<button class="act" data-cl2="push">Şimdi kaydet</button><button class="act" data-cl2="out">Çıkış</button>' : '<button class="act go" data-cl2="reg">Kayıt ol</button><button class="act" data-cl2="in">Giriş</button>') + '</span></div>'; };
+    EXTRA.push(() => { const f = document.getElementById('exBox'); if (!f) return; const sv = f.querySelector('.svx'); if (!sv) return;
+      if (!f.querySelector('.cldx')) sv.insertAdjacentHTML('beforebegin', hesapRows());
+      const tx = sv.querySelector('span'); if (tx && !tx.dataset.c2){ tx.dataset.c2 = 1; tx.innerHTML = 'Hesapsız aktarım<span class="dim"><br>Kodu al: kaydın buluta yüklenir, 8 haneli kısa kod çıkar (30 gün). Öbür cihazda Kod gir.</span>'; } });
+    document.addEventListener('click', async e => { const b = e.target.closest && e.target.closest('button[data-cl2]'); if (!b) return; const a = b.dataset.cl2;
+      if (a === 'push'){ await push(true); toast(lastPutT && Date.now() - lastPutT < 5000 ? 'Kayıt buluta yazıldı.' : 'Buluta yazılamadı.', 2000); }
+      else if (a === 'out'){ const c = getC(); await push(true); if (c) call('POST', '/logout', {}, c.token); setC(null); refreshRow(); toast('Çıkış yapıldı.', 2000); }
+      else account(a);
+      const f = document.getElementById('exBox'), r = f && f.querySelector('.cldx'); if (r) r.remove(); });
+    // kısa cihaz kodu: eski uzun kod düğmelerinin önüne geçer (internet yoksa eskisi çalışır)
+    window.addEventListener('click', async e => { const b = e.target.closest && e.target.closest('button[data-sv]'); if (!b || window.__svLegacy || !API) return;
+      if (navigator.onLine === false) return; e.stopPropagation(); e.preventDefault();
+      const legacy = () => { window.__svLegacy = true; try { b.click(); } finally { window.__svLegacy = false; } };
+      if (b.dataset.sv === 'exp'){ b.disabled = true; const r = await call('POST', '/code', { data: raw() }); b.disabled = false;
+        if (!r.ok){ toast(r.error + ' Çevrimdışı uzun kod açılıyor.', 2600); return legacy(); }
+        const w = box('<b class="h">KAYIT KODUN</b><p>Öbür cihazda <i>İstasyon → Diğer → Hesap → Kod gir</i> bölümüne bu kodu yaz.</p><div class="dc">' + r.code + '</div><p class="nt">' + r.days + ' gün geçerli. Kodu kimseyle paylaşma: kaydının tamamıdır.</p><button class="go" data-cp="1">Kopyala</button><a class="lk x" data-x="1">Kapat</a>');
+        w.querySelector('[data-cp]').onclick = async () => { try { await navigator.clipboard.writeText(r.code); toast('Kod kopyalandı.', 1600); } catch (er) { toast(r.code, 4000); } }; }
+      else { const w = box('<b class="h">KOD GİR</b><p>Öbür cihazdan aldığın 8 haneli kodu yaz. <b>Bu cihazdaki kayıt silinir</b>, yerine kodun kaydı gelir.</p><input id="cD" class="code" maxlength="9" placeholder="XXXX-XXXX" autocapitalize="characters"><div class="er"></div><button class="go">Yükle</button><a class="lk" data-lg="1">Uzun kodum var</a><a class="lk x" data-x="1">Kapat</a>');
+        w.querySelector('[data-lg]').onclick = () => { close(w); legacy(); };
+        let pend = null; w.querySelector('.go').onclick = async () => { const go = w.querySelector('.go'), er = w.querySelector('.er');
+          if (pend){ close(w); apply(pend, 'Kodun kaydı yüklendi'); return; }
+          const code = (w.querySelector('#cD').value || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (code.length !== 8){ er.textContent = 'Kod 8 harf/rakam olmalı.'; return; }
+          go.disabled = true; const r = await call('GET', '/code/' + code); go.disabled = false; if (!r.ok){ er.textContent = r.error; return; }
+          let o = null; try { o = JSON.parse(r.data); } catch (x) {} er.className = 'er ok'; er.textContent = 'Bulundu: ' + (o ? sum(o) : '') + '. Yüklemek için tekrar dokun.'; pend = r.data; go.textContent = 'Evet, yükle'; }; } }, true);
+    const st = document.createElement('style'); st.textContent = `
+  #cloudBox{position:fixed;inset:0;z-index:98;background:rgba(2,5,12,.78);display:flex;align-items:center;justify-content:center;padding:14px;font-family:var(--font)}
+  #cloudBox .p{width:min(380px,94vw);max-height:94vh;overflow:auto;background:rgba(8,14,26,.97);border:1px solid rgba(220,235,245,.18);border-radius:12px;padding:16px 16px 12px;color:#e6edf8;display:flex;flex-direction:column;gap:8px;font:500 13.5px/1.45 var(--font)}
+  #cloudBox .h{font:700 13px var(--font);letter-spacing:.24em;color:#ffc477;text-align:center}
+  #cloudBox p{margin:0;color:#c9d4e4}#cloudBox .nt{font-size:11.5px;color:#8ea2b6;text-align:center}
+  #cloudBox .tb{display:flex;gap:6px}#cloudBox .tb button{flex:1;all:unset;flex:1;text-align:center;cursor:pointer;padding:7px;border-radius:8px;border:1px solid rgba(220,235,245,.18);font:600 12.5px var(--font);color:#b9c6da}#cloudBox .tb button.on{background:#7fd8ff;color:#08101c;border-color:#7fd8ff}
+  #cloudBox .f{display:flex;flex-direction:column;gap:7px}
+  #cloudBox input{background:rgba(255,255,255,.05);border:1px solid rgba(220,235,245,.2);border-radius:8px;color:#e6edf8;padding:9px 10px;font:500 16px var(--font);outline:none}#cloudBox input:focus{border-color:#7fd8ff}
+  #cloudBox input.code{text-align:center;letter-spacing:.35em;font-weight:700;font-size:20px}
+  #cloudBox .er{min-height:1.2em;color:#ff8a9a;font-size:12.5px;text-align:center}#cloudBox .er.ok{color:#7be0a4}
+  #cloudBox .go{all:unset;text-align:center;cursor:pointer;padding:10px;border-radius:999px;background:#ffb454;color:#2b1300;font:700 13.5px var(--font);letter-spacing:.12em}#cloudBox .go:disabled{opacity:.6}
+  #cloudBox .lk{color:#7fd8ff;font-size:12.5px;text-align:center;cursor:pointer}#cloudBox .lk.x{color:#8ea2b6}
+  #cloudBox .opt{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid rgba(220,235,245,.18)}#cloudBox .opt:hover{border-color:#7fd8ff}#cloudBox .opt b{color:#e6edf8}#cloudBox .opt span{color:#8ea2b6;font-size:12px}
+  #cloudBox .dc{font:800 30px var(--font);letter-spacing:.18em;text-align:center;color:#7fd8ff;padding:6px 0}
+  html body #exBox .cldx .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}`;
+    document.head.appendChild(st);
+  })();
 })();

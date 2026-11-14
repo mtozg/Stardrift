@@ -1,0 +1,11 @@
+# Stardrift bulut hesap sunucusu. Ayarlar (gizli olanlar depoya yazılmaz, Cloudflare panelinden girilir):
+#   MAIL_FROM  : Brevo'da doğrulanmış gönderen e-posta adresi (değişken)
+#   BREVO_KEY  : Brevo API anahtarı (gizli / secret)
+name = "stardrift-api"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "stardrift"
+database_id = "BURAYA_D1_ID"
