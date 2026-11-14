@@ -146,7 +146,7 @@ const BELTS = [
 const PLANET2 = { kind: 'planet', pos: V(-9500, -700, -2600), r: 520, ad: 'Marzan', disc: true };
 const PLANET3 = { kind: 'planet', pos: V(7600, 900, 8800), r: 380, ad: 'Buzay', disc: true };
 const EXTRA = [];
-const BOUND = 16000, AST_TARGET = 230;
+const BOUND = 32000, AST_TARGET = 230;   // 1.40: harita 2,1 kat genişledi
 const SYSC = { kr: 1, ice: 1, danger: 1, px: {}, hull: 1, bounty: 1, dmg: 1, rock: 1, pay: 1 }; let curSys = 0;
 
 const stationGroup = new THREE.Group(); scene.add(stationGroup);
@@ -448,7 +448,7 @@ let asteroids = [], ores = [];
 const beltTotal = BELTS.reduce((t, b) => t + b.w, 0);
 function pickBelt(){ let r = Math.random() * beltTotal; for (let _q1 = 0; _q1 < BELTS.length; _q1++){ const b = BELTS[_q1]; r -= b.w; if (r <= 0) return b; } return BELTS[0]; }
 // derinlik: üsten uzaklaştıkça kayalar daha çok cevher verir, kristal daha sık çıkar (keşfe çıkmanın karşılığı)
-function depthMul(p){ const d = p.length(); return d > 6000 ? 2 : d > 3000 ? 1.5 : 1; }
+function depthMul(p){ const d = p.length(); return d > 12600 ? 2 : d > 6300 ? 1.5 : 1; }   // harita genişleyince eşikler de aynı oranda
 function makeAsteroid(far){
   let pos, tries = 0, belt;
   do {
@@ -1655,7 +1655,7 @@ function drawRadar(c, cx, cy, rr){
     if (!t || !t.pos) continue; const q = pt(t.pos), d = Math.hypot(q.px, q.py); if (d > rr - 5) continue;
     c.strokeStyle = col; c.lineWidth = 1.6; c.beginPath(); c.arc(cx + q.px, cy + q.py, 5, 0, TAU); c.stroke();
   }
-  for (let _q58 = 0, r; _q58 < ruins.length && ((r = ruins[_q58]), true); _q58++) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 3500)) plot(r.group.position, '#5ff0d0', 5, true);
+  for (let _q58 = 0, r; _q58 < ruins.length && ((r = ruins[_q58]), true); _q58++) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 2200)) plot(r.group.position, '#5ff0d0', 5, true);
   extraPlots(plot);
   for (const b of [PLANET, GIANT, PLANET2, PLANET3]) plot(b.pos, 'rgba(190,205,230,0.8)', 6, true);
   for (let _q29 = 0; _q29 < STATIONS.length; _q29++){ const s = STATIONS[_q29]; if (s.off) continue; const q = pt(s.pos); let px = q.px, py = q.py; const d = Math.hypot(px, py); if (d > rr - 7){ px = px / d * (rr - 7); py = py / d * (rr - 7); } c.fillStyle = s === STATION ? '#ffb454' : '#8fe9ff'; c.fillRect(cx + px - 3.5, cy + py - 3.5, 7, 7); }
@@ -1944,7 +1944,7 @@ function mapContent(c, I, opts){
   if (mapRange > 9000) for (let _q31 = 0; _q31 < BELTS.length; _q31++){ const b = BELTS[_q31]; if (!known(b.c)) continue; const p = P(b.c); c.fillStyle = b.rich ? 'rgba(255,107,138,0.12)' : 'rgba(150,160,185,0.1)'; c.beginPath(); c.ellipse(p.x, p.y, Math.max(3, b.r * k), Math.max(2, b.r * k * es), 0, 0, TAU); c.fill(); }
   for (let _q32 = 0; _q32 < STATIONS.length; _q32++){ const st = STATIONS[_q32]; if (st.off || !known(st.pos)) continue; const p = P(st.pos); items.push({ y: p.gy, t: 1, p, obj: st, col: '#' + st.color.toString(16).padStart(6, '0') }); }
   for (const bd of [PLANET, GIANT, MOON, PLANET2, PLANET3]){ if (!known(bd.pos)) continue; const p = P(bd.pos); items.push({ y: p.gy, t: 2, p, obj: bd, name: bd.ad }); }
-  for (let _q33 = 0; _q33 < ruins.length; _q33++){ const r = ruins[_q33]; if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
+  for (let _q33 = 0; _q33 < ruins.length; _q33++){ const r = ruins[_q33]; if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 2200) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
   { const o = window.__kadimObj && window.__kadimObj(); if (o){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); } }
   if (window.__featMap) for (const o of window.__featMap()){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); }
   for (let _q34 = 0; _q34 < npcs.length; _q34++){ const n = npcs[_q34]; const p = P(n.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 4, p, obj: n }); }
@@ -2251,7 +2251,7 @@ function overlayTap(x, y){
       let best = null, bd = 22;
       if (mapHits) for (const h of mapHits){ const d = Math.hypot(h.x - lx, h.y - ly); if (d < bd){ bd = d; best = h.obj; } }
       if (best){ setLock(best); overlay = null; return; }
-      mapRange = mapRange === 7000 ? 3500 : mapRange === 3500 ? 14000 : 7000;
+      mapRange = mapRange === 7000 ? 14000 : mapRange === 14000 ? 28000 : mapRange === 28000 ? 3500 : 7000;
     }
     return;
   }
@@ -2326,7 +2326,7 @@ function drawHud(){
     if (known(GIANT.pos)) drawMarker(c, GIANT.pos, '#ffc58a', GIANT.ad, rig.position.distanceTo(GIANT.pos) - GIANT.r, 5000);
     if (known(PLANET2.pos)) drawMarker(c, PLANET2.pos, '#ff9a6a', PLANET2.ad, rig.position.distanceTo(PLANET2.pos) - PLANET2.r, 5000);
     if (known(PLANET3.pos)) drawMarker(c, PLANET3.pos, '#d6ecff', PLANET3.ad, rig.position.distanceTo(PLANET3.pos) - PLANET3.r, 5000);
-    for (let _q35 = 0; _q35 < ruins.length; _q35++){ const r = ruins[_q35]; const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 3500)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
+    for (let _q35 = 0; _q35 < ruins.length; _q35++){ const r = ruins[_q35]; const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 2200)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
     { const o = window.__kadimObj && window.__kadimObj(); if (o) drawMarker(c, o.pos, '#c9a7ff', 'Kadim Kapı', rig.position.distanceTo(o.pos)); }
     extraMarkers(c);
     { let hc = 0; for (let _q36 = 0; _q36 < npcs.length; _q36++){ const n = npcs[_q36]; if (!n.hostile) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
@@ -2848,7 +2848,7 @@ function onRuinFound(r){
   save.rn[r.i] = save.pilot || 'Kaşif';
   let rw = LORE[r.i][0];
   if (r.i === 0){ const v = Math.round(450 * SYSC.bounty); save.kredi += v; rw = '+' + v + ' kredi'; }
-  else if (r.i === 1){ save.ammo = AMMO_MAX; save.ammoD = DMAX; }
+  else if (r.i === 1){ save.ammo = Math.max(save.ammo, AMMO_MAX); save.ammoD = Math.max(save.ammoD, DMAX); }
   else if (r.i === 2){ save.sp = (save.sp || 0) + 1; rw = '+1 yetenek puanı'; }
   else { save.map = true; }
   if (!save.parts) save.parts = {}; save.parts.hucre = (save.parts.hucre || 0) + 2; save.parts.devre = (save.parts.devre || 0) + 1; rw += ' · +2 enerji hücresi, +1 devre kartı';
@@ -2987,8 +2987,8 @@ function enterSystem(k){
   save.base = (save.bases && save.bases[k]) || null; attachBase();
   curSt = STATION; docked = true; scrFlash = 1; persist();
   renderDock();
-  toast('Sıçrama tamamlandı: ' + SYS[k].ad, 4200); blip(300, 0.3); setTimeout(() => blip(700, 0.4), 200);
-  liveSay('Sıçrama', SYS[k].ad + '. ' + SYS[k].intro, '#7fd8ff');
+  if (!window.__quietJump){ toast('Sıçrama tamamlandı: ' + SYS[k].ad, 4200); blip(300, 0.3); setTimeout(() => blip(700, 0.4), 200);
+  liveSay('Sıçrama', SYS[k].ad + '. ' + SYS[k].intro, '#7fd8ff'); }
 }
 {
   const _persist = persist;
@@ -3008,7 +3008,7 @@ function renderJump(){
   let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
   for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i>${SYS[k].ad}<span class="dim"><br>${SYS[k].not}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
   const hid = SYS.length - save.open.length;
-  if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
+  if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Yeni sistemlere kapılardan geçilir: Ana görev seni sıradaki kapıya götürür ve kapıyı haritada (M) işaretler.</span></div>`;
   box.innerHTML = h;
 }
 
@@ -4383,7 +4383,7 @@ EXTRA.push(dt => {
 });
 
 // ---------- Keşif: haritada açılan bölgeler ----------
-const CELL = 2500;
+const CELL = 1500;   // keşif kareleri sıklaştı (eskiden 2500)
 function expSet(){ if (!save.exp) save.exp = {}; return save.exp[curSys] || (save.exp[curSys] = {}); }
 function revealAround(p, r){
   const S = expSet(); let n = 0;
@@ -4394,12 +4394,12 @@ function revealAround(p, r){
   return n;
 }
 function known(p){ return !!expSet()[Math.floor(p.x / CELL) + ',' + Math.floor(p.z / CELL)] || p.distanceTo(rig.position) < 1800; }
-function expPct(){ return Math.min(100, Math.round(Object.keys(expSet()).length / 169 * 100)); }
+function expPct(){ return Math.min(100, Math.round(Object.keys(expSet()).length / (Math.PI * Math.pow(26000 / CELL, 2)) * 100)); }
 let expT = 0, expToastT = -99, expSys = -1;
 EXTRA.push(dt => {
-  if (expSys !== curSys){ expSys = curSys; if (!Object.keys(expSet()).length){ revealAround(STATIONS[0].pos, 4800); persist(); } }
+  if (expSys !== curSys){ expSys = curSys; if (!Object.keys(expSet()).length){ revealAround(STATIONS[0].pos, 2400); persist(); } }
   expT -= dt; if (expT > 0 || docked) return; expT = 1;
-  const n = revealAround(rig.position, 2300);
+  const n = revealAround(rig.position, 1100);
   if (n > 0){ persist(); if (time - expToastT > 10){ expToastT = time; toast('Yeni bölge keşfedildi · Keşif %' + expPct()); } }
 });
 function mapTiles(c, P, big){
@@ -5646,10 +5646,13 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     { t: 'Uçuş', x: () => K('W', 'İtiş') + ' ile ilerle. Yön için ' + (touch ? 'ekranın sol yarısında parmağını sürükle' : K('A / D', '') + ' ve ' + K('↑ / ↓', '')) + '. ' + K('S', 'Fren') + ' yavaşlatır.', ok: () => vel.length() > 25 },
     { t: 'Asteroit kır', x: () => 'Kuşaktaki bir kayayı nişangâhın ortasına al, ' + K('Boşluk', 'Lazer') + ' ile ateş et. Lazer menzili yaklaşık ' + Math.round(laserRange()) + ' m; uzaksa nişanda "MENZİL DIŞI" yazar.', ok: () => ores.length > 0 || cargoSum() > 0 },
     { t: 'Cevheri topla', x: () => 'Kırılan kayadan parlayan parçalar saçılır. Yanlarından geç, kendiliğinden kargoya çekilir. (' + cargoSum() + '/3)', ok: () => cargoSum() >= 3 },
-    { t: 'Üsse dön', x: () => 'Sarı işaret Ankora üssünü gösteriyor. Yaklaşınca ' + K('F', 'Kenetlen') + ' ile istasyona kenetlen.', ok: () => docked },
-    { t: 'Sat', x: () => '<span class="k">Ticaret</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.', enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
-    { t: 'Gemini geliştir', x: () => '<span class="k">Gemi</span> sekmesinden bir geliştirme al, ya da şimdilik ' + '<span class="k">Kalkış</span> de.', enter: () => { lv0 = lvSum(); }, ok: () => lvSum() > lv0 || !docked },
-    { t: 'Gerisi senin', x: () => 'Zorunlu bir şey yok. Gez, kaz, savaş. Arada telsizden sinyaller gelecek; istersen kabul et, istersen yoksay. ' + K('T', 'Kilit') + ' nişandaki hedefe, yoksa 5 km içindeki en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; kilitliyken lazer kendiliğinden vurur. Uzak yerlere gitmek için ' + K('M', 'haritayı') + ' aç, hedefe dokun.', last: true }
+    { t: 'Üsse dön', x: () => 'Sarı işaret ' + (STATION && STATION.ad || 'ev istasyonunu') + ' gösteriyor. Yaklaşınca ' + K('F', 'Kenetlen') + ' ile kenetlen.', ok: () => docked },
+    { t: 'Sat', x: () => '<span class="k">İstasyon</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.' + (save.side === 'korsan' ? ' Kaçak malı yalnızca Kara Liman alır.' : ''), enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
+    { t: 'Ana görev', x: () => '<span class="k">Görevler</span> sekmesinde <b>Ana görev</b> hikâyeyi anlatır ve seni yönlendirir; bölüm bitirdikçe yeni sistemlerin kapıları açılır. Panodaki <b>yan görevler</b> isteğe bağlıdır. Uçarken sol tarafta sıradaki adım yazar.', ok: () => (document.getElementById('dock') || {}).dataset && document.getElementById('dock').dataset.t === 'ct' || !docked },
+    { t: 'Tarafın', x: () => (save.side === 'korsan' ? 'Korsan Birliği\'ndesin: korsanlar sana dokunmaz, sen de onlara dokunma. Yıldız Filosu devriyeleri ve Filo avcıları seni avlar; aranma yıldızın arttıkça daha çok gelirler. Kaçak malı gizli bölmede taşı, Kara Liman\'da sat.'
+        : save.side === 'lonca' ? 'Tüccar Loncası\'ndasın: kazancın ticaretten. İstasyon fiyatlarını karşılaştır, acil siparişleri yetiştir, cevherini en iyi fiyata sat. Korsanlar yükünü ister; kaçmak da bir seçenek.'
+        : 'Yıldız Filosu\'ndasın: devriyeler yanında, korsanlar karşında. Korsan avladıkça ödül ve itibar kazanırsın; reisleri yenmek Filo\'nun en büyük işidir.')
+        + ' ' + K('T', 'Kilit') + ' nişandaki hedefe kilitlenir; kilitliyken lazer kendiliğinden vurur. Haritayı ' + K('M', '') + ' ile aç.', last: true }
   ];
   let i = -1, wait = 0, doneT = 0, lastHtml = '';
   function finish(skip){ save.tut = 1; persist(); window.__tutOn = false; card.classList.remove('on'); if (skip) toast('Rehber kapatıldı. İyi uçuşlar pilot.', 2400); }
@@ -5963,7 +5966,9 @@ setTimeout(() => {
   .btn,#msgBtn,#bComm,#inbox,#toast,#radio .rl,#sig,#hint{filter:opacity(var(--tro,1))}
   `;
   document.head.appendChild(st);
-  window.__applyTro = () => document.documentElement.style.setProperty('--tro', (1 - (save.tro || 0) / 100).toFixed(2));
+  // 0 → tam görünür, 100 → çok saydam (%20); hiç kaybolmaz
+  window.__applyTro = () => document.documentElement.style.setProperty('--tro', (1 - 0.8 * clamp(save.tro || 0, 0, 100) / 100).toFixed(3));
+  { const st = document.createElement('style'); st.textContent = 'html body .btn,html body #stage .btn,html body #msgBtn,html body #bComm,html body #snd,html body #sig,html body #hint,html body #ctTrack,html body #radio .rl,html body #toast,html body #lockBtn{opacity:var(--tro,1) !important}html body .btn.down,html body .btn:active{opacity:max(var(--tro,1),.85) !important}'; document.head.appendChild(st); }
   window.__applyTro();
 }
 
@@ -6105,7 +6110,7 @@ setTimeout(() => {
       const sect = [...e.querySelectorAll(':scope > .sect')].find(x => x.textContent.trim() === 'Kendi üssün'), nx = sect && [...e.querySelectorAll(':scope > .sect')].find(x => sect.compareDocumentPosition(x) & 4);
       if (nx) nx.insertAdjacentHTML('beforebegin', h); else e.insertAdjacentHTML('beforeend', h);
     }
-    e.insertAdjacentHTML('beforeend', '<div class="sect">Görünüm</div><div class="line"><span>Düğme ve mesaj şeffaflığı<span class="dim"><br>Düğmeler ve kutular daha silik olur</span></span><span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span></div>');
+    e.insertAdjacentHTML('beforeend', '<div class="sect">Görünüm</div><div class="line"><span>Düğme ve mesaj şeffaflığı<span class="dim"><br>Düğmeler ve kutular daha silik olur</span></span><span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span></div>');
   };
   document.addEventListener('input', e => { if (e.target && e.target.id === 'trR'){ save.tro = +e.target.value; window.__applyTro(); const v = $('trV'); if (v) v.textContent = '%' + save.tro; } });
   document.addEventListener('change', e => { if (e.target && e.target.id === 'trR') persist(); });
@@ -6173,7 +6178,7 @@ setTimeout(() => {
     let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
     for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i><b>${SYS[k].ad}</b><span class="dim sysi">${window.__fmtNot(SYS[k].not)}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
     const hid = SYS.length - save.open.length;
-    if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
+    if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Yeni sistemlere kapılardan geçilir: Ana görev seni sıradaki kapıya götürür ve kapıyı haritada (M) işaretler.</span></div>`;
     box.innerHTML = h;
   };
 
@@ -6787,9 +6792,10 @@ window.__xpal = {
       + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
-      + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
+      + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
+      + line('Giriş hikâyesi', 'Kadim Kapı ve üç tarafın hikâyesi', '<button class="act" data-set="story">İzle</button>')
       + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
       + '<div class="sver">Sürüm <button data-set="ver">' + (window.SD_VERSION || '?') + '</button></div>'
       + '</div>';
@@ -6813,6 +6819,7 @@ window.__xpal = {
     else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
     else if (a === 'bs'){ const i = (BSI() + 1) % BSV.length; try { localStorage.setItem('sd_bs', String(i)); } catch (e) {} bsApply(); b.textContent = BSN[i]; }
+    else if (a === 'story'){ close(); if (window.__story) window.__story(); }
     else if (a === 'ver'){ verTap++; if (verTap >= 5 && !TESTVIS()){ try { localStorage.setItem('sd_testvis', '1'); } catch (e) {} toast('Test ayarı açıldı', 2000); render(); } }
     else if (a === 'test'){ persist(); try { if (TESTM){ localStorage.setItem('sd-key', localStorage.getItem('sd-key-prev') || 'kayip-yildizlar'); } else { localStorage.setItem('sd-key-prev', SAVEKEY); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); } } catch (e) {} location.reload(); }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
@@ -7119,7 +7126,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   };
   const _dn = damageNpc; damageNpc = function(n, dmg, by){ const first = by === 'player' && !n.provoked; if (by === 'player') n.provoked = true; _dn(n, dmg, by); if (first && n.hostile && npcs.indexOf(n) >= 0 && save.fac.korsan >= 30){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.truce = 0; } };
   const _tp = thinkPirate; thinkPirate = function(n){
-    if (save.fac.korsan >= 30 && !n.leader && !n.provoked && !n.sg){ n.truce = time + 5; if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; } }
+    if ((save.side === 'korsan' || save.fac.korsan >= 30) && (!n.leader || save.side === 'korsan') && !n.provoked && !n.sg && !n.hunter){ n.truce = time + 5; if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; } } /* Korsan tarafındaysan korsanlar (patronlar dahil) sen vurmadıkça saldırmaz */
     _tp(n);
   };
   // istasyon itibarı değişince Lonca da etkilenir
@@ -7176,7 +7183,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   window.__bossDbg = () => ({ L, phase, lairPos, mark });
   function setLair(k){
     if (lair){ scene.remove(lair); lair = null; } mark = null; lairSys = k; L = null; guards = []; bar.classList.remove('on');
-    if (save.boss.includes(k) || !BOSS[k]) return;
+    if (save.boss.includes(k) || !BOSS[k] || save.side === 'korsan') return;   /* Korsan tarafında korsan reisleri müttefik: korsan ini çıkmaz */
     lairPos.set(...BOSS[k].at); for (const b of [PLANET, GIANT, PLANET2, PLANET3, ...STATIONS]) if (b.pos.distanceTo(lairPos) < (b.r || 100) + 1500) lairPos.y += 2600;
     lair = new THREE.Group(); const md = window.__olayModel && window.__olayModel('kamp'); if (md){ md.scale.setScalar(520); lair.add(md); }
     const gl = sprite(glowTexture(255, 60, 60), 900, 0.4); lair.add(gl); lair.position.copy(lairPos); lair.rotation.set(0.3, rand(0, 6), 0.2); scene.add(lair);
@@ -7741,7 +7748,7 @@ function frame(now){
   drawHud();
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
   $('bLock').classList.toggle('on', !!lock);
-  { const lab = 'Roket ' + (lock ? 'G' + save.ammo : 'D' + save.ammoD); if (frameAmmo !== lab){ frameAmmo = lab; $('bMissile').textContent = (lock ? 'G' : 'D') + ' ' + (lock ? save.ammo : save.ammoD); } }
+  /* roket düğmesi etiketi artık seçili türe göre (roket seçimi bloğu) */
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -8244,7 +8251,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     setTimeout(() => { eco.radioT = -9; radio(S.ad, k === 'filo' ? 'Aramıza hoş geldin, pilot. Devriyeler arkanda.' : k === 'lonca' ? 'Loncaya hoş geldin. Yükün dolu, cebin dolu olsun.' : 'Artık bizdensin. Devriyelere dikkat et.', S.col); }, 1200);
   }
   window.__sidePick = () => pick(k => join(k, true));
-  const ask = () => { if (!own() && !$('sideSel')) pick(k => join(k, true)); };
+  const ask = () => { if (!own() && !$('sideSel') && !$('intro')){ const go = () => pick(k => join(k, true)); let ni = false; try { ni = localStorage.getItem('sd_nointro') === '1'; } catch (e) {} if (window.__story && !save.storySeen && !ni) window.__story(go); else go(); } };
   // açılış ekranından sonra (eski oyuncular da bir kez seçer)
   { const tg = $('titleGo'); if (tg) tg.addEventListener('click', () => setTimeout(ask, 650)); else setTimeout(ask, 1500); }
   // taraf değiştirme: zor ve cezalı
@@ -8399,8 +8406,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (huntT <= 0){ huntT = Math.max(45, 130 - save.wanted * 18);
         const n0 = 1 + Math.floor(save.wanted / 2), back = V(0, 0, 1).applyQuaternion(rig.quaternion);
         for (let i = 0; i < n0; i++){ const p = rig.position.clone().addScaledVector(back, 1400 + i * 120).add(V(rand(-300, 300), rand(-150, 150), rand(-300, 300)));
-          const h = spawnNpc(save.wanted >= 3 && i === 0 ? 'brute' : 'raider', p, STATION); if (!h) continue; h.hunter = true; h.hostile = true; h.name = 'Ödül avcısı ' + (h.name || '').split(' ').pop(); h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
-        eco.radioT = -9; radio('Ödül avcısı', 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
+          const ks = save.side === 'korsan', h = spawnNpc(ks ? 'corvette' : (save.wanted >= 3 && i === 0 ? 'brute' : 'raider'), p, STATION); if (!h) continue; h.hunter = true; h.hostile = true; if (ks){ h.role = 'pirate'; h.hullMax = h.hull = Math.round(h.hull * (save.wanted >= 3 && i === 0 ? 1.6 : 1.1)); } h.name = (ks ? 'Filo avcısı ' : 'Ödül avcısı ') + (h.name || '').split('-').pop(); /* Korsan oyuncuyu Filo gemileri avlar */ h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
+        eco.radioT = -9; radio(save.side === 'korsan' ? 'Filo avcısı' : 'Ödül avcısı', save.side === 'korsan' ? 'Korsan gemisi, Filo adına dur! Başındaki ödül ' + bounty() + ' kredi.' : 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
     // devriyeler: çok arananı görünce saldırır, kaçak mal tarar
     for (let i = 0; i < npcs.length; i++){ const q = npcs[i]; if (q.role !== 'patrol' || q.hostile || curSys === 5) continue; const d = q.pos.distanceTo(rig.position); if (d > 600) continue;
       if (save.wanted >= 3 && !(save.grace > 0) && !(q.rev > time)){ q.rev = time + 60; radio(q.name, 'Aranan pilot tespit edildi. Teslim ol!', '#ff5a6e'); }
@@ -8991,6 +8998,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // kapı i'yi açan adım tamamlandı mı?
   window.__mqGate = dn => { if (!(dn >= 1 && dn <= 3) || save.mqFree.includes(dn) || TESTM) return { ok: true }; const L = flat(), j = L.findIndex(S => S.opens === dn); if (j < 0 || save.mq.i > j) return { ok: true };
     return { ok: false, why: 'Ana görev: «' + L[j].B.b + '» bölümünü bitir' }; };
+  window.__mqCur = () => cur();
   window.__mqLine = () => { const S = cur(); if (!S) return ''; const v = Math.min(S.n, Math.floor(S.f() || 0)); return S.t + (S.n > 1 ? ' · ' + v + '/' + S.n : '') + (v >= S.n ? ' · ödül hazır' : ''); };
   const baseOk = () => { const L = flat(), j = L.findIndex(S => S.src && S.src[0] === 'us' && S.src[1] === 0); return save.mq.i >= j; };
   window.__mqBase = baseOk;
@@ -9038,7 +9046,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   if (!save.eq.mermi) save.eq.mermi = 'std';
   if (!Array.isArray(save.eqOwn)) save.eqOwn = [];
   const eqIt = s => EQ[s].items.find(q => q.id === save.eq[s]) || EQ[s].items[0];
-  function eqApply(){ const m = eqIt('motor'), k = eqIt('kalkan'), am = eqIt('mermi'); window.__amP = am.p || 1; window.__amM = am.mn || 1; window.__amH = am.h || 1; window.__eqV = m.v || 1; window.__eqT = m.t || 1; window.__eqS = k.s || 1; try { applyShip(false); } catch (e) {} }
+  function eqApply(){ const m = eqIt('motor'), k = eqIt('kalkan'), am = (save.eq.mermi === 'std' || (save.amm && save.amm[save.eq.mermi] > 0)) ? eqIt('mermi') : EQ.mermi.items[0]; window.__amP = am.p || 1; window.__amM = am.mn || 1; window.__amH = am.h || 1; window.__eqV = m.v || 1; window.__eqT = m.t || 1; window.__eqS = k.s || 1; try { applyShip(false); } catch (e) {} }
   { const _as = applyShip; applyShip = function(full){ _as(full); const k = eqIt('kalkan'); if (k.m){ hp.shieldMax = Math.round(hp.shieldMax * k.m); if (full) hp.shield = hp.shieldMax; } }; }
   eqApply();
   EXTRA.push(dt => { const r = eqIt('robot').r; if (!r || docked || hp.regenT > 0 || hp.hull <= 0 || hp.hull >= hp.hullMax) return; hp.hull = Math.min(hp.hullMax, hp.hull + r * dt); });
@@ -9079,15 +9087,69 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (!cat || !el.classList.contains('wpc')) { if (el.classList.contains('itl')) i++; continue; }
       const nm = el.querySelector('h4 > span'), sm = el.querySelector('h4 small'), pp = el.querySelector(':scope > p'), bt = el.querySelector('button'); if (!nm || !bt) continue;
       let d = pp ? pp.textContent : ''; if (cat === 'roket' && sm) d = sm.textContent + ' · ' + d;
-      const row = document.createElement('div'); row.className = 'line itl wpr' + (el.classList.contains('cur') ? ' cur' : '');
+      const row = document.createElement('div'); row.className = 'line itl wpr' + (el.classList.contains('cur') ? ' cur' : ''); row.dataset.cat = cat;
       row.innerHTML = icon(cat, i) + '<span><b>' + tcase(nm.textContent.replace(/\s*✓\s*$/, '').trim()) + '</b><span class="dim"><br>' + d + '</span></span>';
       bt.classList.remove('full'); bt.textContent = bt.textContent.replace(/^Satın al · /, ''); if (bt.disabled && /Takılı/.test(bt.textContent)) bt.classList.add('on');
-      row.appendChild(bt); el.replaceWith(row); i++; } }
+      row.appendChild(bt); el.replaceWith(row); i++; }
+    arrange(); }
   { const _w = renderWp; renderWp = function(){ const r = _w.apply(this, arguments); try { tidyWp(); } catch (e) {} return r; }; }
+  // ---- lazer mermisi artık roket gibi adetli: standart sınırsız; diğerleri hazneye doldurulur, ateş ettikçe harcanır, bitince standarda dönülür
+  const AMC = 300, AMP = { yogun: 30, kazici: 25, soguk: 35, ustun: 80 }, AMMIN = 500;   // 100 adet fiyatı; en az 500 alınır, üst sınır yok; her lazer atışı 1 harcar (çift namlu: 2)
+  if (!save.amm || typeof save.amm !== 'object'){ save.amm = {}; for (const k in AMP) if (save.eqOwn.includes('mermi:' + k)) save.amm[k] = AMC; }   // eski satın alanlara bir dolu hazne
+  for (const k in AMP) if (typeof save.amm[k] !== 'number') save.amm[k] = 0;
+  if (save.eq.mermi !== 'std' && !(save.amm[save.eq.mermi] > 0)) save.eq.mermi = 'std';
+  window.__AMP = AMP; window.__AMC = AMC; window.__EQM = EQ.mermi.items; window.__eqApply = () => eqApply();
+  // adet seçimi: satırın kendi sayı kutusu (− / +); fiyat anında güncellenir
+  const QTY = {}, qOf = (k, min) => Math.max(min, Math.floor(QTY[k] || min));
+  const qBox = (k, min, step) => '<span class="qty" data-k="' + k + '" data-min="' + min + '" data-step="' + step + '"><button data-q="-">−</button><input type="number" inputmode="numeric" min="' + min + '" step="' + step + '" value="' + qOf(k, min) + '"><button data-q="+">+</button></span>';
+  const amCost = (id, n) => Math.ceil(n * AMP[id] / 100);
+  const amRows = () => EQ.mermi.items.map((q, i) => { const on = save.eq.mermi === q.id, std = q.id === 'std', n = std ? 0 : Math.floor(save.amm[q.id] || 0), k = 'am:' + q.id, want = qOf(k, AMMIN), c = std ? 0 : amCost(q.id, want);
+    return '<div class="line itl amr">' + icon('mermi', i) + '<span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + (std ? ' · Sınırsız' : ' · elde <b class="amn">' + n + '</b> · 100 adet ' + AMP[q.id] + ' kredi') + '</span></span><span class="bb">'
+      + (std ? '' : qBox(k, AMMIN, 100) + '<button class="act' + (save.kredi >= c ? ' go' : '') + '" data-am="buy:' + q.id + '" data-c="' + c + '" ' + (save.kredi >= c ? '' : 'disabled') + '>Al · ' + c + '</button>')
+      + '<button class="act' + (on ? ' on' : '') + '" data-am="use:' + q.id + '" ' + (on || (!std && n <= 0) ? 'disabled' : '') + '>' + (on ? 'Takılı' : 'Tak') + '</button></span></div>'; }).join('');
+  // roketler: düz, güdümlü, sarsıntı; adet seçerek alınır, üst sınır yok
+  if (typeof save.ammoE !== 'number') save.ammoE = 0;
+  const ECOST = 25;
+  const RKD = [['d', 'Düz Roket', 'Ucuz. Nişan aldığın yere düz gider.', () => save.ammoD, () => Math.round(DUMB_COST * RWM())],
+    ['g', 'Güdümlü Roket', 'Kilitlenen hedefi takip eder.', () => save.ammo, () => Math.round(MISSILE_COST * RWM())],
+    ['e', 'Sarsıntı Roketi', 'Düz uçar; patladığı yerdeki gemileri 5 sn felç eder. Hasarı az.', () => save.ammoE || 0, () => Math.round(ECOST * RWM())]];
+  window.__rkCost = id => { const r = RKD.find(x => x[0] === id); return r ? r[4]() : 0; };
+  const rkRows = () => RKD.map(([id, ad, d, cnt, pr], i) => { const k = 'rk:' + id, want = qOf(k, 1), c = want * pr();
+    return '<div class="line itl amr">' + icon('roket', i) + '<span><b>' + ad + '</b><span class="dim"><br>elde <b class="amn">' + cnt() + '</b> · adedi ' + pr() + ' kredi · ' + d + (save.rSel === id ? ' · <b style="color:#7fd8ff">seçili</b>' : '') + '</span></span><span class="bb">' + qBox(k, 1, 1)
+      + '<button class="act' + (save.kredi >= c ? ' go' : '') + '" data-am="rk:' + id + '" data-c="' + c + '" ' + (save.kredi >= c ? '' : 'disabled') + '>Al · ' + c + '</button></span></div>'; }).join('');
+  const empRow = () => '';
+  const priceOf = k => { const [t, id] = k.split(':'); return t === 'am' ? n => amCost(id, n) : n => n * window.__rkCost(id); };
+  const syncBuy = box => { const k = box.dataset.k, inp = box.querySelector('input'), min = +box.dataset.min, v = Math.max(min, Math.floor(+inp.value || min)); QTY[k] = v; const c = priceOf(k)(v), bt = box.parentNode.querySelector('button[data-am^="buy:"], button[data-am^="rk:"]'); if (bt){ bt.dataset.c = c; bt.textContent = 'Al · ' + c; bt.disabled = save.kredi < c; bt.classList.toggle('go', save.kredi >= c); } };
+  document.addEventListener('click', e => { const q = e.target.closest && e.target.closest('.qty button[data-q]'); if (!q) return; e.stopPropagation(); const box = q.closest('.qty'), inp = box.querySelector('input'), st = +box.dataset.step, min = +box.dataset.min; inp.value = Math.max(min, (Math.floor(+inp.value) || min) + (q.dataset.q === '+' ? st : -st)); syncBuy(box); }, true);
+  document.addEventListener('input', e => { const box = e.target.closest && e.target.closest('.qty'); if (box) syncBuy(box); });
+  document.addEventListener('change', e => { const box = e.target.closest && e.target.closest('.qty'); if (box){ const inp = box.querySelector('input'), min = +box.dataset.min; if (!(+inp.value >= min)) inp.value = min; syncBuy(box); } });
+  for (const ev of ['keydown', 'keyup']) document.addEventListener(ev, e => { if (e.target && e.target.closest && e.target.closest('.qty')) e.stopPropagation(); }, true);
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-am]'); if (!b || b.disabled) return; const [op, id] = b.dataset.am.split(':');
+    if (op === 'use'){ if (id !== 'std' && !(save.amm[id] > 0)) return; save.eq.mermi = id; persist(); eqApply(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' takıldı', 1800); }
+    else if (op === 'buy'){ const n = qOf('am:' + id, AMMIN), c = amCost(id, n); if (save.kredi < c) return; save.kredi -= c; save.amm[id] = Math.floor(save.amm[id] || 0) + n; persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' +' + n + ' · ' + c + ' kredi', 1800); }
+    else if (op === 'rk'){ const n = qOf('rk:' + id, 1), c = n * window.__rkCost(id); if (save.kredi < c) return; save.kredi -= c; if (id === 'd') save.ammoD += n; else if (id === 'g') save.ammo += n; else save.ammoE = (save.ammoE || 0) + n; persist(); toast(RKD.find(x => x[0] === id)[1] + ' +' + n + ' · ' + c + ' kredi', 1800); }
+    try { sfxP('gelistirme', 0.5); } catch (er) {} try { renderDock(); } catch (er) {} });
+  // her lazer atışı 1 mermi harcar (iki namlu sırayla ateşlediği için her çift atış 2); bitince standart mermiye geçilir
+  { let warn = 0; const _fb = fireBolts; fireBolts = function(dt, gl, gr, end){ let n0 = 0; for (const b of BOLTS) if (b.live) n0++; const r = _fb.apply(this, arguments); let n1 = 0; for (const b of BOLTS) if (b.live) n1++;
+      const id = save.eq.mermi, k = n1 - n0; if (id !== 'std' && k > 0){ save.amm[id] = Math.max(0, (save.amm[id] || 0) - k);
+        if (save.amm[id] <= 0){ save.eq.mermi = 'std'; eqApply(); persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' bitti · standart mermiye geçildi', 3200); }
+        else if (save.amm[id] < 60 && time - warn > 20){ warn = time; toast(EQ.mermi.items.find(x => x.id === id).ad + ' azaldı: ' + save.amm[id], 2200); } }
+      return r; }; }
+  // mermi rengi: ışın, namlu parlaması ve çarpma ışığı merminin rengine boyanır (standartta başlığın kendi rengi)
+  { const AMCOL = { yogun: [1.5, 1.0, 0.35], kazici: [1.5, 0.5, 0.75], soguk: [0.5, 1.45, 0.8], ustun: [1.1, 0.65, 1.6] };
+    EXTRA.push(() => { const c = AMCOL[save.eq.mermi]; if (!c) return; boltMat.color.setRGB(c[0], c[1], c[2]);
+      const m = [Math.min(1, c[0] * 0.7), Math.min(1, c[1] * 0.7), Math.min(1, c[2] * 0.7)]; muzzle.forEach(q => q.material.color.setRGB(m[0], m[1], m[2])); impact.material.color.setRGB(m[0], m[1], m[2]); }); }
+  // ---- Cephanelik düzeni: Lazer (Başlık, Mermi) · Roket (Başlık, Roket) · Jeneratör (Motor, Kalkan)
+  function arrange(){ const wb = $('wpBox'); if (!wb) return; const R = { baslik: [], roket: [], rbaslik: [] };
+    [...wb.children].forEach(n => { if (n.classList.contains('wpr') && R[n.dataset.cat]) R[n.dataset.cat].push(n); else n.remove(); });
+    const add = h => wb.insertAdjacentHTML('beforeend', h), sub = (t, d) => add('<div class="sub2">' + t + (d ? '<small>' + d + '</small>' : '') + '</div>'), put = a => a.forEach(n => wb.appendChild(n));
+    add('<div class="sect">Lazer</div>'); sub('Başlık', 'Lazerin ucuna takılır: hasar, menzil, ısınma.'); put(R.baslik); sub('Mermi', 'Standart sınırsız; diğerleri her atışta harcanır (çift atış 2), kendi renginde yanar. En az 500 alınır. Uçarken lazere çift dokun: mermi seç.'); add(amRows());
+    add('<div class="sect">Roket</div>'); sub('Başlık', 'Bütün roketlerde kullanılır.'); put(R.rbaslik); sub('Roket', 'Uçarken roket düğmesine basılı tut: türünü seç.'); add(rkRows()); R.roket.forEach(n => n.remove());
+    add('<div class="sect">Jeneratör</div>'); sub('Motor'); add(eqLines('motor')); sub('Kalkan'); add(eqLines('kalkan'));
+  }
   function renderEq(){
     const box = $('eqBox'); if (!box) return; let h = '';
-    for (const s in EQ){ if (s === 'robot') continue; h += '<div class="sect">' + EQ[s].ad + '</div>' + eqLines(s); }
-    if (box.dataset.h !== h){ box.dataset.h = h; box.innerHTML = h; }
+    if (box.innerHTML) box.innerHTML = '';   /* mermi, motor ve kalkan artık Cephanelik'te Lazer ve Jeneratör başlıkları altında */
     // Tamir Robotu: onarım düğmeleri (eski tamirhane) + robot seçenekleri tek bölümde
     const rb = $('repBox'); if (rb){ rb.dataset.tab = isHome() ? 'wp' : 'trade'; let hd = rb.querySelector(':scope > .sect'); if (!hd){ hd = document.createElement('div'); hd.className = 'sect'; rb.appendChild(hd); }
       if (hd.textContent.replace(/\s+/g, ' ').trim().indexOf('Tamir Robotu') !== 0){ hd.textContent = 'Tamir Robotu'; hd.dataset.t0 = 'Tamir Robotu'; }
@@ -9458,5 +9520,479 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const sp = document.getElementById('setP'); if (sp) new MutationObserver(() => { const v = sp.querySelector('.sver'); if (v && !v.querySelector('#offSt')){ v.insertAdjacentHTML('beforeend', '<br><span id="offSt" style="letter-spacing:.06em">' + offTxt() + '</span>'); try { (navigator.serviceWorker.controller || {}).postMessage && navigator.serviceWorker.controller.postMessage({ type: 'status' }); } catch (er) {} } }).observe(sp, { childList: true, subtree: true });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') report(); });
     try { performance.setResourceTimingBufferSize(2000); } catch (e) {}
+  })();
+
+  // =====  bulunduğun sistem kayda yazılır; oyun açılınca oradan devam edilir (eskiden hep Ankora'dan başlıyordu: Lonca/Korsan kendini Filo bölgesinde buluyordu)
+  (function(){
+    const target = () => { const c = save.cur; if (typeof c === 'number' && SYS[c] && (c === 0 || save.open.includes(c))) return c; return window.__homeSys ? window.__homeSys() : 0; };
+    let restored = false;
+    const restore = () => { if (restored) return; restored = true; const k = target(); if (k !== curSys && SYS[k]){ window.__quietJump = true; try { enterSystem(k); } catch (e) { console.warn(e); } window.__quietJump = false; } };
+    const tg = document.getElementById('titleGo'); if (tg && save.side) tg.addEventListener('click', () => setTimeout(restore, 50)); else if (save.side) setTimeout(restore, 300);
+    EXTRA.push(() => { if (!restored && save.side && !document.getElementById('titleGo')) restore(); if (restored && save.cur !== curSys){ save.cur = curSys; persist(); } });
+  })();
+
+  // kaydırıcı etiketleri sabit genişlikte: değer %90 → %100 olunca kaydırıcı parmağın altında kaymasın
+  { const st = document.createElement('style'); st.textContent = 'html body #setP #ctSensV,html body #setP #trV{display:inline-block;min-width:44px;text-align:right;font-variant-numeric:tabular-nums}html body #setP input[type=range]{touch-action:none}'; document.head.appendChild(st); }
+
+  // istasyon alt yazısı (hangi cevheri alır, fiyat farkı) başlığa/sekmelere binmesin: İstasyon sekmesinin içinde, listenin üstünde dursun
+  { const st = document.createElement('style'); st.textContent = 'html body #dock .card > .sub{display:none !important}#stSub{font-size:12px;color:var(--v2d,#8ea2b6);margin:0 0 8px;line-height:1.35}'; document.head.appendChild(st);
+    const sync = () => { const sub = document.querySelector('#dock .card > .sub'), cl = document.getElementById('cargoList'); if (!sub || !cl) return; let el = document.getElementById('stSub');
+      if (!el){ el = document.createElement('div'); el.id = 'stSub'; el.dataset.tab = 'trade'; cl.parentNode.insertBefore(el, cl); }
+      if (el.nextElementSibling !== cl) cl.parentNode.insertBefore(el, cl); if (el.textContent !== sub.textContent) el.textContent = sub.textContent; };
+    const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { sync(); } catch (e) {} return r; }; }
+
+  // =====  ölüm: oyun durur, canlan ekranı; krediyle o sistemin ana istasyonunda kenetli canlanılır; arada gemi parçaları birleşir
+  (function(){
+    const css = document.createElement('style'); css.textContent = `
+  #death{position:fixed;inset:0;z-index:97;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;background:radial-gradient(ellipse at 50% 45%,rgba(60,8,16,.88),rgba(3,4,10,.97) 70%);color:#f1e6e8;font-family:var(--font);opacity:0;transition:opacity .5s}
+  #death.on{display:flex}#death.vis{opacity:1}
+  #death h2{margin:0;font:700 20px/1.2 var(--font);letter-spacing:.34em;padding-left:.34em;color:#ff7d8e;text-shadow:0 0 18px rgba(255,80,100,.5)}
+  #death p{margin:0;max-width:440px;font:500 14px/1.45 var(--font);color:#e2c9cd}#death p b{color:#ffc477}
+  #death .ls{font-size:12.5px;color:#b9a1a6}
+  #death button{margin-top:6px;font:700 14px var(--font);letter-spacing:.16em;padding:11px 26px;border-radius:999px;border:1px solid #ffb454;background:#ffb454;color:#2b1300;cursor:pointer}
+  #death canvas{width:260px;height:150px}
+  #death .bar{width:min(300px,70vw);height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}#death .bar u{display:block;height:100%;width:0;background:linear-gradient(90deg,#7fd8ff,#ffc477)}
+  #death .st{font:600 12px var(--font);letter-spacing:.2em;color:#9fd8ff;min-height:1.2em}`;
+    document.head.appendChild(css);
+    const D = document.createElement('div'); D.id = 'death'; document.body.appendChild(D);
+    for (const ev of ['pointerdown', 'touchstart', 'keydown', 'keyup', 'wheel']) D.addEventListener(ev, e => e.stopPropagation());
+    const fee = () => Math.min(save.kredi, Math.max(50, Math.round(save.kredi * 0.1)));
+    // gemi parçaları: ok biçimli gövdeyi oluşturan üçgenler dağınıktan yerine gelir
+    const SH = [[[0,-60],[16,-20],[-16,-20]], [[-16,-20],[16,-20],[14,20],[-14,20]], [[-14,20],[14,20],[10,46],[-10,46]], [[-16,-20],[-58,24],[-48,34],[-14,20]], [[16,-20],[58,24],[48,34],[14,20]], [[-10,46],[-22,58],[-4,52]], [[10,46],[22,58],[4,52]], [[-48,34],[-66,40],[-58,24]], [[48,34],[66,40],[58,24]]];
+    const OFF = SH.map(() => ({ x: (Math.random() - 0.5) * 300, y: (Math.random() - 0.5) * 180, r: (Math.random() - 0.5) * 5 }));
+    function drawShip(cv, t){ const g = cv.getContext('2d'), W = cv.width, H = cv.height, k = W / 260; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.translate(W / 2, H / 2 + 4 * k); g.scale(k, k);
+      const e = t < 1 ? 1 - Math.pow(1 - t, 3) : 1;
+      SH.forEach((pts, i) => { const o = OFF[i], d = Math.max(0, Math.min(1, e * 1.25 - i * 0.03)); g.save(); g.translate(o.x * (1 - d), o.y * (1 - d)); g.rotate(o.r * (1 - d));
+        g.beginPath(); pts.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
+        g.fillStyle = 'rgba(160,190,215,' + (0.25 + 0.55 * d) + ')'; g.fill(); g.lineWidth = 1.4; g.strokeStyle = d > 0.98 ? '#9fe4ff' : 'rgba(255,196,119,.9)'; g.stroke(); g.restore(); });
+      if (t >= 1){ g.globalCompositeOperation = 'lighter'; const gr = g.createRadialGradient(0, 0, 0, 0, 0, 90); gr.addColorStop(0, 'rgba(127,216,255,.35)'); gr.addColorStop(1, 'rgba(127,216,255,0)'); g.fillStyle = gr; g.fillRect(-130, -80, 260, 160); g.globalCompositeOperation = 'source-over'; } }
+    function show(){
+      const f = fee(), st = (typeof STATION !== 'undefined' && STATION) ? STATION.ad : 'ana istasyon';
+      D.innerHTML = '<h2>GEMİ PARÇALANDI</h2><p>Kargon uzaya saçıldı. Kurtarma ekibi gövdeni toplayıp yeniden birleştirebilir.<br>Canlanma yeri: <b>' + st + '</b></p><p class="ls">Kurtarma ve onarım ücreti: kredinin %10\'u (en az 50).</p><button>' + (f > 0 ? 'CANLAN · ' + f + ' KREDİ' : 'CANLAN · ÜCRETSİZ') + '</button>';
+      D.classList.add('on'); requestAnimationFrame(() => D.classList.add('vis')); window.__menuOn = true;
+      D.querySelector('button').onclick = () => { const c = fee(); save.kredi -= c; persist(); rebuild(c); };
+    }
+    function rebuild(paid){
+      OFF.forEach(o => { o.x = (Math.random() - 0.5) * 300; o.y = (Math.random() - 0.5) * 180; o.r = (Math.random() - 0.5) * 5; });
+      D.innerHTML = '<canvas width="520" height="300"></canvas><div class="st"></div><div class="bar"><u></u></div>';
+      const cv = D.querySelector('canvas'), stx = D.querySelector('.st'), bar = D.querySelector('.bar u'), T = 3600, t0 = performance.now();
+      const msgs = ['PARÇALAR TOPLANIYOR', 'GÖVDE LEVHALARI KAYNAKLANIYOR', 'MOTOR BAĞLANIYOR', 'KALKAN AYARLANIYOR', 'HAZIR'];
+      try { sfxP('gelistirme', 0.5); } catch (e) {}
+      const step = () => { const t = Math.min(1, (performance.now() - t0) / T); drawShip(cv, t); bar.style.width = (t * 100).toFixed(1) + '%'; stx.textContent = msgs[Math.min(msgs.length - 1, Math.floor(t * (msgs.length - 1) + 0.0001))];
+        if (t < 1) requestAnimationFrame(step); else setTimeout(finish, 600); };
+      requestAnimationFrame(step);
+      // arka planda: gemiyi ana istasyona taşı ve kenetle
+      try { const st = STATION, dir = V(0, 0, 1); rig.position.copy(st.pos).addScaledVector(dir, st.dock * 0.5); vel.set(0, 0, 0); hp.hull = hp.hullMax; hp.shield = hp.shieldMax; try { hgTab = 'trade'; } catch (e) {} tryDock(); } catch (e) { console.warn(e); }
+      D._paid = paid;
+    }
+    function finish(){ hp.hull = hp.hullMax; hp.shield = hp.shieldMax; hp.regenT = 0; window.__dead = false; try { renderDock(); } catch (e) {}
+      D.classList.remove('vis'); setTimeout(() => { D.classList.remove('on'); D.innerHTML = ''; window.__menuOn = false; }, 500);
+      toast('Gemin yeniden birleştirildi' + (D._paid ? ' · ' + D._paid + ' kredi' : '') + '. Kargo kayıp.', 3600); }
+    // ölü/yükleniyorken hasar alınmaz
+    const _hurt = hurt; hurt = function(){ if (window.__dead) return; return _hurt.apply(this, arguments); };
+    wreck = function(){
+      if (window.__dead) return; window.__dead = true;
+      flashAt(rig.position.clone(), 50, 8); burst(rig.position, 0xffd0a0, 40, 90, 1.0); sfxBoom(1); shake = 1;
+      for (const k in cargo) cargo[k] = 0; persist();
+      vel.set(0, 0, 0); hp.hull = 1; hp.shield = 0; lock = null; boostBtn = false; laserOn = false; thrustOn = false;
+      for (const n of npcs) if (n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; n.truce = time + 30; }
+      setTimeout(show, 900);
+    };
+    window.__deathShow = show;
+  })();
+
+  // =====  BİLDİRİM PANELİ: mesaj kutusu yerine. Bilgi, uyarı, telsiz ve toplanan cevherler kayda girer; geriye dönük okunur.
+  (function(){
+    if (!Array.isArray(save.log)) save.log = [];
+    const CAT = { uyari: ['Uyarı', '#ff6b7e'], telsiz: ['Telsiz', '#7fd8ff'], cevher: ['Cevher', '#b8a8ff'], bilgi: ['Bilgi', '#ffc477'] };
+    let open = false, unread = 0, filt = 'all', saveT = 0;
+    const box = document.getElementById('inbox'), old = document.getElementById('msgBtn'); if (!box || !old) return;
+    // eski düğmenin dinleyicilerini bırak: yenisiyle değiştir; eski kodun rozet çağrısı için görünmez bir yedek rozet kalsın
+    const mb = old.cloneNode(false); mb.innerHTML = 'Bildirim<i id="ntBadge"></i>'; old.replaceWith(mb);
+    const dummy = document.createElement('i'); dummy.id = 'msgBadge'; dummy.style.display = 'none'; document.body.appendChild(dummy);
+    box.innerHTML = '<div class="ih"><b>Bildirimler</b><span id="ntClear">Temizle</span><span id="inClose">Kapat</span></div><div class="nf">' + [['all', 'Tümü']].concat(Object.keys(CAT).map(k => [k, CAT[k][0]])).map(([k, n]) => '<button data-f="' + k + '">' + n + '</button>').join('') + '</div><div id="inList"></div>';
+    const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'şimdi' : m < 60 ? m + ' dk' : m < 1440 ? Math.round(m / 60) + ' sa' : Math.round(m / 1440) + ' gün'; };
+    const esc = x => String(x).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+    const badge = () => { const b = document.getElementById('ntBadge'); if (!b) return; b.style.display = unread ? 'block' : 'none'; b.textContent = unread > 9 ? '9+' : unread; };
+    const draw = () => { const L = save.log.filter(e => filt === 'all' || e.c === filt).slice(-150).reverse();
+      box.querySelectorAll('.nf button').forEach(b => b.classList.toggle('on', b.dataset.f === filt));
+      document.getElementById('inList').innerHTML = L.length ? L.map(e => '<div><i style="background:' + CAT[e.c][1] + '"></i><span><b style="color:' + (e.k || CAT[e.c][1]) + '">' + esc(e.w || CAT[e.c][0]) + '</b><small>' + ago(e.t) + '</small><br>' + esc(e.x) + (e.n > 1 ? ' <small>×' + e.n + '</small>' : '') + '</span></div>').join('') : '<div class="em">Henüz bildirim yok.</div>'; };
+    const toggle = v => { open = v; box.style.display = v ? 'flex' : 'none'; if (v){ unread = 0; badge(); draw(); } };
+    mb.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toggle(!open); });
+    box.addEventListener('pointerdown', e => e.stopPropagation());
+    box.addEventListener('click', e => { const f = e.target.closest('[data-f]'); if (f){ filt = f.dataset.f; draw(); return; } if (e.target.id === 'inClose') toggle(false); if (e.target.id === 'ntClear'){ save.log = []; persist(); draw(); } });
+    // kayıt: aynı mesaj art arda gelirse sayaç artar; cevherler 20 sn içinde birleşir
+    function log(c, x, w, k){ x = String(x || '').trim(); if (!x) return; const now = Date.now(), last = save.log[save.log.length - 1];
+      if (last && last.c === c && last.x === x && last.w === w && now - last.t < 60000){ last.n = (last.n || 1) + 1; last.t = now; }
+      else { save.log.push({ t: now, c, x, w, k }); if (save.log.length > 150) save.log.splice(0, save.log.length - 150); }
+      if (open) draw(); else if (c !== 'cevher'){ unread++; badge(); }
+      if (now - saveT > 4000){ saveT = now; persist(); } }
+    window.__log = log;
+    const _t = toast; toast = function(msg, ms){ log(/parçalandı|saldırı|tehlike|uyarı|ısındı|kayıp|ceza|aranıyor|yetersiz|dikkat/i.test(msg) ? 'uyari' : 'bilgi', msg); return _t.apply(this, arguments); };
+    const _r = radio; radio = function(who, msg, col){ log('telsiz', msg, who, col); return _r.apply(this, arguments); };
+    const _b = setBanner; setBanner = function(text, kind, sec){ const l = save.log[save.log.length - 1]; if (!(l && l.x === text && Date.now() - l.t < 6000)) log(kind === 'bad' ? 'uyari' : 'bilgi', text); return _b.apply(this, arguments); };
+    const _o = window.__oreGot; window.__oreGot = function(k){ const now = Date.now(), last = save.log[save.log.length - 1], ad = ORE[k] ? ORE[k].ad : k;
+      if (last && last.c === 'cevher' && last.ore === k && now - last.t < 20000){ last.n = (last.n || 1) + 1; last.t = now; last.x = ad + ' toplandı'; if (open) draw(); }
+      else { log('cevher', ad + ' toplandı'); const e = save.log[save.log.length - 1]; if (e) e.ore = k; }
+      return _o ? _o.apply(this, arguments) : undefined; };
+    const st = document.createElement('style'); st.textContent = `
+  html body #inbox{width:min(340px,70vw) !important;max-height:70% !important}
+  html body #inbox .ih{gap:12px;align-items:center}html body #inbox .ih b{flex:1}html body #inbox .ih span{cursor:pointer;color:#7fd8ff;font-size:11.5px}
+  html body #inbox .nf{display:flex;gap:4px;padding:6px 8px;border-bottom:1px solid #22384f;flex-wrap:wrap}
+  html body #inbox .nf button{all:unset !important;cursor:pointer !important;font:600 10.5px var(--font) !important;letter-spacing:.06em !important;padding:3px 9px !important;border-radius:999px !important;border:1px solid rgba(255,255,255,.16) !important;color:#b9c6da !important;background:none !important}
+  html body #inbox .nf button.on{background:#7fd8ff !important;color:#08101c !important;border-color:#7fd8ff !important}
+  html body #msgBtn::before,html body #stage #msgBtn::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 16.5V11a6 6 0 0 1 12 0v5.5l1.6 2H4.4z'/><path d='M10 21a2.2 2.2 0 0 0 4 0'/><path d='M12 3.2V5'/><path d='M3 9.5c.3-2 1.2-3.7 2.6-5M21 9.5c-.3-2-1.2-3.7-2.6-5' stroke-width='1.2'/></svg>") !important;mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 16.5V11a6 6 0 0 1 12 0v5.5l1.6 2H4.4z'/><path d='M10 21a2.2 2.2 0 0 0 4 0'/><path d='M12 3.2V5'/><path d='M3 9.5c.3-2 1.2-3.7 2.6-5M21 9.5c-.3-2-1.2-3.7-2.6-5' stroke-width='1.2'/></svg>") !important}
+  html body #inList div{display:flex;gap:8px;align-items:flex-start}html body #inList div > i{flex:0 0 6px;height:6px;border-radius:3px;margin-top:6px}
+  html body #inList .em{color:#7a8da3;display:block}
+  html body #msgBtn{font-size:0 !important}html body #msgBtn i#ntBadge{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:8px;background:#ff5a6e;color:#fff;font:700 10px/15px var(--font);text-align:center;font-style:normal;display:none;padding:0 3px}`;
+    document.head.appendChild(st);
+  })();
+
+  // =====  EKRAN SADELİĞİ: aynı anda tek uyarı alanı
+  (function(){
+    const t = document.getElementById('toast'), hint = document.getElementById('hint'), cine = document.getElementById('cine');
+    const bannerOn = () => typeof banner !== 'undefined' && banner && time < banner.until && banner.text !== 'HEDEF KİLİTLİ';
+    // ortadaki büyük uyarı varken üstteki bildirim beklesin (kayda yine girer)
+    const _t = toast, held = []; toast = function(msg, ms){ if (bannerOn() || window.__dead){ if (!held.some(h => h[0] === msg)) held.push([msg, ms]); if (held.length > 3) held.shift(); return; } return _t.apply(this, arguments); };
+    EXTRA.push(() => {
+      if (held.length && !bannerOn() && !window.__dead){ const [m, ms] = held.shift(); _t(m, ms); }
+      const busy = bannerOn() || (t && t.classList.contains('on'));
+      document.body.classList.toggle('uiBusy', !!busy);
+      if (hint) hint.classList.toggle('gone', docked || !!busy || !!document.getElementById('title'));
+      document.body.classList.toggle('isDocked', !!docked);
+    });
+    const st = document.createElement('style'); st.textContent = 'html body.uiBusy #cine b{opacity:0 !important;transition:opacity .2s}html body #hint.gone{visibility:hidden !important}html body.isDocked #toast{top:auto !important;bottom:calc(env(safe-area-inset-bottom,0px) + 74px) !important;z-index:30 !important}';
+    document.head.appendChild(st);
+  })();
+
+  // =====  ROKET SEÇİMİ + SARSINTI ROKETİ
+  (function(){
+    const RT = { d: { ad: 'Düz Roket', k: 'D', ic: 0 }, g: { ad: 'Güdümlü Roket', k: 'G', ic: 1 }, e: { ad: 'Sarsıntı Roketi', k: 'S', ic: 2 } };
+    if (!RT[save.rSel]) save.rSel = 'd';
+    const cnt = k => k === 'd' ? save.ammoD : k === 'g' ? save.ammo : (save.ammoE || 0);
+    const EMPW = { direct: 22, splash: 14, reach: 150, col: 0xa98cff, sz: 1.5, emp: true };
+    const _f = fireMissile;
+    fireMissile = function(){
+      if (docked || missileCd > 0) return;
+      const sel = save.rSel || 'd';
+      if (sel === 'g'){ if (!(save.ammo > 0)) return toast('Güdümlü roket kalmadı. Basılı tutup başka roket seç ya da üste dön.', 2600);
+        if (!(lock && (lock.mesh || lock.kind === 'npc') && tAlive(lock))) return toast('Güdümlü roket için önce hedefe kilitlen (Kilit).', 2400); return _f(); }
+      const L = lock; lock = null;   // düz ve sarsıntı roketi kilit olsa da düz gider
+      try {
+        if (sel === 'd'){ if (!(save.ammoD > 0)) { toast('Düz roket kalmadı. Basılı tutup başka roket seç ya da üste dön.', 2600); return; } _f(); return; }
+        if (!(save.ammoE > 0)){ toast('Sarsıntı roketi kalmadı. Cephanelik → Roket\'ten doldur.', 2600); return; }
+        const a = save.ammoD, n0 = missiles.length; save.ammoD = Math.max(1, a); _f(); save.ammoD = a;
+        if (missiles.length > n0){ save.ammoE--; persist(); const m = missiles[missiles.length - 1]; m.w = EMPW; m.emp = true;
+          m.g.traverse(o => { if (o.material && o.material.color) o.material.color.setHex(0xc4b0ff); }); }
+      } finally { lock = L; }
+    };
+    // sarsıntı patlaması: menzildeki gemiler 5 sn felç
+    const _x = explodeMissile; explodeMissile = function(pos, hitA){ const W = typeof explW !== 'undefined' ? explW : null; const r = _x.apply(this, arguments);
+      if (W && W.emp){ let k = 0; for (const n of npcs){ if (n.pos.distanceTo(pos) < n.r + W.reach){ n.stunT = time + 5; k++; } } burst(pos, 0xa98cff, 60, 160, 1.2); if (k) toast('Sarsıntı: ' + k + ' gemi felç oldu', 1800); }
+      return r; };
+    const _u = updateNpc; updateNpc = function(n, dt){ if (n.stunT > time){ n.vel.multiplyScalar(Math.pow(0.4, dt)); n.pos.addScaledVector(n.vel, dt); n.g.position.copy(n.pos); n.g.rotation.z += dt * 2.2; n.fireT = Math.max(n.fireT, 0.4); n.aimAt = null; return; } return _u.apply(this, arguments); };
+    // roket düğmesi: dokun = ateş, basılı tut = tür seçimi
+    const old = $('bMissile'); if (!old) return;
+    const btn = old.cloneNode(true); old.replaceWith(btn);
+    const pick = document.createElement('div'); pick.id = 'rkPick'; document.body.appendChild(pick);
+    const label = () => { const r = RT[save.rSel]; const t = r.k + ' ' + cnt(save.rSel); if (btn.textContent !== t) btn.textContent = t; for (const k in RT) btn.classList.toggle('rk' + k.toUpperCase(), save.rSel === k); };
+    const close = () => { pick.classList.remove('on'); };
+    const openPick = () => { pick.innerHTML = Object.keys(RT).map(k => '<button data-rs="' + k + '" class="' + (save.rSel === k ? 'on' : '') + '">' + (window.__itIcon3d ? window.__itIcon3d('roket', RT[k].ic) : '') + '<b>' + RT[k].ad + '</b><i>' + cnt(k) + '</i></button>').join('');
+      const r = btn.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right) + 'px'; pick.style.bottom = (innerHeight - r.top + 8) + 'px'; pick.classList.add('on'); try { blip(620, 0.05); } catch (e) {} };
+    let hold = null, opened = false;
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); initAudio(); opened = false; btn.classList.add('down'); hold = setTimeout(() => { opened = true; openPick(); }, 380); });
+    const up = e => { if (!btn.classList.contains('down')) return; btn.classList.remove('down'); clearTimeout(hold); if (!opened) fireMissile(); };
+    btn.addEventListener('pointerup', up); btn.addEventListener('pointercancel', () => { btn.classList.remove('down'); clearTimeout(hold); });
+    pick.addEventListener('pointerdown', e => { e.stopPropagation(); const b = e.target.closest('button[data-rs]'); if (!b) return; e.preventDefault(); save.rSel = b.dataset.rs; persist(); close(); label(); toast(RT[save.rSel].ad + ' seçildi', 1400); });
+    document.addEventListener('pointerdown', e => { if (pick.classList.contains('on') && !e.target.closest('#rkPick')) close(); });
+    // klavye: C ile roket türü değişir
+    document.addEventListener('keydown', e => { if (e.code !== 'KeyC' || e.repeat || docked || window.__menuOn) return; const ks = Object.keys(RT); save.rSel = ks[(ks.indexOf(save.rSel) + 1) % ks.length]; persist(); label(); toast('Roket: ' + RT[save.rSel].ad + ' (' + cnt(save.rSel) + ')', 1400); });
+    EXTRA.push(() => { label(); if (docked) close(); });
+    const st = document.createElement('style'); st.textContent = `
+  #rkPick{position:fixed;z-index:30;display:none;flex-direction:column;gap:4px;padding:6px;border-radius:12px;background:rgba(8,14,26,.94);border:1px solid rgba(220,235,245,.16);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  #rkPick.on{display:flex}
+  #rkPick button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:8px;font:600 12.5px var(--font);color:#dbe6f3}
+  #rkPick button img{width:34px;height:34px}#rkPick button b{flex:1;font-weight:600}#rkPick button i{font-style:normal;font-weight:700;color:#ffc477;min-width:22px;text-align:right}
+  #rkPick button.on{background:rgba(127,216,255,.16);box-shadow:inset 0 0 0 1px #7fd8ff}
+  html body #wpBox .sub2{margin:12px 0 4px;font:700 11px var(--font);letter-spacing:.2em;text-transform:uppercase;color:var(--v2a,#8fe3ff);display:flex;flex-direction:column;gap:2px}
+  html body #wpBox .sub2 small{font:500 11.5px var(--font);letter-spacing:0;text-transform:none;color:var(--v2d,#8ea2b6)}
+  html body #wpBox .amr .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}html body #wpBox .amr .amn{color:#ffc477}
+  html body #eqBox{display:none !important}
+  html body #stage #bMissile.rkG::before,html body #bMissile.rkG::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M6.2 14.6l-2.6 2.6' stroke-width='1.3'/><circle cx='18' cy='18' r='3.6' stroke-width='1.2'/><path d='M18 13.2v2M18 20.8v2M13.2 18h2M20.8 18h2' stroke-width='1.2'/></svg>") !important;mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M6.2 14.6l-2.6 2.6' stroke-width='1.3'/><circle cx='18' cy='18' r='3.6' stroke-width='1.2'/><path d='M18 13.2v2M18 20.8v2M13.2 18h2M20.8 18h2' stroke-width='1.2'/></svg>") !important}
+  html body #stage #bMissile.rkE::before,html body #bMissile.rkE::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M18.5 12.5l-2.6 4h2.4l-1.6 4.5 4-5.6h-2.4l1.6-2.9z' fill='white' stroke='none'/><circle cx='18' cy='17' r='5.6' stroke-width='.9' opacity='.7'/></svg>") !important;mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M18.5 12.5l-2.6 4h2.4l-1.6 4.5 4-5.6h-2.4l1.6-2.9z' fill='white' stroke='none'/><circle cx='18' cy='17' r='5.6' stroke-width='.9' opacity='.7'/></svg>") !important}`;
+    document.head.appendChild(st);
+  })();
+
+  // =====  GİRİŞ HİKÂYESİ: iki ekran, atlanabilir; sonra taraf seçimi. Ayarlar → Rehber'den yeniden izlenebilir.
+  (function(){
+    const V_ = window.SD_VERSION || '';
+    const PAGES = [
+      { t: 'KADİM KAPI SUSTU', img: '<div class="fx"><img src="assets/img/gate_kadim_enerji.webp?v=' + V_ + '" alt=""></div>', p: [
+        'Bir zamanlar dört güneşi tek bir kapı birbirine bağlıyordu. Onu, adını bile unuttuğumuz bir uygarlık yapmıştı: <b>Kadimler</b>. Gemiler, cevher ve haberler o kapıdan geçerdi.',
+        'Sonra kapı sustu. Halkaları karardı, dört sistem birbirinden koptu. Yollar kesildi, istasyonlar yalnız kaldı.',
+        'Kaostan üç güç doğdu.' ] },
+      { t: 'ÜÇ YOL, TEK KAPI', img: '<div class="fac"><img src="assets/img/fac_filo.webp?v=' + V_ + '" alt=""><img src="assets/img/fac_lonca.webp?v=' + V_ + '" alt=""><img src="assets/img/fac_korsan.webp?v=' + V_ + '" alt=""></div>', p: [
+        'Ankora\'nın son savaş gemileri düzeni korumaya yemin etti: <b style="color:#7fd8ff">Yıldız Filosu</b>. Yolları kapanan tüccar aileleri kendi pazarlarını kurdu: <b style="color:#ffc477">Tüccar Loncası</b>. İkisine de boyun eğmeyenler bir asteroidin içine saklandı: <b style="color:#ff6b8a">Korsan Birliği</b>.',
+        'Şimdi kuşaklardaki kalıntılardan yankılar yükseliyor. Kapı uyanabilir. Filo onu düzen için, Lonca kazanç için, Korsanlar özgürlük için istiyor.',
+        'Sen yeni bir pilotsun. Gemin hazır. Kapıyı kim uyandırırsa dört güneşin kaderini o yazacak. <b>Hangi tarafta uçacaksın?</b>' ] }
+    ];
+    const css = document.createElement('style'); css.textContent = `
+  #intro{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 18px) calc(env(safe-area-inset-bottom,0px) + 14px) calc(env(safe-area-inset-left,0px) + 18px);background:radial-gradient(ellipse at 50% 40%,#0d1830,#02040a 75%);color:#e6edf8;font-family:var(--font);opacity:0;transition:opacity .6s}
+  #intro.vis{opacity:1}
+  #intro .in{display:flex;gap:28px;align-items:center;max-width:920px;width:100%}
+  #intro .art{flex:0 0 34%;display:flex;justify-content:center}
+  #intro .fx img{width:min(240px,30vw);aspect-ratio:1;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 30px rgba(170,120,255,.55));animation:inSpin 40s linear infinite}
+  #intro .fac{display:flex;flex-direction:column;gap:10px}#intro .fac img{width:min(86px,11vw);filter:drop-shadow(0 0 12px rgba(255,255,255,.18));opacity:0;animation:inUp .8s forwards}
+  #intro .fac img:nth-child(2){animation-delay:.4s}#intro .fac img:nth-child(3){animation-delay:.8s}
+  #intro .tx{flex:1;min-width:0}
+  #intro h2{margin:0 0 12px;font:600 18px/1.2 var(--font);letter-spacing:.34em;color:#d9c4ff;text-shadow:0 0 16px rgba(170,120,255,.5)}
+  #intro p{margin:0 0 10px;font:500 15px/1.55 var(--font);color:#d3dceb;opacity:0;transform:translateY(6px);transition:opacity 1s,transform 1s}#intro p.v{opacity:1;transform:none}
+  #intro .nav{display:flex;gap:10px;align-items:center;margin-top:14px}#intro .dots{flex:1;display:flex;gap:6px}#intro .dots i{width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,.18)}#intro .dots i.on{background:#ffc477}
+  #intro button{font:700 13px var(--font);letter-spacing:.16em;padding:9px 20px;border-radius:999px;cursor:pointer}
+  #intro .nx{border:1px solid #ffb454;background:#ffb454;color:#2b1300}#intro .sk{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 16px);border:1px solid rgba(255,255,255,.25);background:none;color:#c6d2e2;font-size:11.5px;padding:6px 14px}
+  @keyframes inSpin{to{transform:rotate(360deg)}}@keyframes inUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media (max-height:460px){#intro h2{font-size:15px;margin-bottom:8px}#intro p{font-size:13px;line-height:1.45;margin-bottom:6px}#intro .fx img{width:min(170px,26vw)}#intro .fac img{width:min(58px,9vw)}#intro .in{gap:18px}}`;
+    document.head.appendChild(css);
+    window.__story = done => {
+      const d = document.createElement('div'); d.id = 'intro'; document.body.appendChild(d); window.__menuOn = true;
+      for (const ev of ['pointerdown', 'touchstart', 'keydown', 'keyup']) d.addEventListener(ev, e => e.stopPropagation());
+      let i = 0, timers = [];
+      const end = () => { timers.forEach(clearTimeout); save.storySeen = 1; persist(); d.classList.remove('vis'); setTimeout(() => { d.remove(); window.__menuOn = false; done && done(); }, 500); };
+      const show = () => { timers.forEach(clearTimeout); timers = []; const P = PAGES[i];
+        d.innerHTML = '<button class="sk">ATLA</button><div class="in"><div class="art">' + P.img + '</div><div class="tx"><h2>' + P.t + '</h2>' + P.p.map(x => '<p>' + x + '</p>').join('') + '<div class="nav"><div class="dots">' + PAGES.map((_, j) => '<i class="' + (j === i ? 'on' : '') + '"></i>').join('') + '</div><button class="nx">' + (i < PAGES.length - 1 ? 'DEVAM' : 'TARAFINI SEÇ') + '</button></div></div></div>';
+        d.querySelectorAll('p').forEach((p, j) => timers.push(setTimeout(() => p.classList.add('v'), 300 + j * 1300)));
+        d.querySelector('.sk').onclick = end;
+        d.querySelector('.nx').onclick = () => { const hidden = [...d.querySelectorAll('p')].some(p => !p.classList.contains('v')); if (hidden){ d.querySelectorAll('p').forEach(p => p.classList.add('v')); return; } if (i < PAGES.length - 1){ i++; show(); } else end(); };
+        try { blip(480 + i * 120, 0.08); } catch (e) {} };
+      show(); requestAnimationFrame(() => d.classList.add('vis'));
+    };
+  })();
+
+  // =====  DÜNYA 1.40: harita genişler (iç 3 kuşak yerinde), kalıntılar katı, ana görev kapıyı işaretler, motor sesi küçük hoparlörde de duyulur
+  (function(){
+    const SP = 2.1;
+    try { collectMovers(); } catch (e) {}   // gezegen/kuşak süslerini eski konumlarına göre ÖNCE topla, sonra ölçekle
+    ORIG.bl.forEach((c, i) => { if (i >= 3) c.multiplyScalar(SP); });
+    ORIG.rn.forEach(c => c.multiplyScalar(SP));
+    ORIG.pl.forEach(c => c.multiplyScalar(1.8));
+    ORIG.st.forEach((c, i) => { if (i > 0 && c.length() < 100000) c.multiplyScalar(1.8); });
+    // ev sisteminin yerleşimi açılışta doğrudan ORIG'dan kuruluyordu: yeniden yerleştir, kayaları yeni kuşaklara doğur
+    try { applyWorld(curSys); for (const a of asteroids) scene.remove(a.mesh); asteroids.length = 0; for (let i = 0; i < AST_TARGET; i++) asteroids.push(makeAsteroid(false)); } catch (e) { console.warn(e); }
+    // eski keşif kayıtları eski ölçekteydi: sıfırla
+    if (save.expV !== 2){ save.exp = {}; save.expV = 2; persist(); }
+    // kalıntılar katı: içinden geçilmez (kapılar hariç; onlardan geçilir)
+    EXTRA.push(() => { if (docked) return; for (const r of ruins){ if (r.gate || !r.group || r.group.visible === false) continue; const R = (r.r || 70) * 0.85 + 8, c = r.group.position;
+        const dx = rig.position.x - c.x, dy = rig.position.y - c.y, dz = rig.position.z - c.z, d = Math.sqrt(dx * dx + dy * dy + dz * dz); if (d >= R || d < 0.001) continue;
+        const nx = dx / d, ny = dy / d, nz = dz / d; rig.position.set(c.x + nx * R, c.y + ny * R, c.z + nz * R); const vn = vel.x * nx + vel.y * ny + vel.z * nz; if (vn < 0){ vel.x -= vn * nx; vel.y -= vn * ny; vel.z -= vn * nz; vel.multiplyScalar(0.9); } } });
+    // ana görev "kapı sinyalini bul" adımındaysa bu sistemin kapısı haritada ve ekranda işaretlenir
+    let gT = 0; EXTRA.push(dt => { gT += dt; if (gT < 1) return; gT = 0; const S = window.__mqCur && window.__mqCur(), g = ruins.find(r => r.gate && r.i === 4); if (!g) return;
+      const want = !!(S && S.opens && GATE_TO[curSys] === S.opens); if (want && !g.hint){ g.hint = true; eco.radioT = -9; radio('Tarayıcı', 'Kapı sinyali yakalandı. Haritada işaretledim (M). Uzak, ' + (Math.round(g.pos.distanceTo(rig.position) / 100) / 10) + ' km.', '#5ff0d0'); } });
+    // motor sesi: itişte püskürtme hışırtısı + hızla tizleşen vınlama (telefon hoparlöründe de duyulur)
+    let E2 = null; const _au = audioUpdate;
+    audioUpdate = function(speed){ _au(speed);
+      try { if (!AC || !AC.nb) return; if (!E2){ const h = AC.createBufferSource(); h.buffer = AC.nb; h.loop = true; const hf = AC.createBiquadFilter(); hf.type = 'bandpass'; hf.frequency.value = 1700; hf.Q.value = 0.8; const hg = AC.createGain(); hg.gain.value = 0; h.connect(hf); hf.connect(hg); hg.connect(AC.master); h.start();
+          const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 160; const of = AC.createBiquadFilter(); of.type = 'bandpass'; of.frequency.value = 620; of.Q.value = 2.5; const og = AC.createGain(); og.gain.value = 0; o.connect(of); of.connect(og); og.connect(AC.master); o.start(); E2 = { hg, hf, og, o }; }
+        const t = AC.currentTime, on = soundOn && !paused && !docked && !window.__dead ? 1 : 0, th = Math.min(thrustNow, 1.6), sp = Math.min(speed / 600, 1), bo = boosting ? 1 : 0;
+        E2.hg.gain.setTargetAtTime(on * (0.012 + th * 0.05 + bo * 0.06), t, 0.12); E2.hf.frequency.setTargetAtTime(1400 + th * 500 + bo * 900, t, 0.2);
+        E2.og.gain.setTargetAtTime(on * (0.008 + th * 0.016 + sp * 0.022), t, 0.2); E2.o.frequency.setTargetAtTime(150 + sp * 230 + th * 30, t, 0.25);
+      } catch (e) {} };
+  })();
+
+  // =====  MERMİ: lazer düğmesinin altında takılı merminin rengi ve kalan sayısı; lazere çift dokununca mermi listesi açılır
+  (function(){
+    const las = $('bLaser'); if (!las || !window.__EQM) return;
+    const COL = { std: '#7fe6ff', yogun: '#ffc56e', kazici: '#ff7c98', soguk: '#7be0a4', ustun: '#c8a8ff' };
+    const pick = document.createElement('div'); pick.id = 'amPick'; document.body.appendChild(pick);
+    const n = id => id === 'std' ? '∞' : Math.floor((save.amm && save.amm[id]) || 0);
+    let lastLab = '';
+    const label = () => { const id = save.eq.mermi || 'std', t = '● ' + n(id); if (t !== lastLab){ lastLab = t; las.dataset.am = t; } las.style.setProperty('--amc', COL[id]); };
+    const open = () => { pick.innerHTML = window.__EQM.map((q, i) => { const ok = q.id === 'std' || n(q.id) > 0; return '<button data-m="' + q.id + '" class="' + (save.eq.mermi === q.id ? 'on' : '') + (ok ? '' : ' off') + '" style="--c:' + COL[q.id] + '">' + (window.__itIcon3d ? window.__itIcon3d('mermi', i) : '') + '<b>' + q.ad + '</b><i>' + n(q.id) + '</i></button>'; }).join('') + '<small>Boş mermiyi Cephanelik → Lazer\'den al.</small>';
+      const r = las.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right) + 'px'; pick.style.bottom = (innerHeight - r.top + 8) + 'px'; pick.classList.add('on'); try { laserOn = false; } catch (e) {} try { blip(620, 0.05); } catch (e) {} };
+    // çift dokunuş: iki basış 320 ms içinde → liste (lazer basılı tutulunca ateş etmeye devam eder)
+    let downT = 0, lastTap = 0;
+    las.addEventListener('pointerdown', () => { downT = performance.now(); });
+    const tapUp = () => { const t = performance.now(); if (t - downT > 250) { lastTap = 0; return; } if (t - lastTap < 450){ lastTap = 0; setTimeout(open, 0); } else lastTap = t; };
+    las.addEventListener('pointerup', tapUp);
+    pick.addEventListener('pointerdown', e => { e.stopPropagation(); const b = e.target.closest('button[data-m]'); if (!b) return; e.preventDefault(); const id = b.dataset.m;
+      if (id !== 'std' && !(n(id) > 0)){ toast('Bu mermi boş. Cephanelik → Lazer\'den al.', 2200); return; }
+      save.eq.mermi = id; persist(); window.__eqApply(); pick.classList.remove('on'); label(); toast(window.__EQM.find(q => q.id === id).ad + ' takıldı', 1400); });
+    document.addEventListener('pointerdown', e => { if (pick.classList.contains('on') && !e.target.closest('#amPick') && !e.target.closest('#bLaser')) pick.classList.remove('on'); });
+    document.addEventListener('keydown', e => { if (e.code !== 'KeyV' || e.repeat || docked || window.__menuOn) return; const ids = window.__EQM.map(q => q.id).filter(id => id === 'std' || n(id) > 0); const i = ids.indexOf(save.eq.mermi); save.eq.mermi = ids[(i + 1) % ids.length]; persist(); window.__eqApply(); label(); toast('Mermi: ' + window.__EQM.find(q => q.id === save.eq.mermi).ad + ' (' + n(save.eq.mermi) + ')', 1400); });
+    EXTRA.push(() => { label(); if (docked) pick.classList.remove('on'); });
+    const st = document.createElement('style'); st.textContent = `
+  html body #bLaser::after,html body #stage #bLaser::after{content:attr(data-am);display:block;margin-top:1px;font:800 9px/1 var(--font);letter-spacing:.04em;color:var(--amc,#7fe6ff);text-shadow:0 0 6px var(--amc,#7fe6ff)}
+  #amPick{position:fixed;z-index:31;display:none;flex-direction:column;gap:3px;padding:6px;border-radius:12px;background:rgba(8,14,26,.95);border:1px solid rgba(220,235,245,.16);box-shadow:0 8px 30px rgba(0,0,0,.6);max-height:70vh;overflow:auto}
+  #amPick.on{display:flex}
+  #amPick button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:3px 10px 3px 3px;border-radius:8px;font:600 12px var(--font);color:#dbe6f3}
+  #amPick button img{width:30px;height:30px}#amPick button b{flex:1;font-weight:600}#amPick button i{font-style:normal;font-weight:800;color:var(--c);min-width:30px;text-align:right}
+  #amPick button.on{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--c)}#amPick button.off{opacity:.4}
+  #amPick small{font:500 10.5px var(--font);color:#8ea2b6;padding:3px 6px 1px}
+  html body #wpBox .qty{display:inline-flex;align-items:center;border:1px solid rgba(220,235,245,.2);border-radius:999px;overflow:hidden}
+  html body #wpBox .qty button{all:unset !important;cursor:pointer !important;width:26px !important;text-align:center !important;font:700 15px/26px var(--font) !important;color:#dbe6f3 !important}
+  html body #wpBox .qty input{width:58px;background:none;border:0;color:#ffc477;font:700 13px var(--font);text-align:center;-moz-appearance:textfield;padding:0}
+  html body #wpBox .qty input::-webkit-inner-spin-button,html body #wpBox .qty input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}`;
+    document.head.appendChild(st);
+  })();
+
+  // =====  BULUT HESAP (Firebase): e-postayla kayıt + doğrulama bağlantısı, giriş, şifre sıfırlama, kayıt eşitleme (Firestore); hesapsız kısa cihaz kodu (anonim oturum)
+  (function(){
+    const CFG = window.SD_FB; if (!CFG) return;
+    const API = 'firebase'; window.__cloudApi = API;
+    let fbp = null;   // kütüphane yalnızca gerektiğinde yüklenir (ilk açılış hızlı kalsın, çevrimdışı paketin içinde)
+    const loadFB = () => fbp || (fbp = new Promise((res, rej) => { if (window.firebase && firebase.firestore) return res(firebase);
+      const files = ['firebase-app-compat.js', 'firebase-auth-compat.js', 'firebase-firestore-compat.js'], v = '?v=' + (window.SD_VERSION || ''); let i = 0;
+      const next = () => { if (i >= files.length){ try { if (!firebase.apps.length) firebase.initializeApp(CFG); firebase.auth().languageCode = 'tr'; res(firebase); } catch (e) { rej(e); } return; }
+        const sc = document.createElement('script'); sc.src = 'vendor/firebase/' + files[i++] + v; sc.onload = next; sc.onerror = () => { fbp = null; rej(new Error('Firebase yüklenemedi')); }; document.head.appendChild(sc); };
+      next(); }));
+    const TR = { 'auth/email-already-in-use': 'Bu e-postayla zaten bir hesap var. Giriş yap.', 'auth/invalid-email': 'Geçerli bir e-posta gir.', 'auth/weak-password': 'Şifre en az 6 karakter olmalı.', 'auth/wrong-password': 'E-posta ya da şifre yanlış.', 'auth/user-not-found': 'E-posta ya da şifre yanlış.', 'auth/invalid-credential': 'E-posta ya da şifre yanlış.', 'auth/invalid-login-credentials': 'E-posta ya da şifre yanlış.', 'auth/too-many-requests': 'Çok fazla deneme. Biraz sonra tekrar dene.', 'auth/network-request-failed': 'İnternet bağlantısı yok ya da sunucuya ulaşılamadı.', 'permission-denied': 'İzin yok. (Firestore kuralları ayarlı mı?)', 'unavailable': 'Sunucuya ulaşılamadı.', 'auth/operation-not-allowed': 'Hesap sistemi henüz açılmadı. Biraz sonra tekrar dene.', 'auth/admin-restricted-operation': 'Kodla aktarım henüz açılmadı. Biraz sonra tekrar dene.' };
+    const err = e => ({ ok: false, error: TR[e && e.code] || (navigator.onLine === false ? 'İnternet bağlantısı yok.' : 'Bir sorun oldu: ' + ((e && (e.code || e.message)) || e)), code: e && e.code });
+    const user = () => (window.firebase && firebase.apps.length ? firebase.auth().currentUser : null);
+    const acct = () => { const u = user(); return u && !u.isAnonymous && u.emailVerified ? u : null; };
+    // eski arayüz bu üç yardımcıyı kullanıyor: getC (oturum), setC (çıkış), call (işlemler)
+    const getC = () => { const u = acct(); if (u) return { email: u.email, uid: u.uid }; try { const c = JSON.parse(localStorage.getItem('sd-cloud') || 'null'); return c && c.email ? c : null; } catch (e) { return null; } };
+    const setC = c => { try { if (c) localStorage.setItem('sd-cloud', JSON.stringify({ email: c.email })); else localStorage.removeItem('sd-cloud'); } catch (e) {} };
+    const actionUrl = () => location.origin + location.pathname;
+    async function call(m, path, body){
+      try { const fb = await loadFB(), au = fb.auth(), db = fb.firestore();
+        if (path === '/register'){ const cr = await au.createUserWithEmailAndPassword(body.email, body.password); if (body.pilot) try { await cr.user.updateProfile({ displayName: body.pilot }); } catch (e) {}
+          await cr.user.sendEmailVerification({ url: actionUrl() }); return { ok: true, need: 'verify' }; }
+        if (path === '/login'){ const cr = await au.signInWithEmailAndPassword(body.email, body.password); await cr.user.reload();
+          if (!cr.user.emailVerified){ try { await cr.user.sendEmailVerification({ url: actionUrl() }); } catch (e) {} return { ok: false, need: 'verify', error: 'Hesabın henüz etkin değil. E-postana yeni doğrulama bağlantısı gönderdik.' }; }
+          return { ok: true, email: cr.user.email, pilot: cr.user.displayName || '' }; }
+        if (path === '/verify'){ const u = au.currentUser; if (!u) return { ok: false, error: 'Önce giriş yap.' }; await u.reload(); if (!au.currentUser.emailVerified) return { ok: false, error: 'Henüz doğrulanmamış. E-postadaki bağlantıya tıkladıktan sonra tekrar dene.' }; await u.getIdToken(true); return { ok: true, email: u.email, pilot: u.displayName || '' }; }
+        if (path === '/resend'){ const u = au.currentUser; if (u && !u.emailVerified) await u.sendEmailVerification({ url: actionUrl() }); return { ok: true }; }
+        if (path === '/forgot'){ try { await au.sendPasswordResetEmail(body.email, { url: actionUrl() }); } catch (e) { if (e.code !== 'auth/user-not-found') throw e; } return { ok: true }; }
+        if (path === '/logout'){ await au.signOut(); return { ok: true }; }
+        if (path === '/save'){ const u = acct(); if (!u) return { ok: false, status: 401, error: 'Oturum yok.' }; const ref = db.collection('saves').doc(u.uid);
+          if (m === 'GET'){ const d = await ref.get(); return { ok: true, data: d.exists ? d.data().data : null, t: d.exists ? d.data().t : 0 }; }
+          const t = Date.now(); await ref.set({ data: body.data, t }); return { ok: true, t }; }
+        if (path === '/code'){ if (!au.currentUser) await au.signInAnonymously(); const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', r = crypto.getRandomValues(new Uint8Array(8)); let c = ''; for (const x of r) c += A[x % A.length]; c = c.slice(0, 4) + '-' + c.slice(4);
+          await db.collection('codes').doc(c).set({ data: body.data, t: Date.now(), uid: au.currentUser.uid }); return { ok: true, code: c, days: 30 }; }
+        if (path.startsWith('/code/')){ if (!au.currentUser) await au.signInAnonymously(); const k = path.slice(6).toUpperCase().replace(/[^A-Z0-9]/g, ''), d = await db.collection('codes').doc(k.slice(0, 4) + '-' + k.slice(4, 8)).get();
+          if (!d.exists || Date.now() - d.data().t > 30 * 86400000) return { ok: false, status: 404, error: 'Kod bulunamadı ya da süresi dolmuş.' }; return { ok: true, data: d.data().data, t: d.data().t }; }
+        return { ok: false, error: 'Bilinmeyen işlem' };
+      } catch (e) { return err(e); } }
+    window.__cloudCall = call;
+    // oturum açıksa kütüphaneyi açılışta yükle (eşitleme için); değilse yalnızca hesap ekranı açılınca
+    try { if (localStorage.getItem('sd-cloud')) loadFB().then(fb => fb.auth().onAuthStateChanged(() => { if (!acct()) { /* oturum düştü */ } try { refreshRow(); } catch (e) {} })).catch(() => {}); } catch (e) {}
+    // kayıt zaman damgası: her persist'te güncellenir (hangi cihazın kaydı daha yeni, anlamak için)
+    { const _p = persist; persist = function(){ if (!window.__noPersist) save._t = Date.now(); return _p.apply(this, arguments); }; }
+    const raw = () => { persist(); let j = localStorage.getItem(SAVEKEY) || JSON.stringify(save); if (j.length > 700000){ try { const o = JSON.parse(j); delete o.log; delete o.inbox; j = JSON.stringify(o); } catch (e) {} } return j; };
+    const sum = o => { try { const L = window.__lvXp || []; let l = 1; L.forEach((v, i) => { if ((o.xp || 0) >= v) l = i + 1; }); return 'Seviye ' + l + ' · ' + (o.kredi || 0) + ' kredi' + (o.side ? ' · ' + ({ filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' })[o.side] : '') + (o.pilot ? ' · ' + o.pilot : ''); } catch (e) { return ''; } };
+    const apply = (data, why) => { let o; try { o = JSON.parse(data); } catch (e) { toast('Kayıt okunamadı.', 2600); return; } try { localStorage.setItem(SAVEKEY, JSON.stringify(o)); } catch (e) { toast('Kayıt yazılamadı.', 2600); return; }
+      window.__noPersist = true; persist = function(){}; toast((why || 'Kayıt yüklendi') + ', oyun yeniden açılıyor…', 2000); setTimeout(() => location.reload(), 900); };
+    const esc = x => String(x == null ? '' : x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    // ---- pencere
+    function box(html){ const w = document.createElement('div'); w.id = 'cloudBox'; w.innerHTML = '<div class="p">' + html + '</div>'; document.body.appendChild(w); window.__menuOn = true;
+      for (const ev of ['keydown', 'keyup', 'keypress', 'pointerdown', 'touchstart']) w.addEventListener(ev, e => e.stopPropagation());
+      w.addEventListener('click', e => { if (e.target === w || e.target.closest('[data-x]')) close(w); }); return w; }
+    const close = w => { w.remove(); if (!document.getElementById('cloudBox')) window.__menuOn = !!document.getElementById('dock') && !document.getElementById('dock').classList.contains('hidden') ? window.__menuOn : false; };
+    // ---- giriş / kayıt / etkinleştirme / şifre sıfırlama
+    function account(mode, email){
+      const w = box(''); let m = mode, em = email || '';
+      const draw = (msg, ok) => { const P = w.querySelector('.p');
+        const tabs = (m === 'in' || m === 'reg') ? '<div class="tb"><button data-m="in" class="' + (m === 'in' ? 'on' : '') + '">Giriş yap</button><button data-m="reg" class="' + (m === 'reg' ? 'on' : '') + '">Kayıt ol</button></div>' : '';
+        const f = m === 'reg' ? '<input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '"><input id="cN" placeholder="Pilot adı" maxlength="14" value="' + esc(save.pilot || '') + '"><input id="cP" type="password" placeholder="Şifre (en az 6)" autocomplete="new-password"><input id="cP2" type="password" placeholder="Şifre tekrar" autocomplete="new-password">'
+          : m === 'in' ? '<input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '"><input id="cP" type="password" placeholder="Şifre" autocomplete="current-password"><a class="lk" data-m="forgot">Şifremi unuttum</a>'
+          : m === 'verify' ? '<p><b>' + esc(em) + '</b> adresine bir doğrulama bağlantısı gönderdik. E-postadaki bağlantıya tıkla, sonra buraya dönüp <b>Etkinleştirdim</b> de. Gelmediyse istenmeyen (spam) klasörüne bak.</p><a class="lk" data-a="resend">Bağlantıyı tekrar gönder</a>'
+          : m === 'forgot' ? '<p>Hesabının e-postasını yaz; şifre sıfırlama bağlantısı gönderelim.</p><input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '">'
+          : '<p><b>' + esc(em) + '</b> adresine şifre sıfırlama bağlantısı gönderdik. Bağlantıdan yeni şifreni belirle, sonra buradan giriş yap.</p>';
+        const go = { reg: 'Kayıt ol', in: 'Giriş yap', verify: 'Etkinleştirdim', forgot: 'Bağlantı gönder', reset: 'Girişe dön' }[m];
+        P.innerHTML = '<b class="h">' + ({ reg: 'HESAP AÇ', in: 'GİRİŞ', verify: 'HESABI ETKİNLEŞTİR', forgot: 'ŞİFREMİ UNUTTUM', reset: 'YENİ ŞİFRE' })[m] + '</b>' + tabs + '<div class="f">' + f + '</div><div class="er' + (ok ? ' ok' : '') + '">' + (msg || '') + '</div><button class="go">' + go + '</button>'
+          + (m === 'forgot' || m === 'reset' ? '<a class="lk" data-m="in">Girişe dön</a>' : '') + '<a class="lk x" data-x="1">Kapat</a><div class="nt">Hesabın kaydını buluta yazar; başka cihazda aynı e-postayla girince kaldığın yerden devam edersin.</div>';
+        const f1 = P.querySelector('input'); if (f1 && !f1.value) setTimeout(() => f1.focus(), 50); };
+      const done = async r => { setC({ email: r.email }); close(w); toast('Giriş yapıldı: ' + r.email, 2200); refreshRow(); await syncAfterLogin(); };
+      draw();
+      w.addEventListener('click', async e => {
+        const t = e.target.closest('[data-m]'); if (t){ em = (w.querySelector('#cE') || {}).value || em; m = t.dataset.m; draw(); return; }
+        const er = msg => draw(msg), btn = e.target.closest('.go');
+        if (e.target.closest('[data-a="resend"]')){ const r = await call('POST', '/resend', { email: em, kind: 'verify' }); draw(r.ok ? 'Yeni bağlantı gönderildi.' : r.error, r.ok); return; }
+        if (!btn) return; btn.disabled = true; btn.textContent = 'Bekle…';
+        const v = id => ((w.querySelector('#' + id) || {}).value || '').trim();
+        if (m === 'reg'){ em = v('cE'); const pw = (w.querySelector('#cP') || {}).value || '', pw2 = (w.querySelector('#cP2') || {}).value || '';
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); if (pw.length < 6) return er('Şifre en az 6 karakter olmalı.'); if (pw !== pw2) return er('Şifreler aynı değil.');
+          const r = await call('POST', '/register', { email: em, password: pw, pilot: v('cN') }); if (!r.ok) return er(r.error); m = 'verify'; draw('Doğrulama bağlantısı gönderildi.', true); return; }
+        if (m === 'in'){ em = v('cE'); const r = await call('POST', '/login', { email: em, password: (w.querySelector('#cP') || {}).value || '' });
+          if (r.ok) return done(r); if (r.need === 'verify'){ m = 'verify'; return draw(r.error, true); } return er(r.error); }
+        if (m === 'verify'){ const r = await call('POST', '/verify', { email: em }); if (!r.ok) return er(r.error); return done(r); }
+        if (m === 'forgot'){ em = v('cE'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); const r = await call('POST', '/forgot', { email: em }); if (!r.ok) return er(r.error); m = 'reset'; return draw('Hesap varsa bağlantı gönderildi.', true); }
+        if (m === 'reset'){ m = 'in'; return draw(); }
+      });
+      w.addEventListener('keydown', e => { if (e.key === 'Enter'){ const b = w.querySelector('.go'); b && b.click(); } });
+    }
+    window.__cloudAccount = account;
+    // ---- eşitleme
+    let lastPut = '', lastPutT = 0, syncing = false;
+    async function push(force){ const c = getC(); if (!c || syncing || !acct()) return;   /* oturum henüz hazır değilse bekle; çıkış sayma */ const d = raw(); if (!force && d === lastPut) return; syncing = true;
+      const r = await call('PUT', '/save', { data: d }); syncing = false;
+      if (r.ok){ lastPut = d; lastPutT = Date.now(); c.t = r.t; setC(c); } else if (r.status === 401){ setC(null); refreshRow(); toast('Bulut oturumu sona erdi. Yeniden giriş yap.', 3200); } }
+    window.__cloudPush = push;
+    async function syncAfterLogin(){ const c = getC(); if (!c) return; const r = await call('GET', '/save'); if (!r.ok) return;
+      if (!r.data){ await push(true); toast('Bu cihazdaki kayıt hesabına yüklendi.', 2600); return; }
+      if (r.data === raw()){ lastPut = r.data; return; }
+      let o = null; try { o = JSON.parse(r.data); } catch (e) {}
+      const w = box('<b class="h">HANGİ KAYIT?</b><p>Hesabında kayıtlı bir oyun var. Hangisiyle devam etmek istersin?</p><button class="opt" data-k="cloud"><b>Buluttaki kayıt</b><span>' + esc(o ? sum(o) : '') + '</span></button><button class="opt" data-k="local"><b>Bu cihazdaki kayıt</b><span>' + esc(sum(save)) + '</span></button><div class="nt">Seçmediğin kayıt silinir.</div>');
+      w.addEventListener('click', async e => { const b = e.target.closest('[data-k]'); if (!b) return; if (b.dataset.k === 'cloud'){ close(w); apply(r.data, 'Buluttaki kayıt yüklendi'); } else { close(w); await push(true); toast('Bu cihazdaki kayıt hesabına yazıldı.', 2400); } });
+    }
+    // açılışta: hesap varsa buluttaki kayıt bu cihazdakinden yeniyse sor
+    setTimeout(async () => { if (!getC()) return; try { const fb = await loadFB(); await new Promise(res => { const off = fb.auth().onAuthStateChanged(() => { off(); res(); }); }); } catch (e) { return; }
+      const c = getC(); if (c && !acct()){ setC(null); refreshRow(); toast('Bulut oturumu sona erdi. Yeniden giriş yap.', 3200); return; } if (!c) return; const r = await call('GET', '/save'); if (!r.ok) return;
+      if (!r.data){ push(true); return; } if (r.data === raw()){ lastPut = r.data; return; }
+      let o = null; try { o = JSON.parse(r.data); } catch (e) {} if (o && (o._t || 0) > (save._t || 0) + 5000){
+        const w = box('<b class="h">BULUTTA DAHA YENİ KAYIT</b><p>Başka bir cihazda daha yeni oynamışsın.</p><button class="opt" data-k="cloud"><b>Buluttakini yükle</b><span>' + esc(sum(o)) + '</span></button><button class="opt" data-k="local"><b>Bu cihazdakiyle devam et</b><span>' + esc(sum(save)) + '</span></button>');
+        w.addEventListener('click', async e => { const b = e.target.closest('[data-k]'); if (!b) return; close(w); if (b.dataset.k === 'cloud') apply(r.data, 'Buluttaki kayıt yüklendi'); else push(true); }); }
+      else push(); }, 2500);
+    setInterval(() => { if (getC() && document.visibilityState === 'visible') push(); }, 60000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && acct()) push(); });
+    // ---- giriş ekranı satırı (eski 'yalnızca bu cihazda' hesap yerine)
+    function refreshRow(){ const r = document.getElementById('accRow'); if (!r) return; const c = getC();
+      r.innerHTML = c ? '<span>Hesap: <b style="color:#ffc477">' + esc(c.email) + '</b></span><a data-o="out">Çıkış yap</a>' : '<a data-o="in">Giriş yap</a><a data-o="reg">Kayıt ol</a>'; }
+    window.__cloudRow = refreshRow;
+    setTimeout(() => { const old = document.getElementById('accRow'); if (!old) return; const row = old.cloneNode(false); old.replaceWith(row); refreshRow();
+      row.addEventListener('click', async e => { const a = e.target.closest('a[data-o]'); if (!a) return; e.stopPropagation(); const o = a.dataset.o;
+        if (o === 'out'){ const c = getC(); await push(true); if (c) await call('POST', '/logout'); setC(null); refreshRow(); toast('Çıkış yapıldı. Kayıt bu cihazda kalır.', 2400); }
+        else account(o); }); }, 300);
+    // ---- Diğer → Hesap: hesap satırı + kısa cihaz kodu (eski uzun kod yalnızca çevrimdışıyken)
+    const hesapRows = () => { const c = getC(); return '<div class="line cldx"><span>' + (c ? 'Hesap: <b style="color:#ffc477">' + esc(c.email) + '</b><span class="dim"><br>Kayıt buluta kendiliğinden yazılır' + (lastPutT ? ' · son: ' + new Date(lastPutT).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '') + '</span>' : 'Hesabın yok<span class="dim"><br>E-postayla kayıt ol: kaydın bulutta durur, her cihazda açılır.</span>') + '</span><span class="bb">'
+      + (c ? '<button class="act" data-cl2="push">Şimdi kaydet</button><button class="act" data-cl2="out">Çıkış</button>' : '<button class="act go" data-cl2="reg">Kayıt ol</button><button class="act" data-cl2="in">Giriş</button>') + '</span></div>'; };
+    EXTRA.push(() => { const f = document.getElementById('exBox'); if (!f) return; const sv = f.querySelector('.svx'); if (!sv) return;
+      if (!f.querySelector('.cldx')) sv.insertAdjacentHTML('beforebegin', hesapRows());
+      const tx = sv.querySelector('span'); if (tx && !tx.dataset.c2){ tx.dataset.c2 = 1; tx.innerHTML = 'Hesapsız aktarım<span class="dim"><br>Kodu al: kaydın buluta yüklenir, 8 haneli kısa kod çıkar (30 gün). Öbür cihazda Kod gir.</span>'; } });
+    document.addEventListener('click', async e => { const b = e.target.closest && e.target.closest('button[data-cl2]'); if (!b) return; const a = b.dataset.cl2;
+      if (a === 'push'){ await push(true); toast(lastPutT && Date.now() - lastPutT < 5000 ? 'Kayıt buluta yazıldı.' : 'Buluta yazılamadı.', 2000); }
+      else if (a === 'out'){ const c = getC(); await push(true); if (c) await call('POST', '/logout'); setC(null); refreshRow(); toast('Çıkış yapıldı.', 2000); }
+      else account(a);
+      const f = document.getElementById('exBox'), r = f && f.querySelector('.cldx'); if (r) r.remove(); });
+    // kısa cihaz kodu: eski uzun kod düğmelerinin önüne geçer (internet yoksa eskisi çalışır)
+    window.addEventListener('click', async e => { const b = e.target.closest && e.target.closest('button[data-sv]'); if (!b || window.__svLegacy || !API) return;
+      if (navigator.onLine === false) return; e.stopPropagation(); e.preventDefault();
+      const legacy = () => { window.__svLegacy = true; try { b.click(); } finally { window.__svLegacy = false; } };
+      if (b.dataset.sv === 'exp'){ b.disabled = true; const r = await call('POST', '/code', { data: raw() }); b.disabled = false;
+        if (!r.ok){ toast(r.error + ' Çevrimdışı uzun kod açılıyor.', 2600); return legacy(); }
+        const w = box('<b class="h">KAYIT KODUN</b><p>Öbür cihazda <i>İstasyon → Diğer → Hesap → Kod gir</i> bölümüne bu kodu yaz.</p><div class="dc">' + r.code + '</div><p class="nt">' + r.days + ' gün geçerli. Kodu kimseyle paylaşma: kaydının tamamıdır.</p><button class="go" data-cp="1">Kopyala</button><a class="lk x" data-x="1">Kapat</a>');
+        w.querySelector('[data-cp]').onclick = async () => { try { await navigator.clipboard.writeText(r.code); toast('Kod kopyalandı.', 1600); } catch (er) { toast(r.code, 4000); } }; }
+      else { const w = box('<b class="h">KOD GİR</b><p>Öbür cihazdan aldığın 8 haneli kodu yaz. <b>Bu cihazdaki kayıt silinir</b>, yerine kodun kaydı gelir.</p><input id="cD" class="code" maxlength="9" placeholder="XXXX-XXXX" autocapitalize="characters"><div class="er"></div><button class="go">Yükle</button><a class="lk" data-lg="1">Uzun kodum var</a><a class="lk x" data-x="1">Kapat</a>');
+        w.querySelector('[data-lg]').onclick = () => { close(w); legacy(); };
+        let pend = null; w.querySelector('.go').onclick = async () => { const go = w.querySelector('.go'), er = w.querySelector('.er');
+          if (pend){ close(w); apply(pend, 'Kodun kaydı yüklendi'); return; }
+          const code = (w.querySelector('#cD').value || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (code.length !== 8){ er.textContent = 'Kod 8 harf/rakam olmalı.'; return; }
+          go.disabled = true; const r = await call('GET', '/code/' + code); go.disabled = false; if (!r.ok){ er.textContent = r.error; return; }
+          let o = null; try { o = JSON.parse(r.data); } catch (x) {} er.className = 'er ok'; er.textContent = 'Bulundu: ' + (o ? sum(o) : '') + '. Yüklemek için tekrar dokun.'; pend = r.data; go.textContent = 'Evet, yükle'; }; } }, true);
+    const st = document.createElement('style'); st.textContent = `
+  #cloudBox{position:fixed;inset:0;z-index:98;background:rgba(2,5,12,.78);display:flex;align-items:center;justify-content:center;padding:14px;font-family:var(--font)}
+  #cloudBox .p{width:min(380px,94vw);max-height:94vh;overflow:auto;background:rgba(8,14,26,.97);border:1px solid rgba(220,235,245,.18);border-radius:12px;padding:16px 16px 12px;color:#e6edf8;display:flex;flex-direction:column;gap:8px;font:500 13.5px/1.45 var(--font)}
+  #cloudBox .h{font:700 13px var(--font);letter-spacing:.24em;color:#ffc477;text-align:center}
+  #cloudBox p{margin:0;color:#c9d4e4}#cloudBox .nt{font-size:11.5px;color:#8ea2b6;text-align:center}
+  #cloudBox .tb{display:flex;gap:6px}#cloudBox .tb button{flex:1;all:unset;flex:1;text-align:center;cursor:pointer;padding:7px;border-radius:8px;border:1px solid rgba(220,235,245,.18);font:600 12.5px var(--font);color:#b9c6da}#cloudBox .tb button.on{background:#7fd8ff;color:#08101c;border-color:#7fd8ff}
+  #cloudBox .f{display:flex;flex-direction:column;gap:7px}
+  #cloudBox input{background:rgba(255,255,255,.05);border:1px solid rgba(220,235,245,.2);border-radius:8px;color:#e6edf8;padding:9px 10px;font:500 16px var(--font);outline:none}#cloudBox input:focus{border-color:#7fd8ff}
+  #cloudBox input.code{text-align:center;letter-spacing:.35em;font-weight:700;font-size:20px}
+  #cloudBox .er{min-height:1.2em;color:#ff8a9a;font-size:12.5px;text-align:center}#cloudBox .er.ok{color:#7be0a4}
+  #cloudBox .go{all:unset;text-align:center;cursor:pointer;padding:10px;border-radius:999px;background:#ffb454;color:#2b1300;font:700 13.5px var(--font);letter-spacing:.12em}#cloudBox .go:disabled{opacity:.6}
+  #cloudBox .lk{color:#7fd8ff;font-size:12.5px;text-align:center;cursor:pointer}#cloudBox .lk.x{color:#8ea2b6}
+  #cloudBox .opt{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid rgba(220,235,245,.18)}#cloudBox .opt:hover{border-color:#7fd8ff}#cloudBox .opt b{color:#e6edf8}#cloudBox .opt span{color:#8ea2b6;font-size:12px}
+  #cloudBox .dc{font:800 30px var(--font);letter-spacing:.18em;text-align:center;color:#7fd8ff;padding:6px 0}
+  html body #exBox .cldx .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}`;
+    document.head.appendChild(st);
   })();
 })();
