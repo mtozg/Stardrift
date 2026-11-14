@@ -5966,7 +5966,9 @@ setTimeout(() => {
   .btn,#msgBtn,#bComm,#inbox,#toast,#radio .rl,#sig,#hint{filter:opacity(var(--tro,1))}
   `;
   document.head.appendChild(st);
-  window.__applyTro = () => document.documentElement.style.setProperty('--tro', (1 - (save.tro || 0) / 100).toFixed(2));
+  // 0 → tam görünür, 100 → çok saydam (%20); hiç kaybolmaz
+  window.__applyTro = () => document.documentElement.style.setProperty('--tro', (1 - 0.8 * clamp(save.tro || 0, 0, 100) / 100).toFixed(3));
+  { const st = document.createElement('style'); st.textContent = 'html body .btn,html body #stage .btn,html body #msgBtn,html body #bComm,html body #snd,html body #sig,html body #hint,html body #ctTrack,html body #radio .rl,html body #toast,html body #lockBtn{opacity:var(--tro,1) !important}html body .btn.down,html body .btn:active{opacity:max(var(--tro,1),.85) !important}'; document.head.appendChild(st); }
   window.__applyTro();
 }
 
@@ -6108,7 +6110,7 @@ setTimeout(() => {
       const sect = [...e.querySelectorAll(':scope > .sect')].find(x => x.textContent.trim() === 'Kendi üssün'), nx = sect && [...e.querySelectorAll(':scope > .sect')].find(x => sect.compareDocumentPosition(x) & 4);
       if (nx) nx.insertAdjacentHTML('beforebegin', h); else e.insertAdjacentHTML('beforeend', h);
     }
-    e.insertAdjacentHTML('beforeend', '<div class="sect">Görünüm</div><div class="line"><span>Düğme ve mesaj şeffaflığı<span class="dim"><br>Düğmeler ve kutular daha silik olur</span></span><span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span></div>');
+    e.insertAdjacentHTML('beforeend', '<div class="sect">Görünüm</div><div class="line"><span>Düğme ve mesaj şeffaflığı<span class="dim"><br>Düğmeler ve kutular daha silik olur</span></span><span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span></div>');
   };
   document.addEventListener('input', e => { if (e.target && e.target.id === 'trR'){ save.tro = +e.target.value; window.__applyTro(); const v = $('trV'); if (v) v.textContent = '%' + save.tro; } });
   document.addEventListener('change', e => { if (e.target && e.target.id === 'trR') persist(); });
@@ -6790,7 +6792,7 @@ window.__xpal = {
       + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
-      + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="70" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
+      + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
       + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
@@ -9471,4 +9473,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const tg = document.getElementById('titleGo'); if (tg && save.side) tg.addEventListener('click', () => setTimeout(restore, 50)); else if (save.side) setTimeout(restore, 300);
     EXTRA.push(() => { if (!restored && save.side && !document.getElementById('titleGo')) restore(); if (restored && save.cur !== curSys){ save.cur = curSys; persist(); } });
   })();
+
+  // kaydırıcı etiketleri sabit genişlikte: değer %90 → %100 olunca kaydırıcı parmağın altında kaymasın
+  { const st = document.createElement('style'); st.textContent = 'html body #setP #ctSensV,html body #setP #trV{display:inline-block;min-width:44px;text-align:right;font-variant-numeric:tabular-nums}html body #setP input[type=range]{touch-action:none}'; document.head.appendChild(st); }
+
+  // istasyon alt yazısı (hangi cevheri alır, fiyat farkı) başlığa/sekmelere binmesin: İstasyon sekmesinin içinde, listenin üstünde dursun
+  { const st = document.createElement('style'); st.textContent = 'html body #dock .card > .sub{display:none !important}#stSub{font-size:12px;color:var(--v2d,#8ea2b6);margin:0 0 8px;line-height:1.35}'; document.head.appendChild(st);
+    const sync = () => { const sub = document.querySelector('#dock .card > .sub'), cl = document.getElementById('cargoList'); if (!sub || !cl) return; let el = document.getElementById('stSub');
+      if (!el){ el = document.createElement('div'); el.id = 'stSub'; el.dataset.tab = 'trade'; cl.parentNode.insertBefore(el, cl); }
+      if (el.nextElementSibling !== cl) cl.parentNode.insertBefore(el, cl); if (el.textContent !== sub.textContent) el.textContent = sub.textContent; };
+    const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { sync(); } catch (e) {} return r; }; }
 })();
