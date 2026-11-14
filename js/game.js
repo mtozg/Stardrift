@@ -6795,6 +6795,7 @@ window.__xpal = {
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
+      + line('Giriş hikâyesi', 'Kadim Kapı ve üç tarafın hikâyesi', '<button class="act" data-set="story">İzle</button>')
       + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
       + '<div class="sver">Sürüm <button data-set="ver">' + (window.SD_VERSION || '?') + '</button></div>'
       + '</div>';
@@ -6818,6 +6819,7 @@ window.__xpal = {
     else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
     else if (a === 'bs'){ const i = (BSI() + 1) % BSV.length; try { localStorage.setItem('sd_bs', String(i)); } catch (e) {} bsApply(); b.textContent = BSN[i]; }
+    else if (a === 'story'){ close(); if (window.__story) window.__story(); }
     else if (a === 'ver'){ verTap++; if (verTap >= 5 && !TESTVIS()){ try { localStorage.setItem('sd_testvis', '1'); } catch (e) {} toast('Test ayarı açıldı', 2000); render(); } }
     else if (a === 'test'){ persist(); try { if (TESTM){ localStorage.setItem('sd-key', localStorage.getItem('sd-key-prev') || 'kayip-yildizlar'); } else { localStorage.setItem('sd-key-prev', SAVEKEY); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); } } catch (e) {} location.reload(); }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
@@ -8249,7 +8251,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     setTimeout(() => { eco.radioT = -9; radio(S.ad, k === 'filo' ? 'Aramıza hoş geldin, pilot. Devriyeler arkanda.' : k === 'lonca' ? 'Loncaya hoş geldin. Yükün dolu, cebin dolu olsun.' : 'Artık bizdensin. Devriyelere dikkat et.', S.col); }, 1200);
   }
   window.__sidePick = () => pick(k => join(k, true));
-  const ask = () => { if (!own() && !$('sideSel')) pick(k => join(k, true)); };
+  const ask = () => { if (!own() && !$('sideSel') && !$('intro')){ const go = () => pick(k => join(k, true)); let ni = false; try { ni = localStorage.getItem('sd_nointro') === '1'; } catch (e) {} if (window.__story && !save.storySeen && !ni) window.__story(go); else go(); } };
   // açılış ekranından sonra (eski oyuncular da bir kez seçer)
   { const tg = $('titleGo'); if (tg) tg.addEventListener('click', () => setTimeout(ask, 650)); else setTimeout(ask, 1500); }
   // taraf değiştirme: zor ve cezalı
@@ -9698,5 +9700,50 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #wpBox .amr .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}html body #wpBox .amr .amn{color:#ffc477}
   html body #eqBox{display:none !important}`;
     document.head.appendChild(st);
+  })();
+
+  // =====  GİRİŞ HİKÂYESİ: iki ekran, atlanabilir; sonra taraf seçimi. Ayarlar → Rehber'den yeniden izlenebilir.
+  (function(){
+    const V_ = window.SD_VERSION || '';
+    const PAGES = [
+      { t: 'KADİM KAPI SUSTU', img: '<div class="fx"><img src="assets/img/gate_kadim_enerji.webp?v=' + V_ + '" alt=""></div>', p: [
+        'Bir zamanlar dört güneşi tek bir kapı birbirine bağlıyordu. Onu, adını bile unuttuğumuz bir uygarlık yapmıştı: <b>Kadimler</b>. Gemiler, cevher ve haberler o kapıdan geçerdi.',
+        'Sonra kapı sustu. Halkaları karardı, dört sistem birbirinden koptu. Yollar kesildi, istasyonlar yalnız kaldı.',
+        'Kaostan üç güç doğdu.' ] },
+      { t: 'ÜÇ YOL, TEK KAPI', img: '<div class="fac"><img src="assets/img/fac_filo.webp?v=' + V_ + '" alt=""><img src="assets/img/fac_lonca.webp?v=' + V_ + '" alt=""><img src="assets/img/fac_korsan.webp?v=' + V_ + '" alt=""></div>', p: [
+        'Ankora\'nın son savaş gemileri düzeni korumaya yemin etti: <b style="color:#7fd8ff">Yıldız Filosu</b>. Yolları kapanan tüccar aileleri kendi pazarlarını kurdu: <b style="color:#ffc477">Tüccar Loncası</b>. İkisine de boyun eğmeyenler bir asteroidin içine saklandı: <b style="color:#ff6b8a">Korsan Birliği</b>.',
+        'Şimdi kuşaklardaki kalıntılardan yankılar yükseliyor. Kapı uyanabilir. Filo onu düzen için, Lonca kazanç için, Korsanlar özgürlük için istiyor.',
+        'Sen yeni bir pilotsun. Gemin hazır. Kapıyı kim uyandırırsa dört güneşin kaderini o yazacak. <b>Hangi tarafta uçacaksın?</b>' ] }
+    ];
+    const css = document.createElement('style'); css.textContent = `
+  #intro{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 18px) calc(env(safe-area-inset-bottom,0px) + 14px) calc(env(safe-area-inset-left,0px) + 18px);background:radial-gradient(ellipse at 50% 40%,#0d1830,#02040a 75%);color:#e6edf8;font-family:var(--font);opacity:0;transition:opacity .6s}
+  #intro.vis{opacity:1}
+  #intro .in{display:flex;gap:28px;align-items:center;max-width:920px;width:100%}
+  #intro .art{flex:0 0 34%;display:flex;justify-content:center}
+  #intro .fx img{width:min(240px,30vw);aspect-ratio:1;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 30px rgba(170,120,255,.55));animation:inSpin 40s linear infinite}
+  #intro .fac{display:flex;flex-direction:column;gap:10px}#intro .fac img{width:min(86px,11vw);filter:drop-shadow(0 0 12px rgba(255,255,255,.18));opacity:0;animation:inUp .8s forwards}
+  #intro .fac img:nth-child(2){animation-delay:.4s}#intro .fac img:nth-child(3){animation-delay:.8s}
+  #intro .tx{flex:1;min-width:0}
+  #intro h2{margin:0 0 12px;font:600 18px/1.2 var(--font);letter-spacing:.34em;color:#d9c4ff;text-shadow:0 0 16px rgba(170,120,255,.5)}
+  #intro p{margin:0 0 10px;font:500 15px/1.55 var(--font);color:#d3dceb;opacity:0;transform:translateY(6px);transition:opacity 1s,transform 1s}#intro p.v{opacity:1;transform:none}
+  #intro .nav{display:flex;gap:10px;align-items:center;margin-top:14px}#intro .dots{flex:1;display:flex;gap:6px}#intro .dots i{width:22px;height:3px;border-radius:2px;background:rgba(255,255,255,.18)}#intro .dots i.on{background:#ffc477}
+  #intro button{font:700 13px var(--font);letter-spacing:.16em;padding:9px 20px;border-radius:999px;cursor:pointer}
+  #intro .nx{border:1px solid #ffb454;background:#ffb454;color:#2b1300}#intro .sk{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 16px);border:1px solid rgba(255,255,255,.25);background:none;color:#c6d2e2;font-size:11.5px;padding:6px 14px}
+  @keyframes inSpin{to{transform:rotate(360deg)}}@keyframes inUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media (max-height:460px){#intro h2{font-size:15px;margin-bottom:8px}#intro p{font-size:13px;line-height:1.45;margin-bottom:6px}#intro .fx img{width:min(170px,26vw)}#intro .fac img{width:min(58px,9vw)}#intro .in{gap:18px}}`;
+    document.head.appendChild(css);
+    window.__story = done => {
+      const d = document.createElement('div'); d.id = 'intro'; document.body.appendChild(d); window.__menuOn = true;
+      for (const ev of ['pointerdown', 'touchstart', 'keydown', 'keyup']) d.addEventListener(ev, e => e.stopPropagation());
+      let i = 0, timers = [];
+      const end = () => { timers.forEach(clearTimeout); save.storySeen = 1; persist(); d.classList.remove('vis'); setTimeout(() => { d.remove(); window.__menuOn = false; done && done(); }, 500); };
+      const show = () => { timers.forEach(clearTimeout); timers = []; const P = PAGES[i];
+        d.innerHTML = '<button class="sk">ATLA</button><div class="in"><div class="art">' + P.img + '</div><div class="tx"><h2>' + P.t + '</h2>' + P.p.map(x => '<p>' + x + '</p>').join('') + '<div class="nav"><div class="dots">' + PAGES.map((_, j) => '<i class="' + (j === i ? 'on' : '') + '"></i>').join('') + '</div><button class="nx">' + (i < PAGES.length - 1 ? 'DEVAM' : 'TARAFINI SEÇ') + '</button></div></div></div>';
+        d.querySelectorAll('p').forEach((p, j) => timers.push(setTimeout(() => p.classList.add('v'), 300 + j * 1300)));
+        d.querySelector('.sk').onclick = end;
+        d.querySelector('.nx').onclick = () => { const hidden = [...d.querySelectorAll('p')].some(p => !p.classList.contains('v')); if (hidden){ d.querySelectorAll('p').forEach(p => p.classList.add('v')); return; } if (i < PAGES.length - 1){ i++; show(); } else end(); };
+        try { blip(480 + i * 120, 0.08); } catch (e) {} };
+      show(); requestAnimationFrame(() => d.classList.add('vis'));
+    };
   })();
 })();
