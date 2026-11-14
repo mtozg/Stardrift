@@ -10305,15 +10305,15 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (rot){ x.translate(512, 0); x.rotate(Math.PI / 2); x.drawImage(im, sx, sy, sw, sh, 0, 0, 128, 512); } else x.drawImage(im, sx, sy, sw, sh, 0, 0, 512, 256);
       const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; return t; }
     function build(id){
-      const C = SHIPS3[id] || SHIPS3.kasif;
+      const C = SHIPS3[id] || SHIPS3.kasif; const TINT = { kasif: [0x3a4656, 0x2c3542], sahin: [0x3a3434, 0x5a1f28], yuk: [0x464a36, 0x34382a], hayalet: [0x1e2026, 0x16171b] }[id] || [0x3a4656, 0x2c3542];
       const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.05, 20), G = new THREE.Group(); S.add(G);
-      const metal = new THREE.MeshStandardMaterial({ color: 0x8a96a6, roughness: 0.6, metalness: 0.45, side: THREE.DoubleSide });
-      const pil = new THREE.MeshStandardMaterial({ color: 0x6f7a88, roughness: 0.42, metalness: 0.7, emissive: 0x1c2531 });
+      const metal = new THREE.MeshStandardMaterial({ color: TINT[0], roughness: 0.55, metalness: 0.5, side: THREE.DoubleSide });
+      const pil = new THREE.MeshStandardMaterial({ color: TINT[0], roughness: 0.4, metalness: 0.7, emissive: 0x141a22 });
       const rimM = new THREE.MeshBasicMaterial({ color: new THREE.Color(C.rim).multiplyScalar(0.55), transparent: true, opacity: 0.55 });
       const dark = new THREE.MeshStandardMaterial({ color: 0x0e1218, roughness: 0.85, metalness: 0.3, side: THREE.DoubleSide });
-      const panelM = new THREE.MeshStandardMaterial({ color: 0x6a7482, roughness: 0.65, metalness: 0.4 });
+      const panelM = new THREE.MeshStandardMaterial({ color: TINT[1], roughness: 0.7, metalness: 0.35 });
       const glow = new THREE.MeshBasicMaterial({ color: C.glow }), cable = new THREE.MeshStandardMaterial({ color: 0x0b0d10, roughness: 0.9, metalness: 0.1 });
-      shipImg(id, im => { try { metal.map = cropTex(im, C.panel, false, [1, 1]); metal.bumpMap = metal.map; metal.bumpScale = 0.003; metal.color.setHex(0xffffff); metal.needsUpdate = true;
+      if (false) shipImg(id, im => { try { metal.map = cropTex(im, C.panel, false, [1, 1]); metal.bumpMap = metal.map; metal.bumpScale = 0.003; metal.color.setHex(0xffffff); metal.needsUpdate = true;
         const pt = cropTex(im, C.panel, false, [1, 1]); pt.center.set(0.5, 0.5); pt.rotation = Math.PI / 2; panelM.map = pt; panelM.bumpMap = pt; panelM.bumpScale = 0.003; panelM.color.setHex(0xd8dde4); panelM.needsUpdate = true;
         pil.map = cropTex(im, C.strip, true, [3, 1]); pil.bumpMap = pil.map; pil.bumpScale = 0.002; pil.color.setHex(0xffffff); pil.needsUpdate = true; } catch (e) { console.warn(e); } });
       const tube = (pts, r, m, seg) => { const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p))); const me = new THREE.Mesh(new THREE.TubeGeometry(c, 48, r, seg || 6, false), m); G.add(me); return { me, c }; };
