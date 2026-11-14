@@ -19,12 +19,14 @@ const CKM = 26;   /* kokpit katmanı ekrandan her yönde bu kadar taşar: döner
 for (const cv of [ckc, hud2]){ cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;display:block;z-index:1;pointer-events:none'; }
 ckc.style.left = ckc.style.top = -CKM + 'px'; ckc.style.width = ckc.style.height = 'calc(100% + ' + 2 * CKM + 'px)';
 /* dış ışık katmanı: güneş, patlama ve lazer ışığı kokpitin içine vurur. Yarım çözünürlükte bir kez çizilir, her karede yalnızca saydamlığı değişir */
+const CKLS = 0.3;   /* ışık katmanı çok yumuşak: ekranın ~üçte biri çözünürlük yeter, iPad'de tuval belleğini korur */
 const ckl = document.createElement('canvas'); ckl.id = 'ckl'; ckl.style.cssText = 'position:fixed;display:block;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0';
 ckl.style.left = ckl.style.top = -CKM + 'px'; ckl.style.width = ckl.style.height = 'calc(100% + ' + 2 * CKM + 'px)';
 hud.after(ckc); ckc.after(ckl); ckl.after(hud2);
 const ckx = ckc.getContext('2d'), hctx2 = hud2.getContext('2d');
 const renderer = new THREE.WebGLRenderer({ canvas: glc, antialias: true });
 renderer.setClearColor(0x03050c);
+glc.addEventListener('webglcontextlost', e => { e.preventDefault(); try { toast('Grafik bağlamı kayboldu (cihaz belleği). Sayfayı yenile; olmazsa Ayarlar > Görüntü kalitesi > Performans.', 8000); } catch (er) {} });
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, 1, 1, 80000);
 const rig = new THREE.Object3D();   // geminin kendisi
@@ -71,7 +73,7 @@ function resize(){
   st.style.transformOrigin = '0 0'; st.style.transform = 'scale(' + SK + ')';
   st.style.left = SX + 'px'; st.style.top = SY + 'px'; st.style.width = W + 'px'; st.style.height = H + 'px';
   renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); if (window.__bloomResize) window.__bloomResize();
-  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round((W + 2 * CKM) * DPR); ckc.height = Math.round((H + 2 * CKM) * DPR); ckl.width = Math.round((W + 2 * CKM) * DPR * 0.5); ckl.height = Math.round((H + 2 * CKM) * DPR * 0.5); ckDirty = true;
+  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round((W + 2 * CKM) * DPR); ckc.height = Math.round((H + 2 * CKM) * DPR); ckl.width = Math.round((W + 2 * CKM) * CKLS); ckl.height = Math.round((H + 2 * CKM) * CKLS); ckDirty = true;
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
@@ -2024,7 +2026,7 @@ function radarContent(c, I){
 let litO = 0, litS = '0';
 // dış ışık katmanı: kokpit silueti, pencereye yakın kenarlar ve üst çerçeve daha parlak
 function litLayer(paint){
-  const k = ckl.getContext('2d'), sc = DPR * 0.5; k.setTransform(sc, 0, 0, sc, CKM * sc, CKM * sc); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
+  const k = ckl.getContext('2d'), sc = CKLS; if (!k) return; k.setTransform(sc, 0, 0, sc, CKM * sc, CKM * sc); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
   k.globalCompositeOperation = 'source-over'; paint(k);
   k.globalCompositeOperation = 'source-in';
   const g = k.createRadialGradient(W / 2, H * 0.32, Math.min(W, H) * 0.12, W / 2, H * 0.32, Math.max(W, H) * 0.7);
@@ -2130,9 +2132,10 @@ function drawCockpitImg(c){
     { const im = IMG.img, nw = im.naturalWidth, nh = im.naturalHeight, x0 = IM.dx, x1 = IM.dx + IMG.iw * s, y1 = IM.dy + (IM.T || IMG.ih) * s, y0 = IM.dy;
       if (y1 < H + CKM) k.drawImage(im, 0, nh - 3, nw, 3, x0, y1 - 0.5, x1 - x0, H + CKM - y1 + 1);
       if (y0 > -CKM) k.drawImage(im, 0, 0, nw, 3, x0, -CKM, x1 - x0, y0 + CKM + 0.5);
-      if (x0 > -CKM) k.drawImage(ckc, Math.round((x0 + CKM) * DPR) + 1, 0, 2, ckc.height, -CKM, -CKM, x0 + CKM + 0.5, H + 2 * CKM);
-      if (x1 < W + CKM) k.drawImage(ckc, Math.round((x1 + CKM) * DPR) - 3, 0, 2, ckc.height, x1 - 0.5, -CKM, W + CKM - x1 + 1, H + 2 * CKM); }
-    cockpitTone(k); glassLayer(k, paint); litLayer(paint); }
+      try { const sxL = clamp(Math.round((x0 + CKM) * DPR) + 1, 0, ckc.width - 2), sxR = clamp(Math.round((x1 + CKM) * DPR) - 3, 0, ckc.width - 2);
+        if (x0 > -CKM) k.drawImage(ckc, sxL, 0, 2, ckc.height, -CKM, -CKM, x0 + CKM + 0.5, H + 2 * CKM);
+        if (x1 < W + CKM) k.drawImage(ckc, sxR, 0, 2, ckc.height, x1 - 0.5, -CKM, W + CKM - x1 + 1, H + 2 * CKM); } catch (e) { console.warn(e); } }
+    try { cockpitTone(k); glassLayer(k, paint); litLayer(paint); } catch (e) { console.warn(e); } }
   { const sw = 'translate(' + sway.x.toFixed(1) + 'px,' + sway.y.toFixed(1) + 'px)'; if (sw !== ckSway){ ckSway = sw; ckc.style.transform = sw; ckl.style.transform = sw; } }
   { // dış ışık: güneşe bakınca, yakın patlamada, lazer ateşlerken kokpit aydınlanır
     const sa = Math.acos(clamp(fwd.dot(sunDir), -1, 1)), sunL = Math.pow(clamp(1 - sa / 1.3, 0, 1), 2);
@@ -7882,20 +7885,25 @@ function drawBehind(dt, cover){
   bgAcc += dt; if (bgAcc < 0.4) return; bgAcc = 0;
   renderer.setRenderTarget(null); renderer.render(scene, camera); drawHud();
 }
+// oyun döngüsü: bir karede hata olsa bile döngü durmaz (önceden tek bir hata oyunu donduruyordu); hata ekranda kısaca gösterilir
+let frameErrT = 0, frameErrN = 0;
 function frame(now){
+  requestAnimationFrame(frame);
+  try { frame0(now); } catch (e){ frameErrN++; console.error(e); const t = performance.now(); if (t - frameErrT > 8000){ frameErrT = t; try { toast('Hata: ' + ((e && e.message) || e) + ' · ' + (((e && e.stack) || '').split('\n')[1] || '').trim().slice(0, 80), 6000); } catch (er) {} } }
+}
+function frame0(now){
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (paused){
     stick.on = false; sBase.classList.add('hidden'); sKnob.classList.add('hidden'); laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false;
-    audioUpdate(0); requestAnimationFrame(frame); return;
+    audioUpdate(0); return;
   }
-  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); drawBehind(dt, true); requestAnimationFrame(frame); return; }
+  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); drawBehind(dt, true); return; }
   update(dt);
-  if (window.__hjOn && !window.__hjFade){ requestAnimationFrame(frame); return; }   // sıçrama sahnesi ekranı tamamen kapatırken ana sahne çizilmez (akıcılık)
+  if (window.__hjOn && !window.__hjFade){ return; }   // sıçrama sahnesi ekranı tamamen kapatırken ana sahne çizilmez (akıcılık)
   drawBehind(dt, docked && !dockEl.classList.contains('hidden'));
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
   $('bLock').classList.toggle('on', !!lock);
   /* roket düğmesi etiketi artık seçili türe göre (roket seçimi bloğu) */
-  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Çok uzaklarda zayıf sinyaller var.', 6000);
