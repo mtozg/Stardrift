@@ -42,7 +42,9 @@ function deviceLandscape(){
 }
 // görüntü kalitesi: 0 performans (1.25), 1 dengeli (1.6, eski), 2 yüksek (cihazın gerçek yoğunluğu, en fazla 2)
 const QCAP = [1.25, 1.6, 2];
-window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); return v >= 0 && v <= 2 && localStorage.getItem('sd_q') !== null ? v : 2; } catch (e) { return 2; } })();
+// dokunmatik cihazda (telefon/tablet) varsayılan Dengeli: parlama efekti ve tam çözünürlük çatışmada telefonu kasıyordu. Elle seçilen kalite korunur.
+const Q_DEF = (() => { try { return matchMedia('(pointer: coarse)').matches ? 1 : 2; } catch (e) { return 2; } })();
+window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); if (localStorage.getItem('sd_q') !== null && localStorage.getItem('sd_qm') !== '1' && v > Q_DEF) return Q_DEF; return v >= 0 && v <= 2 && localStorage.getItem('sd_q') !== null ? v : Q_DEF; } catch (e) { return Q_DEF; } })();
 window.__qCap = () => QCAP[window.__qLevel];
 // kokpit oranı: pencere (üst) büyür, gösterge paneli (alt) küçülür. 0 klasik, 1 dengeli, 2 geniş cam
 const CKB = [1, 0.85, 0.72];
@@ -277,7 +279,11 @@ const ruins = [];
 });
 
 // ---------- Cevher ve asteroitler ----------
-const aimInfo = a => ORE[a.type] || { css: a.hostile ? '#ff5a6e' : '#6cc4ff', ad: a.name || 'Gemi' };
+// oyuncuya düşman mı? Korsan tarafında korsanlar müttefik, Filo gemileri düşman
+function foe(n){ if (!n) return false; if (n.kind !== 'npc') return !!n.hostile; if (save.side === 'korsan') return n.role === 'patrol' || !!n.hunter || n.rev > time; return !!n.hostile || n.rev > time; }
+// lazer bu gemiye vurur mu? Korsan için: Birlik gemileri hariç her şey. Diğerleri için: korsanlar ve sana saldıran.
+function shootable(n){ if (!n || n.kind !== 'npc') return false; if (save.side === 'korsan') return n.role !== 'pirate' || !!n.hunter; return !!n.hostile || n.rev > time; }
+const aimInfo = a => ORE[a.type] || { css: foe(a) ? '#ff5a6e' : '#6cc4ff', ad: a.name || 'Gemi' };
 window.OREI = {"demir": "assets/img/orei_demir.webp", "buz": "assets/img/orei_buz.webp", "kristal": "assets/img/orei_kristal.webp"};
 window.DEVI = ["assets/img/devi_0.webp", "assets/img/devi_1.webp", "assets/img/devi_2.webp", "assets/img/devi_3.webp"];
 const ORE = {
@@ -1475,7 +1481,7 @@ function update(dt){
     let lockOk = true;
     if (lock){ aim = lock; bd = rig.position.distanceTo(lock.pos); tmp.copy(lock.pos).sub(rig.position).normalize(); lockOk = Math.acos(clamp(tmp.dot(fwd), -1, 1)) < 0.9; }
     const range = laserRange(), dps = 34 * (1 + 0.55 * lvL) * (window.__perkDmg || 1);
-    const inRange = aim && lockOk && (aim.mesh || (aim.kind === 'npc' && aim.hostile)) && (bd - aim.r) <= range;
+    const inRange = aim && lockOk && (aim.mesh || shootable(aim)) && (bd - aim.r) <= range;
     const wantFire = !!(laserOn || keys.Space);
     if (laser.over && laser.heat < 40) laser.over = false;
     if (laser.burstT > 0){
@@ -1488,7 +1494,7 @@ function update(dt){
     }
     if (laser.heat >= 100 && !laser.over){ laser.over = true; laser.burstT = 0; setBanner('LAZER AŞIRI ISINDI', 'bad', 2.2); toast('Lazer aşırı ısındı. Soğuyana kadar bekle.'); }
     firing = laser.burstT > 0 && wantFire && !laser.over;
-    if (firing && !inRange && time - emptyWarn > (emptyWarnN < 2 ? 6 : 60)){ emptyWarn = time; emptyWarnN++; toast(aim && (aim.mesh || aim.hostile) ? 'Hedef menzil dışında. Lazer menzili ' + Math.round(range) + ' m, biraz yaklaş.' : 'Nişanda hedef yok. Lazer menzili ' + Math.round(range) + ' m.', 2600); }
+    if (firing && !inRange && time - emptyWarn > (emptyWarnN < 2 ? 6 : 60)){ emptyWarn = time; emptyWarnN++; toast(aim && (aim.mesh || shootable(aim)) ? 'Hedef menzil dışında. Lazer menzili ' + Math.round(range) + ' m, biraz yaklaş.' : 'Nişanda hedef yok. Lazer menzili ' + Math.round(range) + ' m.', 2600); }
 
     beams.forEach(b => b.visible = false); impact.visible = false;
     if (firing){
@@ -1651,7 +1657,7 @@ function drawRadar(c, cx, cy, rr){
     else if (d < rr * 0.75){ c.fillStyle = '#6cc4ff'; c.beginPath(); c.arc(cx + q.px, cy + q.py, 2.6, 0, TAU); c.fill(); }
   }
   // seçili hedef ve nişandaki hedef: halka
-  for (const [t, col] of [[aim, (aim && aim.kind === 'npc' && !aim.hostile) ? '#6cc4ff' : '#ff9a6e'], [lock, '#ffd36b']]){
+  for (const [t, col] of [[aim, (aim && aim.kind === 'npc' && !foe(aim)) ? '#6cc4ff' : '#ff9a6e'], [lock, '#ffd36b']]){
     if (!t || !t.pos) continue; const q = pt(t.pos), d = Math.hypot(q.px, q.py); if (d > rr - 5) continue;
     c.strokeStyle = col; c.lineWidth = 1.6; c.beginPath(); c.arc(cx + q.px, cy + q.py, 5, 0, TAU); c.stroke();
   }
@@ -1961,7 +1967,7 @@ function mapContent(c, I, opts){
   for (const it of items){
     const p = it.p;
     if (it.t === 0){ c.fillStyle = it.col; c.fillRect(p.x - it.sz / 2, p.y - it.sz / 2, it.sz, it.sz); continue; }
-    const col = it.t === 4 ? (it.obj.hostile ? '#ff5a6e' : '#6cc4ff') : it.t === 3 ? '#5ff0d0' : it.t === 2 ? '#7fb8ff' : it.col;
+    const col = it.t === 4 ? (foe(it.obj) ? '#ff5a6e' : '#6cc4ff') : it.t === 3 ? '#5ff0d0' : it.t === 2 ? '#7fb8ff' : it.col;
     if (it.t !== 4 && Math.abs(p.y - p.gy) > 3){ c.strokeStyle = 'rgba(127,216,255,0.28)'; c.beginPath(); c.moveTo(p.x, p.gy); c.lineTo(p.x, p.y); c.stroke(); c.fillStyle = 'rgba(127,216,255,0.2)'; c.beginPath(); c.ellipse(p.x, p.gy, 3, 1.5, 0, 0, TAU); c.fill(); }
     if (it.t === 1){
       { const mi = window.__MI && window.__MI.i_st; if (mi && mi.complete && mi.naturalWidth){ const z = big ? 22 : 13; c.drawImage(mi, p.x - z / 2, p.y - z / 2, z, z); } else { c.save(); c.shadowColor = it.col; c.shadowBlur = big ? 8 : 4; c.strokeStyle = it.col; c.lineWidth = 1.5; c.strokeRect(p.x - 3.5, p.y - 3.5, 7, 7); c.restore(); c.fillStyle = it.col; c.fillRect(p.x - 1.5, p.y - 1.5, 3, 3); } } label(it.obj.ad.split(' ')[0] + ' · ' + dist(it.obj), p.x, p.y, it.col);
@@ -1982,7 +1988,7 @@ function mapContent(c, I, opts){
     } else {
       const n = it.obj; if (big && n.hostile && window.__ic){ window.__ic(c, 'i_foe', p.x - 8, p.y - 8, 16); } const sp = Math.hypot(n.vel.x, n.vel.z); let ang = -Math.PI / 2;
       if (sp > 1){ const rx = n.vel.x * -hz + n.vel.z * hx, fw = n.vel.x * hx + n.vel.z * hz; ang = Math.atan2(-fw * es, rx); }
-      c.save(); c.translate(p.x, p.y); c.rotate(ang); c.fillStyle = n.hostile ? `rgba(255,90,110,${0.7 + 0.3 * Math.sin(time * 8)})` : col;
+      c.save(); c.translate(p.x, p.y); c.rotate(ang); c.fillStyle = foe(n) ? `rgba(255,90,110,${0.7 + 0.3 * Math.sin(time * 8)})` : col;
       const z = big ? 4 : 3; c.beginPath(); c.moveTo(z, 0); c.lineTo(-z, -z * 0.7); c.lineTo(-z, z * 0.7); c.closePath(); c.fill(); c.restore();
       if (big && n.hostile) label(n.name, p.x, p.y, col);
     }
@@ -2217,7 +2223,7 @@ function mapScreen(c, I){
   mapContent(c, { x: I.x, y: I.y, w: I.w, h: I.h - 13 });
   c.textAlign = 'center'; c.font = fnt(600, 9); const cx = I.x + I.w / 2, yy = I.y + I.h - 2;
   if (lock){ c.fillStyle = '#ffb454'; c.fillText('‹ KİLİTLİ · ' + tName(lock).toLocaleUpperCase('tr-TR') + ' ›', cx, yy); }
-  else if (aim){ c.fillStyle = (aim.kind === 'npc' && !aim.hostile) ? '#6cc4ff' : '#ff6b8a'; c.fillText(tName(aim) + ' ' + Math.max(0, Math.round(rig.position.distanceTo(aim.pos) - aim.r)) + ' m', cx, yy); }
+  else if (aim){ c.fillStyle = (aim.kind === 'npc' && !foe(aim)) ? '#6cc4ff' : '#ff6b8a'; c.fillText(tName(aim) + ' ' + Math.max(0, Math.round(rig.position.distanceTo(aim.pos) - aim.r)) + ' m', cx, yy); }
   else { c.fillStyle = '#5d6a8f'; c.fillText('Hedef yok', cx, yy); }
 }
 function overlayRect(k){
@@ -2329,12 +2335,12 @@ function drawHud(){
     for (let _q35 = 0; _q35 < ruins.length; _q35++){ const r = ruins[_q35]; const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 2200)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
     { const o = window.__kadimObj && window.__kadimObj(); if (o) drawMarker(c, o.pos, '#c9a7ff', 'Kadim Kapı', rig.position.distanceTo(o.pos)); }
     extraMarkers(c);
-    { let hc = 0; for (let _q36 = 0; _q36 < npcs.length; _q36++){ const n = npcs[_q36]; if (!n.hostile) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
+    { let hc = 0; for (let _q36 = 0; _q36 < npcs.length; _q36++){ const n = npcs[_q36]; if (!foe(n)) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
     drawNpcTags(c);
 
     if (aim){
-      const d = rig.position.distanceTo(aim.pos), p = proj(aim.pos), range = laserRange(), ok = d - aim.r <= range, shootable = !!(aim.mesh || (aim.kind === 'npc' && aim.hostile));
-      const rad = clamp(aim.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2 * 1.2, 16, 140), col = aim === lock ? '#ffb454' : (ok ? ((aim.kind === 'npc' && !aim.hostile) ? '#6cc4ff' : '#ff6b8a') : 'rgba(255,255,255,0.45)');
+      const d = rig.position.distanceTo(aim.pos), p = proj(aim.pos), range = laserRange(), ok = d - aim.r <= range, shootable_ = !!(aim.mesh || shootable(aim));
+      const rad = clamp(aim.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2 * 1.2, 16, 140), col = aim === lock ? '#ffb454' : (ok ? ((aim.kind === 'npc' && !foe(aim)) ? '#6cc4ff' : '#ff6b8a') : 'rgba(255,255,255,0.45)');
       c.strokeStyle = col; c.lineWidth = 2; const L = Math.min(12, rad * 0.5);
       for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){
         c.beginPath(); c.moveTo(p.x + sx * rad, p.y + sy * (rad - L)); c.lineTo(p.x + sx * rad, p.y + sy * rad); c.lineTo(p.x + sx * (rad - L), p.y + sy * rad); c.stroke();
@@ -2343,7 +2349,7 @@ function drawHud(){
       c.fillStyle = col; c.fillRect(tx0, ty0, 20, 17); c.fillStyle = '#05080f'; c.font = fnt(700, 12); c.textAlign = 'center'; c.fillText(aim === lock ? '◎' : '+', tx0 + 10, ty0 + 13);
       c.textAlign = 'left'; c.fillStyle = col; c.font = fnt(700, 13); c.fillText(`${tName(aim).toLocaleUpperCase('tr-TR')}  ${d - aim.r > 2000 ? ((d - aim.r) / 1000).toFixed(1) + ' KM' : Math.max(0, Math.round(d - aim.r)) + ' M'}`, tx0 + 27, ty0 + 13);
       { const hf = tHp(aim); if (hf !== null){ c.fillStyle = 'rgba(255,255,255,0.18)'; c.fillRect(tx0, ty0 + 21, 150, 3); c.fillStyle = col; c.fillRect(tx0, ty0 + 21, 150 * Math.max(0, hf), 3); } }
-      if (shootable && !ok){ c.fillStyle = 'rgba(255,107,138,0.9)'; c.font = fnt(700, 12); c.fillText(`MENZİL DIŞI · ${Math.round(d - aim.r - range)} M YAKLAŞ`, tx0 + 27, ty0 + 38); }
+      if (shootable_ && !ok){ c.fillStyle = 'rgba(255,107,138,0.9)'; c.font = fnt(700, 12); c.fillText(`MENZİL DIŞI · ${Math.round(d - aim.r - range)} M YAKLAŞ`, tx0 + 27, ty0 + 38); }
       if (lock === aim) drawMarker(c, aim.pos, '#ffb454', 'Kilit', Math.max(0, d - aim.r));
     }
     if (rk.t && tAlive(rk.t) && (rk.hold > 0.05 || rk.ok)){
@@ -3820,8 +3826,9 @@ function hgSet(id){
 function hgLoop(){
   if (!hgR || !docked || !isHome() || dockEl.classList.contains('hidden')){ hgRun = false; return; } { const stg = $('hgStage'); if (stg){ const w = Math.max(200, stg.clientWidth), h = Math.max(160, stg.clientHeight); if (hgR.__w !== w || hgR.__h !== h){ hgR.__w = w; hgR.__h = h; hgR.setSize(w, h, false); hgC.aspect = w / h; hgC.updateProjectionMatrix(); } } } /*hgResize*/
   hgT += 0.008; if (hgM){ if (hgM.userData.hull){ hgM.rotation.y = hgT * 0.7 + hgYo; hgM.rotation.x = 0.2 + hgRo; hgM.rotation.z = 0; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } else if (hgM.userData.art){ hgM.rotation.y = 0.07 * Math.sin(hgT * 0.9) + hgYo * 0.25; hgM.rotation.x = 0; hgM.rotation.z = 0.015 * Math.sin(hgT * 1.3); hgM.position.y = Math.sin(hgT * 2.2) * 0.09; const pa = hgM.userData.pa.material, pb = hgM.userData.pb.material; pa.opacity += ((hgVM === 'side' ? 1 : 0) - pa.opacity) * 0.14; pb.opacity += ((hgVM === 'top' ? 1 : 0) - pb.opacity) * 0.14; } else { hgM.rotation.y = hgT; hgM.rotation.x = 0.16; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } }
-  hgR.render(hgS, hgC); requestAnimationFrame(hgLoop);
+  hgOdd = !hgOdd; if (hgOdd || !window.matchMedia('(pointer: coarse)').matches) hgR.render(hgS, hgC); requestAnimationFrame(hgLoop);   /* telefonda hangar gemisi saniyede 30 kare: akıcı görünür, yarı yük */
 }
+let hgOdd = false;
 const _rxH = renderExtras; renderExtras = function(){
   _rxH();
   const e = $('exBox'); if (e) e.dataset.tab = 'more'; const j = $('jumpBox'); if (j) j.dataset.tab = 'more';
@@ -3910,7 +3917,7 @@ function hgStart(){
   const stg = $('hgStage'); if (!stg) return;
   if (!hgR){
     try { hgR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return; }
-    hgR.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__qCap()));
+    hgR.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__qCap(), 1.5));
     hgR.outputEncoding = THREE.sRGBEncoding; hgR.toneMapping = THREE.ACESFilmicToneMapping; hgR.toneMappingExposure = 0.62; hgS = new THREE.Scene(); hgC = new THREE.PerspectiveCamera(34, 1.4, 0.1, 60); hgC.position.set(0, 0.9, 14); hgC.lookAt(0, 0, 0);
     hgS.add(new THREE.AmbientLight(0x9aa8c4, 0.95)); const dl = new THREE.DirectionalLight(0xfff1dd, 1.7); dl.position.set(4, 7, 5); hgS.add(dl);
     const rl = new THREE.PointLight(0x58a8ff, 1.6, 40); rl.position.set(-6, 1, -4); hgS.add(rl);
@@ -4369,7 +4376,7 @@ function commOpen(){
   comm.open = true; comm.n = n; comm.t0 = time;
   const dm = new THREE.Object3D(); dm.position.copy(rig.position); dm.lookAt(rig.position.clone().sub(n.pos.clone().sub(rig.position))); comm.q0 = rig.quaternion.clone(); comm.q1 = dm.quaternion.clone();
   const el = $('comm'), civ = n.civ;
-  const chip = el.querySelector('.chip'); chip.textContent = civ ? civ.ab : (n.hostile ? 'KRS' : n.role === 'patrol' ? 'DEV' : 'SİV'); chip.style.color = civ ? civ.col : n.hostile ? '#ff6b8a' : '#7fd8ff';
+  const chip = el.querySelector('.chip'); chip.textContent = civ ? civ.ab : (n.hostile ? 'KRS' : n.role === 'patrol' ? 'DEV' : 'SİV'); chip.style.color = civ ? civ.col : foe(n) ? '#ff6b8a' : n.hostile ? '#7be0a4' : '#7fd8ff';
   el.querySelector('.nm').textContent = n.name; el.querySelector('.sub').textContent = (civ ? civ.ad + ' · ' : '') + ROLETXT[n.role] + ' · ' + Math.round(n.pos.distanceTo(rig.position)) + ' m';
   el.classList.add('on'); commShow(commRoot(n)); blip(640, 0.06); setTimeout(() => blip(820, 0.08), 80);
 }
@@ -4585,7 +4592,7 @@ const A5 = {"em0": "assets/img/a5_em0.webp", "em1": "assets/img/a5_em1.webp", "e
     let img = sh.querySelector('.pt'); if (!img){ img = document.createElement('img'); img.className = 'pt'; img.alt = ''; sh.insertBefore(img, sh.firstChild); }
     const k = n.hostile ? 3 : ci >= 0 ? ci : n.role === 'patrol' ? 4 : 5;
     img.src = A5['pt' + k];
-    sh.style.setProperty('--pc', n.hostile ? '#ff6b8a' : ci >= 0 ? n.civ.col : n.role === 'patrol' ? '#8ab4ff' : '#7fd8ff');
+    sh.style.setProperty('--pc', foe(n) ? '#ff6b8a' : ci >= 0 ? n.civ.col : n.role === 'patrol' ? '#8ab4ff' : '#7fd8ff');
     if (ci >= 0) el.querySelector('.chip').innerHTML = '<img alt="" src="' + A5['em' + ci] + '">' + n.civ.ab;
   };
 }
@@ -5485,12 +5492,12 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
   const bar = f => { const e = card.querySelector('.bar i'); if (e) e.style.width = Math.max(0, Math.min(1, f)) * 100 + '%'; };
   function endEv(msg, col, wait){ if (SG){ if (SG.beacon){ scene.remove(SG.beacon); } if (SG.n) SG.n.sg = null; } SG = null; card.classList.remove('on'); nextT = 240 + (wait || 0) + rand(120, 300); if (msg) toast(msg, 3400); }
   const EV = {
-    yardim: { w: 3, title: 'Yardım çağrısı', offer: 'Bir ticaret gemisi korsanlarca kuşatıldı. Yetişebilir misin?',
+    yardim: { w: 3, noK: 1, title: 'Yardım çağrısı', offer: 'Bir ticaret gemisi korsanlarca kuşatıldı. Yetişebilir misin?',
       go(){ const tp = ahead(rand(650, 900), 150), hm = nearestStationTo(tp), tr = spawnNpc(['cargo', 'tanker', 'courier'][(Math.random() * 3) | 0], tp, hm); tr.sg = 'help'; tr.alertT = 6; tr.evSt = hm;
         const ps = [0, 1].map(() => { const p = spawnNpc(Math.random() < 0.5 ? 'raider' : 'brute', tp.clone().add(V(rand(-90, 90), rand(-40, 40), rand(-90, 90))), hm); p.state = 'attack'; p.tgt = tr; p.atkT = time; return p; });
         SG.n = tr; SG.ps = ps; SG.tp = tp; SG.t1 = time + 160; radio(tr.name, 'Korsanlar peşimde! Yardım edin!', '#ffb454'); },
       tick(dt){ const tr = SG.n; if (npcs.indexOf(tr) < 0) return endEv('Ticaret gemisi kaybedildi.'); if (!SG.ps.some(p => npcs.indexOf(p) >= 0)){ const r = pay(170, 300); save.kredi += r; save.rep[tr.evSt.ad] = (save.rep[tr.evSt.ad] || 0) + 3; persist(); radio(tr.name, 'Kurtardın bizi! Sağ ol pilot.', '#7be0a4'); endEv('Yardım tamamlandı: +' + r + ' kredi'); return; } if (time > SG.t1) return endEv('Çağrı sönümlendi.'); info('Korsanları etkisiz hale getir · ' + dirTxt(tr.pos)); bar((SG.t1 - time) / 160); } },
-    eskort: { w: 3, title: 'Eskort isteği', offer: 'Bir kargo gemisi teslimat için eşlik istiyor. Yanında kal, korsanlardan koru.',
+    eskort: { w: 3, noK: 1, title: 'Eskort isteği', offer: 'Bir kargo gemisi teslimat için eşlik istiyor. Yanında kal, korsanlardan koru.',
       go(){ const hm = nearestStationTo(rig.position); let dst = null, bd = 0; for (let _q46 = 0; _q46 < STATIONS.length; _q46++){ const s = STATIONS[_q46]; if (s === hm) continue; const d = s.pos.distanceTo(rig.position); if (!dst || (d > 1500 && d < bd) || bd < 1500){ dst = s; bd = d; } }
         const tr = spawnNpc('cargo', ahead(220, 60), hm); tr.sg = 'esc'; tr.dst = dst; tr.alertT = 0; SG.n = tr; SG.dst = dst; SG.amb = time + rand(25, 45); SG.far = 0; SG.ps = []; radio(tr.name, dst.ad.split(' ')[0] + "'a gidiyorum. Yanımda kal!", '#7fd8ff'); },
       tick(dt){ const tr = SG.n; if (npcs.indexOf(tr) < 0) return endEv('Eskort gemisi kaybedildi.');
@@ -5532,7 +5539,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
           if (Math.random() < 0.35){ for (let i = 0; i < 2; i++){ const p = spawnNpc('raider', SG.tp.clone().add(V(rand(-500, 500), rand(-120, 120), rand(-500, 500))), STATIONS[0]); p.state = 'attack'; p.tgt = 'player'; p.atkT = time; } setTimeout(() => radio('Telsiz', 'Enerji patlaması korsanları da çekti!', '#ff5a6e'), 1500); }
           return endEv(msg); }
         if (time > SG.t1) return endEv('Enerji söndü.'); info(d < 110 ? 'Taranıyor… %' + Math.round(SG.hold / 3 * 100) : 'Kaynağın içine gir · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 180); } },
-    aranan: { w: 2, title: 'Aranan korsan', offer: 'Devriye, başına ödül konmuş bir korsanı bu bölgede gördü. Avlamak ister misin?',
+    aranan: { w: 2, noK: 1, title: 'Aranan korsan', offer: 'Devriye, başına ödül konmuş bir korsanı bu bölgede gördü. Avlamak ister misin?',
       go(){ const tp = ahead(rand(900, 1200), 300), b = spawnNpc('reaver', tp, STATIONS[0]); b.hullMax = b.hull = Math.round(b.hullMax * 1.6); b.name = 'Aranan ' + ['Kara Deniz', 'Kızıl Diş', 'Sessiz Ok', 'Yaşlı Kurt'][(Math.random() * 4) | 0];
         const es = spawnNpc('raider', tp.clone().add(V(rand(-80, 80), rand(-30, 30), rand(-80, 80))), STATIONS[0]); SG.n = b; SG.es = es; SG.t1 = time + 240; radio('Devriye', b.name + ' görüldü. Ödülü büyük, dikkatli ol.', '#ffb454'); },
       tick(dt){ const b = SG.n; if (npcs.indexOf(b) < 0){ const v = pay(380, 620); save.kredi += v; persist(); radio('Devriye', 'Ödül hesabına yatırıldı. İyi avdı pilot.', '#7be0a4'); return endEv('Aranan korsan düştü: +' + v + ' kredi ödül'); }
@@ -5551,7 +5558,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
         k.runTo = tp.clone().addScaledVector(tp.clone().sub(rig.position).normalize(), 6000); SG.n = k; SG.t1 = time + 120; radio(k.name, 'Yakalayamazsın beni!', '#ff5a6e'); },
       tick(dt){ const k = SG.n; if (npcs.indexOf(k) < 0) return endEv('Kaçak düştü. Kristalleri topla!'); const d = k.pos.distanceTo(rig.position);
         if (d > 2600 || time > SG.t1){ despawn(k); return endEv('Kaçak gözden kayboldu.'); } info('Yakala · ' + dirTxt(k.pos)); bar(1 - d / 2600); } },
-    kamp: { w: 2, title: 'Korsan kampı', offer: 'Bir kuşakta korsan kampı tespit edildi. Muhafızlarını düşürürsen ganimet senin.',
+    kamp: { w: 2, noK: 1, title: 'Korsan kampı', offer: 'Bir kuşakta korsan kampı tespit edildi. Muhafızlarını düşürürsen ganimet senin.',
       go(){ const tp = ahead(rand(1400, 2000), 400); SG.tp = tp; SG.t1 = time + 300; SG.ps = [];
         const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: 0x5a4038, roughness: 0.8, metalness: 0.4, flatShading: true });
         for (let k = 0; k < 5; k++){ const b = new THREE.Mesh(new THREE.BoxGeometry(rand(14, 30), rand(8, 16), rand(14, 30)), m); b.position.set(rand(-40, 40), rand(-12, 12), rand(-40, 40)); b.rotation.set(rand(0, 1), rand(0, 3), rand(0, 1)); g.add(b); }
@@ -5563,6 +5570,20 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
       tick(dt){ const left = SG.ps.filter(p => npcs.indexOf(p) >= 0).length;
         if (!left){ const v = pay(300, 520); save.kredi += v; givePart('levha', 2); givePart('devre', 1); for (let i = 0; i < 8; i++) spawnOre(SG.tp, Math.random() < 0.45 ? 'kristal' : 'demir'); persist(); sfxP('kalinti_bul', 0.7); return endEv('Kamp temizlendi: +' + v + ' kredi, +2 levha, +1 devre kartı. Ganimeti topla!'); }
         if (time > SG.t1) return endEv('Korsanlar kampı taşıdı.'); info('Kalan muhafız: ' + left + ' · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 300); } },
+    baskin: { w: 4, side: 'korsan', title: 'Konvoy baskını', offer: 'Birlik bir Lonca konvoyunun rotasını sızdırdı. Tüccarları düşür, yükleri senin.',
+      go(){ const tp = ahead(rand(1000, 1400), 300), hm = nearestStationTo(tp); SG.ts = [];
+        for (let i = 0; i < 2; i++){ const t = spawnNpc(i ? 'tanker' : 'cargo', tp.clone().add(V(rand(-70, 70), rand(-20, 20), rand(-70, 70))), hm); t.cargo.titan = 3; t.cargo.kristal = 2; t.load = 5; t.sg = 'run'; t.runTo = hm.pos.clone(); t.name = 'Konvoy ' + t.name.split('-').pop(); SG.ts.push(t); }
+        const es = spawnNpc('corvette', tp.clone().add(V(rand(-90, 90), 0, rand(-90, 90))), hm); es.escort = true; es.name = 'Refakat ' + es.name.split('-').pop(); SG.es = es; SG.t1 = time + 240;
+        radio('Korsan Birliği', 'Konvoyun yanında bir Filo refakatçisi var. Tüccarlar istasyona varmadan yetiş.', '#ff6b8a'); },
+      tick(dt){ const left = SG.ts.filter(t => npcs.indexOf(t) >= 0);
+        if (!left.length){ const v = pay(260, 460); save.kredi += v; givePart('levha', 1); persist(); radio('Korsan Birliği', 'Temiz iş. Payın hesabında.', '#ff6b8a'); return endEv('Konvoy düştü: +' + v + ' kredi, +1 levha. Saçılan yükü topla!'); }
+        if (time > SG.t1 || left.every(t => t.pos.distanceTo(t.home.pos) < t.home.dock)){ for (const t of left) t.sg = null; return endEv('Konvoy istasyona sığındı.'); }
+        info('Kalan tüccar: ' + left.length + ' · ' + dirTxt(left[0].pos)); bar((SG.t1 - time) / 240); } },
+    komutan: { w: 2, side: 'korsan', title: 'Filo komutanı', offer: 'Birliğin başına ödül koyan Filo komutanı bu bölgede devriyede. Düşürürsen Kara Liman sana kadeh kaldırır.',
+      go(){ const tp = ahead(rand(900, 1200), 300), b = spawnNpc('corvette', tp, STATIONS[0]); b.hullMax = b.hull = Math.round(b.hullMax * 1.8); b.name = 'Yüzbaşı ' + ['Arden', 'Velin', 'Toros', 'Kaya'][(Math.random() * 4) | 0];
+        const es = spawnNpc('corvette', tp.clone().add(V(rand(-80, 80), rand(-30, 30), rand(-80, 80))), STATIONS[0]); SG.n = b; SG.es = es; SG.t1 = time + 240; radio('Korsan Birliği', b.name + ' yakında. Yanında bir devriye daha var.', '#ff6b8a'); },
+      tick(dt){ const b = SG.n; if (npcs.indexOf(b) < 0){ const v = pay(380, 620); save.kredi += v; persist(); window.__fac && window.__fac('korsan', 6); radio('Korsan Birliği', 'Komutan düştü! Kara Liman bu gece senin şerefine içiyor.', '#ff6b8a'); return endEv('Filo komutanı düştü: +' + v + ' kredi ödül'); }
+        if (time > SG.t1) return endEv('Komutan bölgeden ayrıldı.'); info(b.name + ' · ' + dirTxt(b.pos)); bar(b.hull / b.hullMax); } },
     istasyon: { w: 2, title: 'Terk edilmiş istasyon', offer: 'Uzun zamandır sessiz bir istasyondan zayıf bir işaret geliyor. İçinde ne kaldığını kimse bilmiyor.',
       go(){ const tp = ahead(rand(1100, 1600), 400); SG.tp = tp; SG.t1 = time + 240; SG.hold = 0;
         const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: 0x4d5560, roughness: 0.75, metalness: 0.6, flatShading: true });
@@ -5610,7 +5631,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
       if (window.__tutOn && time < 360 && !window.__forceEv) return;   // rehber sürerken ilk 6 dakika sinyal gelmez
       nextT -= dt; if (nextT > 0 && !window.__forceEv) return;
       if (!window.__forceEv) for (let _q79 = 0, q; _q79 < npcs.length && ((q = npcs[_q79]), true); _q79++) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextT = 20; return; }
-      let tot = 0; for (const k in EV) tot += EV[k].w; let r = Math.random() * tot, key = 'yardim'; for (const k in EV){ r -= EV[k].w; if (r <= 0){ key = k; break; } }
+      const EW = k => (EV[k].side ? (EV[k].side === save.side ? EV[k].w : 0) : (save.side === 'korsan' && EV[k].noK ? 0 : EV[k].w)); let tot = 0; for (const k in EV) tot += EW(k); let r = Math.random() * tot, key = 'anomali'; for (const k in EV){ if (!EW(k)) continue; r -= EW(k); if (r <= 0){ key = k; break; } }
       if (window.__forceEv){ key = window.__forceEv; window.__forceEv = null; }
       SG = { k: key, phase: 'offer', sys: curSys, t0: time }; const ev = EV[key]; show(ev.title, ev.offer, [['ok', ev.one ? 'Tamam' : 'Kabul'], ['no', 'Yoksay', 'n']]); if (!(window.__sfx && window.__sfx('sinyal', 0.6))){ blip(880, 0.12); setTimeout(() => blip(1180, 0.14), 140); } return;
     }
@@ -5718,7 +5739,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     if (!on) return;
     M.t += dt; const sys = curSys, sc = SC[sys] || SC[0], root = (ROOT[sys] || 45);
     if (M.t > M.next){ M.next = M.t + 9; M.chord = (M.chord + 1) % 4; const r = root + PROG[M.chord]; M.vs.forEach((o, i) => { const n = r + sc[(M.chord + i * 2) % sc.length] + (i > 1 ? 12 : 0); o.frequency.setTargetAtTime(mf(n), now, 1.6); }); }
-    let hostile = false; if (!docked) for (let _q80 = 0, q; _q80 < npcs.length && ((q = npcs[_q80]), true); _q80++) if (q.hostile && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
+    let hostile = false; if (!docked) for (let _q80 = 0, q; _q80 < npcs.length && ((q = npcs[_q80]), true); _q80++) if (foe(q) && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
     M.ten += ((hostile ? 1 : 0) - M.ten) * Math.min(1, dt * 0.6); M.lp.frequency.setTargetAtTime(700 + M.ten * 1500, now, 0.5);
     M.bell -= dt; if (M.bell <= 0){ M.bell = rand(3, 8) / (1 + M.ten); const o = AC.createOscillator(), eg = AC.createGain(), n = root + PROG[M.chord < 0 ? 0 : M.chord] + sc[(Math.random() * sc.length) | 0] + 24; o.type = 'triangle'; o.frequency.value = mf(n); eg.gain.setValueAtTime(0.0001, now); eg.gain.exponentialRampToValueAtTime(0.09, now + 0.02); eg.gain.exponentialRampToValueAtTime(0.0001, now + 3); o.connect(eg); eg.connect(M.g); eg.connect(M.dl); o.start(now); o.stop(now + 3.1); }
     M.pulse -= dt; if (M.ten > 0.25 && M.pulse <= 0){ M.pulse = 0.62; const o = AC.createOscillator(), eg = AC.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(72, now); o.frequency.exponentialRampToValueAtTime(38, now + 0.25); eg.gain.setValueAtTime(0.22 * M.ten, now); eg.gain.exponentialRampToValueAtTime(0.0001, now + 0.3); o.connect(eg); eg.connect(M.g); o.start(now); o.stop(now + 0.32); }
@@ -6952,7 +6973,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     for (const c of save.ct.active.slice()){
       if (c.type !== type || (test && !test(c))) continue;
       c.prog = Math.min(c.n, c.prog + amt); ch = true;
-      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += Math.round(c.reward * (window.__skQ || 1)); persist(); addXp(c.xp); window.__fac && window.__fac(c.type === 'av' ? 'filo' : 'lonca', 4); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gorev_tamam', 0.8) || sfxP('gelistirme', 0.7); }
+      if (c.prog >= c.n){ save.ct.active.splice(save.ct.active.indexOf(c), 1); save.kredi += Math.round(c.reward * (window.__skQ || 1)); persist(); addXp(c.xp); window.__fac && window.__fac(c.type === 'av' ? (c.ks ? 'korsan' : 'filo') : 'lonca', 4); toast('Görev tamam: ' + c.txt + ' · +' + c.reward + ' kredi', 4000); sfxP('gorev_tamam', 0.8) || sfxP('gelistirme', 0.7); }
       else if (c.n > 1) toast('Görev: ' + c.txt + ' · ' + c.prog + '/' + c.n, 1800);
     }
     if (ch){ persist(); drawTrack(); }
@@ -7126,7 +7147,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   };
   const _dn = damageNpc; damageNpc = function(n, dmg, by){ const first = by === 'player' && !n.provoked; if (by === 'player') n.provoked = true; _dn(n, dmg, by); if (first && n.hostile && npcs.indexOf(n) >= 0 && save.fac.korsan >= 30){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.truce = 0; } };
   const _tp = thinkPirate; thinkPirate = function(n){
-    if ((save.side === 'korsan' || save.fac.korsan >= 30) && (!n.leader || save.side === 'korsan') && !n.provoked && !n.sg && !n.hunter){ n.truce = time + 5; if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; } } /* Korsan tarafındaysan korsanlar (patronlar dahil) sen vurmadıkça saldırmaz */
+    if (n.role === 'pirate' && (save.side === 'korsan' || save.fac.korsan >= 30) && (!n.leader || save.side === 'korsan') && !n.provoked && !n.sg && !n.hunter){ n.truce = time + 5; if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; } } /* Korsan tarafındaysan korsanlar (patronlar dahil) sen vurmadıkça saldırmaz */
     _tp(n);
   };
   // istasyon itibarı değişince Lonca da etkilenir
@@ -7619,7 +7640,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
       MU.bus.gain.setTargetAtTime(on ? (docked ? 0.5 : 0.85) * hyp : 0, now, 0.8);
       if (!on) return;
       const sys = Math.min(3, Math.max(0, curSys | 0)), u = U[sys];
-      let hostile = false; if (!docked) for (let _q87 = 0, q; _q87 < npcs.length && ((q = npcs[_q87]), true); _q87++) if (q.hostile && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
+      let hostile = false; if (!docked) for (let _q87 = 0, q; _q87 < npcs.length && ((q = npcs[_q87]), true); _q87++) if (foe(q) && q.pos.distanceTo(rig.position) < 900){ hostile = true; break; }
       tenS += ((hostile ? 1 : 0) - tenS) * 0.08;
       MU.pad.frequency.setTargetAtTime(u.lp + tenS * 900, now, 0.6);
       if (sys !== curU){ curU = sys; chIdx = -1; nextCh = 0; MU.dl.delayTime.setTargetAtTime(u.dl, now, 0.5); MU.lg.gain.setTargetAtTime(u.wob * 300, now, 1); }
@@ -7696,7 +7717,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
       if (tt && !hooked){ hooked = true; tt.addEventListener('pointerdown', () => initAudio(), true); const go = document.getElementById('titleGo'); if (go) go.addEventListener('click', () => { initAudio(); anaUntil = performance.now() + 4500; }); }
       if (!AC || !AC.nb) return;
       const inTitle = tt && !tt.classList.contains('off');
-      let hostile = false; if (!docked && !inTitle) for (let _q88 = 0, q; _q88 < npcs.length && ((q = npcs[_q88]), true); _q88++) if (q.hostile){ const d = q.pos.distanceTo(rig.position); if (q.state === 'attack' ? d < 1200 : d < 600){ hostile = true; break; } }
+      let hostile = false; if (!docked && !inTitle) for (let _q88 = 0, q; _q88 < npcs.length && ((q = npcs[_q88]), true); _q88++) if (foe(q)){ const d = q.pos.distanceTo(rig.position); if (q.state === 'attack' ? d < 1200 : d < 600){ hostile = true; break; } }
       if (hostile) lastH = performance.now();
       let k; if (inTitle || performance.now() < anaUntil) k = 'ana'; else if (docked) k = 'hangar'; else if (performance.now() - lastH < 8000) k = 'savas'; else k = save.uzayAna ? 'ana' : (['ankora', 'kizil', 'buzul', 'zumrut', 'ankora', 'kizil'][curSys | 0] || 'ankora');
       if (k === 'ana' && save.anaTema && MF['ana_' + save.anaTema]) k = 'ana_' + save.anaTema;
@@ -7735,17 +7756,24 @@ function renderMain(){
   renderer.setRenderTarget(null); renderer.render(scene, camera);
 }
 let frameAmmo = -1;
+// istasyon menüsü ya da tam ekran bir pencere açıkken arkadaki uzay sahnesi koyu perdenin ardında kalır: saniyede birkaç kez, parlamasız çizilir (telefonda hangar ve menüler akıcı olur)
+let bgT = 0, bgAcc = 0;
+function drawBehind(dt, cover){
+  bgT = cover ? bgT + dt : 0;
+  if (bgT < 0.8){ renderMain(); drawHud(); return; }
+  bgAcc += dt; if (bgAcc < 0.4) return; bgAcc = 0;
+  renderer.setRenderTarget(null); renderer.render(scene, camera); drawHud();
+}
 function frame(now){
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (paused){
     stick.on = false; sBase.classList.add('hidden'); sKnob.classList.add('hidden'); laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false;
     audioUpdate(0); requestAnimationFrame(frame); return;
   }
-  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); renderMain(); drawHud(); requestAnimationFrame(frame); return; }
+  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); drawBehind(dt, true); requestAnimationFrame(frame); return; }
   update(dt);
   if (window.__hjOn && !window.__hjFade){ requestAnimationFrame(frame); return; }   // sıçrama sahnesi ekranı tamamen kapatırken ana sahne çizilmez (akıcılık)
-  renderMain();
-  drawHud();
+  drawBehind(dt, docked && !dockEl.classList.contains('hidden'));
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
   $('bLock').classList.toggle('on', !!lock);
   /* roket düğmesi etiketi artık seçili türe göre (roket seçimi bloğu) */
@@ -8387,7 +8415,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     if (Math.ceil(save.wanted) > Math.ceil(w0)){ toast('ARANIYORSUN ' + STARS(save.wanted) + (why ? ' · ' + why : ''), 3600); try { sfxP('itibar', 0.6); } catch (e) {} } };
   window.__addWanted = addWanted;
   { const _kn = killNpc; killNpc = function(n, by){ const was = npcs.indexOf(n) >= 0, hos = n.hostile, role = n.role, hunter = n.hunter; _kn(n, by); if (!was || by !== 'player') return;
-      if (hunter){ const b = 120; save.kredi += b; persist(); toast('Ödül avcısı düştü: +' + b + ' kredi', 2200); return; }
+      if (hunter){ const b = 120; save.kredi += b; persist(); toast((save.side === 'korsan' ? 'Filo avcısı' : 'Ödül avcısı') + ' düştü: +' + b + ' kredi', 2200); return; }
       if (!hos && role === 'patrol') addWanted(1, 'devriye düşürdün');
       else if (!hos && role !== 'patrol') addWanted(0.5, 'sivil gemi düşürdün'); }; }
   const wEl = document.createElement('div'); wEl.id = 'wanted'; document.body.appendChild(wEl);
@@ -8406,7 +8434,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (huntT <= 0){ huntT = Math.max(45, 130 - save.wanted * 18);
         const n0 = 1 + Math.floor(save.wanted / 2), back = V(0, 0, 1).applyQuaternion(rig.quaternion);
         for (let i = 0; i < n0; i++){ const p = rig.position.clone().addScaledVector(back, 1400 + i * 120).add(V(rand(-300, 300), rand(-150, 150), rand(-300, 300)));
-          const ks = save.side === 'korsan', h = spawnNpc(ks ? 'corvette' : (save.wanted >= 3 && i === 0 ? 'brute' : 'raider'), p, STATION); if (!h) continue; h.hunter = true; h.hostile = true; if (ks){ h.role = 'pirate'; h.hullMax = h.hull = Math.round(h.hull * (save.wanted >= 3 && i === 0 ? 1.6 : 1.1)); } h.name = (ks ? 'Filo avcısı ' : 'Ödül avcısı ') + (h.name || '').split('-').pop(); /* Korsan oyuncuyu Filo gemileri avlar */ h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
+          const ks = save.side === 'korsan', h = spawnNpc(ks ? 'corvette' : (save.wanted >= 3 && i === 0 ? 'brute' : 'raider'), p, STATION); if (!h) continue; h.hunter = true; h.hostile = !ks; if (ks){ h.role = 'patrol'; h.rev = time + 600; h.hullMax = h.hull = Math.round(h.hull * (save.wanted >= 3 && i === 0 ? 1.6 : 1.1)); } h.name = (ks ? 'Filo avcısı ' : 'Ödül avcısı ') + (h.name || '').split('-').pop(); /* Korsan oyuncuyu Filo gemileri avlar */ h.state = 'attack'; h.tgt = 'player'; h.atkT = time; h.provoked = true; h.truce = 0; }
         eco.radioT = -9; radio(save.side === 'korsan' ? 'Filo avcısı' : 'Ödül avcısı', save.side === 'korsan' ? 'Korsan gemisi, Filo adına dur! Başındaki ödül ' + bounty() + ' kredi.' : 'Başındaki ' + bounty() + ' kredi benim, pilot.', '#ff5a6e'); } }
     // devriyeler: çok arananı görünce saldırır, kaçak mal tarar
     for (let i = 0; i < npcs.length; i++){ const q = npcs[i]; if (q.role !== 'patrol' || q.hostile || curSys === 5) continue; const d = q.pos.distanceTo(rig.position); if (d > 600) continue;
@@ -8776,7 +8804,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         const r = e.target.closest('button[data-skr]'); if (r && !r.disabled){ if (!r.dataset.ok){ r.dataset.ok = 1; r.textContent = 'Emin misin? ' + RESET() + ' kredi'; return; } const n = Object.values(save.sk).reduce((a, b) => a + b, 0); save.kredi -= RESET(); save.sk = {}; save.sp += n; persist(); skApply(); skRender(); } });
       addEventListener('resize', () => { if (w.classList.contains('on')) skLines(); }); }
     if (typeof tab === 'number') skTab = tab;
-    w.classList.add('on'); skRender();
+    skRender(); if (!w.classList.contains('on')){ void w.offsetWidth; w.classList.add('on'); }
   }
   const RESET = () => 300 + 100 * Object.values(save.sk).reduce((a, b) => a + b, 0);
   const nodeHtml = (q, bc) => { const l = SL(q.id), lock = inBr(q.b) < TNEED[q.t];
@@ -8784,7 +8812,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   function skRender(){
     const w = $('skModal'); if (!w) return; const L = levelOf(save.xp || 0), [b, bn, bc] = BR[skTab], bsp = inBr(b);
     const list = SKL.filter(x => x.b === b); if (!skSel || !list.some(q => q.id === skSel)) skSel = list[0].id;
-    let h = '<div class="bx" style="--bc:' + bc + '"><div class="tabs"><button class="ar" data-skt="p">‹</button>' + BR.map((x, i) => '<button data-skt="' + i + '" class="' + (i === skTab ? 'on' : '') + '" style="--tc:' + x[2] + '"><svg class="bi" viewBox="0 0 24 24">' + BEM[x[0]] + '</svg>' + x[1] + '<i>' + inBr(x[0]) + '</i></button>').join('') + '<button class="ar" data-skt="n">›</button><button class="x" data-skx="1">✕</button></div>';
+    let h = '<div class="bx" style="--bc:' + bc + '"><div class="tabs"><button class="ar" data-skt="p">‹</button>' + BR.map((x, i) => '<button data-skt="' + i + '" class="' + (i === skTab ? 'on' : '') + '" style="--tc:' + x[2] + '"><svg class="bi" viewBox="0 0 24 24">' + BEM[x[0]] + '</svg>' + x[1] + '<i>' + inBr(x[0]) + '</i></button>').join('') + '<button class="ar" data-skt="n">›</button><button class="x" data-skx="1" title="Menüye dön">‹ Menü</button></div>';
     h += '<div class="body"><div class="tree"><div class="th"><svg class="bi" viewBox="0 0 24 24">' + BEM[b] + '</svg>' + bn.toLocaleUpperCase('tr-TR') + '</div><svg class="ln"></svg>';
     for (const t of [1, 2, 3]){ const lock = bsp < TNEED[t];
       h += '<div class="row t' + t + (lock ? ' lk' : '') + '"><span class="rl">' + TIER(t) + '<i>' + ['', 'I', 'II', 'III'][t] + '</i>' + (lock ? '<b>' + bsp + '/' + TNEED[t] + '</b>' : '') + '</span>' + list.filter(q => q.t === t).map(q => nodeHtml(q, bc)).join('') + '</div>'; }
@@ -8843,6 +8871,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #lvUp .sk{margin-top:14px;display:flex;align-items:center;gap:10px;background:none;border:0;color:#dfe8f2;font:600 12px var(--font);letter-spacing:.26em;cursor:pointer}
   #lvUp .sk i{font-style:normal;width:24px;height:24px;border:1.4px solid #dfe8f2;border-radius:50%;display:flex;align-items:center;justify-content:center;letter-spacing:0;font-size:12px}
   #skModal{position:fixed;inset:0;z-index:59;background:radial-gradient(ellipse at 50% 30%,rgba(14,26,48,.94),rgba(3,6,14,.97));display:none;align-items:center;justify-content:center;padding:10px}#skModal.on{display:flex}
+  html body #skModal{display:flex;opacity:0;visibility:hidden;pointer-events:none;background:rgba(3,6,14,.78);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);transition:opacity .24s ease,visibility 0s linear .24s}
+  html body #skModal.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .24s ease}
+  html body #skModal .bx{transform:translateY(14px);transition:transform .28s cubic-bezier(.2,.8,.3,1)}html body #skModal.on .bx{transform:none}
+  html body #skModal .tabs .x{flex:0 0 auto;width:auto;padding:0 12px;border:1px solid rgba(220,235,245,.3);border-radius:4px;font:700 11px var(--font);letter-spacing:.12em;white-space:nowrap}
   #skModal .bx{width:min(1040px,98vw);height:min(640px,96vh);display:flex;flex-direction:column;color:#e8edff;font:500 13px/1.4 var(--font)}
   #skModal .tabs{display:flex;align-items:stretch;gap:0;margin:0 auto 10px;width:min(760px,100%)}
   #skModal .tabs button{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(220,235,245,.14);border-left-width:0;color:#b9c6da;font:600 11.5px var(--font);letter-spacing:.2em;padding:8px 4px;cursor:pointer;text-transform:uppercase}
@@ -8934,11 +8966,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       ['20 acil siparişi yetiştir', () => save.st.sip, 20, { k: 8000, x: 1500, sp: 1 }] ] },
     korsan: { ad: 'Birlik işleri', col: '#ff6b8a', side: 'korsan', steps: [
       ['5 birim kaçak mal sat', () => save.st.kacak, 5, { k: 500, x: 150, f: ['korsan', 5] }],
-      ['Bir ödül avcısını düşür', () => save.st.avci, 1, { k: 1200, x: 300, f: ['korsan', 8] }],
+      ['Bir Filo devriyesi ya da avcısı düşür', () => save.st.avci, 1, { k: 1200, x: 300, f: ['korsan', 8] }],
       ['30 birim kaçak mal sat', () => save.st.kacak, 30, { k: 2000, x: 400, f: ['korsan', 8] }],
-      ['6 ödül avcısını düşür', () => save.st.avci, 6, { k: 3200, x: 600, f: ['korsan', 10] }],
+      ['6 Filo gemisi düşür', () => save.st.avci, 6, { k: 3200, x: 600, f: ['korsan', 10] }],
       ['100 birim kaçak mal sat', () => save.st.kacak, 100, { k: 5000, x: 900, f: ['korsan', 10] }],
-      ['15 ödül avcısını düşür', () => save.st.avci, 15, { k: 8000, x: 1500, sp: 1 }] ] },
+      ['15 Filo gemisi düşür', () => save.st.avci, 15, { k: 8000, x: 1500, sp: 1 }] ] },
     kadim: { ad: 'Kadim yankılar', col: '#c8a8ff', steps: [
       ['4 kalıntının yankısını bul', () => (window.__kadim ? window.__kadim.n : 0), 4, { k: 800, x: 300 }],
       ['8 yankıyı bul', () => (window.__kadim ? window.__kadim.n : 0), 8, { k: 1800, x: 600 }],
@@ -9140,12 +9172,31 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     EXTRA.push(() => { const c = AMCOL[save.eq.mermi]; if (!c) return; boltMat.color.setRGB(c[0], c[1], c[2]);
       const m = [Math.min(1, c[0] * 0.7), Math.min(1, c[1] * 0.7), Math.min(1, c[2] * 0.7)]; muzzle.forEach(q => q.material.color.setRGB(m[0], m[1], m[2])); impact.material.color.setRGB(m[0], m[1], m[2]); }); }
   // ---- Cephanelik düzeni: Lazer (Başlık, Mermi) · Roket (Başlık, Roket) · Jeneratör (Motor, Kalkan)
+  // her alt başlık kapalı bir satırdır: dokununca açılır (açık olanlar yeniden çizimde açık kalır)
+  const WOPEN = new Set();
   function arrange(){ const wb = $('wpBox'); if (!wb) return; const R = { baslik: [], roket: [], rbaslik: [] };
-    [...wb.children].forEach(n => { if (n.classList.contains('wpr') && R[n.dataset.cat]) R[n.dataset.cat].push(n); else n.remove(); });
-    const add = h => wb.insertAdjacentHTML('beforeend', h), sub = (t, d) => add('<div class="sub2">' + t + (d ? '<small>' + d + '</small>' : '') + '</div>'), put = a => a.forEach(n => wb.appendChild(n));
-    add('<div class="sect">Lazer</div>'); sub('Başlık', 'Lazerin ucuna takılır: hasar, menzil, ısınma.'); put(R.baslik); sub('Mermi', 'Standart sınırsız; diğerleri her atışta harcanır (çift atış 2), kendi renginde yanar. En az 500 alınır. Uçarken lazere çift dokun: mermi seç.'); add(amRows());
-    add('<div class="sect">Roket</div>'); sub('Başlık', 'Bütün roketlerde kullanılır.'); put(R.rbaslik); sub('Roket', 'Uçarken roket düğmesine basılı tut: türünü seç.'); add(rkRows()); R.roket.forEach(n => n.remove());
-    add('<div class="sect">Jeneratör</div>'); sub('Motor'); add(eqLines('motor')); sub('Kalkan'); add(eqLines('kalkan'));
+    wb.querySelectorAll('.wpr').forEach(n => { if (R[n.dataset.cat]) R[n.dataset.cat].push(n); });
+    [...wb.children].forEach(n => { if (!n.classList.contains('wpr')) n.remove(); });
+    const add = h => wb.insertAdjacentHTML('beforeend', h);
+    const grp = (key, t, cur, d) => { const op = WOPEN.has(key) ? ' op' : '';
+      add('<div class="sub2 sk' + op + '" data-sk="' + key + '"><span><b>' + t + '</b>' + (cur ? '<small>' + cur + '</small>' : '') + '</span><i></i></div>');
+      const b = document.createElement('div'); b.className = 'sbx' + op; b.dataset.sk = key; wb.appendChild(b); if (d) b.insertAdjacentHTML('beforeend', '<div class="sbd">' + d + '</div>'); return b; };
+    const nm = a => { const c = a.find(n => n.classList.contains('cur')), b = c && c.querySelector('b'); return b ? 'Takılı: ' + b.textContent : ''; };
+    const eqNm = k => { const q = EQ[k] && EQ[k].items.find(x => x.id === save.eq[k]); return q ? 'Takılı: ' + q.ad : ''; };
+    const amNm = () => { const q = EQ.mermi.items.find(x => x.id === save.eq.mermi); return q ? 'Seçili: ' + q.ad + (save.eq.mermi !== 'std' ? ' · ' + (save.amm[save.eq.mermi] || 0) : '') : ''; };
+    const rkNm = () => { const T = window.__RT, k = save.rSel || 'd'; return T && T[k] ? 'Seçili: ' + T[k].ad : ''; };
+    let b;
+    add('<div class="sect">Lazer</div>');
+    b = grp('lb', 'Lazer başlığı', nm(R.baslik), 'Lazerin ucuna takılır: hasar, menzil, ısınma.'); R.baslik.forEach(n => b.appendChild(n));
+    b = grp('lm', 'Mermi', amNm(), 'Standart sınırsız; diğerleri her atışta harcanır (çift atış 2), kendi renginde yanar. En az 500 alınır. Uçarken lazere çift dokun: mermi seç.'); b.insertAdjacentHTML('beforeend', amRows());
+    add('<div class="sect">Roket</div>');
+    b = grp('rb', 'Roket başlığı', nm(R.rbaslik), 'Bütün roketlerde kullanılır.'); R.rbaslik.forEach(n => b.appendChild(n));
+    b = grp('rr', 'Roket', rkNm(), 'Uçarken roket düğmesine çift dokun: türünü seç.'); b.insertAdjacentHTML('beforeend', rkRows()); R.roket.forEach(n => n.remove());
+    add('<div class="sect">Jeneratör</div>');
+    b = grp('jm', 'Motor', eqNm('motor')); b.insertAdjacentHTML('beforeend', eqLines('motor'));
+    b = grp('jk', 'Kalkan', eqNm('kalkan')); b.insertAdjacentHTML('beforeend', eqLines('kalkan'));
+    if (!wb.dataset.skH){ wb.dataset.skH = 1; wb.addEventListener('click', e => { const h = e.target.closest('.sub2.sk'); if (!h || !wb.contains(h)) return; const k = h.dataset.sk, on = !WOPEN.has(k);
+      if (on) WOPEN.add(k); else WOPEN.delete(k); h.classList.toggle('op', on); const bx = wb.querySelector('.sbx[data-sk="' + k + '"]'); if (bx) bx.classList.toggle('op', on); try { blip(on ? 620 : 480, 0.04); } catch (er) {} }); }
   }
   function renderEq(){
     const box = $('eqBox'); if (!box) return; let h = '';
@@ -9667,7 +9718,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 
   // =====  ROKET SEÇİMİ + SARSINTI ROKETİ
   (function(){
-    const RT = { d: { ad: 'Düz Roket', k: 'D', ic: 0 }, g: { ad: 'Güdümlü Roket', k: 'G', ic: 1 }, e: { ad: 'Sarsıntı Roketi', k: 'S', ic: 2 } };
+    const RT = { d: { ad: 'Düz Roket', k: 'D', ic: 0 }, g: { ad: 'Güdümlü Roket', k: 'G', ic: 1 }, e: { ad: 'Sarsıntı Roketi', k: 'S', ic: 2 } }; window.__RT = RT;
     if (!RT[save.rSel]) save.rSel = 'd';
     const cnt = k => k === 'd' ? save.ammoD : k === 'g' ? save.ammo : (save.ammoE || 0);
     const EMPW = { direct: 22, splash: 14, reach: 150, col: 0xa98cff, sz: 1.5, emp: true };
@@ -9691,7 +9742,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (W && W.emp){ let k = 0; for (const n of npcs){ if (n.pos.distanceTo(pos) < n.r + W.reach){ n.stunT = time + 5; k++; } } burst(pos, 0xa98cff, 60, 160, 1.2); if (k) toast('Sarsıntı: ' + k + ' gemi felç oldu', 1800); }
       return r; };
     const _u = updateNpc; updateNpc = function(n, dt){ if (n.stunT > time){ n.vel.multiplyScalar(Math.pow(0.4, dt)); n.pos.addScaledVector(n.vel, dt); n.g.position.copy(n.pos); n.g.rotation.z += dt * 2.2; n.fireT = Math.max(n.fireT, 0.4); n.aimAt = null; return; } return _u.apply(this, arguments); };
-    // roket düğmesi: dokun = ateş, basılı tut = tür seçimi
+    // roket düğmesi: dokun = ateş, çift dokun ya da basılı tut = tür seçimi
     const old = $('bMissile'); if (!old) return;
     const btn = old.cloneNode(true); old.replaceWith(btn);
     const pick = document.createElement('div'); pick.id = 'rkPick'; document.body.appendChild(pick);
@@ -9701,7 +9752,12 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const r = btn.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right) + 'px'; pick.style.bottom = (innerHeight - r.top + 8) + 'px'; pick.classList.add('on'); try { blip(620, 0.05); } catch (e) {} };
     let hold = null, opened = false;
     btn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); initAudio(); opened = false; btn.classList.add('down'); hold = setTimeout(() => { opened = true; openPick(); }, 380); });
-    const up = e => { if (!btn.classList.contains('down')) return; btn.classList.remove('down'); clearTimeout(hold); if (!opened) fireMissile(); };
+    // çift dokunuş roket listesini açar (tek dokunuş kısa bir beklemeden sonra ateşler, liste açarken roket boşa gitmez)
+    let tapT = null;
+    const up = e => { if (!btn.classList.contains('down')) return; btn.classList.remove('down'); clearTimeout(hold); if (opened) return;
+      if (tapT){ clearTimeout(tapT); tapT = null; openPick(); return; }
+      if (e.pointerType === 'mouse'){ fireMissile(); return; }
+      tapT = setTimeout(() => { tapT = null; fireMissile(); }, 230); };
     btn.addEventListener('pointerup', up); btn.addEventListener('pointercancel', () => { btn.classList.remove('down'); clearTimeout(hold); });
     pick.addEventListener('pointerdown', e => { e.stopPropagation(); const b = e.target.closest('button[data-rs]'); if (!b) return; e.preventDefault(); save.rSel = b.dataset.rs; persist(); close(); label(); toast(RT[save.rSel].ad + ' seçildi', 1400); });
     document.addEventListener('pointerdown', e => { if (pick.classList.contains('on') && !e.target.closest('#rkPick')) close(); });
@@ -9715,6 +9771,13 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #rkPick button img{width:34px;height:34px}#rkPick button b{flex:1;font-weight:600}#rkPick button i{font-style:normal;font-weight:700;color:#ffc477;min-width:22px;text-align:right}
   #rkPick button.on{background:rgba(127,216,255,.16);box-shadow:inset 0 0 0 1px #7fd8ff}
   html body #wpBox .sub2{margin:12px 0 4px;font:700 11px var(--font);letter-spacing:.2em;text-transform:uppercase;color:var(--v2a,#8fe3ff);display:flex;flex-direction:column;gap:2px}
+  html body #wpBox .sub2.sk{cursor:pointer;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 0;padding:10px 12px;border:1px solid rgba(220,235,245,.12);border-radius:10px;background:rgba(255,255,255,.035);letter-spacing:.12em}
+  html body #wpBox .sub2.sk > span{display:flex;flex-direction:column;gap:2px;min-width:0}html body #wpBox .sub2.sk b{font-weight:700}
+  html body #wpBox .sub2.sk i{flex:0 0 auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .2s}
+  html body #wpBox .sub2.sk.op{border-color:rgba(127,216,255,.35);background:rgba(127,216,255,.07)}html body #wpBox .sub2.sk.op i{transform:rotate(-135deg);margin-top:4px}
+  html body #wpBox .sbx{display:none;padding:2px 2px 6px}html body #wpBox .sbx.op{display:block;animation:sbxIn .22s ease-out}
+  html body #wpBox .sbd{font:500 11.5px var(--font);color:var(--v2d,#8ea2b6);margin:8px 2px 2px;line-height:1.4}
+  @keyframes sbxIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
   html body #wpBox .sub2 small{font:500 11.5px var(--font);letter-spacing:0;text-transform:none;color:var(--v2d,#8ea2b6)}
   html body #wpBox .amr .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}html body #wpBox .amr .amn{color:#ffc477}
   html body #eqBox{display:none !important}
@@ -9727,7 +9790,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   (function(){
     const V_ = window.SD_VERSION || '';
     const PAGES = [
-      { t: 'KADİM KAPI SUSTU', img: '<div class="fx"><img src="assets/img/gate_kadim_enerji.webp?v=' + V_ + '" alt=""></div>', p: [
+      { t: 'KADİM KAPI SUSTU', img: '<div class="fx"><svg class="gt" viewBox="0 0 240 240" aria-hidden="true"><defs><radialGradient id="igC" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#b48cff" stop-opacity=".55"/><stop offset=".55" stop-color="#5b3fa8" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><linearGradient id="igR" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9aa8c4"/><stop offset="1" stop-color="#3c465e"/></linearGradient></defs><circle cx="120" cy="120" r="112" fill="url(#igC)"/><g class="sp"><circle cx="120" cy="120" r="78" fill="none" stroke="url(#igR)" stroke-width="13"/><circle cx="120" cy="120" r="78" fill="none" stroke="#0a0f1c" stroke-width="2.2" stroke-dasharray="3 19"/><g fill="#c9b2ff" class="rn"><circle cx="120" cy="42" r="3.2"/><circle cx="198" cy="120" r="3.2"/><circle cx="120" cy="198" r="3.2"/><circle cx="42" cy="120" r="3.2"/></g><path d="M64 70 l9 6 -3 8 M176 172 l-8 -5 2 -9" fill="none" stroke="#0a0f1c" stroke-width="2"/></g><circle cx="120" cy="120" r="58" fill="none" stroke="#c9b2ff" stroke-opacity=".25" stroke-width="1" stroke-dasharray="2 6" class="ds"/><g class="o o1"><path d="M120 18 l-9 4 -9 -4 9 -2z" fill="none"/><path d="M120 14 l10 7 -10 3 -10 -3z" fill="#7fd8ff"/><path d="M120 24 v14" stroke="#7fd8ff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g><g class="o o2"><path d="M120 14 l10 7 -10 3 -10 -3z" fill="#ffc477"/><path d="M120 24 v14" stroke="#ffc477" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g><g class="o o3"><path d="M120 14 l10 7 -10 3 -10 -3z" fill="#ff6b8a"/><path d="M120 24 v14" stroke="#ff6b8a" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g><circle cx="120" cy="120" r="5" fill="#e6dcff" class="pl"/></svg></div>', p: [
         'Bir zamanlar dört güneşi tek bir kapı birbirine bağlıyordu. Onu, adını bile unuttuğumuz bir uygarlık yapmıştı: <b>Kadimler</b>. Gemiler, cevher ve haberler o kapıdan geçerdi.',
         'Sonra kapı sustu. Halkaları karardı, dört sistem birbirinden koptu. Yollar kesildi, istasyonlar yalnız kaldı.',
         'Kaostan üç güç doğdu.' ] },
@@ -9741,7 +9804,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #intro.vis{opacity:1}
   #intro .in{display:flex;gap:28px;align-items:center;max-width:920px;width:100%}
   #intro .art{flex:0 0 34%;display:flex;justify-content:center}
-  #intro .fx img{width:min(240px,30vw);aspect-ratio:1;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 30px rgba(170,120,255,.55));animation:inSpin 40s linear infinite}
+  #intro .fx svg{width:min(250px,31vw);height:auto;display:block;overflow:visible;filter:drop-shadow(0 0 22px rgba(170,120,255,.35))}
+  #intro .fx .sp{transform-origin:120px 120px;animation:inSpin 90s linear infinite}#intro .fx .ds{transform-origin:120px 120px;animation:inSpin 30s linear infinite reverse}
+  #intro .fx .o{transform-origin:120px 120px}#intro .fx .o1{animation:inO1 7s ease-in-out infinite}#intro .fx .o2{animation:inO2 7s ease-in-out infinite}#intro .fx .o3{animation:inO3 7s ease-in-out infinite}
+  @keyframes inO1{0%{transform:rotate(-40deg) translateY(-26px);opacity:0}25%{opacity:1}60%{transform:rotate(0deg) translateY(30px);opacity:1}100%{transform:rotate(20deg) translateY(30px);opacity:0}}
+  @keyframes inO2{0%{transform:rotate(80deg) translateY(-26px);opacity:0}25%{opacity:1}60%{transform:rotate(120deg) translateY(30px);opacity:1}100%{transform:rotate(140deg) translateY(30px);opacity:0}}
+  @keyframes inO3{0%{transform:rotate(200deg) translateY(-26px);opacity:0}25%{opacity:1}60%{transform:rotate(240deg) translateY(30px);opacity:1}100%{transform:rotate(260deg) translateY(30px);opacity:0}}
+  #intro .fx .pl{animation:inPl 3.2s ease-in-out infinite}@keyframes inPl{0%,100%{opacity:.25;r:4px}50%{opacity:.9;r:7px}}
+  #intro button{touch-action:manipulation;-webkit-user-select:none;user-select:none}#intro .nx{min-width:150px;padding:12px 24px}#intro .sk{padding:9px 18px !important}
   #intro .fac{display:flex;flex-direction:column;gap:10px}#intro .fac img{width:min(86px,11vw);filter:drop-shadow(0 0 12px rgba(255,255,255,.18));opacity:0;animation:inUp .8s forwards}
   #intro .fac img:nth-child(2){animation-delay:.4s}#intro .fac img:nth-child(3){animation-delay:.8s}
   #intro .tx{flex:1;min-width:0}
@@ -9751,19 +9821,23 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #intro button{font:700 13px var(--font);letter-spacing:.16em;padding:9px 20px;border-radius:999px;cursor:pointer}
   #intro .nx{border:1px solid #ffb454;background:#ffb454;color:#2b1300}#intro .sk{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 16px);border:1px solid rgba(255,255,255,.25);background:none;color:#c6d2e2;font-size:11.5px;padding:6px 14px}
   @keyframes inSpin{to{transform:rotate(360deg)}}@keyframes inUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @media (max-height:460px){#intro h2{font-size:15px;margin-bottom:8px}#intro p{font-size:13px;line-height:1.45;margin-bottom:6px}#intro .fx img{width:min(170px,26vw)}#intro .fac img{width:min(58px,9vw)}#intro .in{gap:18px}}`;
+  @media (max-height:460px){#intro h2{font-size:15px;margin-bottom:8px}#intro p{font-size:13px;line-height:1.45;margin-bottom:6px}#intro .fx svg{width:min(180px,26vw)}#intro .fac img{width:min(58px,9vw)}#intro .in{gap:18px}}`;
     document.head.appendChild(css);
     window.__story = done => {
       const d = document.createElement('div'); d.id = 'intro'; document.body.appendChild(d); window.__menuOn = true;
       for (const ev of ['pointerdown', 'touchstart', 'keydown', 'keyup']) d.addEventListener(ev, e => e.stopPropagation());
       let i = 0, timers = [];
-      const end = () => { timers.forEach(clearTimeout); save.storySeen = 1; persist(); d.classList.remove('vis'); setTimeout(() => { d.remove(); window.__menuOn = false; done && done(); }, 500); };
+      let ended = false; const end = () => { if (ended) return; ended = true; timers.forEach(clearTimeout); save.storySeen = 1; persist(); d.classList.remove('vis'); setTimeout(() => { d.remove(); window.__menuOn = false; done && done(); }, 500); };
       const show = () => { timers.forEach(clearTimeout); timers = []; const P = PAGES[i];
         d.innerHTML = '<button class="sk">ATLA</button><div class="in"><div class="art">' + P.img + '</div><div class="tx"><h2>' + P.t + '</h2>' + P.p.map(x => '<p>' + x + '</p>').join('') + '<div class="nav"><div class="dots">' + PAGES.map((_, j) => '<i class="' + (j === i ? 'on' : '') + '"></i>').join('') + '</div><button class="nx">' + (i < PAGES.length - 1 ? 'DEVAM' : 'TARAFINI SEÇ') + '</button></div></div></div>';
         d.querySelectorAll('p').forEach((p, j) => timers.push(setTimeout(() => p.classList.add('v'), 300 + j * 1300)));
-        d.querySelector('.sk').onclick = end;
-        d.querySelector('.nx').onclick = () => { const hidden = [...d.querySelectorAll('p')].some(p => !p.classList.contains('v')); if (hidden){ d.querySelectorAll('p').forEach(p => p.classList.add('v')); return; } if (i < PAGES.length - 1){ i++; show(); } else end(); };
+
         try { blip(480 + i * 120, 0.08); } catch (e) {} };
+      // dokunma doğrudan pointerup ile karşılanır (bazı telefon tarayıcılarında click gelmiyordu); ekranın boş yerine dokunmak da ilerletir
+      const next = () => { const hidden = [...d.querySelectorAll('p')].some(p => !p.classList.contains('v')); if (hidden){ d.querySelectorAll('p').forEach(p => p.classList.add('v')); return; } if (i < PAGES.length - 1){ i++; show(); } else end(); };
+      let lastAct = 0, gone = false;
+      const act = e => { if (gone) return; const now = Date.now(); if (now - lastAct < 450) return; lastAct = now; if (e.cancelable) e.preventDefault(); if (e.target.closest && e.target.closest('.sk')){ gone = true; end(); return; } next(); if (!d.isConnected) gone = true; };
+      d.addEventListener('pointerup', act); d.addEventListener('touchend', act); d.addEventListener('click', act);
       show(); requestAnimationFrame(() => d.classList.add('vis'));
     };
   })();
@@ -9994,5 +10068,56 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #cloudBox .dc{font:800 30px var(--font);letter-spacing:.18em;text-align:center;color:#7fd8ff;padding:6px 0}
   html body #exBox .cldx .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}`;
     document.head.appendChild(st);
+  })();
+
+  // =====  TARAFLAR 1.42: kim kime düşman, tek yerden
+  //  Filo: korsanlar düşman, devriyeler yardıma gelir. Lonca: korsanlar düşman, ticaret ve siparişler.
+  //  Korsan: Birlik gemileri (Kurt, Akbaba, Yağmacı) müttefik ve vurulmaz; Filo devriyeleri ve avcıları düşman; tüccar ve madenciler av.
+  (function(){
+    const KS = () => save.side === 'korsan', ally = n => n && n.role === 'pirate' && !n.hunter;
+    const addXp = x => { try { window.__addXp && window.__addXp(x); } catch (e) {} };
+    // korsan oyuncuya yanlış ceza ve uyarı yazıları gösterilmez
+    { const _t = toast; toast = function(msg, ms){ if (KS() && /^(Sivil gemiyi vurdun|Meşru müdafaa|Dost gemiye ateş ettin|Korsan gemisi düştü)/.test(String(msg))) return; return _t.apply(this, arguments); }; }
+    { const _r = radio; radio = function(who, msg){ if (KS() && /^(Ateş etme, dostuz|Seni uyardım|Korsan tespit edildi)/.test(String(msg))) return; return _r.apply(this, arguments); }; }
+    let ffT = -99;
+    const _dn = damageNpc; damageNpc = function(n, dmg, by){
+      if (by === 'player' && KS() && n && npcs.indexOf(n) >= 0){
+        if (ally(n)){ if (time - ffT > 6){ ffT = time; toast('Birlik gemisi: dost ateşi kilitli.', 1800); } return; }
+        n.ffW = time;   // eski "dost ateşi" uyarısı atlanır
+        if (n.role === 'patrol'){ n.rev = Math.max(n.rev || 0, time + 45);
+          for (const q of npcs) if (q.role === 'patrol' && q !== n && q.pos.distanceTo(n.pos) < 2500 && !(q.rev > time)) q.rev = time + 45; }
+      }
+      return _dn.apply(this, arguments);
+    };
+    const _kn = killNpc; killNpc = function(n, by){
+      const was = npcs.indexOf(n) >= 0, k0 = save.kredi, role = n && n.role, hunter = n && n.hunter;
+      if (!(was && by === 'player' && KS() && !ally(n))) return _kn.apply(this, arguments);
+      n.rev = 0; const r = _kn.apply(this, arguments);
+      let v, msg;
+      if (hunter){ v = Math.round(160 * (SYSC.bounty || 1)); msg = 'Filo avcısı düştü: +' + v + ' kredi'; addXp(55 * (SYSC.danger || 1)); }
+      else if (role === 'patrol'){ v = Math.round(rand(90, 150) * (SYSC.bounty || 1)); msg = 'Devriye düştü: Birlik ödülü +' + v + ' kredi'; addXp(40 * (SYSC.danger || 1)); }
+      else { v = Math.round(80 * (SYSC.pay || 1)); msg = ''; addXp(20); }
+      save.kredi = k0 + v; if (role === 'patrol' || hunter){ save.st && (save.st.avci = (save.st.avci || 0) + 1); }
+      persist(); if (msg) toast(msg, 2200);
+      try { window.__ctStep && window.__ctStep('av', 1, c => c.ks); } catch (e) {}
+      return r;
+    };
+    // korsan gemileri Birlik pilotunu korur: sana saldıran devriyeye dalar
+    const _tp = thinkPirate; thinkPirate = function(n){
+      _tp(n);
+      if (!KS() || !ally(n) || n.state === 'flee' || (n.state === 'attack' && n.tgt && n.tgt !== 'player' && n.tgt.role === 'patrol')) return;
+      let best = null, bd = 1100; for (const q of npcs){ if (q.role !== 'patrol' || !(q.rev > time) || q.tgt !== 'player') continue; const d = q.pos.distanceTo(n.pos); if (d < bd){ bd = d; best = q; } }
+      if (best){ n.state = 'attack'; n.tgt = best; n.atkT = time; }
+      else if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; }
+    };
+    // Filo devriyeleri korsanı görünce ateş açar (çaylak koruması ve Kara Liman hariç)
+    let acc = 0, warned = -99;
+    EXTRA.push(dt => { acc += dt; if (acc < 1) return; acc = 0; if (!KS() || docked || curSys === 5 || save.grace > 0 || window.__dead) return;
+      for (const q of npcs){ if (q.role !== 'patrol' || q.rev > time || q.pos.distanceTo(rig.position) > 800) continue; q.rev = time + 30;
+        if (time - warned > 40){ warned = time; eco.radioT = -9; radio(q.name, 'Birlik gemisi tespit edildi! Ateş serbest!', '#ff5a6e'); } } });
+    // yan görevler: korsan için "korsan avı" yerine Filo ve tüccar avı
+    { const _g = ctGen; ctGen = function(){ _g(); try { if (KS()){ for (const c of save.ct.offers) if (c.type === 'av' && !c.ks){ c.ks = 1; c.txt = c.n + ' Filo ya da tüccar gemisi düşür'; } persist(); } } catch (e) {} }; }
+    // eski kayıttaki korsan avı görevleri de dönüşür
+    try { if (KS() && save.ct){ for (const c of save.ct.offers.concat(save.ct.active)) if (c.type === 'av' && !c.ks){ c.ks = 1; c.txt = c.n + ' Filo ya da tüccar gemisi düşür'; } } } catch (e) {}
   })();
 })();
