@@ -129,8 +129,8 @@ body,button{font-size-adjust:.5}
 <script>
 /* SÜRÜM: her güncellemede bu numarayı artır. Tarayıcı eski game.js dosyasını önbellekten getirmez,
    ayarlar panelinin altında da bu numara görünür. */
-window.SD_VERSION = '1.41.0';
-window.SD_API = '';   // bulut hesap sunucusu (Cloudflare Worker) adresi; boşsa bulut özellikleri kapalı
+window.SD_VERSION = '1.41.1';
+window.SD_FB = { apiKey: "AIzaSyADLoPqH_HEHjSv1mwY23cJZkuce-KOkUo", authDomain: "stardrift-617de.firebaseapp.com", projectId: "stardrift-617de", storageBucket: "stardrift-617de.firebasestorage.app", messagingSenderId: "527698904689", appId: "1:527698904689:web:dfdceeabba807fdf747dd0" };   // Firebase istemci ayarı (gizli değildir; güvenlik Firestore kurallarındadır)
 document.write('<script src="vendor/three-bloom.js?v=' + window.SD_VERSION + '"><\/script>');
 document.write('<script src="js/game.js?v=' + window.SD_VERSION + '"><\/script>');
 </script>

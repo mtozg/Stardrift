@@ -9834,20 +9834,50 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     document.head.appendChild(st);
   })();
 
-  // =====  BULUT HESAP (Cloudflare Worker): e-posta ile kayıt + aktivasyon kodu, giriş, şifre sıfırlama, kayıt eşitleme; hesapsız kısa cihaz kodu
+  // =====  BULUT HESAP (Firebase): e-postayla kayıt + doğrulama bağlantısı, giriş, şifre sıfırlama, kayıt eşitleme (Firestore); hesapsız kısa cihaz kodu (anonim oturum)
   (function(){
-    const API = (() => { try { const o = localStorage.getItem('sd_api'); if (o && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)) return o; } catch (e) {} return window.SD_API || ''; })();
-    window.__cloudApi = API;
-    const getC = () => { try { return JSON.parse(localStorage.getItem('sd-cloud') || 'null'); } catch (e) { return null; } };
-    const setC = c => { try { if (c) localStorage.setItem('sd-cloud', JSON.stringify(c)); else localStorage.removeItem('sd-cloud'); } catch (e) {} };
-    const call = async (m, path, body, tok) => { if (!API) throw new Error('Bulut sunucusu henüz ayarlı değil.'); const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 12000);
-      try { const r = await fetch(API + path, { method: m, headers: Object.assign({ 'Content-Type': 'application/json' }, tok ? { Authorization: 'Bearer ' + tok } : {}), body: body ? JSON.stringify(body) : undefined, signal: ctl.signal });
-        const j = await r.json().catch(() => ({ ok: false, error: 'Sunucu yanıtı okunamadı.' })); j.status = r.status; return j; }
-      catch (e) { return { ok: false, error: navigator.onLine === false ? 'İnternet bağlantısı yok.' : 'Sunucuya ulaşılamadı.', net: true }; } finally { clearTimeout(t); } };
+    const CFG = window.SD_FB; if (!CFG) return;
+    const API = 'firebase'; window.__cloudApi = API;
+    let fbp = null;   // kütüphane yalnızca gerektiğinde yüklenir (ilk açılış hızlı kalsın, çevrimdışı paketin içinde)
+    const loadFB = () => fbp || (fbp = new Promise((res, rej) => { if (window.firebase && firebase.firestore) return res(firebase);
+      const files = ['firebase-app-compat.js', 'firebase-auth-compat.js', 'firebase-firestore-compat.js'], v = '?v=' + (window.SD_VERSION || ''); let i = 0;
+      const next = () => { if (i >= files.length){ try { if (!firebase.apps.length) firebase.initializeApp(CFG); firebase.auth().languageCode = 'tr'; res(firebase); } catch (e) { rej(e); } return; }
+        const sc = document.createElement('script'); sc.src = 'vendor/firebase/' + files[i++] + v; sc.onload = next; sc.onerror = () => { fbp = null; rej(new Error('Firebase yüklenemedi')); }; document.head.appendChild(sc); };
+      next(); }));
+    const TR = { 'auth/email-already-in-use': 'Bu e-postayla zaten bir hesap var. Giriş yap.', 'auth/invalid-email': 'Geçerli bir e-posta gir.', 'auth/weak-password': 'Şifre en az 6 karakter olmalı.', 'auth/wrong-password': 'E-posta ya da şifre yanlış.', 'auth/user-not-found': 'E-posta ya da şifre yanlış.', 'auth/invalid-credential': 'E-posta ya da şifre yanlış.', 'auth/invalid-login-credentials': 'E-posta ya da şifre yanlış.', 'auth/too-many-requests': 'Çok fazla deneme. Biraz sonra tekrar dene.', 'auth/network-request-failed': 'İnternet bağlantısı yok ya da sunucuya ulaşılamadı.', 'permission-denied': 'İzin yok. (Firestore kuralları ayarlı mı?)', 'unavailable': 'Sunucuya ulaşılamadı.', 'auth/operation-not-allowed': 'Hesap sistemi henüz açılmadı. Biraz sonra tekrar dene.', 'auth/admin-restricted-operation': 'Kodla aktarım henüz açılmadı. Biraz sonra tekrar dene.' };
+    const err = e => ({ ok: false, error: TR[e && e.code] || (navigator.onLine === false ? 'İnternet bağlantısı yok.' : 'Bir sorun oldu: ' + ((e && (e.code || e.message)) || e)), code: e && e.code });
+    const user = () => (window.firebase && firebase.apps.length ? firebase.auth().currentUser : null);
+    const acct = () => { const u = user(); return u && !u.isAnonymous && u.emailVerified ? u : null; };
+    // eski arayüz bu üç yardımcıyı kullanıyor: getC (oturum), setC (çıkış), call (işlemler)
+    const getC = () => { const u = acct(); if (u) return { email: u.email, uid: u.uid }; try { const c = JSON.parse(localStorage.getItem('sd-cloud') || 'null'); return c && c.email ? c : null; } catch (e) { return null; } };
+    const setC = c => { try { if (c) localStorage.setItem('sd-cloud', JSON.stringify({ email: c.email })); else localStorage.removeItem('sd-cloud'); } catch (e) {} };
+    const actionUrl = () => location.origin + location.pathname;
+    async function call(m, path, body){
+      try { const fb = await loadFB(), au = fb.auth(), db = fb.firestore();
+        if (path === '/register'){ const cr = await au.createUserWithEmailAndPassword(body.email, body.password); if (body.pilot) try { await cr.user.updateProfile({ displayName: body.pilot }); } catch (e) {}
+          await cr.user.sendEmailVerification({ url: actionUrl() }); return { ok: true, need: 'verify' }; }
+        if (path === '/login'){ const cr = await au.signInWithEmailAndPassword(body.email, body.password); await cr.user.reload();
+          if (!cr.user.emailVerified){ try { await cr.user.sendEmailVerification({ url: actionUrl() }); } catch (e) {} return { ok: false, need: 'verify', error: 'Hesabın henüz etkin değil. E-postana yeni doğrulama bağlantısı gönderdik.' }; }
+          return { ok: true, email: cr.user.email, pilot: cr.user.displayName || '' }; }
+        if (path === '/verify'){ const u = au.currentUser; if (!u) return { ok: false, error: 'Önce giriş yap.' }; await u.reload(); if (!au.currentUser.emailVerified) return { ok: false, error: 'Henüz doğrulanmamış. E-postadaki bağlantıya tıkladıktan sonra tekrar dene.' }; await u.getIdToken(true); return { ok: true, email: u.email, pilot: u.displayName || '' }; }
+        if (path === '/resend'){ const u = au.currentUser; if (u && !u.emailVerified) await u.sendEmailVerification({ url: actionUrl() }); return { ok: true }; }
+        if (path === '/forgot'){ try { await au.sendPasswordResetEmail(body.email, { url: actionUrl() }); } catch (e) { if (e.code !== 'auth/user-not-found') throw e; } return { ok: true }; }
+        if (path === '/logout'){ await au.signOut(); return { ok: true }; }
+        if (path === '/save'){ const u = acct(); if (!u) return { ok: false, status: 401, error: 'Oturum yok.' }; const ref = db.collection('saves').doc(u.uid);
+          if (m === 'GET'){ const d = await ref.get(); return { ok: true, data: d.exists ? d.data().data : null, t: d.exists ? d.data().t : 0 }; }
+          const t = Date.now(); await ref.set({ data: body.data, t }); return { ok: true, t }; }
+        if (path === '/code'){ if (!au.currentUser) await au.signInAnonymously(); const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', r = crypto.getRandomValues(new Uint8Array(8)); let c = ''; for (const x of r) c += A[x % A.length]; c = c.slice(0, 4) + '-' + c.slice(4);
+          await db.collection('codes').doc(c).set({ data: body.data, t: Date.now(), uid: au.currentUser.uid }); return { ok: true, code: c, days: 30 }; }
+        if (path.startsWith('/code/')){ if (!au.currentUser) await au.signInAnonymously(); const k = path.slice(6).toUpperCase().replace(/[^A-Z0-9]/g, ''), d = await db.collection('codes').doc(k.slice(0, 4) + '-' + k.slice(4, 8)).get();
+          if (!d.exists || Date.now() - d.data().t > 30 * 86400000) return { ok: false, status: 404, error: 'Kod bulunamadı ya da süresi dolmuş.' }; return { ok: true, data: d.data().data, t: d.data().t }; }
+        return { ok: false, error: 'Bilinmeyen işlem' };
+      } catch (e) { return err(e); } }
     window.__cloudCall = call;
+    // oturum açıksa kütüphaneyi açılışta yükle (eşitleme için); değilse yalnızca hesap ekranı açılınca
+    try { if (localStorage.getItem('sd-cloud')) loadFB().then(fb => fb.auth().onAuthStateChanged(() => { if (!acct()) { /* oturum düştü */ } try { refreshRow(); } catch (e) {} })).catch(() => {}); } catch (e) {}
     // kayıt zaman damgası: her persist'te güncellenir (hangi cihazın kaydı daha yeni, anlamak için)
     { const _p = persist; persist = function(){ if (!window.__noPersist) save._t = Date.now(); return _p.apply(this, arguments); }; }
-    const raw = () => { persist(); return localStorage.getItem(SAVEKEY) || JSON.stringify(save); };
+    const raw = () => { persist(); let j = localStorage.getItem(SAVEKEY) || JSON.stringify(save); if (j.length > 700000){ try { const o = JSON.parse(j); delete o.log; delete o.inbox; j = JSON.stringify(o); } catch (e) {} } return j; };
     const sum = o => { try { const L = window.__lvXp || []; let l = 1; L.forEach((v, i) => { if ((o.xp || 0) >= v) l = i + 1; }); return 'Seviye ' + l + ' · ' + (o.kredi || 0) + ' kredi' + (o.side ? ' · ' + ({ filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' })[o.side] : '') + (o.pilot ? ' · ' + o.pilot : ''); } catch (e) { return ''; } };
     const apply = (data, why) => { let o; try { o = JSON.parse(data); } catch (e) { toast('Kayıt okunamadı.', 2600); return; } try { localStorage.setItem(SAVEKEY, JSON.stringify(o)); } catch (e) { toast('Kayıt yazılamadı.', 2600); return; }
       window.__noPersist = true; persist = function(){}; toast((why || 'Kayıt yüklendi') + ', oyun yeniden açılıyor…', 2000); setTimeout(() => location.reload(), 900); };
@@ -9864,40 +9894,40 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         const tabs = (m === 'in' || m === 'reg') ? '<div class="tb"><button data-m="in" class="' + (m === 'in' ? 'on' : '') + '">Giriş yap</button><button data-m="reg" class="' + (m === 'reg' ? 'on' : '') + '">Kayıt ol</button></div>' : '';
         const f = m === 'reg' ? '<input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '"><input id="cN" placeholder="Pilot adı" maxlength="14" value="' + esc(save.pilot || '') + '"><input id="cP" type="password" placeholder="Şifre (en az 6)" autocomplete="new-password"><input id="cP2" type="password" placeholder="Şifre tekrar" autocomplete="new-password">'
           : m === 'in' ? '<input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '"><input id="cP" type="password" placeholder="Şifre" autocomplete="current-password"><a class="lk" data-m="forgot">Şifremi unuttum</a>'
-          : m === 'verify' ? '<p><b>' + esc(em) + '</b> adresine 6 haneli bir kod gönderdik. Gelmediyse istenmeyen (spam) klasörüne bak.</p><input id="cC" inputmode="numeric" maxlength="6" placeholder="Etkinleştirme kodu" class="code"><a class="lk" data-a="resend">Kodu tekrar gönder</a>'
-          : m === 'forgot' ? '<p>Hesabının e-postasını yaz; şifre sıfırlama kodu gönderelim.</p><input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '">'
-          : '<p><b>' + esc(em) + '</b> adresine gelen kodu ve yeni şifreni yaz.</p><input id="cC" inputmode="numeric" maxlength="6" placeholder="Sıfırlama kodu" class="code"><input id="cP" type="password" placeholder="Yeni şifre (en az 6)" autocomplete="new-password">';
-        const go = { reg: 'Kayıt ol', in: 'Giriş yap', verify: 'Etkinleştir', forgot: 'Kod gönder', reset: 'Şifreyi değiştir' }[m];
+          : m === 'verify' ? '<p><b>' + esc(em) + '</b> adresine bir doğrulama bağlantısı gönderdik. E-postadaki bağlantıya tıkla, sonra buraya dönüp <b>Etkinleştirdim</b> de. Gelmediyse istenmeyen (spam) klasörüne bak.</p><a class="lk" data-a="resend">Bağlantıyı tekrar gönder</a>'
+          : m === 'forgot' ? '<p>Hesabının e-postasını yaz; şifre sıfırlama bağlantısı gönderelim.</p><input id="cE" type="email" placeholder="E-posta" autocomplete="email" value="' + esc(em) + '">'
+          : '<p><b>' + esc(em) + '</b> adresine şifre sıfırlama bağlantısı gönderdik. Bağlantıdan yeni şifreni belirle, sonra buradan giriş yap.</p>';
+        const go = { reg: 'Kayıt ol', in: 'Giriş yap', verify: 'Etkinleştirdim', forgot: 'Bağlantı gönder', reset: 'Girişe dön' }[m];
         P.innerHTML = '<b class="h">' + ({ reg: 'HESAP AÇ', in: 'GİRİŞ', verify: 'HESABI ETKİNLEŞTİR', forgot: 'ŞİFREMİ UNUTTUM', reset: 'YENİ ŞİFRE' })[m] + '</b>' + tabs + '<div class="f">' + f + '</div><div class="er' + (ok ? ' ok' : '') + '">' + (msg || '') + '</div><button class="go">' + go + '</button>'
           + (m === 'forgot' || m === 'reset' ? '<a class="lk" data-m="in">Girişe dön</a>' : '') + '<a class="lk x" data-x="1">Kapat</a><div class="nt">Hesabın kaydını buluta yazar; başka cihazda aynı e-postayla girince kaldığın yerden devam edersin.</div>';
         const f1 = P.querySelector('input'); if (f1 && !f1.value) setTimeout(() => f1.focus(), 50); };
-      const done = async r => { setC({ email: r.email, token: r.token, pilot: r.pilot || '' }); close(w); toast('Giriş yapıldı: ' + r.email, 2200); refreshRow(); await syncAfterLogin(); };
+      const done = async r => { setC({ email: r.email }); close(w); toast('Giriş yapıldı: ' + r.email, 2200); refreshRow(); await syncAfterLogin(); };
       draw();
       w.addEventListener('click', async e => {
         const t = e.target.closest('[data-m]'); if (t){ em = (w.querySelector('#cE') || {}).value || em; m = t.dataset.m; draw(); return; }
         const er = msg => draw(msg), btn = e.target.closest('.go');
-        if (e.target.closest('[data-a="resend"]')){ const r = await call('POST', '/resend', { email: em, kind: 'verify' }); draw(r.ok ? 'Yeni kod gönderildi.' + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : '') : r.error, r.ok); return; }
+        if (e.target.closest('[data-a="resend"]')){ const r = await call('POST', '/resend', { email: em, kind: 'verify' }); draw(r.ok ? 'Yeni bağlantı gönderildi.' : r.error, r.ok); return; }
         if (!btn) return; btn.disabled = true; btn.textContent = 'Bekle…';
         const v = id => ((w.querySelector('#' + id) || {}).value || '').trim();
         if (m === 'reg'){ em = v('cE'); const pw = (w.querySelector('#cP') || {}).value || '', pw2 = (w.querySelector('#cP2') || {}).value || '';
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); if (pw.length < 6) return er('Şifre en az 6 karakter olmalı.'); if (pw !== pw2) return er('Şifreler aynı değil.');
-          const r = await call('POST', '/register', { email: em, password: pw, pilot: v('cN') }); if (!r.ok) return er(r.error); m = 'verify'; draw('Kod gönderildi.' + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : ''), true); return; }
+          const r = await call('POST', '/register', { email: em, password: pw, pilot: v('cN') }); if (!r.ok) return er(r.error); m = 'verify'; draw('Doğrulama bağlantısı gönderildi.', true); return; }
         if (m === 'in'){ em = v('cE'); const r = await call('POST', '/login', { email: em, password: (w.querySelector('#cP') || {}).value || '' });
-          if (r.ok) return done(r); if (r.need === 'verify'){ m = 'verify'; return draw(r.error + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : ''), true); } return er(r.error); }
-        if (m === 'verify'){ const r = await call('POST', '/verify', { email: em, code: v('cC') }); if (!r.ok) return er(r.error); return done(r); }
-        if (m === 'forgot'){ em = v('cE'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); const r = await call('POST', '/forgot', { email: em }); if (!r.ok) return er(r.error); m = 'reset'; return draw('Hesap varsa kod gönderildi.' + (r.dev ? ' (deneme kodu: ' + r.dev + ')' : ''), true); }
-        if (m === 'reset'){ const pw = (w.querySelector('#cP') || {}).value || ''; if (pw.length < 6) return er('Şifre en az 6 karakter olmalı.'); const r = await call('POST', '/reset', { email: em, code: v('cC'), password: pw }); if (!r.ok) return er(r.error); return done(r); }
+          if (r.ok) return done(r); if (r.need === 'verify'){ m = 'verify'; return draw(r.error, true); } return er(r.error); }
+        if (m === 'verify'){ const r = await call('POST', '/verify', { email: em }); if (!r.ok) return er(r.error); return done(r); }
+        if (m === 'forgot'){ em = v('cE'); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); const r = await call('POST', '/forgot', { email: em }); if (!r.ok) return er(r.error); m = 'reset'; return draw('Hesap varsa bağlantı gönderildi.', true); }
+        if (m === 'reset'){ m = 'in'; return draw(); }
       });
       w.addEventListener('keydown', e => { if (e.key === 'Enter'){ const b = w.querySelector('.go'); b && b.click(); } });
     }
     window.__cloudAccount = account;
     // ---- eşitleme
     let lastPut = '', lastPutT = 0, syncing = false;
-    async function push(force){ const c = getC(); if (!c || syncing) return; const d = raw(); if (!force && d === lastPut) return; syncing = true;
-      const r = await call('PUT', '/save', { data: d }, c.token); syncing = false;
+    async function push(force){ const c = getC(); if (!c || syncing || !acct()) return;   /* oturum henüz hazır değilse bekle; çıkış sayma */ const d = raw(); if (!force && d === lastPut) return; syncing = true;
+      const r = await call('PUT', '/save', { data: d }); syncing = false;
       if (r.ok){ lastPut = d; lastPutT = Date.now(); c.t = r.t; setC(c); } else if (r.status === 401){ setC(null); refreshRow(); toast('Bulut oturumu sona erdi. Yeniden giriş yap.', 3200); } }
     window.__cloudPush = push;
-    async function syncAfterLogin(){ const c = getC(); if (!c) return; const r = await call('GET', '/save', null, c.token); if (!r.ok) return;
+    async function syncAfterLogin(){ const c = getC(); if (!c) return; const r = await call('GET', '/save'); if (!r.ok) return;
       if (!r.data){ await push(true); toast('Bu cihazdaki kayıt hesabına yüklendi.', 2600); return; }
       if (r.data === raw()){ lastPut = r.data; return; }
       let o = null; try { o = JSON.parse(r.data); } catch (e) {}
@@ -9905,21 +9935,22 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       w.addEventListener('click', async e => { const b = e.target.closest('[data-k]'); if (!b) return; if (b.dataset.k === 'cloud'){ close(w); apply(r.data, 'Buluttaki kayıt yüklendi'); } else { close(w); await push(true); toast('Bu cihazdaki kayıt hesabına yazıldı.', 2400); } });
     }
     // açılışta: hesap varsa buluttaki kayıt bu cihazdakinden yeniyse sor
-    setTimeout(async () => { const c = getC(); if (!c || !API) return; const r = await call('GET', '/save', null, c.token); if (!r.ok){ if (r.status === 401){ setC(null); refreshRow(); } return; }
+    setTimeout(async () => { if (!getC()) return; try { const fb = await loadFB(); await new Promise(res => { const off = fb.auth().onAuthStateChanged(() => { off(); res(); }); }); } catch (e) { return; }
+      const c = getC(); if (c && !acct()){ setC(null); refreshRow(); toast('Bulut oturumu sona erdi. Yeniden giriş yap.', 3200); return; } if (!c) return; const r = await call('GET', '/save'); if (!r.ok) return;
       if (!r.data){ push(true); return; } if (r.data === raw()){ lastPut = r.data; return; }
       let o = null; try { o = JSON.parse(r.data); } catch (e) {} if (o && (o._t || 0) > (save._t || 0) + 5000){
         const w = box('<b class="h">BULUTTA DAHA YENİ KAYIT</b><p>Başka bir cihazda daha yeni oynamışsın.</p><button class="opt" data-k="cloud"><b>Buluttakini yükle</b><span>' + esc(sum(o)) + '</span></button><button class="opt" data-k="local"><b>Bu cihazdakiyle devam et</b><span>' + esc(sum(save)) + '</span></button>');
         w.addEventListener('click', async e => { const b = e.target.closest('[data-k]'); if (!b) return; close(w); if (b.dataset.k === 'cloud') apply(r.data, 'Buluttaki kayıt yüklendi'); else push(true); }); }
       else push(); }, 2500);
     setInterval(() => { if (getC() && document.visibilityState === 'visible') push(); }, 60000);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && getC()){ const c = getC(), d = raw(); if (d !== lastPut && API) try { fetch(API + '/save', { method: 'PUT', keepalive: d.length < 60000, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.token }, body: JSON.stringify({ data: d }) }).then(() => { lastPut = d; }).catch(() => {}); } catch (e) {} } });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && acct()) push(); });
     // ---- giriş ekranı satırı (eski 'yalnızca bu cihazda' hesap yerine)
     function refreshRow(){ const r = document.getElementById('accRow'); if (!r) return; const c = getC();
       r.innerHTML = c ? '<span>Hesap: <b style="color:#ffc477">' + esc(c.email) + '</b></span><a data-o="out">Çıkış yap</a>' : '<a data-o="in">Giriş yap</a><a data-o="reg">Kayıt ol</a>'; }
     window.__cloudRow = refreshRow;
     setTimeout(() => { const old = document.getElementById('accRow'); if (!old) return; const row = old.cloneNode(false); old.replaceWith(row); refreshRow();
       row.addEventListener('click', async e => { const a = e.target.closest('a[data-o]'); if (!a) return; e.stopPropagation(); const o = a.dataset.o;
-        if (o === 'out'){ const c = getC(); await push(true); if (c) call('POST', '/logout', {}, c.token); setC(null); refreshRow(); toast('Çıkış yapıldı. Kayıt bu cihazda kalır.', 2400); }
+        if (o === 'out'){ const c = getC(); await push(true); if (c) await call('POST', '/logout'); setC(null); refreshRow(); toast('Çıkış yapıldı. Kayıt bu cihazda kalır.', 2400); }
         else account(o); }); }, 300);
     // ---- Diğer → Hesap: hesap satırı + kısa cihaz kodu (eski uzun kod yalnızca çevrimdışıyken)
     const hesapRows = () => { const c = getC(); return '<div class="line cldx"><span>' + (c ? 'Hesap: <b style="color:#ffc477">' + esc(c.email) + '</b><span class="dim"><br>Kayıt buluta kendiliğinden yazılır' + (lastPutT ? ' · son: ' + new Date(lastPutT).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '') + '</span>' : 'Hesabın yok<span class="dim"><br>E-postayla kayıt ol: kaydın bulutta durur, her cihazda açılır.</span>') + '</span><span class="bb">'
@@ -9929,7 +9960,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const tx = sv.querySelector('span'); if (tx && !tx.dataset.c2){ tx.dataset.c2 = 1; tx.innerHTML = 'Hesapsız aktarım<span class="dim"><br>Kodu al: kaydın buluta yüklenir, 8 haneli kısa kod çıkar (30 gün). Öbür cihazda Kod gir.</span>'; } });
     document.addEventListener('click', async e => { const b = e.target.closest && e.target.closest('button[data-cl2]'); if (!b) return; const a = b.dataset.cl2;
       if (a === 'push'){ await push(true); toast(lastPutT && Date.now() - lastPutT < 5000 ? 'Kayıt buluta yazıldı.' : 'Buluta yazılamadı.', 2000); }
-      else if (a === 'out'){ const c = getC(); await push(true); if (c) call('POST', '/logout', {}, c.token); setC(null); refreshRow(); toast('Çıkış yapıldı.', 2000); }
+      else if (a === 'out'){ const c = getC(); await push(true); if (c) await call('POST', '/logout'); setC(null); refreshRow(); toast('Çıkış yapıldı.', 2000); }
       else account(a);
       const f = document.getElementById('exBox'), r = f && f.querySelector('.cldx'); if (r) r.remove(); });
     // kısa cihaz kodu: eski uzun kod düğmelerinin önüne geçer (internet yoksa eskisi çalışır)
