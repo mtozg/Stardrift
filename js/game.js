@@ -9483,4 +9483,64 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (!el){ el = document.createElement('div'); el.id = 'stSub'; el.dataset.tab = 'trade'; cl.parentNode.insertBefore(el, cl); }
       if (el.nextElementSibling !== cl) cl.parentNode.insertBefore(el, cl); if (el.textContent !== sub.textContent) el.textContent = sub.textContent; };
     const _r = renderDock; renderDock = function(){ const r = _r.apply(this, arguments); try { sync(); } catch (e) {} return r; }; }
+
+  // =====  ölüm: oyun durur, canlan ekranı; krediyle o sistemin ana istasyonunda kenetli canlanılır; arada gemi parçaları birleşir
+  (function(){
+    const css = document.createElement('style'); css.textContent = `
+  #death{position:fixed;inset:0;z-index:97;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;background:radial-gradient(ellipse at 50% 45%,rgba(60,8,16,.88),rgba(3,4,10,.97) 70%);color:#f1e6e8;font-family:var(--font);opacity:0;transition:opacity .5s}
+  #death.on{display:flex}#death.vis{opacity:1}
+  #death h2{margin:0;font:700 20px/1.2 var(--font);letter-spacing:.34em;padding-left:.34em;color:#ff7d8e;text-shadow:0 0 18px rgba(255,80,100,.5)}
+  #death p{margin:0;max-width:440px;font:500 14px/1.45 var(--font);color:#e2c9cd}#death p b{color:#ffc477}
+  #death .ls{font-size:12.5px;color:#b9a1a6}
+  #death button{margin-top:6px;font:700 14px var(--font);letter-spacing:.16em;padding:11px 26px;border-radius:999px;border:1px solid #ffb454;background:#ffb454;color:#2b1300;cursor:pointer}
+  #death canvas{width:260px;height:150px}
+  #death .bar{width:min(300px,70vw);height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}#death .bar u{display:block;height:100%;width:0;background:linear-gradient(90deg,#7fd8ff,#ffc477)}
+  #death .st{font:600 12px var(--font);letter-spacing:.2em;color:#9fd8ff;min-height:1.2em}`;
+    document.head.appendChild(css);
+    const D = document.createElement('div'); D.id = 'death'; document.body.appendChild(D);
+    for (const ev of ['pointerdown', 'touchstart', 'keydown', 'keyup', 'wheel']) D.addEventListener(ev, e => e.stopPropagation());
+    const fee = () => Math.min(save.kredi, Math.max(50, Math.round(save.kredi * 0.1)));
+    // gemi parçaları: ok biçimli gövdeyi oluşturan üçgenler dağınıktan yerine gelir
+    const SH = [[[0,-60],[16,-20],[-16,-20]], [[-16,-20],[16,-20],[14,20],[-14,20]], [[-14,20],[14,20],[10,46],[-10,46]], [[-16,-20],[-58,24],[-48,34],[-14,20]], [[16,-20],[58,24],[48,34],[14,20]], [[-10,46],[-22,58],[-4,52]], [[10,46],[22,58],[4,52]], [[-48,34],[-66,40],[-58,24]], [[48,34],[66,40],[58,24]]];
+    const OFF = SH.map(() => ({ x: (Math.random() - 0.5) * 300, y: (Math.random() - 0.5) * 180, r: (Math.random() - 0.5) * 5 }));
+    function drawShip(cv, t){ const g = cv.getContext('2d'), W = cv.width, H = cv.height, k = W / 260; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); g.translate(W / 2, H / 2 + 4 * k); g.scale(k, k);
+      const e = t < 1 ? 1 - Math.pow(1 - t, 3) : 1;
+      SH.forEach((pts, i) => { const o = OFF[i], d = Math.max(0, Math.min(1, e * 1.25 - i * 0.03)); g.save(); g.translate(o.x * (1 - d), o.y * (1 - d)); g.rotate(o.r * (1 - d));
+        g.beginPath(); pts.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
+        g.fillStyle = 'rgba(160,190,215,' + (0.25 + 0.55 * d) + ')'; g.fill(); g.lineWidth = 1.4; g.strokeStyle = d > 0.98 ? '#9fe4ff' : 'rgba(255,196,119,.9)'; g.stroke(); g.restore(); });
+      if (t >= 1){ g.globalCompositeOperation = 'lighter'; const gr = g.createRadialGradient(0, 0, 0, 0, 0, 90); gr.addColorStop(0, 'rgba(127,216,255,.35)'); gr.addColorStop(1, 'rgba(127,216,255,0)'); g.fillStyle = gr; g.fillRect(-130, -80, 260, 160); g.globalCompositeOperation = 'source-over'; } }
+    function show(){
+      const f = fee(), st = (typeof STATION !== 'undefined' && STATION) ? STATION.ad : 'ana istasyon';
+      D.innerHTML = '<h2>GEMİ PARÇALANDI</h2><p>Kargon uzaya saçıldı. Kurtarma ekibi gövdeni toplayıp yeniden birleştirebilir.<br>Canlanma yeri: <b>' + st + '</b></p><p class="ls">Kurtarma ve onarım ücreti: kredinin %10\'u (en az 50).</p><button>' + (f > 0 ? 'CANLAN · ' + f + ' KREDİ' : 'CANLAN · ÜCRETSİZ') + '</button>';
+      D.classList.add('on'); requestAnimationFrame(() => D.classList.add('vis')); window.__menuOn = true;
+      D.querySelector('button').onclick = () => { const c = fee(); save.kredi -= c; persist(); rebuild(c); };
+    }
+    function rebuild(paid){
+      OFF.forEach(o => { o.x = (Math.random() - 0.5) * 300; o.y = (Math.random() - 0.5) * 180; o.r = (Math.random() - 0.5) * 5; });
+      D.innerHTML = '<canvas width="520" height="300"></canvas><div class="st"></div><div class="bar"><u></u></div>';
+      const cv = D.querySelector('canvas'), stx = D.querySelector('.st'), bar = D.querySelector('.bar u'), T = 3600, t0 = performance.now();
+      const msgs = ['PARÇALAR TOPLANIYOR', 'GÖVDE LEVHALARI KAYNAKLANIYOR', 'MOTOR BAĞLANIYOR', 'KALKAN AYARLANIYOR', 'HAZIR'];
+      try { sfxP('gelistirme', 0.5); } catch (e) {}
+      const step = () => { const t = Math.min(1, (performance.now() - t0) / T); drawShip(cv, t); bar.style.width = (t * 100).toFixed(1) + '%'; stx.textContent = msgs[Math.min(msgs.length - 1, Math.floor(t * (msgs.length - 1) + 0.0001))];
+        if (t < 1) requestAnimationFrame(step); else setTimeout(finish, 600); };
+      requestAnimationFrame(step);
+      // arka planda: gemiyi ana istasyona taşı ve kenetle
+      try { const st = STATION, dir = V(0, 0, 1); rig.position.copy(st.pos).addScaledVector(dir, st.dock * 0.5); vel.set(0, 0, 0); hp.hull = hp.hullMax; hp.shield = hp.shieldMax; try { hgTab = 'trade'; } catch (e) {} tryDock(); } catch (e) { console.warn(e); }
+      D._paid = paid;
+    }
+    function finish(){ hp.hull = hp.hullMax; hp.shield = hp.shieldMax; hp.regenT = 0; window.__dead = false; try { renderDock(); } catch (e) {}
+      D.classList.remove('vis'); setTimeout(() => { D.classList.remove('on'); D.innerHTML = ''; window.__menuOn = false; }, 500);
+      toast('Gemin yeniden birleştirildi' + (D._paid ? ' · ' + D._paid + ' kredi' : '') + '. Kargo kayıp.', 3600); }
+    // ölü/yükleniyorken hasar alınmaz
+    const _hurt = hurt; hurt = function(){ if (window.__dead) return; return _hurt.apply(this, arguments); };
+    wreck = function(){
+      if (window.__dead) return; window.__dead = true;
+      flashAt(rig.position.clone(), 50, 8); burst(rig.position, 0xffd0a0, 40, 90, 1.0); sfxBoom(1); shake = 1;
+      for (const k in cargo) cargo[k] = 0; persist();
+      vel.set(0, 0, 0); hp.hull = 1; hp.shield = 0; lock = null; boostBtn = false; laserOn = false; thrustOn = false;
+      for (const n of npcs) if (n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; n.truce = time + 30; }
+      setTimeout(show, 900);
+    };
+    window.__deathShow = show;
+  })();
 })();
