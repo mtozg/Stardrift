@@ -67,7 +67,9 @@ function resize(){
   const vw = window.innerWidth, vh = window.innerHeight, st = $('stage');
   SX = 0; SY = 0; SK = 1; W = vw; H = vh;
   if ((deviceLandscape() === true || vw >= 460) && vw / vh < 1.45){
-    SK = vw < 900 ? vw / 900 : 1; W = Math.round(vw / SK); H = Math.round(vh / SK);   /* eskiden 16:10'a sıkıştırılıp üstte-altta siyah şerit kalıyordu (iPad): artık ekranın tamamı */
+    SK = vw < 900 ? vw / 900 : 1; W = Math.round(vw / SK); H = Math.round(W / 1.6);   /* iPad gibi dar oranlı ekranda kokpit kendi oranında (16:10) kalır, üstte-altta şerit */
+    if (H * SK > vh){ SK = vh / H; }
+    SX = Math.round((vw - W * SK) / 2); SY = Math.round((vh - H * SK) / 2);
   }
   DPR = DPR * SK;
   st.style.transformOrigin = '0 0'; st.style.transform = 'scale(' + SK + ')';
@@ -1685,8 +1687,6 @@ function layoutCockpit(){
   if (LAND && IMG.ok){
     const s0 = Math.max(W / IMG.iw, H / IMG.ih) * 1.04, s = IMG.cfg ? s0 : Math.max(s0, H / 582 * 1.02, Math.min(s0 * 1.45, W / 1000)), dx = (W - IMG.iw * s) / 2, dy = H - (IMG.cfg ? IMG.ih : 582) * s;
     const CK = ckMapping(); IM.s = s; IM.dx = dx; IM.dy = dy; IM.R1 = CK.R1; IM.a = CK.a; IM.b = CK.b; IM.T = 0; IMGMODE = true; WINS = [];
-    // iPad gibi dar oranlı ekran: resmi yüksekliğe göre büyütmek yanları kesiyordu. Genişliğe sığdır, üstteki cam bölgesini ekranı dolduracak kadar uzat
-    if (IMG.cfg && CK.R1 && W / H < 1.6){ const sw = W / IMG.iw * 1.04, T = H / sw; if (T > IMG.ih){ IM.s = sw; IM.dx = (W - IMG.iw * sw) / 2; IM.dy = 0; IM.T = T; IM.a = CK.a = (T - (IMG.ih - CK.R1) * CK.b) / CK.R1; } }
     const my = y => CK.R1 ? (y <= CK.R1 ? y * CK.a : CK.R1 * CK.a + (y - CK.R1) * CK.b) : y; IM.my = my;
     const mp = (x, y) => [IM.dx + x * IM.s, IM.dy + my(y) * IM.s], K = IMG.cfg, c0 = mp(800, K ? 215 : 265), a0 = mp(K ? 250 : 340, K ? 30 : 150), b0 = mp(K ? 1350 : 1260, K ? 392 : 385);
     { const hs = $('hint').style; hs.top = '5px'; hs.fontSize = '10.5px'; hs.maxWidth = Math.round(W * 0.5) + 'px'; hs.lineHeight = '1.25'; }
