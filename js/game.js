@@ -9098,7 +9098,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   if (!save.amm || typeof save.amm !== 'object'){ save.amm = {}; for (const k in AMP) if (save.eqOwn.includes('mermi:' + k)) save.amm[k] = AMC; }   // eski satın alanlara bir dolu hazne
   for (const k in AMP) if (typeof save.amm[k] !== 'number') save.amm[k] = 0;
   if (save.eq.mermi !== 'std' && !(save.amm[save.eq.mermi] > 0)) save.eq.mermi = 'std';
-  window.__AMP = AMP; window.__AMC = AMC;
+  window.__AMP = AMP; window.__AMC = AMC; window.__EQM = EQ.mermi.items; window.__eqApply = () => eqApply();
   const amRows = () => EQ.mermi.items.map((q, i) => { const on = save.eq.mermi === q.id, std = q.id === 'std', n = std ? 0 : Math.floor(save.amm[q.id] || 0), pr = AMP[q.id] || 0, need = AMC - n, nb = std ? 0 : Math.min(need, Math.floor(save.kredi * 10 / pr)), cost = Math.ceil(nb * pr / 10);
     return '<div class="line itl amr">' + icon('mermi', i) + '<span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + (std ? ' · Sınırsız' : ' · <b class="amn">' + n + '/' + AMC + '</b> · 10 adet ' + pr + ' kredi') + '</span></span><span class="bb">'
       + (std ? '' : '<button class="act' + (need > 0 && nb > 0 ? ' go' : '') + '" data-am="fill:' + q.id + '" ' + (need > 0 && nb > 0 ? '' : 'disabled') + '>' + (need <= 0 ? 'Dolu' : 'Doldur · ' + cost) + '</button>')
@@ -9776,5 +9776,36 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         E2.hg.gain.setTargetAtTime(on * (0.012 + th * 0.05 + bo * 0.06), t, 0.12); E2.hf.frequency.setTargetAtTime(1400 + th * 500 + bo * 900, t, 0.2);
         E2.og.gain.setTargetAtTime(on * (0.008 + th * 0.016 + sp * 0.022), t, 0.2); E2.o.frequency.setTargetAtTime(150 + sp * 230 + th * 30, t, 0.25);
       } catch (e) {} };
+  })();
+
+  // =====  MERMİ SEÇİCİ: lazer düğmesinin köşesindeki küçük mermi düğmesi (lazer basılı tutunca ateş ettiği için seçim ayrı düğmede)
+  (function(){
+    const las = $('bLaser'); if (!las || !window.__EQM) return;
+    const COL = { std: '#7fe6ff', yogun: '#ffc56e', kazici: '#ff7c98', soguk: '#7be0a4', ustun: '#c8a8ff' };
+    const chip = document.createElement('div'); chip.id = 'amChip'; document.body.appendChild(chip);
+    const pick = document.createElement('div'); pick.id = 'amPick'; document.body.appendChild(pick);
+    const n = id => id === 'std' ? '∞' : Math.floor((save.amm && save.amm[id]) || 0);
+    const place = () => { const r = las.getBoundingClientRect(); if (!r.width || docked || (document.body.classList.contains('kbm'))){ chip.style.display = 'none'; return; } chip.style.display = 'flex';
+      chip.style.left = Math.round(r.left - 8) + 'px'; chip.style.top = Math.round(r.top - 8) + 'px'; const id = save.eq.mermi || 'std'; chip.style.setProperty('--c', COL[id]); const t = id === 'std' ? '∞' : String(n(id)); if (chip.textContent !== t) chip.textContent = t; };
+    const open = () => { pick.innerHTML = window.__EQM.map((q, i) => { const ok = q.id === 'std' || n(q.id) > 0; return '<button data-m="' + q.id + '" class="' + (save.eq.mermi === q.id ? 'on' : '') + (ok ? '' : ' off') + '" style="--c:' + COL[q.id] + '">' + (window.__itIcon3d ? window.__itIcon3d('mermi', i) : '') + '<b>' + q.ad + '</b><i>' + n(q.id) + '</i></button>'; }).join('') + '<small>Boş mermiyi Cephanelik → Lazer\'den doldur.</small>';
+      const r = chip.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right - 40) + 'px'; pick.style.bottom = (innerHeight - r.top + 6) + 'px'; pick.classList.add('on'); try { blip(620, 0.05); } catch (e) {} };
+    chip.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (pick.classList.contains('on')) pick.classList.remove('on'); else open(); });
+    pick.addEventListener('pointerdown', e => { e.stopPropagation(); const b = e.target.closest('button[data-m]'); if (!b) return; e.preventDefault(); const id = b.dataset.m;
+      if (id !== 'std' && !(n(id) > 0)){ toast('Bu mermi boş. Cephanelik → Lazer\'den doldur.', 2200); return; }
+      save.eq.mermi = id; persist(); window.__eqApply(); pick.classList.remove('on'); toast(window.__EQM.find(q => q.id === id).ad + ' takıldı', 1400); });
+    document.addEventListener('pointerdown', e => { if (pick.classList.contains('on') && !e.target.closest('#amPick') && !e.target.closest('#amChip')) pick.classList.remove('on'); });
+    // klavye: V ile mermi sırayla değişir (boş olanlar atlanır)
+    document.addEventListener('keydown', e => { if (e.code !== 'KeyV' || e.repeat || docked || window.__menuOn) return; const ids = window.__EQM.map(q => q.id).filter(id => id === 'std' || n(id) > 0); const i = ids.indexOf(save.eq.mermi); save.eq.mermi = ids[(i + 1) % ids.length]; persist(); window.__eqApply(); toast('Mermi: ' + window.__EQM.find(q => q.id === save.eq.mermi).ad + ' (' + n(save.eq.mermi) + ')', 1400); });
+    EXTRA.push(() => { place(); if (docked) pick.classList.remove('on'); });
+    const st = document.createElement('style'); st.textContent = `
+  #amChip{position:fixed;z-index:31;min-width:30px;height:24px;padding:0 7px;border-radius:12px;display:none;align-items:center;justify-content:center;gap:4px;font:800 11px var(--font);color:#0a1220;background:var(--c);box-shadow:0 0 0 2px rgba(5,10,20,.85),0 0 12px var(--c);cursor:pointer;opacity:var(--tro,1)}
+  #amChip::before{content:'';width:6px;height:10px;border-radius:2px;background:#0a1220;opacity:.75}
+  #amPick{position:fixed;z-index:31;display:none;flex-direction:column;gap:3px;padding:6px;border-radius:12px;background:rgba(8,14,26,.95);border:1px solid rgba(220,235,245,.16);box-shadow:0 8px 30px rgba(0,0,0,.6);max-height:70vh;overflow:auto}
+  #amPick.on{display:flex}
+  #amPick button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:3px 10px 3px 3px;border-radius:8px;font:600 12px var(--font);color:#dbe6f3}
+  #amPick button img{width:30px;height:30px}#amPick button b{flex:1;font-weight:600}#amPick button i{font-style:normal;font-weight:800;color:var(--c);min-width:26px;text-align:right}
+  #amPick button.on{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--c)}#amPick button.off{opacity:.4}
+  #amPick small{font:500 10.5px var(--font);color:#8ea2b6;padding:3px 6px 1px}`;
+    document.head.appendChild(st);
   })();
 })();
