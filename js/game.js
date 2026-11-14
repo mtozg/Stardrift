@@ -2848,7 +2848,7 @@ function onRuinFound(r){
   save.rn[r.i] = save.pilot || 'Kaşif';
   let rw = LORE[r.i][0];
   if (r.i === 0){ const v = Math.round(450 * SYSC.bounty); save.kredi += v; rw = '+' + v + ' kredi'; }
-  else if (r.i === 1){ save.ammo = AMMO_MAX; save.ammoD = DMAX; }
+  else if (r.i === 1){ save.ammo = Math.max(save.ammo, AMMO_MAX); save.ammoD = Math.max(save.ammoD, DMAX); }
   else if (r.i === 2){ save.sp = (save.sp || 0) + 1; rw = '+1 yetenek puanı'; }
   else { save.map = true; }
   if (!save.parts) save.parts = {}; save.parts.hucre = (save.parts.hucre || 0) + 2; save.parts.devre = (save.parts.devre || 0) + 1; rw += ' · +2 enerji hücresi, +1 devre kartı';
@@ -9094,29 +9094,47 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     arrange(); }
   { const _w = renderWp; renderWp = function(){ const r = _w.apply(this, arguments); try { tidyWp(); } catch (e) {} return r; }; }
   // ---- lazer mermisi artık roket gibi adetli: standart sınırsız; diğerleri hazneye doldurulur, ateş ettikçe harcanır, bitince standarda dönülür
-  const AMC = 300, AMUSE = 6, AMP = { yogun: 8, kazici: 6, soguk: 10, ustun: 24 };   // hazne, saniyede harcanan, 10 adet fiyatı
+  const AMC = 300, AMP = { yogun: 30, kazici: 25, soguk: 35, ustun: 80 }, AMMIN = 500;   // 100 adet fiyatı; en az 500 alınır, üst sınır yok; her lazer atışı 1 harcar (çift namlu: 2)
   if (!save.amm || typeof save.amm !== 'object'){ save.amm = {}; for (const k in AMP) if (save.eqOwn.includes('mermi:' + k)) save.amm[k] = AMC; }   // eski satın alanlara bir dolu hazne
   for (const k in AMP) if (typeof save.amm[k] !== 'number') save.amm[k] = 0;
   if (save.eq.mermi !== 'std' && !(save.amm[save.eq.mermi] > 0)) save.eq.mermi = 'std';
   window.__AMP = AMP; window.__AMC = AMC; window.__EQM = EQ.mermi.items; window.__eqApply = () => eqApply();
-  const amRows = () => EQ.mermi.items.map((q, i) => { const on = save.eq.mermi === q.id, std = q.id === 'std', n = std ? 0 : Math.floor(save.amm[q.id] || 0), pr = AMP[q.id] || 0, need = AMC - n, nb = std ? 0 : Math.min(need, Math.floor(save.kredi * 10 / pr)), cost = Math.ceil(nb * pr / 10);
-    return '<div class="line itl amr">' + icon('mermi', i) + '<span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + (std ? ' · Sınırsız' : ' · <b class="amn">' + n + '/' + AMC + '</b> · 10 adet ' + pr + ' kredi') + '</span></span><span class="bb">'
-      + (std ? '' : '<button class="act' + (need > 0 && nb > 0 ? ' go' : '') + '" data-am="fill:' + q.id + '" ' + (need > 0 && nb > 0 ? '' : 'disabled') + '>' + (need <= 0 ? 'Dolu' : 'Doldur · ' + cost) + '</button>')
+  // adet seçimi: satırın kendi sayı kutusu (− / +); fiyat anında güncellenir
+  const QTY = {}, qOf = (k, min) => Math.max(min, Math.floor(QTY[k] || min));
+  const qBox = (k, min, step) => '<span class="qty" data-k="' + k + '" data-min="' + min + '" data-step="' + step + '"><button data-q="-">−</button><input type="number" inputmode="numeric" min="' + min + '" step="' + step + '" value="' + qOf(k, min) + '"><button data-q="+">+</button></span>';
+  const amCost = (id, n) => Math.ceil(n * AMP[id] / 100);
+  const amRows = () => EQ.mermi.items.map((q, i) => { const on = save.eq.mermi === q.id, std = q.id === 'std', n = std ? 0 : Math.floor(save.amm[q.id] || 0), k = 'am:' + q.id, want = qOf(k, AMMIN), c = std ? 0 : amCost(q.id, want);
+    return '<div class="line itl amr">' + icon('mermi', i) + '<span><b>' + q.ad + '</b><span class="dim"><br>' + q.d + (std ? ' · Sınırsız' : ' · elde <b class="amn">' + n + '</b> · 100 adet ' + AMP[q.id] + ' kredi') + '</span></span><span class="bb">'
+      + (std ? '' : qBox(k, AMMIN, 100) + '<button class="act' + (save.kredi >= c ? ' go' : '') + '" data-am="buy:' + q.id + '" data-c="' + c + '" ' + (save.kredi >= c ? '' : 'disabled') + '>Al · ' + c + '</button>')
       + '<button class="act' + (on ? ' on' : '') + '" data-am="use:' + q.id + '" ' + (on || (!std && n <= 0) ? 'disabled' : '') + '>' + (on ? 'Takılı' : 'Tak') + '</button></span></div>'; }).join('');
-  // Sarsıntı roketi (3. roket): patladığı yerdeki gemileri kısa süre felç eder
+  // roketler: düz, güdümlü, sarsıntı; adet seçerek alınır, üst sınır yok
   if (typeof save.ammoE !== 'number') save.ammoE = 0;
-  const EMAX = 4, ECOST = 25; window.__EMAX = EMAX;
-  const empRow = () => { const need = EMAX - save.ammoE, c = Math.round(ECOST * (typeof RWM === 'function' ? RWM() : 1)), nb = Math.min(need, Math.floor(save.kredi / c));
-    return '<div class="line itl amr">' + icon('roket', 2) + '<span><b>Sarsıntı Roketi</b><span class="dim"><br>' + save.ammoE + '/' + EMAX + ' · adedi ' + c + ' kredi · Düz uçar; patladığı yerdeki gemileri 5 sn felç eder (ateş edemez, kaçamaz). Hasarı az.</span></span><span class="bb"><button class="act' + (need > 0 && nb > 0 ? ' go' : '') + '" data-am="rk:e" ' + (need > 0 && nb > 0 ? '' : 'disabled') + '>' + (need <= 0 ? 'Dolu' : 'Doldur · ' + nb * c) + '</button></span></div>'; };
+  const ECOST = 25;
+  const RKD = [['d', 'Düz Roket', 'Ucuz. Nişan aldığın yere düz gider.', () => save.ammoD, () => Math.round(DUMB_COST * RWM())],
+    ['g', 'Güdümlü Roket', 'Kilitlenen hedefi takip eder.', () => save.ammo, () => Math.round(MISSILE_COST * RWM())],
+    ['e', 'Sarsıntı Roketi', 'Düz uçar; patladığı yerdeki gemileri 5 sn felç eder. Hasarı az.', () => save.ammoE || 0, () => Math.round(ECOST * RWM())]];
+  window.__rkCost = id => { const r = RKD.find(x => x[0] === id); return r ? r[4]() : 0; };
+  const rkRows = () => RKD.map(([id, ad, d, cnt, pr], i) => { const k = 'rk:' + id, want = qOf(k, 1), c = want * pr();
+    return '<div class="line itl amr">' + icon('roket', i) + '<span><b>' + ad + '</b><span class="dim"><br>elde <b class="amn">' + cnt() + '</b> · adedi ' + pr() + ' kredi · ' + d + (save.rSel === id ? ' · <b style="color:#7fd8ff">seçili</b>' : '') + '</span></span><span class="bb">' + qBox(k, 1, 1)
+      + '<button class="act' + (save.kredi >= c ? ' go' : '') + '" data-am="rk:' + id + '" data-c="' + c + '" ' + (save.kredi >= c ? '' : 'disabled') + '>Al · ' + c + '</button></span></div>'; }).join('');
+  const empRow = () => '';
+  const priceOf = k => { const [t, id] = k.split(':'); return t === 'am' ? n => amCost(id, n) : n => n * window.__rkCost(id); };
+  const syncBuy = box => { const k = box.dataset.k, inp = box.querySelector('input'), min = +box.dataset.min, v = Math.max(min, Math.floor(+inp.value || min)); QTY[k] = v; const c = priceOf(k)(v), bt = box.parentNode.querySelector('button[data-am^="buy:"], button[data-am^="rk:"]'); if (bt){ bt.dataset.c = c; bt.textContent = 'Al · ' + c; bt.disabled = save.kredi < c; bt.classList.toggle('go', save.kredi >= c); } };
+  document.addEventListener('click', e => { const q = e.target.closest && e.target.closest('.qty button[data-q]'); if (!q) return; e.stopPropagation(); const box = q.closest('.qty'), inp = box.querySelector('input'), st = +box.dataset.step, min = +box.dataset.min; inp.value = Math.max(min, (Math.floor(+inp.value) || min) + (q.dataset.q === '+' ? st : -st)); syncBuy(box); }, true);
+  document.addEventListener('input', e => { const box = e.target.closest && e.target.closest('.qty'); if (box) syncBuy(box); });
+  document.addEventListener('change', e => { const box = e.target.closest && e.target.closest('.qty'); if (box){ const inp = box.querySelector('input'), min = +box.dataset.min; if (!(+inp.value >= min)) inp.value = min; syncBuy(box); } });
+  for (const ev of ['keydown', 'keyup']) document.addEventListener(ev, e => { if (e.target && e.target.closest && e.target.closest('.qty')) e.stopPropagation(); }, true);
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-am]'); if (!b || b.disabled) return; const [op, id] = b.dataset.am.split(':');
     if (op === 'use'){ if (id !== 'std' && !(save.amm[id] > 0)) return; save.eq.mermi = id; persist(); eqApply(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' takıldı', 1800); }
-    else if (op === 'fill'){ const pr = AMP[id], need = AMC - Math.floor(save.amm[id] || 0), nb = Math.min(need, Math.floor(save.kredi * 10 / pr)); if (nb <= 0) return; const c = Math.ceil(nb * pr / 10); save.kredi -= c; save.amm[id] = Math.floor(save.amm[id] || 0) + nb; persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' +' + nb + ' · ' + c + ' kredi', 1800); }
-    else if (op === 'rk'){ const c = Math.round(ECOST * (typeof RWM === 'function' ? RWM() : 1)), nb = Math.min(EMAX - save.ammoE, Math.floor(save.kredi / c)); if (nb <= 0) return; save.kredi -= nb * c; save.ammoE += nb; persist(); toast('Sarsıntı roketi +' + nb, 1800); }
+    else if (op === 'buy'){ const n = qOf('am:' + id, AMMIN), c = amCost(id, n); if (save.kredi < c) return; save.kredi -= c; save.amm[id] = Math.floor(save.amm[id] || 0) + n; persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' +' + n + ' · ' + c + ' kredi', 1800); }
+    else if (op === 'rk'){ const n = qOf('rk:' + id, 1), c = n * window.__rkCost(id); if (save.kredi < c) return; save.kredi -= c; if (id === 'd') save.ammoD += n; else if (id === 'g') save.ammo += n; else save.ammoE = (save.ammoE || 0) + n; persist(); toast(RKD.find(x => x[0] === id)[1] + ' +' + n + ' · ' + c + ' kredi', 1800); }
     try { sfxP('gelistirme', 0.5); } catch (er) {} try { renderDock(); } catch (er) {} });
-  // ateş ettikçe mermi harcanır
-  { let warn = 0; EXTRA.push(dt => { const id = save.eq.mermi; if (id === 'std' || !firing || docked) return; save.amm[id] = Math.max(0, (save.amm[id] || 0) - AMUSE * dt);
-      if (save.amm[id] <= 0){ save.eq.mermi = 'std'; eqApply(); persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' bitti · standart mermiye geçildi', 3200); }
-      else if (save.amm[id] < 30 && time - warn > 20){ warn = time; toast(EQ.mermi.items.find(x => x.id === id).ad + ' azaldı: ' + Math.floor(save.amm[id]), 2200); } }); }
+  // her lazer atışı 1 mermi harcar (iki namlu sırayla ateşlediği için her çift atış 2); bitince standart mermiye geçilir
+  { let warn = 0; const _fb = fireBolts; fireBolts = function(dt, gl, gr, end){ let n0 = 0; for (const b of BOLTS) if (b.live) n0++; const r = _fb.apply(this, arguments); let n1 = 0; for (const b of BOLTS) if (b.live) n1++;
+      const id = save.eq.mermi, k = n1 - n0; if (id !== 'std' && k > 0){ save.amm[id] = Math.max(0, (save.amm[id] || 0) - k);
+        if (save.amm[id] <= 0){ save.eq.mermi = 'std'; eqApply(); persist(); toast(EQ.mermi.items.find(x => x.id === id).ad + ' bitti · standart mermiye geçildi', 3200); }
+        else if (save.amm[id] < 60 && time - warn > 20){ warn = time; toast(EQ.mermi.items.find(x => x.id === id).ad + ' azaldı: ' + save.amm[id], 2200); } }
+      return r; }; }
   // mermi rengi: ışın, namlu parlaması ve çarpma ışığı merminin rengine boyanır (standartta başlığın kendi rengi)
   { const AMCOL = { yogun: [1.5, 1.0, 0.35], kazici: [1.5, 0.5, 0.75], soguk: [0.5, 1.45, 0.8], ustun: [1.1, 0.65, 1.6] };
     EXTRA.push(() => { const c = AMCOL[save.eq.mermi]; if (!c) return; boltMat.color.setRGB(c[0], c[1], c[2]);
@@ -9125,8 +9143,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   function arrange(){ const wb = $('wpBox'); if (!wb) return; const R = { baslik: [], roket: [], rbaslik: [] };
     [...wb.children].forEach(n => { if (n.classList.contains('wpr') && R[n.dataset.cat]) R[n.dataset.cat].push(n); else n.remove(); });
     const add = h => wb.insertAdjacentHTML('beforeend', h), sub = (t, d) => add('<div class="sub2">' + t + (d ? '<small>' + d + '</small>' : '') + '</div>'), put = a => a.forEach(n => wb.appendChild(n));
-    add('<div class="sect">Lazer</div>'); sub('Başlık', 'Lazerin ucuna takılır: hasar, menzil, ısınma.'); put(R.baslik); sub('Mermi', 'Standart sınırsız; diğerleri harcanır, kendi renginde yanar.'); add(amRows());
-    add('<div class="sect">Roket</div>'); sub('Başlık', 'Bütün roketlerde kullanılır.'); put(R.rbaslik); sub('Roket', 'Uçarken roket düğmesine basılı tut: türünü seç.'); put(R.roket); add(empRow());
+    add('<div class="sect">Lazer</div>'); sub('Başlık', 'Lazerin ucuna takılır: hasar, menzil, ısınma.'); put(R.baslik); sub('Mermi', 'Standart sınırsız; diğerleri her atışta harcanır (çift atış 2), kendi renginde yanar. En az 500 alınır. Uçarken lazere çift dokun: mermi seç.'); add(amRows());
+    add('<div class="sect">Roket</div>'); sub('Başlık', 'Bütün roketlerde kullanılır.'); put(R.rbaslik); sub('Roket', 'Uçarken roket düğmesine basılı tut: türünü seç.'); add(rkRows()); R.roket.forEach(n => n.remove());
     add('<div class="sect">Jeneratör</div>'); sub('Motor'); add(eqLines('motor')); sub('Kalkan'); add(eqLines('kalkan'));
   }
   function renderEq(){
@@ -9677,7 +9695,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const old = $('bMissile'); if (!old) return;
     const btn = old.cloneNode(true); old.replaceWith(btn);
     const pick = document.createElement('div'); pick.id = 'rkPick'; document.body.appendChild(pick);
-    const label = () => { const r = RT[save.rSel]; const t = r.k + ' ' + cnt(save.rSel); if (btn.textContent !== t) btn.textContent = t; };
+    const label = () => { const r = RT[save.rSel]; const t = r.k + ' ' + cnt(save.rSel); if (btn.textContent !== t) btn.textContent = t; for (const k in RT) btn.classList.toggle('rk' + k.toUpperCase(), save.rSel === k); };
     const close = () => { pick.classList.remove('on'); };
     const openPick = () => { pick.innerHTML = Object.keys(RT).map(k => '<button data-rs="' + k + '" class="' + (save.rSel === k ? 'on' : '') + '">' + (window.__itIcon3d ? window.__itIcon3d('roket', RT[k].ic) : '') + '<b>' + RT[k].ad + '</b><i>' + cnt(k) + '</i></button>').join('');
       const r = btn.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right) + 'px'; pick.style.bottom = (innerHeight - r.top + 8) + 'px'; pick.classList.add('on'); try { blip(620, 0.05); } catch (e) {} };
@@ -9699,7 +9717,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   html body #wpBox .sub2{margin:12px 0 4px;font:700 11px var(--font);letter-spacing:.2em;text-transform:uppercase;color:var(--v2a,#8fe3ff);display:flex;flex-direction:column;gap:2px}
   html body #wpBox .sub2 small{font:500 11.5px var(--font);letter-spacing:0;text-transform:none;color:var(--v2d,#8ea2b6)}
   html body #wpBox .amr .bb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}html body #wpBox .amr .amn{color:#ffc477}
-  html body #eqBox{display:none !important}`;
+  html body #eqBox{display:none !important}
+  html body #stage #bMissile.rkG::before,html body #bMissile.rkG::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M6.2 14.6l-2.6 2.6' stroke-width='1.3'/><circle cx='18' cy='18' r='3.6' stroke-width='1.2'/><path d='M18 13.2v2M18 20.8v2M13.2 18h2M20.8 18h2' stroke-width='1.2'/></svg>") !important;mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M6.2 14.6l-2.6 2.6' stroke-width='1.3'/><circle cx='18' cy='18' r='3.6' stroke-width='1.2'/><path d='M18 13.2v2M18 20.8v2M13.2 18h2M20.8 18h2' stroke-width='1.2'/></svg>") !important}
+  html body #stage #bMissile.rkE::before,html body #bMissile.rkE::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M18.5 12.5l-2.6 4h2.4l-1.6 4.5 4-5.6h-2.4l1.6-2.9z' fill='white' stroke='none'/><circle cx='18' cy='17' r='5.6' stroke-width='.9' opacity='.7'/></svg>") !important;mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M17.5 4.5c-3.4-.3-6.6 1.2-8.5 4.5l4 4c3.3-1.9 4.8-5.1 4.5-8.5z'/><path d='M8 9.8l-3.2.3-1.7 2 3.3.6zM14.2 16l-.3 3.2-2 1.7-.6-3.3z' fill='white' stroke='none'/><path d='M18.5 12.5l-2.6 4h2.4l-1.6 4.5 4-5.6h-2.4l1.6-2.9z' fill='white' stroke='none'/><circle cx='18' cy='17' r='5.6' stroke-width='.9' opacity='.7'/></svg>") !important}`;
     document.head.appendChild(st);
   })();
 
@@ -9778,34 +9798,39 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       } catch (e) {} };
   })();
 
-  // =====  MERMİ SEÇİCİ: lazer düğmesinin köşesindeki küçük mermi düğmesi (lazer basılı tutunca ateş ettiği için seçim ayrı düğmede)
+  // =====  MERMİ: lazer düğmesinin altında takılı merminin rengi ve kalan sayısı; lazere çift dokununca mermi listesi açılır
   (function(){
     const las = $('bLaser'); if (!las || !window.__EQM) return;
     const COL = { std: '#7fe6ff', yogun: '#ffc56e', kazici: '#ff7c98', soguk: '#7be0a4', ustun: '#c8a8ff' };
-    const chip = document.createElement('div'); chip.id = 'amChip'; document.body.appendChild(chip);
     const pick = document.createElement('div'); pick.id = 'amPick'; document.body.appendChild(pick);
     const n = id => id === 'std' ? '∞' : Math.floor((save.amm && save.amm[id]) || 0);
-    const place = () => { const r = las.getBoundingClientRect(); if (!r.width || docked || (document.body.classList.contains('kbm'))){ chip.style.display = 'none'; return; } chip.style.display = 'flex';
-      chip.style.left = Math.round(r.left - 8) + 'px'; chip.style.top = Math.round(r.top - 8) + 'px'; const id = save.eq.mermi || 'std'; chip.style.setProperty('--c', COL[id]); const t = id === 'std' ? '∞' : String(n(id)); if (chip.textContent !== t) chip.textContent = t; };
-    const open = () => { pick.innerHTML = window.__EQM.map((q, i) => { const ok = q.id === 'std' || n(q.id) > 0; return '<button data-m="' + q.id + '" class="' + (save.eq.mermi === q.id ? 'on' : '') + (ok ? '' : ' off') + '" style="--c:' + COL[q.id] + '">' + (window.__itIcon3d ? window.__itIcon3d('mermi', i) : '') + '<b>' + q.ad + '</b><i>' + n(q.id) + '</i></button>'; }).join('') + '<small>Boş mermiyi Cephanelik → Lazer\'den doldur.</small>';
-      const r = chip.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right - 40) + 'px'; pick.style.bottom = (innerHeight - r.top + 6) + 'px'; pick.classList.add('on'); try { blip(620, 0.05); } catch (e) {} };
-    chip.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (pick.classList.contains('on')) pick.classList.remove('on'); else open(); });
+    let lastLab = '';
+    const label = () => { const id = save.eq.mermi || 'std', t = '● ' + n(id); if (t !== lastLab){ lastLab = t; las.dataset.am = t; } las.style.setProperty('--amc', COL[id]); };
+    const open = () => { pick.innerHTML = window.__EQM.map((q, i) => { const ok = q.id === 'std' || n(q.id) > 0; return '<button data-m="' + q.id + '" class="' + (save.eq.mermi === q.id ? 'on' : '') + (ok ? '' : ' off') + '" style="--c:' + COL[q.id] + '">' + (window.__itIcon3d ? window.__itIcon3d('mermi', i) : '') + '<b>' + q.ad + '</b><i>' + n(q.id) + '</i></button>'; }).join('') + '<small>Boş mermiyi Cephanelik → Lazer\'den al.</small>';
+      const r = las.getBoundingClientRect(); pick.style.right = Math.max(6, innerWidth - r.right) + 'px'; pick.style.bottom = (innerHeight - r.top + 8) + 'px'; pick.classList.add('on'); try { laserOn = false; } catch (e) {} try { blip(620, 0.05); } catch (e) {} };
+    // çift dokunuş: iki basış 320 ms içinde → liste (lazer basılı tutulunca ateş etmeye devam eder)
+    let downT = 0, lastTap = 0;
+    las.addEventListener('pointerdown', () => { downT = performance.now(); });
+    const tapUp = () => { const t = performance.now(); if (t - downT > 250) { lastTap = 0; return; } if (t - lastTap < 450){ lastTap = 0; setTimeout(open, 0); } else lastTap = t; };
+    las.addEventListener('pointerup', tapUp);
     pick.addEventListener('pointerdown', e => { e.stopPropagation(); const b = e.target.closest('button[data-m]'); if (!b) return; e.preventDefault(); const id = b.dataset.m;
-      if (id !== 'std' && !(n(id) > 0)){ toast('Bu mermi boş. Cephanelik → Lazer\'den doldur.', 2200); return; }
-      save.eq.mermi = id; persist(); window.__eqApply(); pick.classList.remove('on'); toast(window.__EQM.find(q => q.id === id).ad + ' takıldı', 1400); });
-    document.addEventListener('pointerdown', e => { if (pick.classList.contains('on') && !e.target.closest('#amPick') && !e.target.closest('#amChip')) pick.classList.remove('on'); });
-    // klavye: V ile mermi sırayla değişir (boş olanlar atlanır)
-    document.addEventListener('keydown', e => { if (e.code !== 'KeyV' || e.repeat || docked || window.__menuOn) return; const ids = window.__EQM.map(q => q.id).filter(id => id === 'std' || n(id) > 0); const i = ids.indexOf(save.eq.mermi); save.eq.mermi = ids[(i + 1) % ids.length]; persist(); window.__eqApply(); toast('Mermi: ' + window.__EQM.find(q => q.id === save.eq.mermi).ad + ' (' + n(save.eq.mermi) + ')', 1400); });
-    EXTRA.push(() => { place(); if (docked) pick.classList.remove('on'); });
+      if (id !== 'std' && !(n(id) > 0)){ toast('Bu mermi boş. Cephanelik → Lazer\'den al.', 2200); return; }
+      save.eq.mermi = id; persist(); window.__eqApply(); pick.classList.remove('on'); label(); toast(window.__EQM.find(q => q.id === id).ad + ' takıldı', 1400); });
+    document.addEventListener('pointerdown', e => { if (pick.classList.contains('on') && !e.target.closest('#amPick') && !e.target.closest('#bLaser')) pick.classList.remove('on'); });
+    document.addEventListener('keydown', e => { if (e.code !== 'KeyV' || e.repeat || docked || window.__menuOn) return; const ids = window.__EQM.map(q => q.id).filter(id => id === 'std' || n(id) > 0); const i = ids.indexOf(save.eq.mermi); save.eq.mermi = ids[(i + 1) % ids.length]; persist(); window.__eqApply(); label(); toast('Mermi: ' + window.__EQM.find(q => q.id === save.eq.mermi).ad + ' (' + n(save.eq.mermi) + ')', 1400); });
+    EXTRA.push(() => { label(); if (docked) pick.classList.remove('on'); });
     const st = document.createElement('style'); st.textContent = `
-  #amChip{position:fixed;z-index:31;min-width:30px;height:24px;padding:0 7px;border-radius:12px;display:none;align-items:center;justify-content:center;gap:4px;font:800 11px var(--font);color:#0a1220;background:var(--c);box-shadow:0 0 0 2px rgba(5,10,20,.85),0 0 12px var(--c);cursor:pointer;opacity:var(--tro,1)}
-  #amChip::before{content:'';width:6px;height:10px;border-radius:2px;background:#0a1220;opacity:.75}
+  html body #bLaser::after,html body #stage #bLaser::after{content:attr(data-am);display:block;margin-top:1px;font:800 9px/1 var(--font);letter-spacing:.04em;color:var(--amc,#7fe6ff);text-shadow:0 0 6px var(--amc,#7fe6ff)}
   #amPick{position:fixed;z-index:31;display:none;flex-direction:column;gap:3px;padding:6px;border-radius:12px;background:rgba(8,14,26,.95);border:1px solid rgba(220,235,245,.16);box-shadow:0 8px 30px rgba(0,0,0,.6);max-height:70vh;overflow:auto}
   #amPick.on{display:flex}
   #amPick button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:3px 10px 3px 3px;border-radius:8px;font:600 12px var(--font);color:#dbe6f3}
-  #amPick button img{width:30px;height:30px}#amPick button b{flex:1;font-weight:600}#amPick button i{font-style:normal;font-weight:800;color:var(--c);min-width:26px;text-align:right}
+  #amPick button img{width:30px;height:30px}#amPick button b{flex:1;font-weight:600}#amPick button i{font-style:normal;font-weight:800;color:var(--c);min-width:30px;text-align:right}
   #amPick button.on{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--c)}#amPick button.off{opacity:.4}
-  #amPick small{font:500 10.5px var(--font);color:#8ea2b6;padding:3px 6px 1px}`;
+  #amPick small{font:500 10.5px var(--font);color:#8ea2b6;padding:3px 6px 1px}
+  html body #wpBox .qty{display:inline-flex;align-items:center;border:1px solid rgba(220,235,245,.2);border-radius:999px;overflow:hidden}
+  html body #wpBox .qty button{all:unset !important;cursor:pointer !important;width:26px !important;text-align:center !important;font:700 15px/26px var(--font) !important;color:#dbe6f3 !important}
+  html body #wpBox .qty input{width:58px;background:none;border:0;color:#ffc477;font:700 13px var(--font);text-align:center;-moz-appearance:textfield;padding:0}
+  html body #wpBox .qty input::-webkit-inner-spin-button,html body #wpBox .qty input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}`;
     document.head.appendChild(st);
   })();
 })();
