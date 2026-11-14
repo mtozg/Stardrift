@@ -18,7 +18,10 @@ const ckc = document.createElement('canvas'), hud2 = document.createElement('can
 const CKM = 26;   /* kokpit katmanı ekrandan her yönde bu kadar taşar: dönerken sallandığında kenarda boşluk görünmez */
 for (const cv of [ckc, hud2]){ cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;display:block;z-index:1;pointer-events:none'; }
 ckc.style.left = ckc.style.top = -CKM + 'px'; ckc.style.width = ckc.style.height = 'calc(100% + ' + 2 * CKM + 'px)';
-hud.after(ckc); ckc.after(hud2);
+/* dış ışık katmanı: güneş, patlama ve lazer ışığı kokpitin içine vurur. Yarım çözünürlükte bir kez çizilir, her karede yalnızca saydamlığı değişir */
+const ckl = document.createElement('canvas'); ckl.id = 'ckl'; ckl.style.cssText = 'position:fixed;display:block;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0';
+ckl.style.left = ckl.style.top = -CKM + 'px'; ckl.style.width = ckl.style.height = 'calc(100% + ' + 2 * CKM + 'px)';
+hud.after(ckc); ckc.after(ckl); ckl.after(hud2);
 const ckx = ckc.getContext('2d'), hctx2 = hud2.getContext('2d');
 const renderer = new THREE.WebGLRenderer({ canvas: glc, antialias: true });
 renderer.setClearColor(0x03050c);
@@ -68,7 +71,7 @@ function resize(){
   st.style.transformOrigin = '0 0'; st.style.transform = 'scale(' + SK + ')';
   st.style.left = SX + 'px'; st.style.top = SY + 'px'; st.style.width = W + 'px'; st.style.height = H + 'px';
   renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); if (window.__bloomResize) window.__bloomResize();
-  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round((W + 2 * CKM) * DPR); ckc.height = Math.round((H + 2 * CKM) * DPR); ckDirty = true;
+  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round((W + 2 * CKM) * DPR); ckc.height = Math.round((H + 2 * CKM) * DPR); ckl.width = Math.round((W + 2 * CKM) * DPR * 0.5); ckl.height = Math.round((H + 2 * CKM) * DPR * 0.5); ckDirty = true;
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
@@ -97,7 +100,7 @@ function sprite(tex, scale, opacity){
 
 const skyFallback = []; let oldStars = null;
 // Gökyüzü: panorama kubbesi (görsel yüklenince eklenir) + üstüne keskin yıldızlar. Gemiyi takip eder, o yüzden hiç yaklaşılmaz.
-const sky = new THREE.Group(); scene.add(sky); window.__skyGroup = sky;
+const sky = new THREE.Group(); scene.add(sky); window.__skyGroup = sky; const SKYB = 1.3;
 {
   const n = 2600, pos = new Float32Array(n * 3), col = new Float32Array(n * 3), cc = new THREE.Color();
   for (let i = 0; i < n; i++){
@@ -122,7 +125,7 @@ const sunDir = V(0.55, 0.22, -0.8).normalize();
   glow.position.copy(sunDir).multiplyScalar(30000); core.position.copy(glow.position); sky.add(glow); sky.add(core);
 }
 const sun = new THREE.DirectionalLight(0xfff0d8, 3.0); sun.position.copy(sunDir).multiplyScalar(100); scene.add(sun);
-scene.add(new THREE.AmbientLight(0x2a3566, 0.32));
+scene.add(new THREE.AmbientLight(0x2a3566, 0.42));
 const rim = new THREE.DirectionalLight(0x4466ff, 0.28); rim.position.set(-0.5, -0.3, 0.8); scene.add(rim);
 
 // ---------- Dünya ----------
@@ -2017,6 +2020,76 @@ function radarContent(c, I){
 }
 // ---- kokpit camı: yalnızca pencere boşluklarına (resmin saydam yerlerine) çizilir, kokpitle birlikte bir kez hazırlanır
 //      çerçevenin cama düşen gölgesi + ince ışık kenarı (cam kalınlığı), hafif renk, eğik yansıma şeritleri, panel ışıklarının yansıması, toz ve çizikler
+// ---- kokpit tonu: çerçeve ve panel koyulaşır (göz dışarıya, uzaya gider), ekranların ışığı panele vurur, kenarlar dışarıdan gelen soğuk ışığı yakalar
+let litO = 0, litS = '0';
+// dış ışık katmanı: kokpit silueti, pencereye yakın kenarlar ve üst çerçeve daha parlak
+function litLayer(paint){
+  const k = ckl.getContext('2d'), sc = DPR * 0.5; k.setTransform(sc, 0, 0, sc, CKM * sc, CKM * sc); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
+  k.globalCompositeOperation = 'source-over'; paint(k);
+  k.globalCompositeOperation = 'source-in';
+  const g = k.createRadialGradient(W / 2, H * 0.32, Math.min(W, H) * 0.12, W / 2, H * 0.32, Math.max(W, H) * 0.7);
+  g.addColorStop(0, 'rgba(255,242,224,1)'); g.addColorStop(0.45, 'rgba(255,232,205,0.55)'); g.addColorStop(1, 'rgba(255,225,195,0.06)');
+  k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
+  k.globalCompositeOperation = 'source-over';
+}
+// ---- kokpit ekranları: tek renk, ince çizgili gösterge dili (camgöbeği). Uyarılarda sarı/kırmızı.
+const SC2 = { a: '#8fe9ff', d: 'rgba(143,233,255,0.42)', f: 'rgba(143,233,255,0.12)', w: '#ffc477', r: '#ff5a6e' };
+function scr2Base(c, w, h, label, right){
+  const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#04161f'); g.addColorStop(1, '#020b12'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.strokeStyle = 'rgba(120,220,255,0.06)'; c.lineWidth = 1; c.beginPath(); for (let x = 10; x < w; x += 12){ c.moveTo(x + 0.5, 16); c.lineTo(x + 0.5, h); } for (let y = 22; y < h; y += 12){ c.moveTo(0, y + 0.5); c.lineTo(w, y + 0.5); } c.stroke();
+  c.font = fnt(600, 7.5); c.textAlign = 'left'; c.fillStyle = SC2.a; c.fillText(label.toLocaleUpperCase('tr-TR').split('').join(String.fromCharCode(8202)), 7, 11);
+  if (right){ c.textAlign = 'right'; c.fillStyle = SC2.d; c.fillText(right, w - 7, 11); }
+  c.strokeStyle = SC2.d; c.beginPath(); c.moveTo(6, 14.5); c.lineTo(w - 6, 14.5); c.stroke();
+  c.strokeStyle = 'rgba(143,233,255,0.55)'; c.beginPath(); const L = 5; for (const [x, y, sx, sy] of [[3, 3, 1, 1], [w - 3, 3, -1, 1], [3, h - 3, 1, -1], [w - 3, h - 3, -1, -1]]){ c.moveTo(x, y + sy * L); c.lineTo(x, y); c.lineTo(x + sx * L, y); } c.stroke();
+  return { x: 7, y: 19, w: w - 14, h: h - 23 };
+}
+function scr2Glass(c, w, h){   // tarama çizgileri ve ekran camının parlaması
+  if (scrBase.pat){ c.fillStyle = scrBase.pat; c.fillRect(0, 0, w, h); }
+  const g = c.createLinearGradient(0, 0, w * 0.6, h); g.addColorStop(0, 'rgba(255,255,255,0.07)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+}
+function bar2(c, x, y, w, f, col, h){ h = h || 3; c.fillStyle = SC2.f; c.fillRect(x, y, w, h); c.fillStyle = col; c.fillRect(x, y, w * clamp(f, 0, 1), h);
+  c.fillStyle = 'rgba(2,11,18,0.9)'; for (let i = 1; i < 10; i++) c.fillRect(x + w * i / 10 - 0.5, y, 1, h); }
+function sys2Screen(c, I){
+  const cs = cargoSum(), cap = cargoCap(), sp = Math.round(vel.length()), heat = laser.heat / 100, rk = (save.ammo || 0) + (save.ammoD || 0);
+  const rows = [['HIZ', sp + ' m/s', Math.min(1, sp / 420), SC2.a], ['ISI', laser.over ? 'AŞIRI' : Math.round(heat * 100) + '%', heat, laser.over || heat > 0.85 ? SC2.r : heat > 0.6 ? SC2.w : SC2.a],
+    ['KARGO', cs + '/' + cap, cs / Math.max(1, cap), cs >= cap ? SC2.w : SC2.a], ['ROKET', String(rk), Math.min(1, rk / (AMMO_MAX + DMAX)), rk ? SC2.a : SC2.r]];
+  const gw = I.w / 2, gh = (I.h - 12) / 2, vf = clamp(Math.min(gh * 0.42, gw * 0.2), 8, 22), lf = clamp(vf * 0.5, 6, 10);
+  rows.forEach(([n, v, f, col], i) => { const x = I.x + (i % 2) * gw + (i % 2 ? 5 : 0), y = I.y + ((i / 2) | 0) * gh, w = gw - 5;
+    c.font = fnt(600, lf); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText(n, x, y + lf);
+    c.font = fnt(700, vf); c.fillStyle = col; c.fillText(v, x, y + lf + vf + 1);
+    bar2(c, x, y + lf + vf + 5, w, f, col, Math.max(2, vf * 0.16)); });
+  c.font = fnt(600, lf); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('KREDİ', I.x, I.y + I.h - 1); c.textAlign = 'right'; c.fillStyle = SC2.w; c.font = fnt(700, lf * 1.25); c.fillText(String(save.kredi), I.x + I.w, I.y + I.h - 1);
+}
+function hull2Screen(c, I){
+  const hf = hp.hull / hp.hullMax, sf = hp.shield / Math.max(1, hp.shieldMax), hc = hf > 0.6 ? SC2.a : hf > 0.3 ? SC2.w : SC2.r;
+  const hh = I.h - 30, cx = I.x + I.w * 0.5, cy = I.y + hh / 2 + 1, sc = Math.min(I.w * 0.24, hh * 0.42);
+  c.save(); c.globalAlpha = hf <= 0.3 ? 0.5 + 0.5 * Math.sin(time * 8) : 0.95; drawShipHolo(c, cx, cy, sc, hp.hit > 0 ? SC2.r : hc); c.restore();
+  c.strokeStyle = SC2.f; c.beginPath(); c.arc(cx, cy, sc * 1.35, 0, TAU); c.stroke(); c.strokeStyle = 'rgba(143,233,255,0.3)'; c.beginPath(); c.arc(cx, cy, sc * 1.35, -Math.PI / 2, -Math.PI / 2 + TAU * sf); c.stroke();
+  const y1 = I.y + I.h - 22; c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('GÖVDE', I.x, y1); c.textAlign = 'right'; c.fillStyle = hc; c.font = fnt(700, 8.5); c.fillText(String(Math.round(hp.hull)), I.x + I.w, y1);
+  bar2(c, I.x, y1 + 3, I.w, hf, hc, 3);
+  const y2 = y1 + 15; c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('KALKAN', I.x, y2); c.textAlign = 'right'; c.fillStyle = SC2.a; c.font = fnt(700, 8.5); c.fillText(String(Math.round(hp.shield)), I.x + I.w, y2);
+  bar2(c, I.x, y2 + 3, I.w, sf, '#9fc4ff', 2.5);
+}
+function radar2Screen(c, I){
+  const rad = Math.max(14, Math.min(I.w, I.h * 0.9) / 2 - 1), cx = I.x + I.w / 2, cy = I.y + I.h * 0.5;
+  drawRadar(c, cx, cy, rad);
+  c.strokeStyle = SC2.d; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, r0 = rad + 1.5, r1 = rad + (i % 6 ? 3.5 : 6); c.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); } c.stroke();
+  c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = lock ? SC2.w : SC2.d; c.fillText(lock ? 'KİLİTLİ' : (boosting ? '2,4' : '1') + ' KM', I.x, I.y + I.h - 1);
+}
+// ekran ışığı: her ekran çevresine yumuşak camgöbeği ışık saçar
+const SCRGLOW = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), g = x.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, 'rgba(90,205,255,0.55)'); g.addColorStop(0.5, 'rgba(90,205,255,0.16)'); g.addColorStop(1, 'rgba(90,205,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return cv; })();
+function scrGlow(c, sc){ const xs = sc.q.map(p => p[0]), ys = sc.q.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = x1 - x0, h = y1 - y0;
+  c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.5 + 0.04 * Math.sin(time * 3 + x0); c.drawImage(SCRGLOW, x0 - w * 0.28, y0 - h * 0.45, w * 1.56, h * 1.9); c.restore(); }
+function cockpitTone(k){
+  if (window.__noTone) return;
+  k.save(); k.globalCompositeOperation = 'source-atop';
+  let g = k.createLinearGradient(0, -CKM, 0, H + CKM); g.addColorStop(0, 'rgba(1,3,7,0.86)'); g.addColorStop(0.45, 'rgba(1,3,7,0.78)'); g.addColorStop(0.75, 'rgba(1,3,7,0.66)'); g.addColorStop(1, 'rgba(1,3,7,0.8)');
+  k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
+  // ekranların ışığı panele vurur (ekranın hemen çevresi)
+  for (const sc of SCR){ const cx = sc.q.reduce((t, p) => t + p[0], 0) / 4, cy = sc.q.reduce((t, p) => t + p[1], 0) / 4, r = Math.hypot(sc.q[1][0] - sc.q[0][0], sc.q[1][1] - sc.q[0][1]) * 0.8;
+    g = k.createRadialGradient(cx, cy, r * 0.3, cx, cy, r); g.addColorStop(0, 'rgba(80,200,255,0.24)'); g.addColorStop(1, 'rgba(80,200,255,0)'); k.fillStyle = g; k.fillRect(cx - r, cy - r, r * 2, r * 2); }
+  k.restore();
+}
 function glassLayer(k, paint){
   if (window.__noGlass) return;
   k.save(); k.globalCompositeOperation = 'destination-over';
@@ -2039,7 +2112,7 @@ function glassLayer(k, paint){
   k.restore();
   // 5) panelin camdaki yansıması: alt kenarda soğuk mavi-yeşil, köşelerde koyulaşma
   { let g = k.createLinearGradient(0, H * 0.35, 0, H * 0.85); g.addColorStop(0, 'rgba(90,200,220,0)'); g.addColorStop(1, 'rgba(90,200,220,0.1)'); k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
-    g = k.createRadialGradient(W / 2, H * 0.42, Math.min(W, H) * 0.3, W / 2, H * 0.42, Math.max(W, H) * 0.75); g.addColorStop(0, 'rgba(8,16,28,0)'); g.addColorStop(1, 'rgba(8,16,28,0.22)'); k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); }
+    g = k.createRadialGradient(W / 2, H * 0.42, Math.min(W, H) * 0.3, W / 2, H * 0.42, Math.max(W, H) * 0.75); g.addColorStop(0, 'rgba(8,16,28,0)'); g.addColorStop(1, 'rgba(8,16,28,0.1)'); k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); }
   // 6) camın kendi rengi: çok hafif mavi
   k.fillStyle = 'rgba(120,170,210,0.035)'; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
   k.restore();
@@ -2047,7 +2120,7 @@ function glassLayer(k, paint){
 function drawCockpitImg(c){
   const s = IM.s, my = IM.my || (y => y), mp = (x, y) => [IM.dx + x * s, IM.dy + my(y) * s];
   if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, CKM * DPR, CKM * DPR); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
-    const paint = () => { if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
+    const paint = (k = ckx) => { if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
       const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
       k.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
       k.drawImage(im, 0, y1, im.naturalWidth, im.naturalHeight - y1, IM.dx, IM.dy + h1, IMG.iw * s, (IMG.ih - IM.R1) * IM.b * s);
@@ -2059,16 +2132,22 @@ function drawCockpitImg(c){
       if (y0 > -CKM) k.drawImage(im, 0, 0, nw, 3, x0, -CKM, x1 - x0, y0 + CKM + 0.5);
       if (x0 > -CKM) k.drawImage(ckc, Math.round((x0 + CKM) * DPR) + 1, 0, 2, ckc.height, -CKM, -CKM, x0 + CKM + 0.5, H + 2 * CKM);
       if (x1 < W + CKM) k.drawImage(ckc, Math.round((x1 + CKM) * DPR) - 3, 0, 2, ckc.height, x1 - 0.5, -CKM, W + CKM - x1 + 1, H + 2 * CKM); }
-    glassLayer(k, paint); }
-  { const sw = 'translate(' + sway.x.toFixed(1) + 'px,' + sway.y.toFixed(1) + 'px)'; if (sw !== ckSway){ ckSway = sw; ckc.style.transform = sw; } }
+    cockpitTone(k); glassLayer(k, paint); litLayer(paint); }
+  { const sw = 'translate(' + sway.x.toFixed(1) + 'px,' + sway.y.toFixed(1) + 'px)'; if (sw !== ckSway){ ckSway = sw; ckc.style.transform = sw; ckl.style.transform = sw; } }
+  { // dış ışık: güneşe bakınca, yakın patlamada, lazer ateşlerken kokpit aydınlanır
+    const sa = Math.acos(clamp(fwd.dot(sunDir), -1, 1)), sunL = Math.pow(clamp(1 - sa / 1.3, 0, 1), 2);
+    let fl = 0; if (flashLight.intensity > 0){ const d = flashLight.position.distanceTo(rig.position); fl = clamp(flashLight.intensity / 6 * (1 - d / 1600), 0, 0.55); }
+    const o = docked ? 0 : clamp(sunL * 0.2 + fl + scrFlash * 0.8 + (firing ? 0.07 + 0.05 * Math.random() : 0) + hp.hit * 0.25, 0, 0.55);
+    litO += (o - litO) * (o > litO ? 0.5 : 0.12); const t = litO.toFixed(2); if (t !== litS){ litS = t; ckl.style.opacity = t; } }
   c.save(); c.translate(sway.x, sway.y);
   // ekranlar: içerik önce küçük bir tuvale çizilir, sonra eğik ekran yüzeyine oturtulur
   const ui = scrTick++ % Math.max(1, SCR.length);   // her karede tek ekranın içeriği yenilenir (sırayla, ~20 Hz); hepsi her karede yerine oturtulur
   SCR.forEach((sc, i) => {
     if (i === ui || !sc.drawn){ sc.drawn = true; const g = sc.g; g.setTransform(sc.ps, 0, 0, sc.ps, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
-      const I = scrBase(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde');
-      (sc.kind === 'bars' ? barsScreen : sc.kind === 'map' ? radarScreen : hullScreen)(g, I); }
-    drawQuad(c, sc);
+      if (window.__oldScr){ const I = scrBase(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde'); (sc.kind === 'bars' ? barsScreen : sc.kind === 'map' ? radarScreen : hullScreen)(g, I); }
+      else { const I = scr2Base(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde', sc.kind === 'map' ? SYS[curSys].ad.toLocaleUpperCase('tr-TR') : sc.kind === 'bars' ? (thrustNow > 0.1 ? 'İTİŞ' : braking ? 'FREN' : '') : (hp.hit > 0 ? 'HASAR' : ''));
+        (sc.kind === 'bars' ? sys2Screen : sc.kind === 'map' ? radar2Screen : hull2Screen)(g, I); scr2Glass(g, sc.lw, sc.lh); } }
+    drawQuad(c, sc); scrGlow(c, sc);
   });
   // panel lambaları: tehlikede kırmızı kristaller hızlı yanıp söner, hızlanırken mavi halka yanar
   c.globalCompositeOperation = 'lighter';
@@ -2467,7 +2546,7 @@ loadArt(FXART.boom, t => { boomTex = t; });
 loadArt(ART.sky, t => {
   window.__skyT = t;
   const geo = new THREE.SphereGeometry(35000, 64, 40); geo.scale(-1, 1, 1);
-  const mat = new THREE.MeshBasicMaterial({ map: t, depthWrite: false, depthTest: false, fog: false }); mat.color.setRGB(1.18, 1.18, 1.28); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.needsUpdate = true;
+  const mat = new THREE.MeshBasicMaterial({ map: t, depthWrite: false, depthTest: false, fog: false }); mat.color.setRGB(1.18 * SKYB, 1.18 * SKYB, 1.28 * SKYB); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.needsUpdate = true;
   const dome = new THREE.Mesh(geo, mat); dome.renderOrder = -10; dome.frustumCulled = false; sky.add(dome);
   skyFallback.forEach(sp => { sky.remove(sp); });
   buildStars(t.image);
@@ -2495,7 +2574,7 @@ function buildStars(img){
     const m = new THREE.PointsMaterial({ size: base * 1.6, map: starDot, alphaTest: 0.02, sizeAttenuation: false, vertexColors: true, depthWrite: false, depthTest: false, fog: false, transparent: true });
     const pts = new THREE.Points(g, m); pts.frustumCulled = false; pts.renderOrder = -9; sky.add(pts); starLayers.push({ m, base: base * 1.6 });
   };
-  mk(11000, 0.8, [0.25, 0.6], 1); mk(2800, 1.1, [0.45, 0.85], 1); mk(500, 1.6, [0.75, 1], 1); mk(40, 2.4, [1, 1], 1);
+  mk(11000, 0.8, [0.35, 0.8], 1); mk(2800, 1.1, [0.6, 1.1], 1); mk(500, 1.6, [0.95, 1.3], 1); mk(40, 2.4, [1.3, 1.5], 1);
 }
 loadArt(ART.veyra, t => { window.__veyraT = t; ARTIMG.veyra = t.image; planetMesh.material.map = t; planetMesh.material.needsUpdate = true; });
 loadArt(ART.cloud, t => { cloudMesh.material.map = null; cloudMesh.material.alphaMap = t; cloudMesh.material.color.setRGB(1, 1, 1); cloudMesh.material.needsUpdate = true; });
@@ -3001,7 +3080,7 @@ function applyWorld(k){
   for (const m of MV) tintObj(m.o, tc);
   tintObj(moonMesh, tc);
   for (let _q68 = 0, st; _q68 < STATIONS.length && ((st = STATIONS[_q68]), true); _q68++) st.group.traverse(o => { if (o.isMesh && o.material && o.material.type === 'MeshBasicMaterial' && o.material.map) tintObj(o, ts); });
-  const dome = sky.children.find(c => c.isMesh); if (dome) dome.material.color.setRGB(S.sky[0], S.sky[1], S.sky[2]);
+  const dome = sky.children.find(c => c.isMesh); if (dome) dome.material.color.setRGB(S.sky[0] * SKYB, S.sky[1] * SKYB, S.sky[2] * SKYB);   /* uzay daha parlak: kokpit karardığı için dış dünya öne çıkar */
   SYSC.kr = S.kr; SYSC.ice = S.ice; SYSC.danger = S.danger; SYSC.px = S.px; SYSC.hull = S.hull || 1; SYSC.bounty = S.bounty || 1; SYSC.dmg = S.dmg || 1; SYSC.rock = S.rock || 1; SYSC.pay = S.pay || 1;
 }
 function clearWorld(){
