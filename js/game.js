@@ -8267,6 +8267,20 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   `;
   document.head.appendChild(st);
 }
+// ---- 1.45: düğmeler iki düzgün satırda (şekil ve boyut aynı): alt sıra silahlar (Kilit · Roket · Lazer), üst sıra uçuş (İtiş · Fren · Hızlan), eşit aralık
+{
+  const st = document.createElement('style');
+  st.textContent = `
+  html body #stage #bLaser.btn,html body #bLaser.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 6px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 8px) !important;width:82px !important;height:82px !important}
+  html body #stage #bMissile.btn,html body #bMissile.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 93px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 21px) !important;width:56px !important;height:56px !important}
+  html body #stage #bLock.btn,html body #bLock.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 154px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 21px) !important;width:56px !important;height:56px !important}
+  html body #stage #bBoost.btn,html body #bBoost.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 19px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 95px) !important;width:56px !important;height:56px !important}
+  html body #stage #bBrake.btn,html body #bBrake.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 80px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 95px) !important;width:56px !important;height:56px !important}
+  html body #stage #bThrust.btn,html body #bThrust.btn{right:calc(env(safe-area-inset-right,0px) * .35 + 141px) !important;bottom:calc(env(safe-area-inset-bottom,0px) * .5 + 95px) !important;width:56px !important;height:56px !important}
+  `;
+  document.head.appendChild(st);
+}
+
 
 // =====================  v3.3: bildirim düzeni — her tür bildirim hep aynı yerde  =====================
 //  ÜST ORTA: kısa sistem bildirimi (tek tek, sırayla)   SOL ÜST: telsiz (en çok 3 satır)
