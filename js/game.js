@@ -146,7 +146,7 @@ const BELTS = [
 const PLANET2 = { kind: 'planet', pos: V(-9500, -700, -2600), r: 520, ad: 'Marzan', disc: true };
 const PLANET3 = { kind: 'planet', pos: V(7600, 900, 8800), r: 380, ad: 'Buzay', disc: true };
 const EXTRA = [];
-const BOUND = 16000, AST_TARGET = 230;
+const BOUND = 32000, AST_TARGET = 230;   // 1.40: harita 2,1 kat genişledi
 const SYSC = { kr: 1, ice: 1, danger: 1, px: {}, hull: 1, bounty: 1, dmg: 1, rock: 1, pay: 1 }; let curSys = 0;
 
 const stationGroup = new THREE.Group(); scene.add(stationGroup);
@@ -448,7 +448,7 @@ let asteroids = [], ores = [];
 const beltTotal = BELTS.reduce((t, b) => t + b.w, 0);
 function pickBelt(){ let r = Math.random() * beltTotal; for (let _q1 = 0; _q1 < BELTS.length; _q1++){ const b = BELTS[_q1]; r -= b.w; if (r <= 0) return b; } return BELTS[0]; }
 // derinlik: üsten uzaklaştıkça kayalar daha çok cevher verir, kristal daha sık çıkar (keşfe çıkmanın karşılığı)
-function depthMul(p){ const d = p.length(); return d > 6000 ? 2 : d > 3000 ? 1.5 : 1; }
+function depthMul(p){ const d = p.length(); return d > 12600 ? 2 : d > 6300 ? 1.5 : 1; }   // harita genişleyince eşikler de aynı oranda
 function makeAsteroid(far){
   let pos, tries = 0, belt;
   do {
@@ -1655,7 +1655,7 @@ function drawRadar(c, cx, cy, rr){
     if (!t || !t.pos) continue; const q = pt(t.pos), d = Math.hypot(q.px, q.py); if (d > rr - 5) continue;
     c.strokeStyle = col; c.lineWidth = 1.6; c.beginPath(); c.arc(cx + q.px, cy + q.py, 5, 0, TAU); c.stroke();
   }
-  for (let _q58 = 0, r; _q58 < ruins.length && ((r = ruins[_q58]), true); _q58++) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 3500)) plot(r.group.position, '#5ff0d0', 5, true);
+  for (let _q58 = 0, r; _q58 < ruins.length && ((r = ruins[_q58]), true); _q58++) if (!r.found && (save.map || r.hint || r.group.position.distanceTo(rig.position) < 2200)) plot(r.group.position, '#5ff0d0', 5, true);
   extraPlots(plot);
   for (const b of [PLANET, GIANT, PLANET2, PLANET3]) plot(b.pos, 'rgba(190,205,230,0.8)', 6, true);
   for (let _q29 = 0; _q29 < STATIONS.length; _q29++){ const s = STATIONS[_q29]; if (s.off) continue; const q = pt(s.pos); let px = q.px, py = q.py; const d = Math.hypot(px, py); if (d > rr - 7){ px = px / d * (rr - 7); py = py / d * (rr - 7); } c.fillStyle = s === STATION ? '#ffb454' : '#8fe9ff'; c.fillRect(cx + px - 3.5, cy + py - 3.5, 7, 7); }
@@ -1944,7 +1944,7 @@ function mapContent(c, I, opts){
   if (mapRange > 9000) for (let _q31 = 0; _q31 < BELTS.length; _q31++){ const b = BELTS[_q31]; if (!known(b.c)) continue; const p = P(b.c); c.fillStyle = b.rich ? 'rgba(255,107,138,0.12)' : 'rgba(150,160,185,0.1)'; c.beginPath(); c.ellipse(p.x, p.y, Math.max(3, b.r * k), Math.max(2, b.r * k * es), 0, 0, TAU); c.fill(); }
   for (let _q32 = 0; _q32 < STATIONS.length; _q32++){ const st = STATIONS[_q32]; if (st.off || !known(st.pos)) continue; const p = P(st.pos); items.push({ y: p.gy, t: 1, p, obj: st, col: '#' + st.color.toString(16).padStart(6, '0') }); }
   for (const bd of [PLANET, GIANT, MOON, PLANET2, PLANET3]){ if (!known(bd.pos)) continue; const p = P(bd.pos); items.push({ y: p.gy, t: 2, p, obj: bd, name: bd.ad }); }
-  for (let _q33 = 0; _q33 < ruins.length; _q33++){ const r = ruins[_q33]; if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 3500) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
+  for (let _q33 = 0; _q33 < ruins.length; _q33++){ const r = ruins[_q33]; if (!r.found && !save.map && !r.hint && r.group.position.distanceTo(rig.position) > 2200) continue; const p = P(r.group.position); items.push({ y: p.gy, t: 3, p, obj: r, found: r.found }); }
   { const o = window.__kadimObj && window.__kadimObj(); if (o){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); } }
   if (window.__featMap) for (const o of window.__featMap()){ const p = P(o.pos); items.push({ y: p.gy, t: 3, p, obj: o, found: true }); }
   for (let _q34 = 0; _q34 < npcs.length; _q34++){ const n = npcs[_q34]; const p = P(n.pos); if (p.d > mapRange) continue; items.push({ y: p.gy, t: 4, p, obj: n }); }
@@ -2251,7 +2251,7 @@ function overlayTap(x, y){
       let best = null, bd = 22;
       if (mapHits) for (const h of mapHits){ const d = Math.hypot(h.x - lx, h.y - ly); if (d < bd){ bd = d; best = h.obj; } }
       if (best){ setLock(best); overlay = null; return; }
-      mapRange = mapRange === 7000 ? 3500 : mapRange === 3500 ? 14000 : 7000;
+      mapRange = mapRange === 7000 ? 14000 : mapRange === 14000 ? 28000 : mapRange === 28000 ? 3500 : 7000;
     }
     return;
   }
@@ -2326,7 +2326,7 @@ function drawHud(){
     if (known(GIANT.pos)) drawMarker(c, GIANT.pos, '#ffc58a', GIANT.ad, rig.position.distanceTo(GIANT.pos) - GIANT.r, 5000);
     if (known(PLANET2.pos)) drawMarker(c, PLANET2.pos, '#ff9a6a', PLANET2.ad, rig.position.distanceTo(PLANET2.pos) - PLANET2.r, 5000);
     if (known(PLANET3.pos)) drawMarker(c, PLANET3.pos, '#d6ecff', PLANET3.ad, rig.position.distanceTo(PLANET3.pos) - PLANET3.r, 5000);
-    for (let _q35 = 0; _q35 < ruins.length; _q35++){ const r = ruins[_q35]; const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 3500)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
+    for (let _q35 = 0; _q35 < ruins.length; _q35++){ const r = ruins[_q35]; const d = rig.position.distanceTo(r.group.position); if (!r.found && (save.map || r.hint || d < 2200)) drawMarker(c, r.group.position, '#5ff0d0', 'Sinyal', d); }
     { const o = window.__kadimObj && window.__kadimObj(); if (o) drawMarker(c, o.pos, '#c9a7ff', 'Kadim Kapı', rig.position.distanceTo(o.pos)); }
     extraMarkers(c);
     { let hc = 0; for (let _q36 = 0; _q36 < npcs.length; _q36++){ const n = npcs[_q36]; if (!n.hostile) continue; const d = rig.position.distanceTo(n.pos); if (n !== lock && d < 1600 && hc++ < 3) drawMarker(c, n.pos, '#ff5a6e', n.name, d); } }
@@ -3008,7 +3008,7 @@ function renderJump(){
   let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
   for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i>${SYS[k].ad}<span class="dim"><br>${SYS[k].not}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
   const hid = SYS.length - save.open.length;
-  if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
+  if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Yeni sistemlere kapılardan geçilir: Ana görev seni sıradaki kapıya götürür ve kapıyı haritada (M) işaretler.</span></div>`;
   box.innerHTML = h;
 }
 
@@ -4383,7 +4383,7 @@ EXTRA.push(dt => {
 });
 
 // ---------- Keşif: haritada açılan bölgeler ----------
-const CELL = 2500;
+const CELL = 1500;   // keşif kareleri sıklaştı (eskiden 2500)
 function expSet(){ if (!save.exp) save.exp = {}; return save.exp[curSys] || (save.exp[curSys] = {}); }
 function revealAround(p, r){
   const S = expSet(); let n = 0;
@@ -4394,12 +4394,12 @@ function revealAround(p, r){
   return n;
 }
 function known(p){ return !!expSet()[Math.floor(p.x / CELL) + ',' + Math.floor(p.z / CELL)] || p.distanceTo(rig.position) < 1800; }
-function expPct(){ return Math.min(100, Math.round(Object.keys(expSet()).length / 169 * 100)); }
+function expPct(){ return Math.min(100, Math.round(Object.keys(expSet()).length / (Math.PI * Math.pow(26000 / CELL, 2)) * 100)); }
 let expT = 0, expToastT = -99, expSys = -1;
 EXTRA.push(dt => {
-  if (expSys !== curSys){ expSys = curSys; if (!Object.keys(expSet()).length){ revealAround(STATIONS[0].pos, 4800); persist(); } }
+  if (expSys !== curSys){ expSys = curSys; if (!Object.keys(expSet()).length){ revealAround(STATIONS[0].pos, 2400); persist(); } }
   expT -= dt; if (expT > 0 || docked) return; expT = 1;
-  const n = revealAround(rig.position, 2300);
+  const n = revealAround(rig.position, 1100);
   if (n > 0){ persist(); if (time - expToastT > 10){ expToastT = time; toast('Yeni bölge keşfedildi · Keşif %' + expPct()); } }
 });
 function mapTiles(c, P, big){
@@ -6178,7 +6178,7 @@ setTimeout(() => {
     let h = '<div class="sect">Hiperatlama <span class="dim">· ücretli, geçit bulamadığında hızlı yol</span></div>';
     for (const k of save.open) if (k !== curSys) h += `<div class="line"><span><i class="ic pl"></i><b>${SYS[k].ad}</b><span class="dim sysi">${window.__fmtNot(SYS[k].not)}</span></span><button class="act" data-j="${k}" ${save.kredi < JCf() ? 'disabled' : ''}>Hiperatla · ${JCf()} kredi</button></div>`;
     const hid = SYS.length - save.open.length;
-    if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Uzaklardaki kapı sinyallerini ara.</span></div>`;
+    if (hid > 0) h += `<div class="line"><span class="dim">${hid} sistem henüz keşfedilmedi. Yeni sistemlere kapılardan geçilir: Ana görev seni sıradaki kapıya götürür ve kapıyı haritada (M) işaretler.</span></div>`;
     box.innerHTML = h;
   };
 
@@ -8998,6 +8998,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // kapı i'yi açan adım tamamlandı mı?
   window.__mqGate = dn => { if (!(dn >= 1 && dn <= 3) || save.mqFree.includes(dn) || TESTM) return { ok: true }; const L = flat(), j = L.findIndex(S => S.opens === dn); if (j < 0 || save.mq.i > j) return { ok: true };
     return { ok: false, why: 'Ana görev: «' + L[j].B.b + '» bölümünü bitir' }; };
+  window.__mqCur = () => cur();
   window.__mqLine = () => { const S = cur(); if (!S) return ''; const v = Math.min(S.n, Math.floor(S.f() || 0)); return S.t + (S.n > 1 ? ' · ' + v + '/' + S.n : '') + (v >= S.n ? ' · ödül hazır' : ''); };
   const baseOk = () => { const L = flat(), j = L.findIndex(S => S.src && S.src[0] === 'us' && S.src[1] === 0); return save.mq.i >= j; };
   window.__mqBase = baseOk;
@@ -9745,5 +9746,35 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         try { blip(480 + i * 120, 0.08); } catch (e) {} };
       show(); requestAnimationFrame(() => d.classList.add('vis'));
     };
+  })();
+
+  // =====  DÜNYA 1.40: harita genişler (iç 3 kuşak yerinde), kalıntılar katı, ana görev kapıyı işaretler, motor sesi küçük hoparlörde de duyulur
+  (function(){
+    const SP = 2.1;
+    try { collectMovers(); } catch (e) {}   // gezegen/kuşak süslerini eski konumlarına göre ÖNCE topla, sonra ölçekle
+    ORIG.bl.forEach((c, i) => { if (i >= 3) c.multiplyScalar(SP); });
+    ORIG.rn.forEach(c => c.multiplyScalar(SP));
+    ORIG.pl.forEach(c => c.multiplyScalar(1.8));
+    ORIG.st.forEach((c, i) => { if (i > 0 && c.length() < 100000) c.multiplyScalar(1.8); });
+    // ev sisteminin yerleşimi açılışta doğrudan ORIG'dan kuruluyordu: yeniden yerleştir, kayaları yeni kuşaklara doğur
+    try { applyWorld(curSys); for (const a of asteroids) scene.remove(a.mesh); asteroids.length = 0; for (let i = 0; i < AST_TARGET; i++) asteroids.push(makeAsteroid(false)); } catch (e) { console.warn(e); }
+    // eski keşif kayıtları eski ölçekteydi: sıfırla
+    if (save.expV !== 2){ save.exp = {}; save.expV = 2; persist(); }
+    // kalıntılar katı: içinden geçilmez (kapılar hariç; onlardan geçilir)
+    EXTRA.push(() => { if (docked) return; for (const r of ruins){ if (r.gate || !r.group || r.group.visible === false) continue; const R = (r.r || 70) * 0.85 + 8, c = r.group.position;
+        const dx = rig.position.x - c.x, dy = rig.position.y - c.y, dz = rig.position.z - c.z, d = Math.sqrt(dx * dx + dy * dy + dz * dz); if (d >= R || d < 0.001) continue;
+        const nx = dx / d, ny = dy / d, nz = dz / d; rig.position.set(c.x + nx * R, c.y + ny * R, c.z + nz * R); const vn = vel.x * nx + vel.y * ny + vel.z * nz; if (vn < 0){ vel.x -= vn * nx; vel.y -= vn * ny; vel.z -= vn * nz; vel.multiplyScalar(0.9); } } });
+    // ana görev "kapı sinyalini bul" adımındaysa bu sistemin kapısı haritada ve ekranda işaretlenir
+    let gT = 0; EXTRA.push(dt => { gT += dt; if (gT < 1) return; gT = 0; const S = window.__mqCur && window.__mqCur(), g = ruins.find(r => r.gate && r.i === 4); if (!g) return;
+      const want = !!(S && S.opens && GATE_TO[curSys] === S.opens); if (want && !g.hint){ g.hint = true; eco.radioT = -9; radio('Tarayıcı', 'Kapı sinyali yakalandı. Haritada işaretledim (M). Uzak, ' + (Math.round(g.pos.distanceTo(rig.position) / 100) / 10) + ' km.', '#5ff0d0'); } });
+    // motor sesi: itişte püskürtme hışırtısı + hızla tizleşen vınlama (telefon hoparlöründe de duyulur)
+    let E2 = null; const _au = audioUpdate;
+    audioUpdate = function(speed){ _au(speed);
+      try { if (!AC || !AC.nb) return; if (!E2){ const h = AC.createBufferSource(); h.buffer = AC.nb; h.loop = true; const hf = AC.createBiquadFilter(); hf.type = 'bandpass'; hf.frequency.value = 1700; hf.Q.value = 0.8; const hg = AC.createGain(); hg.gain.value = 0; h.connect(hf); hf.connect(hg); hg.connect(AC.master); h.start();
+          const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 160; const of = AC.createBiquadFilter(); of.type = 'bandpass'; of.frequency.value = 620; of.Q.value = 2.5; const og = AC.createGain(); og.gain.value = 0; o.connect(of); of.connect(og); og.connect(AC.master); o.start(); E2 = { hg, hf, og, o }; }
+        const t = AC.currentTime, on = soundOn && !paused && !docked && !window.__dead ? 1 : 0, th = Math.min(thrustNow, 1.6), sp = Math.min(speed / 600, 1), bo = boosting ? 1 : 0;
+        E2.hg.gain.setTargetAtTime(on * (0.012 + th * 0.05 + bo * 0.06), t, 0.12); E2.hf.frequency.setTargetAtTime(1400 + th * 500 + bo * 900, t, 0.2);
+        E2.og.gain.setTargetAtTime(on * (0.008 + th * 0.016 + sp * 0.022), t, 0.2); E2.o.frequency.setTargetAtTime(150 + sp * 230 + th * 30, t, 0.25);
+      } catch (e) {} };
   })();
 })();
