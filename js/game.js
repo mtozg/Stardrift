@@ -9543,4 +9543,67 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     };
     window.__deathShow = show;
   })();
+
+  // =====  BİLDİRİM PANELİ: mesaj kutusu yerine. Bilgi, uyarı, telsiz ve toplanan cevherler kayda girer; geriye dönük okunur.
+  (function(){
+    if (!Array.isArray(save.log)) save.log = [];
+    const CAT = { uyari: ['Uyarı', '#ff6b7e'], telsiz: ['Telsiz', '#7fd8ff'], cevher: ['Cevher', '#b8a8ff'], bilgi: ['Bilgi', '#ffc477'] };
+    let open = false, unread = 0, filt = 'all', saveT = 0;
+    const box = document.getElementById('inbox'), old = document.getElementById('msgBtn'); if (!box || !old) return;
+    // eski düğmenin dinleyicilerini bırak: yenisiyle değiştir; eski kodun rozet çağrısı için görünmez bir yedek rozet kalsın
+    const mb = old.cloneNode(false); mb.innerHTML = 'Bildirim<i id="ntBadge"></i>'; old.replaceWith(mb);
+    const dummy = document.createElement('i'); dummy.id = 'msgBadge'; dummy.style.display = 'none'; document.body.appendChild(dummy);
+    box.innerHTML = '<div class="ih"><b>Bildirimler</b><span id="ntClear">Temizle</span><span id="inClose">Kapat</span></div><div class="nf">' + [['all', 'Tümü']].concat(Object.keys(CAT).map(k => [k, CAT[k][0]])).map(([k, n]) => '<button data-f="' + k + '">' + n + '</button>').join('') + '</div><div id="inList"></div>';
+    const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'şimdi' : m < 60 ? m + ' dk' : m < 1440 ? Math.round(m / 60) + ' sa' : Math.round(m / 1440) + ' gün'; };
+    const esc = x => String(x).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+    const badge = () => { const b = document.getElementById('ntBadge'); if (!b) return; b.style.display = unread ? 'block' : 'none'; b.textContent = unread > 9 ? '9+' : unread; };
+    const draw = () => { const L = save.log.filter(e => filt === 'all' || e.c === filt).slice(-150).reverse();
+      box.querySelectorAll('.nf button').forEach(b => b.classList.toggle('on', b.dataset.f === filt));
+      document.getElementById('inList').innerHTML = L.length ? L.map(e => '<div><i style="background:' + CAT[e.c][1] + '"></i><span><b style="color:' + (e.k || CAT[e.c][1]) + '">' + esc(e.w || CAT[e.c][0]) + '</b><small>' + ago(e.t) + '</small><br>' + esc(e.x) + (e.n > 1 ? ' <small>×' + e.n + '</small>' : '') + '</span></div>').join('') : '<div class="em">Henüz bildirim yok.</div>'; };
+    const toggle = v => { open = v; box.style.display = v ? 'flex' : 'none'; if (v){ unread = 0; badge(); draw(); } };
+    mb.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toggle(!open); });
+    box.addEventListener('pointerdown', e => e.stopPropagation());
+    box.addEventListener('click', e => { const f = e.target.closest('[data-f]'); if (f){ filt = f.dataset.f; draw(); return; } if (e.target.id === 'inClose') toggle(false); if (e.target.id === 'ntClear'){ save.log = []; persist(); draw(); } });
+    // kayıt: aynı mesaj art arda gelirse sayaç artar; cevherler 20 sn içinde birleşir
+    function log(c, x, w, k){ x = String(x || '').trim(); if (!x) return; const now = Date.now(), last = save.log[save.log.length - 1];
+      if (last && last.c === c && last.x === x && last.w === w && now - last.t < 60000){ last.n = (last.n || 1) + 1; last.t = now; }
+      else { save.log.push({ t: now, c, x, w, k }); if (save.log.length > 150) save.log.splice(0, save.log.length - 150); }
+      if (open) draw(); else if (c !== 'cevher'){ unread++; badge(); }
+      if (now - saveT > 4000){ saveT = now; persist(); } }
+    window.__log = log;
+    const _t = toast; toast = function(msg, ms){ log(/parçalandı|saldırı|tehlike|uyarı|ısındı|kayıp|ceza|aranıyor|yetersiz|dikkat/i.test(msg) ? 'uyari' : 'bilgi', msg); return _t.apply(this, arguments); };
+    const _r = radio; radio = function(who, msg, col){ log('telsiz', msg, who, col); return _r.apply(this, arguments); };
+    const _b = setBanner; setBanner = function(text, kind, sec){ const l = save.log[save.log.length - 1]; if (!(l && l.x === text && Date.now() - l.t < 6000)) log(kind === 'bad' ? 'uyari' : 'bilgi', text); return _b.apply(this, arguments); };
+    const _o = window.__oreGot; window.__oreGot = function(k){ const now = Date.now(), last = save.log[save.log.length - 1], ad = ORE[k] ? ORE[k].ad : k;
+      if (last && last.c === 'cevher' && last.ore === k && now - last.t < 20000){ last.n = (last.n || 1) + 1; last.t = now; last.x = ad + ' toplandı'; if (open) draw(); }
+      else { log('cevher', ad + ' toplandı'); const e = save.log[save.log.length - 1]; if (e) e.ore = k; }
+      return _o ? _o.apply(this, arguments) : undefined; };
+    const st = document.createElement('style'); st.textContent = `
+  html body #inbox{width:min(340px,70vw) !important;max-height:70% !important}
+  html body #inbox .ih{gap:12px;align-items:center}html body #inbox .ih b{flex:1}html body #inbox .ih span{cursor:pointer;color:#7fd8ff;font-size:11.5px}
+  html body #inbox .nf{display:flex;gap:4px;padding:6px 8px;border-bottom:1px solid #22384f;flex-wrap:wrap}
+  html body #inbox .nf button{all:unset !important;cursor:pointer !important;font:600 10.5px var(--font) !important;letter-spacing:.06em !important;padding:3px 9px !important;border-radius:999px !important;border:1px solid rgba(255,255,255,.16) !important;color:#b9c6da !important;background:none !important}
+  html body #inbox .nf button.on{background:#7fd8ff !important;color:#08101c !important;border-color:#7fd8ff !important}
+  html body #msgBtn::before,html body #stage #msgBtn::before{-webkit-mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 16.5V11a6 6 0 0 1 12 0v5.5l1.6 2H4.4z'/><path d='M10 21a2.2 2.2 0 0 0 4 0'/><path d='M12 3.2V5'/><path d='M3 9.5c.3-2 1.2-3.7 2.6-5M21 9.5c-.3-2-1.2-3.7-2.6-5' stroke-width='1.2'/></svg>") !important;mask-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M6 16.5V11a6 6 0 0 1 12 0v5.5l1.6 2H4.4z'/><path d='M10 21a2.2 2.2 0 0 0 4 0'/><path d='M12 3.2V5'/><path d='M3 9.5c.3-2 1.2-3.7 2.6-5M21 9.5c-.3-2-1.2-3.7-2.6-5' stroke-width='1.2'/></svg>") !important}
+  html body #inList div{display:flex;gap:8px;align-items:flex-start}html body #inList div > i{flex:0 0 6px;height:6px;border-radius:3px;margin-top:6px}
+  html body #inList .em{color:#7a8da3;display:block}
+  html body #msgBtn{font-size:0 !important}html body #msgBtn i#ntBadge{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:8px;background:#ff5a6e;color:#fff;font:700 10px/15px var(--font);text-align:center;font-style:normal;display:none;padding:0 3px}`;
+    document.head.appendChild(st);
+  })();
+
+  // =====  EKRAN SADELİĞİ: aynı anda tek uyarı alanı
+  (function(){
+    const t = document.getElementById('toast'), hint = document.getElementById('hint'), cine = document.getElementById('cine');
+    const bannerOn = () => typeof banner !== 'undefined' && banner && time < banner.until && banner.text !== 'HEDEF KİLİTLİ';
+    // ortadaki büyük uyarı varken üstteki bildirim beklesin (kayda yine girer)
+    const _t = toast, held = []; toast = function(msg, ms){ if (bannerOn() || window.__dead){ if (!held.some(h => h[0] === msg)) held.push([msg, ms]); if (held.length > 3) held.shift(); return; } return _t.apply(this, arguments); };
+    EXTRA.push(() => {
+      if (held.length && !bannerOn() && !window.__dead){ const [m, ms] = held.shift(); _t(m, ms); }
+      const busy = bannerOn() || (t && t.classList.contains('on'));
+      document.body.classList.toggle('uiBusy', !!busy);
+      if (hint) hint.classList.toggle('gone', docked || !!busy || !!document.getElementById('title'));
+    });
+    const st = document.createElement('style'); st.textContent = 'html body.uiBusy #cine b{opacity:0 !important;transition:opacity .2s}html body #hint.gone{visibility:hidden !important}';
+    document.head.appendChild(st);
+  })();
 })();
