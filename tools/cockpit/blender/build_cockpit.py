@@ -31,6 +31,7 @@ if args.verify:
     from lib import verify
     tot, bad, blocked = verify.window_clear(a); print('CAM_TESTI', tot, 'ışın,', bad, 'engelli', blocked)
     print('EKRAN_UYUMU', verify.screen_fit(a))
+    print('EKRAN_ONU_TESTI', verify.screen_clear(a))
 R.setup_world(); R.lights_default()
 print('üçgen', tri_count([o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith(('Canopy', 'Dash', 'Seat', 'Detail', 'SCR', 'Bezel'))]))
 W = int(1200 * args.scale); Hh = int(492 * args.scale)
