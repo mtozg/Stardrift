@@ -15,7 +15,7 @@ clear_scene()
 from lib import project
 arr = None
 if args.proj > 0:
-    arr = project.load_drawing(os.path.join(COCKPIT, '..', '..', 'assets', 'img', 'ck_%s.webp' % args.ship), args.out); materials.PROJ['strength'] = args.proj
+    arr = project.load_drawing(os.path.join(COCKPIT, 'source', 'ck_%s.webp' % args.ship), args.out); materials.PROJ['strength'] = args.proj
 mats = {'gunmetal': materials.gunmetal(), 'steel': materials.steel(), 'titanium': materials.titanium(), 'aluminum': materials.aluminum(), 'composite': materials.composite(), 'leather': materials.leather(), 'thread': materials.thread(), 'fabric': materials.fabric()}
 t0 = time.time(); objs = []
 objs += canopy.build(a, P, mats); print('kanopi', round(time.time() - t0, 1), 's')
