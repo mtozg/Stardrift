@@ -1695,8 +1695,8 @@ let SCR_DEF = [
 function ck3dSet(){ try { const v = localStorage.getItem('sd_ck3'); return save.ship === 'kasif' && (v === null || v === 'q' || v === 'b'); } catch (e) { return false; } }
 var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [250, 422], [300, 417], [350, 405], [400, 384], [450, 379], [500, 374], [550, 368], [600, 360], [650, 357], [950, 357], [1000, 360], [1050, 369], [1100, 374], [1150, 379], [1200, 384], [1250, 405], [1300, 417], [1350, 422], [1400, 427], [1450, 413], [1500, 353], [1550, 278], [2000, 278]];
 function hudRidgePath(c, keep){   /* dashboard bölgesi (sırtın altı); sallanmayla birlikte kayar (sırt derinliği ≈ ağın %9'u). keep: mevcut yola ekle */
-  const sx = sway.x * 0.09, sy = sway.y * 0.09; if (!keep) c.beginPath();
-  HUD_RIDGE.forEach(([x, y], i) => { const X = IM.dx + x * IM.s + sx, Y = IM.dy + IM.my(y) * IM.s + sy; if (i) c.lineTo(X, Y); else c.moveTo(X, Y); });
+  const B = !!window.__ckMapB, sb = (H - OY) / 416.5, k = B ? 1.1 : 0.93, sx = sway.x * k, sy = sway.y * k; if (!keep) c.beginPath();   /* ?ck=b: 3B kamera eşlemesi (ana nokta 239.5, ölçek (H-OY)/416.5); q: görüntü eşlemesi */
+  HUD_RIDGE.forEach(([x, y], i) => { const X = (B ? OX + (x - 800) * sb : IM.dx + x * IM.s) + sx, Y = (B ? OY + (y - 239.5) * sb : IM.dy + IM.my(y) * IM.s) + sy; if (i) c.lineTo(X, Y); else c.moveTo(X, Y); });
   c.lineTo(W + 600, H + 600); c.lineTo(-600, H + 600); c.closePath();
 }
 function hudMask(c){ if (!IMGMODE || !IM.my) return; c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; hudRidgePath(c); c.fill(); c.restore(); }
@@ -1719,7 +1719,7 @@ function layoutCockpit(){
     const mp = (x, y) => [IM.dx + x * IM.s, IM.dy + my(y) * IM.s], K = IMG.cfg, c0 = mp(800, K ? 215 : 265), a0 = mp(K ? 250 : 340, K ? 30 : 150), b0 = mp(K ? 1350 : 1260, K ? 392 : 385);
     { const hs = $('hint').style; hs.top = '5px'; hs.fontSize = '10.5px'; hs.maxWidth = Math.round(W * 0.5) + 'px'; hs.lineHeight = '1.25'; }
     $('toast').style.top = Math.max(6, Math.round(IM.dy + my(74) * IM.s - 17)) + 'px';
-    OX = c0[0]; OY = c0[1]; VIEW = { l: a0[0], t: a0[1], r: b0[0], b: (K && ck3dSet()) ? Math.min(b0[1], mp(800, 382)[1] - 30) : b0[1] }; Hv = mp(0, 393)[1];   /* 3B kokpit (q/b, Kaşif): HUD işaretleri ekranların ~30 px üstünde biter */
+    OX = c0[0]; OY = c0[1]; VIEW = { l: a0[0], t: a0[1], r: b0[0], b: (K && ck3dSet()) ? Math.min(b0[1], mp(800, 382)[1] - 30) : b0[1], b0: b0[1] }; VIEW.bq = VIEW.b; Hv = mp(0, 393)[1];   /* 3B kokpit (q/b, Kaşif): HUD işaretleri ekranların ~30 px üstünde biter */
     SCR = SCR_DEF.map(d => {
       const cx = d.q.reduce((t, p) => t + p[0], 0) / 4, cy = d.q.reduce((t, p) => t + p[1], 0) / 4;
       const q = d.q.map(p => { const vx = cx - p[0], vy = cy - p[1], l = Math.hypot(vx, vy) || 1; return mp(p[0] - vx / l * 5, p[1] - vy / l * 5); });
@@ -10560,7 +10560,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       /* kenar taşması: ağ altta ve yanlarda ~40 px büyütülür (uç piksel şeridi çekilir, derinlik kenardakiyle aynı); kamera kayınca yıldız şeridi/boşluk görünmez */
       const MG = 40 / IM.s, xs = [-MG], ys = []; for (let i = 0; i <= nx; i++) xs.push(i / nx * IW); xs.push(IW + MG); for (let j = 0; j <= ny; j++) ys.push(j / ny * IH); ys.push(IH + MG);
       for (let j = 0; j < ys.length; j++) for (let i = 0; i < xs.length; i++){ const X = xs[i], Y = ys[j], Xc = clamp(X, 0, IW), Yc = clamp(Y, 0, IH), q = mp(X, Y), d = qDepth(Xc / IW, Yc / IH), f = (Dc - d) / Dc;
-        pos.push((q[0] - W / 2) * f, (H / 2 - q[1]) * f, d); uv.push(Xc / IW, 1 - Yc / IH); const edge = (i === 0 || i === xs.length - 1 || j === ys.length - 1) ? 0.3 : 1; col.push(edge, edge, edge); }   /* taşma şeridi uca doğru kararır: çekilen uç piksel çizgileri gölgeye dönüşür */
+        pos.push((q[0] - W / 2) * f, (H / 2 - q[1]) * f, d); uv.push(Xc / IW, 1 - Yc / IH); const edge = (i === 0 || i === xs.length - 1 || j === ys.length - 1) ? 0.15 : 1; col.push(edge, edge, edge); }   /* taşma şeridi uca doğru kararır: çekilen uç piksel çizgileri gölgeye dönüşür */
       for (let j = 0; j < ys.length - 1; j++) for (let i = 0; i < xs.length - 1; i++){ const a = j * xs.length + i, b = a + 1, c = a + xs.length, e = c + 1; idx.push(a, c, b, b, c, e); }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx);
       const tex = new THREE.Texture(img); tex.needsUpdate = true; tex.anisotropy = 4;
@@ -10628,7 +10628,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
     }
     function render(){
-      scrShape(bWant() && BM ? 'b' : 'q');   /* ekran tuvalleri: yalnızca ?ck=b çizilirken yeni oran */
+      { const useB = !!(bWant() && BM); scrShape(useB ? 'b' : 'q'); window.__ckMapB = useB;   /* ekran tuvalleri: yalnızca ?ck=b çizilirken yeni oran */
+        if (VIEW.b0 !== undefined) VIEW.b = useB ? Math.min(VIEW.b0, OY + (382 - 239.5) * (H - OY) / 416.5 - 30) : VIEW.bq; }   /* HUD işaretleri ekranların ~30 px üstünde biter (mod eşlemesine göre) */
       if (bWant()){ if (BM){ try { return renderB(); } catch (e) { BF = true; console.warn('kokpit (b) hata, paralaks kokpite dönülüyor', e); } } else loadB(); }
       if (qOn()) return renderPar();
       const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++; window.__ck3K = k;
