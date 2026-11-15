@@ -1,313 +1,174 @@
-# Stardrift Asset Factory — Mimari ve Üretim Hattı (taslak v0.1)
+# Stardrift Asset Factory — Mimari ve Üretim Hattı (v0.2, onay bekliyor)
 
-Durum: **tasarım, onay bekliyor.** Bu belgeden başka dosya yok; kod yazılmadı. Oyunun hiçbir dosyasına dokunulmadı.
+Bu klasör yalnızca tasarım içerir; kod yok, varlık üretilmedi, oyunun hiçbir dosyası değişmedi.
 
----
-
-## 1. Amaç ve sınırlar
-
-Blender Python (`bpy`) ile **parametrik, tekrar üretilebilir** 3B varlık üretimi: NPC gemileri, istasyonlar, kapılar, hangarlar, çevre nesneleri.
-Çıktı: Three.js r128 (oyunun sürümü) ile açılan **GLB + PBR dokular**, her model için **kalite ve performans raporu**.
-
-Kurallar (bağlayıcı):
-
-| # | Kural | Mimarideki karşılığı |
-|---|---|---|
-| 1 | Ana oyun koduna izinsiz müdahale yok | Fabrika yalnızca `tools/asset_factory/` içine yazar. `js/`, `index.html`, `assets/`, `models/`, `offline.json`, `sw.js` **salt okunur**. Oyuna geçiş tek kapıdan: `handoff` (bkz. §9), o da yalnızca onaydan sonra ve ana sohbette. |
-| 2 | Bağımsız çalışma | Kendi CLI'ı, kendi `requirements.txt`'i, kendi çıktı klasörü. Oyunun yalnızca `vendor/three.min.js` dosyasını **okur** (testin oyunla aynı motor sürümüyle yapılması için). |
-| 3 | Kaşif kokpit altyapısı yeniden kullanılır | §3'te parça parça envanter. |
-| 4 | Her modele kalite + performans doğrulaması | §7: geçmeyen model `approved` olamaz. |
-| 5 | Önce mimari, onay sonra kod | Bu belge. |
+| Belge | İçerik |
+|---|---|
+| `ARCHITECTURE.md` (bu) | Amaç, kapsam, klasör yapısı, üretim hattı, Claude ile yönetim, fazlar |
+| `STANDARDS.md` | Görsel dil, koordinat/ölçek, adlandırma, geometri, malzeme, doku, bütçe, teslim paketi |
+| `QC.md` | Kalite kontrol sistemi: kapılar, otomatik testler, görsel kontrol, performans, rapor |
 
 ---
 
-## 2. Mevcut durumun incelenmesi (bulgular)
+## 1. Amaç ve ilkeler
 
-**Kokpit hattı** `claude/bold-bardeen-oqf73o` dalında, `tools/cockpit/` altında (main'de yok):
+Oyunda kullanılacak 3B varlıkları **Blender Python (bpy) ile prosedürel**, tekrar üretilebilir ve mobilde verimli biçimde üretmek; her varlığı GLB, dokular, teknik özellik ve entegrasyon notlarıyla teslim etmek.
+
+İlkeler:
+1. **Oyuna dokunmaz.** Fabrika yalnızca `tools/asset_factory/` içine yazar. Oyun dosyaları (`js/`, `index.html`, `assets/`, `models/`, `vendor/`, `offline.json`, `sw.js`) **salt okunur referanstır**. Oyuna aktarım ancak açık onayla ve ana sohbette yapılır.
+2. **Önce görüntü, sonra teknik.** Her varlık önce modellenip render edilir ve görsel olarak onaylanır; optimizasyon ve teknik doğrulama ondan sonra gelir (§4).
+3. **Entegrasyon kodu yok** — oyunun Three.js mimarisi ve koordinat sözleşmesi ana sohbetten gelip `contracts/game_contract.md`'ye işlenmeden yükleyici/oyun kodu yazılmaz. O zamana dek entegrasyon notları "GEÇİCİ" damgalıdır.
+4. **Her varlık bağımsız**: tek komutla, tek tariften (spec), başka varlığa bağlı olmadan üretilir; parçaları ve malzemeleri kütüphaneden paylaşır.
+5. **Görsel dil korunur**: mevcut oyun görselleri her varlığın referansıdır (bkz. `STANDARDS.md §1`); sadakat ölçülür (`QC.md`).
+6. **Kalite referansı Kaşif kokpitidir** (hibrit süreç, §3).
+
+## 2. Kapsam — varlık aileleri
+
+| # | Aile (`family`) | Örnekler | Doku modu | Özel not |
+|---|---|---|---|---|
+| 1 | `player_ship` + `cockpit` | Kaşif, Şahin, Yük, Hayalet gemileri; her birinin kokpiti | unique | Kokpit pilot kamerasına bağlı; Kaşif hibrit hattı şablon |
+| 2 | `npc_ship` | cargo, mining, courier, corvette, tanker, korsan A/B/C/L, boss'lar | trim (boss: unique) | Çok örnek aynı anda → paylaşımlı doku |
+| 3 | `station` | Ankora, Demirhan, Kristal, Lonca Pazarı, Kara Liman, karakollar | unique | Yanaşma soketleri zorunlu |
+| 4 | `structure` | kapılar (Kızıl, Buzul, Zümrüt, Kadim, ücra), hangarlar, tüneller/geçitler | unique | Geçiş ekseni ve enerji yüzeyi ayrı |
+| 5 | `env` | asteroit/cevher kayaları (demir, kristal, buz, titan), enkaz/hurda, kalıntılar, uydu tarlası, kristal monolit | trim / vertex | Instancing dostu, çok varyant, düşük poligon |
+| 6 | `interior` + `item` | hangar içi, istasyon iç mekânı; konteyner, sonda, şamandıra, roket, kargo kutusu, pickup | unique (interior) / trim (item) | İç mekânda pişmiş ışık |
+
+Her aile kendi parça kütüphanesine ve kurucusuna (`build`) sahiptir; ortak işler `core/`'dadır.
+
+## 3. Kaşif hibrit sürecinin genellemesi
+
+Kaşif kokpiti (`claude/bold-bardeen-oqf73o` dalı, `tools/cockpit/`) şu hibrit akışla üretildi:
+**onaylı 2B çizim → çizimden çıpa/ölçü (anchors) → parametrik geometri → çizimden sınırlı detay projeksiyonu → prosedürel PBR → bake → GLB → Three.js doğrulaması.**
+
+Fabrikada bu akış her aile için standart olur:
+
+| Kokpit adımı | Fabrikadaki genel karşılığı |
+|---|---|
+| `ck_kasif.webp` onaylı çizim | `ref/` — oyundaki mevcut görseller (üst/yan/ön/arka, `ships_*`, `shipx_*`, `olay_*`, `gate_*`, `boss_*`, `a3_*` …) |
+| `anchors/build_anchors.py` (cam çokgenleri, ekran düzlemleri) | `core/reference.py` — çizimden siluet maskesi, boy/oran, renk paleti, emisyon noktaları çıkarımı |
+| `params/kasif.json` | `specs/<family>/<id>.json` |
+| `lib/canopy, dash, seat…` | `families/<family>/parts/*.py` |
+| `lib/project.py` (çizimden yüksek frekans detay) | `core/reference.py` — **isteğe bağlı**, yalnızca görünür yüzlere, yalnızca ince detay |
+| `lib/materials.py` | `core/materials.py` + `library/materials/*.json` |
+| `lib/bake.py`, `render.py` | `core/bake.py`, `core/render.py` (düzeltmelerle, bkz. §3.1) |
+| `lib/verify.py`, `verify/glb_check.*` | `qc/` (genelleştirilmiş, bkz. `QC.md`) |
+| `INTEGRATION_PLAN.md` | teslim paketindeki `integration.md` şablonu |
+
+### 3.1 Kokpit kodundan alınırken düzeltilecekler
+1. `bake.METALLIC` malzeme **adına** bağlı → malzeme tanımına taşınır.
+2. `cull_hidden` gözü orijinde varsayar (iç mekân mantığı) → aileye göre: iç mekânda göz noktası(ları), dış modelde çok yönlü görünürlük.
+3. Koleksiyon adı `'Cockpit'` sabit; çıktı yalnızca JPEG → parametre; WebP.
+4. ORM'nin B (metalik) kanalı hep 1 → gerçek metalik bake.
+5. Emisyon `Emission Strength > 1` ile veriliyor → r128 `KHR_materials_emissive_strength` desteklemiyor; oyunda sönük görünür. Kural: emisyon rengi ≤ 1, parlaklık oyunda (bloom) — `STANDARDS.md §6`.
+6. Tüm rastgelelik tek `seed`'den türetilir.
+
+Kokpit hattı yerinde **değiştirilmez**; fabrika kendi `core/` kopyasını genelleştirir. Kokpitin ileride `core/`'a taşınması ayrı karardır.
+
+## 4. Üretim hattı
 
 ```
-build_cockpit.py          CLI: --ship --stage --views --verify --export --tex --samples
-lib/common.py             koordinat dönüşümü (oyun ↔ Blender), mesh/bmesh yardımcıları, boolean, bevel, üçgen sayımı
-lib/materials.py          prosedürel PBR: _metal() (fırça, çizik, kenar aşınması, AO kiri), kompozit, deri, kumaş, emisyon, ekran
-lib/bake.py               birleştirme, gizli yüz silme, Smart UV, Cycles bake (AO/base/rough/normal), ORM birleştirme, PBR'ye dönüştürme, GLB
-lib/render.py             uzay dünyası (gradyan + yıldız), softbox ışıklar, kamera, Cycles render
-lib/project.py            onaylı 2B çizimden ince detayı (yüksek geçiren) yüzeye karıştırma
-lib/verify.py             kokpite özel ışın testleri (cam açıklığı, ekran hizası)
-lib/canopy|dash|seat|side|detail|dash_detail.py   kokpite özel geometri
-verify/glb_check.html+.js Three r128 + GLTFLoader + Playwright (swiftshader): isim, malzeme, normal yönü, çağrı/üçgen, ms/kare
-INTEGRATION_PLAN.md       ?ck=b deneme bayrağı, fallback, bütçe
+ ┌─ A. TASARIM ──────────┐   ┌─ B. MODEL ─────────┐   ┌─ C. GÖRÜNÜM ────────────┐
+ │ spec.json + ref/      │──►│ bpy kurulum         │──►│ prosedürel PBR, stil    │
+ │ (Claude yazar)        │   │ deterministik, seed │   │ Cycles lookdev render   │
+ └───────────────────────┘   └─────────────────────┘   │ referansla yan yana     │
+                                                       └───────────┬─────────────┘
+                                                                   ▼
+                                               ◆ KAPI 1 — GÖRSEL ONAY (sen)
+                                                 render sayfası: varlık ⟷ oyun görseli
+                                                                   │ onay
+ ┌─ D. OYUNA HAZIRLIK ──────────────────────────────────────────┐  ▼
+ │ temizlik → LOD → UV (trim/unique) → bake → GLB (WebP, niceleme)│◄─┘
+ └───────────────────────────────┬──────────────────────────────┘
+                                 ▼
+ ┌─ E. TEKNİK DOĞRULAMA (QC.md) ────────────────────────────────┐
+ │ statik · Three r128 render (Cycles'a sadakat) · performans    │
+ └───────────────────────────────┬──────────────────────────────┘
+                                 ▼  PASS
+                     ◆ KAPI 2 — TEKNİK ONAY (sen)
+                                 ▼
+ ┌─ F. TESLİM PAKETİ ───────────────────────────────────────────┐
+ │ GLB · dokular · spec sheet · QC raporu · önizleme · entegrasyon│
+ │ notu (game_contract yoksa GEÇİCİ)                             │
+ └───────────────────────────────┬──────────────────────────────┘
+                                 ▼
+                ◆ KAPI 3 — OYUNA AKTARIM (ana sohbette, ayrı onay)
 ```
 
-**Oyun tarafı (salt okunur gözlem):**
-- NPC gemileri bugün `SHIPART` (üst + yan çizim, `ships_*_top/side.webp`) ve `SPECS3D` ile `buildShip3D`/`mkShipGen` içinde çizimden kurulan özel shader'lı modeller. Gemilerin gerçek boyu tabloda var (`cargo L:70`, `mining L:52`, `courier L:16`, `corvette L:38`...). Model 1 birim uzunlukta kurulup `S.len` ile ölçekleniyor.
-- Three.js **r128**. Oyun main dalında `GLTFLoader` yok; kokpit dalında `vendor/GLTFLoader.js` (r128) eklenmiş. Bu sürüm `EXT_texture_webp`, `KHR_mesh_quantization`, `EXT_meshopt_compression`, `KHR_texture_basisu`, `KHR_draco_mesh_compression` uzantılarını tanıyor.
-- Kalite seviyesi `__qLevel` (`localStorage.sd_q`), hasar shader'ı `DMG_GLSL`, çevrimdışı paket `offline.json` (~30 MB).
-- Ortamda `bpy 5.3.0` pip ile kurulabilir (Python 3.13); kokpit hattı da 5.3 ile denenmiş.
+- A–C hızlı yineleme döngüsüdür (`--fast`: düşük örnek, 3 görünüş, saniyeler–birkaç dakika). Claude render'ları kendisi inceler, spec'i düzeltir, sana yalnızca kendi kontrolünü geçen sürümü gösterir.
+- D–E ağırdır (bake). Görsel onaydan önce çalıştırılmaz; böylece reddedilecek tasarıma bake süresi harcanmaz.
+- Her aşama çıktısını `work/<asset_id>/<rev>/<NN_stage>/`'a yazar ve girdisinin hash'i değişmedikçe yeniden çalışmaz.
+- Kapı 1'de onaylanan render, Kapı 2'de **görsel sadakat referansı** olur: oyuna hazırlık sonrası Three.js görüntüsü bununla karşılaştırılır (`QC.md §4`).
 
-**Mevcut altyapıda gördüğüm, genelleştirirken düzeltilmesi gereken noktalar:**
-1. `bake.METALLIC` sözlüğü malzeme **adına** bağlı → malzeme meta verisine taşınmalı.
-2. `cull_hidden` gözün orijinde olduğunu varsayar (kokpit içi) → dış modellerde çok yönlü görünürlük testine dönüşmeli (yoksa yanlış yüz siler).
-3. `join_body`/`export_glb` koleksiyon adı `'Cockpit'` sabit; çıktı yalnızca JPEG → WebP + niceleme seçeneği.
-4. ORM'nin B (metalik) kanalı hep 1; metalik malzeme sabitinden geliyor → tek atlasta karışık malzemede hatalı olabilir; gerçek metalik bake edilmeli.
-5. Smart UV + her varlığa 2048² özgün bake, 40 NPC gemisi için GPU belleğini patlatır → §6'daki "paylaşımlı trim atlas" modu.
-6. Rastgelelik `random.Random(sabit)` ile kısmen kontrollü; fabrika her şeyi `seed`'e bağlamalı (tekrar üretilebilirlik + içerik özeti).
-
----
-
-## 3. Yeniden kullanım envanteri
-
-| Kokpit parçası | Karar | Fabrikadaki yeri / değişiklik |
-|---|---|---|
-| `common.py` (g2b, obj_from_bm/pydata, boolean, bevel, apply_modifier, tri_count, smooth_by_angle, clear_scene) | **Aynen al** | `core/geo.py` — koleksiyon adı parametre olur |
-| `common.Cam` | Kokpite özel | alınmaz (yalnızca kokpit) |
-| `materials._metal` ve ailesi | **Al, parametrik yap** | `core/materials.py` — `MaterialSpec` (base, rough aralığı, metalik, aşınma, kir, çizik, fırça) JSON'dan; taraf/evren paletleri buradan türetilir |
-| `materials.emission`, `screen_mat` | **Aynen al** | motor çıkışı, pencere ışıkları, kapı enerji halkaları |
-| `bake.py` (bake_all, compose_orm, rebuild_materials, occlusion_group, export_glb) | **Al, düzelt** | `core/bake.py` — madde 1, 3, 4; çözünürlük ve mod (trim/unique) parametresi |
-| `bake.cull_hidden` | **Yeniden yaz** | `core/cleanup.py` — 26 yönlü ışın görünürlüğü (dışarıdan hiç görünmeyen yüzleri sil) |
-| `bake.unwrap` (Smart UV) | Al | `unique` modda; `trim` modda UV kuralla atanır |
-| `render.py` (setup_world, add_light, camera, render) | **Aynen al** | `core/render.py` + yeni: turntable, 6 dik görünüş, kontak tabaka |
-| `project.py` (çizimden detay) | **Uyarlayarak al** | `core/reference.py` — mevcut `ships_*_top/side.webp` çizimleri hem detay kaynağı hem **siluet doğrulama referansı** (§7.3) |
-| `verify.py` ışın testleri | Kalıp alınır | `core/checks/` — ışın altyapısı soket görünürlüğü, iç-dış testleri için |
-| `verify/glb_check.html/.js` | **Al, genelleştir** | `viewer/` — her GLB için çağrı/üçgen/doku belleği/ms, cihaz emülasyonu, çoklu örnek (instancing) testi |
-| `INTEGRATION_PLAN.md` deseni (bayrak, fallback, bütçe, geri alma) | **Şablon** | her varlık ailesi için `handoff` paketinde aynı başlıklar |
-| canopy/dash/seat/side/detail | Kokpite özel | alınmaz; ama kafes → Subsurf "sculpt" kalıbı (`seat.sculpt`) `core/shapes.py`'ye genelleşir |
-
-Kokpit hattı **taşınmaz ve değiştirilmez**; fabrika kendi kopyasını (`core/`) tutar. Fabrika olgunlaşınca kokpitin `core/`'u kullanması ayrı bir karar olur.
-
----
-
-## 4. Klasör yapısı
+## 5. Klasör yapısı
 
 ```
 tools/asset_factory/
-  ARCHITECTURE.md
-  README.md
-  requirements.txt              bpy==5.3.0, numpy, pillow, scipy, pygltflib (+ npm: gltf-validator, gltf-transform, playwright mevcut)
-  factory.py                    tek giriş noktası (CLI, §8)
-  core/                         Blender'a bağlı, varlıktan bağımsız
-    geo.py  shapes.py  materials.py  palettes.py  bake.py  cleanup.py  lod.py
-    uv.py  sockets.py  collision.py  export.py  render.py  reference.py  seed.py
-  families/                     varlık ailesi = parça kütüphanesi + kurucu (grammar)
-    ship/        hull.py engines.py wings.py greebles.py cockpit_glass.py build.py
-    station/     core.py ring.py truss.py solar.py docking.py build.py
-    gate/        ring.py pylons.py energy.py build.py
-    hangar/      shell.py bays.py lights.py props.py build.py
-    prop/        container.py debris.py beacon.py satellite.py asteroid_base.py build.py
-  specs/                        Claude'un düzenlediği JSON tarifler (kaynak gerçeği)
-    _schema/                    JSON Schema (aile başına)
-    styles/                     taraf × evren stil paketleri (palet, aşınma, ışık rengi)
-    ships/npc_cargo.json  ships/npc_courier.json ...
-    stations/ gates/ hangars/ props/
-  budgets.json                  sınıf başına performans bütçeleri (§6)
-  checks/                       Blender'sız doğrulayıcılar (Python + Node)
-    static_glb.py  budgets.py  silhouette.py  pbr_ranges.py  naming.py
-  viewer/                       Three r128 doğrulama + karşılaştırma sayfaları
-    check.html  bench.html  gallery.html  run_check.js  run_bench.js
-  registry.json                 her varlığın durumu, sürümü, içerik özeti (git'te)
-  out/        (git dışı)        ara çıktılar: .blend, bake PNG, render
-  dist/       (git'te, küçük)   onaylı GLB + rapor + önizleme; handoff'un tek kaynağı
+  ARCHITECTURE.md  STANDARDS.md  QC.md  README.md
+  requirements.txt              bpy==5.3.0 numpy pillow scipy pygltflib   (Node: playwright mevcut, gltf-validator, @gltf-transform/cli)
+  factory.py                    tek CLI giriş noktası (§6)
+
+  contracts/                    oyunla sözleşme (ana sohbetten gelen bilgiyle doldurulur)
+    game_contract.md            koordinat, ölçek, ışık, yükleyici, kalite seviyeleri — şu an BOŞ / GEÇİCİ
+    game_contract.json          aynı bilginin makine okunur hâli (QC bunu kullanır)
+
+  core/                         Blender'a bağlı, aileden bağımsız
+    geo.py shapes.py seed.py materials.py bake.py cleanup.py lod.py uv.py
+    sockets.py collision.py export.py render.py reference.py
+
+  families/                     aile = parça kütüphanesi + kurucu
+    player_ship/  cockpit/  npc_ship/  station/  structure/  env/  interior/  item/
+      parts/*.py   build.py   schema.json
+
+  library/                      paylaşılan, sürümlenen kaynaklar
+    materials/*.json            gunmetal, steel, titanium, composite, rust, glass, emit_* …
+    styles/<taraf>.json         filo, lonca, korsan, kadim, biyo (boss)
+    styles/<evren>.json         ankora, kizil, buzul, zumrut, lonca_pazari, kara_liman
+    trims/<set>/                paylaşımlı trim atlasları (kaynak tarif + üretilmiş WebP)
+    lighting/                   lookdev ışık düzenleri (oyunun ışığına yakın + stüdyo)
+
+  specs/<family>/<asset_id>.json   Claude'un düzenlediği tarifler (kaynak gerçeği)
+  ref/<asset_id>/               oyundan kopyalanmış referans görseller + notlar (oyun dosyasına bağlantı değil, kopya)
+
+  qc/                           doğrulayıcılar
+    budgets.json  rules.json
+    static/*.py                 sözleşme, geometri, UV, PBR, bütçe
+    visual/*.py                 siluet, renk, Cycles⟷Three farkı, LOD farkı
+    viewer/                     check.html bench.html gallery.html compare.html + run_*.js (oyunun vendor/three.min.js'ini okur)
+
+  registry.json                 tüm varlıklar: durum, revizyon, hash, onay kayıtları (git'te)
+
+  work/          (git dışı)     ara çıktılar: .blend, bake PNG, render
+  deliveries/    (git'te)       onaylanmış teslim paketleri (STANDARDS.md §9)
 ```
 
----
+## 6. Claude ile yönetim
 
-## 5. Üretim hattı
-
-```
- spec.json ──► [1 resolve] ──► [2 generate] ──► [3 cleanup] ──► [4 LOD] ──► [5 UV+bake] ──► [6 export]
-   ▲  seed, stil, varyant       bpy, deterministik   manifold, normal,   0/1/2        trim | unique     GLB, WebP,
-   │                                                 gizli yüz, origin                AO→vertex/ORM     quantize, meshopt
-   │
-   │       ┌──────────────────────── [7 validate] ◄────────────────────────────────────────────┘
-   │       │  7a statik (Python): sözleşme, bütçe, PBR aralıkları, glTF validator
-   │       │  7b görsel: Cycles önizleme + Three r128 render, siluet ⟷ çizim
-   │       │  7c performans: Playwright + cihaz emülasyonu, N örnek sahnesi
-   │       ▼
-   │   [8 report] report.json + report.html + kontak tabaka PNG
-   │       │
-   └── Claude okur, spec'i düzeltir ◄── FAIL
-           │ PASS
-           ▼
-       [9 review] kullanıcı onayı (galeri) ──► registry: approved ──► [10 handoff] (ana sohbette, ayrı onay)
-```
-
-Her aşama bağımsız çağrılabilir ve çıktısını `out/<asset>/<version>/NN_<stage>/` altına yazar; bir aşama yalnızca girdisinin özeti (hash) değişince yeniden çalışır (bake dakikalar sürdüğü için önemli).
-
-### 5.1 Spec (tarif) biçimi — örnek
-
-```json
-{
-  "id": "npc_cargo",
-  "family": "ship",
-  "archetype": "hauler",
-  "class": "ship_large",
-  "length_m": 70,
-  "style": "lonca/ankora",
-  "seed": 4127,
-  "params": {
-    "hull":    { "sections": 5, "taper_nose": 0.35, "taper_tail": 0.6, "width_ratio": 0.29, "height_ratio": 0.20 },
-    "cargo":   { "pods": 6, "pod_layout": "spine_pairs", "pod_size": [0.12, 0.08, 0.08] },
-    "engines": { "count": 2, "type": "bell", "glow": "lonca_amber" },
-    "greeble": { "density": 0.45, "kinds": ["vent", "pipe", "panel", "antenna"] }
-  },
-  "reference": { "top": "assets/img/ships_cargo_top.webp", "side": "assets/img/ships_cargo_side.webp", "silhouette_iou_min": 0.80 },
-  "variants": { "axes": { "style": ["lonca/ankora", "filo/ankora", "korsan/kara"], "params.cargo.pods": [4, 6, 8] }, "max": 6 },
-  "texture_mode": "trim",
-  "lods": [1.0, 0.45, 0.15]
-}
-```
-
-`reference` mevcut oyun çizimine bağlanırsa üretilen model, bugünkü 2B tasarımla **aynı kimlikte** kalır (oyuncunun tanıdığı gemi).
-
-### 5.2 Aile kurucuları (grammar)
-
-Her aile `build(spec, rng, mats) -> AssetScene` sağlar; parçalar küçük, tek işi yapan fonksiyonlar:
-
-- **ship**: gövde = kesit profilleri boyunca loft (yaşa/kapsül/köşeli seçenek) → kanat/sponson → motor çanları (lathe) → kargo modülleri → kokpit camı (emisyonlu koyu cam) → greeble dağıtımı (yüzeye dik, çakışma kontrollü, simetri ekseni).
-- **station**: merkez gövde (lathe) + halka(lar) + kafes (truss, instanced) + güneş panelleri + yanaşma kolları; yanaşma soketleri zorunlu.
-- **gate**: halka (torus kesiti profilden) + direkler + enerji yüzeyi (ayrı emisyon mesh, oyunda shader ile canlandırılır; mevcut `gate_*_enerji/yuzey.webp` dokularıyla uyumlu UV).
-- **hangar**: iç mekân kabuğu (içe dönük normaller), bölmeler, tavan ışıkları (emisyon şerit), dekor; kamera yolu soketleri (oyunun yanaşma animasyonu için).
-- **prop**: konteyner, enkaz (boolean kırık), işaret şamandırası, uydu, kalıntı parçaları.
-
-Taraf/evren stili (`specs/styles/`) şekle değil **malzeme, renk, aşınma, ışık rengi ve greeble türüne** dokunur: Filo (temiz, beyaz-mavi), Lonca (altın-amber, düzenli), Korsan (paslı, yamalı, asimetrik eklentiler); Ankora / Kızıl / Buzul / Zümrüt / Kara Liman / Lonca Pazarı tonları.
-
-### 5.3 Varyasyon
-
-- Varyant = `spec` + (stil, parametre değerleri, seed) çarpımından seçilen alt küme (`variants.max`).
-- Varyant kimliği: `npc_cargo@lonca-ankora.p6.s4127` — deterministik; aynı girdi = aynı GLB (bayt eşitliği hedef, en azından geometri hash eşitliği).
-- **Paylaşım**: varyantlar aynı trim atlası ve malzemeleri kullanır → oyunda 6 varyant tek doku setiyle çizilir.
-
----
-
-## 6. Oyun sözleşmesi ve performans bütçesi
-
-### 6.1 GLB sözleşmesi (tüm aileler)
-
-- Birim **metre**, gerçek boy (`length_m`). Oyun uzayı: Y yukarı, **−Z ileri** (burun −Z). Blender'da `g2b` dönüşümüyle kurulur, glTF dışa aktarımı Y-up.
-- Kök düğüm `SD_<id>`; altında `LOD0`, `LOD1`, `LOD2` (her biri ≤ 2 mesh: opak gövde + emisyon).
-- Malzeme adları: `MAT_body`, `MAT_emit`, `MAT_glass` (en fazla 3).
-- Soketler (boş düğümler, `SOCK_` öneki): `SOCK_engine_N` (alev/iz efekti, yön −Z'nin tersi), `SOCK_gun_N`, `SOCK_dock_N`, `SOCK_light_N` (seyir ışığı rengi `extras`te), `SOCK_cam_N` (hangar/yanaşma kamera yolu).
-- Çarpışma: `extras.collision` = küre listesi (oyunun mevcut mesafe tabanlı çarpışmasına uygun) + isteğe bağlı `COL_hull` düşük poligonlu dışbükey mesh.
-- `extras`: `{ id, variant, version, faction, universe, radius, bounds, tris:[l0,l1,l2], factory_hash }`.
-- Hasar: oyunun `DMG_GLSL` yaklaşımı için `COLOR_0` kanalında hasar maskesi ayrılır (R = kenar/zırh, G = iç bölge). Kullanılıp kullanılmayacağı entegrasyonda karar.
-
-### 6.2 Doku modları
-
-| Mod | Ne zaman | Nasıl | Bellek |
-|---|---|---|---|
-| **trim** (varsayılan, NPC/prop) | çok sayıda, küçük ekranda görünen | taraf başına paylaşımlı 1024² trim atlası (panel, çizgi, ızgara, şerit) + model başına AO ve hasar maskesi **vertex color**'da | taraf başına ~4 MB GPU, model başına ≈ 0 |
-| **unique** (boss, istasyon, kapı, hangar) | yakından görülen tekil varlıklar | kokpit hattındaki bake (base, ORM, normal) | 1024² veya 2048² |
-
-Dokular **WebP** (`EXT_texture_webp`, iOS 14+ destekli) — JPEG'e göre ~%30 küçük; PNG yedeği yalnızca alfa gerekirse. KTX2/Basis (GPU belleği en düşük) r128'de destekli ama transcoder ister → faz 3'te değerlendirme.
-
-### 6.3 Geometri sıkıştırma
-
-`KHR_mesh_quantization` + `EXT_meshopt_compression` (gltf-transform ile). Meshopt çözücüsü tek küçük JS dosyası (wasm gömülü), Draco'dan hafif → oyuna eklenmesi gerekecek; bu entegrasyon kararı, fabrika her iki sürümü de (sıkıştırmalı/sıkıştırmasız) üretebilir.
-
-### 6.4 Bütçeler (`budgets.json`, mobil hedef: iPhone 13 / orta Android, 30+ fps)
-
-| Sınıf | LOD0 üçgen | LOD1 | LOD2 | Çizim çağrısı | Doku | GLB |
-|---|---|---|---|---|---|---|
-| prop | 800 | 300 | 80 | ≤ 2 | trim | ≤ 60 KB |
-| ship_small (≤ 25 m) | 2 500 | 1 100 | 350 | ≤ 2 | trim | ≤ 150 KB |
-| ship_large (≤ 80 m) | 6 000 | 2 700 | 900 | ≤ 3 | trim | ≤ 300 KB |
-| boss | 12 000 | 5 000 | 1 500 | ≤ 3 | unique 1024² | ≤ 1 MB |
-| gate | 10 000 | 4 000 | 1 200 | ≤ 3 | unique 1024² | ≤ 1 MB |
-| station | 25 000 | 10 000 | 3 000 | ≤ 4 | unique 2048² | ≤ 2 MB |
-| hangar (iç) | 40 000 | — | — | ≤ 6 | unique 2048² | ≤ 3,5 MB |
-
-Sahne düzeyi: aynı anda 12 NPC gemisi + 1 istasyon + 1 kapı ile ek kokpit dışı yük ≤ 4 ms/kare (cihazda). Sayılar ilk tahmin; faz 1'de gerçek cihaz ölçümüyle ayarlanır.
-
----
-
-## 7. Doğrulama (her model, her varyant)
-
-Sonuç üç düzeyli: **PASS / WARN / FAIL**. Tek FAIL bile `approved` durumunu engeller.
-
-### 7.1 Statik (Blender içinde + GLB üzerinde)
-- glTF Khronos validator: 0 hata.
-- Sözleşme: düğüm/malzeme/soket adları, kök, LOD sayısı, `extras` alanları, birim/boy (±%2).
-- Geometri: uygulanmış dönüşümler, sıfır alanlı yüz yok, gevşek köşe yok, tutarlı normal (dışa bakış ışın testi), açık kenar sayısı (gövde için 0 hedef), kendi içine geçen greeble oranı.
-- UV: 0..1 dışı yok (trim hariç), ada çakışması yok (unique), texel yoğunluğu sınıf hedefinin ±%30'unda.
-- PBR aralıkları: base color sRGB 30–240 (metaller 180–250 hariç), metalik ~0 ya da ~1 (ara değer oranı uyarı), roughness 0,05–1, normal haritası birim uzunlukta.
-- Bütçe: §6.4 tablosu.
-
-### 7.2 Görsel
-- Cycles önizleme: 6 dik görünüş + 3/4 + turntable (8 kare) → kontak tabaka PNG. Claude bu görüntüleri okuyup yorumlar.
-- **Three r128 render** aynı açılardan (`viewer/check.html`, oyunun ışık düzeniyle); Cycles ile parlaklık/renk farkı ölçülür (glTF malzeme kaybını yakalar: örn. kokpitteki iplik metalik=1 hatası türünden).
-- LOD geçiş farkı: LOD0 ↔ LOD1 ekranda belirlenen mesafede siluet farkı < %3 piksel.
-
-### 7.3 Referansa sadakat
-- Mevcut `ships_*_top/side.webp` varsa: üretilen modelin üst ve yan siluetinin çizimin alfa maskesiyle **IoU**'su ≥ `silhouette_iou_min` (varsayılan 0,80). Böylece yeni 3B gemi bugünkü tasarımdan kopmaz.
-
-### 7.4 Performans (Playwright, oyunun `vendor/three.min.js`'i)
-- Tek model: `renderer.info` çağrı/üçgen, doku/geometri belleği, ilk yükleme (parse) süresi.
-- Kalabalık sahne: N = 1/12/40 örnek, ms/kare; cihaz emülasyonu iPad Pro 11, iPhone 13, Pixel 7 (yatay).
-- Not: swiftshader süreleri gerçek cihazı yansıtmaz — **göreli karşılaştırma** içindir. Gerçek ölçüm için `viewer/bench.html` sayfası telefonda açılır (GitHub Pages veya yerel sunucu), sonucu kopyalanabilir JSON olarak verir.
-
-### 7.5 Rapor
-`dist/<id>/<variant>/report.json` (makine) + `report.html` (insan: önizleme, metrikler, bütçe çubukları, PASS/WARN/FAIL listesi). `viewer/gallery.html` tüm kayıtları yan yana gösterir; onay buradan verilir.
-
----
-
-## 8. Claude ile yönetim (orkestrasyon)
-
-Kaynak gerçeği **spec JSON**; Claude kod değil, tarif düzenleyerek üretir. Tek CLI:
+Kaynak gerçeği **spec JSON**'dur; varlık üretmek için kod değil tarif düzenlenir. Yeni bir parça türü gerektiğinde `families/*/parts/`'a kod eklenir.
 
 ```
-python factory.py new     ship npc_cargo --from-ref ships_cargo        # şablon spec, çizimden boy/oran tahmini
-python factory.py build   npc_cargo [--variant all] [--stage generate..export] [--fast]
-python factory.py validate npc_cargo [--perf]
-python factory.py report  npc_cargo                                    # report.html + kontak tabaka
-python factory.py variants npc_cargo --list | --build
-python factory.py status                                               # registry özeti
-python factory.py approve npc_cargo@lonca-ankora.p6.s4127              # yalnızca kullanıcı isteğiyle
-python factory.py handoff  npc_cargo --target models/ships/           # yalnızca ana sohbette, ayrı onayla (§9)
+python factory.py new      <family> <asset_id> [--ref ships_cargo]   # şablon spec + ref/ kopyası + ölçü tahmini
+python factory.py model    <asset_id> [--fast]                       # A→C, lookdev render
+python factory.py review   <asset_id>                                # Kapı 1 sayfası (varlık ⟷ referans)
+python factory.py approve  <asset_id> --gate visual|tech             # yalnızca senin açık onayınla
+python factory.py prepare  <asset_id>                                # D (Kapı 1 onayı yoksa reddeder)
+python factory.py qc       <asset_id> [--perf]                       # E
+python factory.py deliver  <asset_id>                                # F (Kapı 2 onayı yoksa reddeder)
+python factory.py variants <asset_id> --list|--build
+python factory.py status
 ```
 
-- `--fast`: düşük örnek, 512² bake, yalnızca 3 görünüş → döngü süresi dakikalar değil saniyeler (tasarım iterasyonu).
-- Her komut sonunda tek satır makine özeti basar (`RESULT {...}`); Claude bunu ve PNG'leri okuyup bir sonraki adımı seçer.
-- `registry.json` durumları: `draft → built → validated (PASS/FAIL) → approved → handed_off`. Her geçiş zaman, içerik hash'i ve neden ile kaydedilir.
-- Uzun bake işleri arka planda; aynı anda tek Blender süreci (bellek).
-- Döngü: Claude spec'i değiştirir → `build --fast` → raporu okur → düzeltir → tam `build` + `validate --perf` → kullanıcıya galeri.
+- Her komut sonunda tek satır makine özeti (`RESULT {...}`) yazar; Claude bunu ve PNG'leri okuyup sonraki adımı seçer.
+- `registry.json` durumları: `draft → modeled → visual_approved → prepared → qc_pass|qc_fail → tech_approved → delivered → integrated`. Her geçiş: zaman, hash, neden, onaylayan.
+- Kapılar komutlarla zorlanır: onaysız aşama atlanamaz.
+- Aynı anda tek Blender süreci; bake arka planda.
 
----
+## 7. Fazlar
 
-## 9. Ana projeye entegrasyon (handoff)
-
-Fabrika oyunu **değiştirmez**; `handoff` yalnızca bir **paket** hazırlar:
-
-```
-dist/handoff/<tarih>_<aile>/
-  models/...glb                 kopyalanacak dosyalar (hedef yollarıyla)
-  manifest.json                 id, varyant, boy, soketler, çarpışma, bütçe, hash
-  INTEGRATION.md                kokpitteki INTEGRATION_PLAN deseni: bayrak (?m3=1 gibi), yükleme,
-                                fallback (GLB yoksa bugünkü çizim tabanlı model), bütçe, test, geri alma
-  loader_snippet.js             önerilen yükleyici (oyuna yapıştırılmaz; ana sohbette incelenir)
-```
-
-Ana sohbette: paket incelenir → onaylanırsa dosyalar `models/` altına konur, `tools/offline_list.py` çalıştırılır, oyun kodu değişikliği orada yapılır. Varsayılan davranış hiçbir zaman fabrika tarafından değiştirilmez.
-
----
-
-## 10. Fazlar
-
-| Faz | Kapsam | Çıkış ölçütü |
+| Faz | İçerik | Çıkış ölçütü |
 |---|---|---|
-| **0 — Temel** | `core/`'un kokpitten çıkarılması (§3), CLI iskeleti, registry, viewer/check, bpy kurulum doğrulaması, budgets.json | Basit bir test kutusu tüm hattan geçip rapor üretir |
-| **1 — İlk NPC gemisi** | `families/ship` + `npc_courier` (en küçük, 16 m) ve `npc_cargo`; trim atlas (Lonca); siluet testi | 2 gemi PASS, gerçek cihaz bench ölçümü, bütçelerin ayarı |
-| **2 — Varyasyon** | stil paketleri (3 taraf × 2 evren), varyant matrisi, galeri | 1 gemiden 6 tutarlı varyant, tek doku seti |
-| **3 — Büyük varlıklar** | gate, station (unique bake), LOD otomasyonu, meshopt/KTX2 kararı | 1 kapı + 1 istasyon PASS |
-| **4 — Hangar ve prop** | hangar iç mekân, kamera soketleri, prop seti | hangar PASS, prop kütüphanesi |
-| **5 — Handoff** | ilk paket ana sohbete | ana sohbette onay |
+| 0 — Temel | `core/` çıkarımı ve düzeltmeler (§3.1), CLI, registry, QC iskeleti, viewer, bpy kurulumu | Bir test kutusu A→F'yi geçer, rapor çıkar |
+| 0.5 — Sözleşme | Ana sohbetten gelen bilgiyle `contracts/game_contract.*` | Koordinat, ölçek, ışık, yükleyici, kalite seviyeleri yazılı ve onaylı |
+| 1 — İlk varlıklar | Senin seçeceğin ilk varlık(lar) | Kapı 1 + Kapı 2 geçer, gerçek cihaz ölçümü |
+| 2+ | Aile aile genişleme | — |
 
----
-
-## 11. Onay gereken kararlar
-
-1. **Konum**: `tools/asset_factory/` (aynı depo, oyundan yalıtılmış) — öneri. Alternatif: ayrı depo.
-2. **Kokpit kodu**: kopyalanıp `core/` olarak genelleşsin, kokpit dalı olduğu gibi kalsın — öneri.
-3. **NPC doku modu**: paylaşımlı trim atlas + vertex AO (bellek dostu) — öneri; görsel kalite unique bake'ten biraz düşük.
-4. **Referans sadakati**: yeni 3B gemiler mevcut üst/yan çizimlerin silüetine bağlı kalsın mı (IoU ≥ 0,80), yoksa serbest yeniden tasarım mı?
-5. **Sıkıştırma**: WebP + quantization her zaman; meshopt (oyuna ~20 KB çözücü gerekir) entegrasyonda karar.
-6. **İlk hedef**: Faz 1 için `courier` (küçük, hızlı iterasyon) + `cargo` (büyük, greeble ağırlıklı).
-7. Bütçe tablosu (§6.4) başlangıç olarak kabul mü?
+Bu fazların hiçbiri onayın olmadan başlamaz.
