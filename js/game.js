@@ -1692,8 +1692,8 @@ let SCR_DEF = [
 ];
 /* HUD maskesi yalnızca 3B kokpit modlarında (Kaşif: varsayılan q ve ?ck=b) geçerli: HUD tuvali WebGL kokpitin üstünde durduğu için dashboard bölgesi HUD'dan kesilir.
    Çizgi: cam altı sırtı (anchors/kasif.json pencere alt sınırları, 1600x656 çizim uzayı). Eski 2D kokpitlerde kokpit resmi HUD'ın üstünde olduğundan gerekmez. */
-const ck3dSet = () => { try { const v = localStorage.getItem('sd_ck3'); return save.ship === 'kasif' && (v === null || v === 'q' || v === 'b'); } catch (e) { return false; } };
-const HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [250, 422], [300, 417], [350, 405], [400, 384], [450, 379], [500, 374], [550, 368], [600, 360], [650, 357], [950, 357], [1000, 360], [1050, 369], [1100, 374], [1150, 379], [1200, 384], [1250, 405], [1300, 417], [1350, 422], [1400, 427], [1450, 413], [1500, 353], [1550, 278], [2000, 278]];
+function ck3dSet(){ try { const v = localStorage.getItem('sd_ck3'); return save.ship === 'kasif' && (v === null || v === 'q' || v === 'b'); } catch (e) { return false; } }
+var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [250, 422], [300, 417], [350, 405], [400, 384], [450, 379], [500, 374], [550, 368], [600, 360], [650, 357], [950, 357], [1000, 360], [1050, 369], [1100, 374], [1150, 379], [1200, 384], [1250, 405], [1300, 417], [1350, 422], [1400, 427], [1450, 413], [1500, 353], [1550, 278], [2000, 278]];
 function hudRidgePath(c, keep){   /* dashboard bölgesi (sırtın altı); sallanmayla birlikte kayar (sırt derinliği ≈ ağın %9'u). keep: mevcut yola ekle */
   const sx = sway.x * 0.09, sy = sway.y * 0.09; if (!keep) c.beginPath();
   HUD_RIDGE.forEach(([x, y], i) => { const X = IM.dx + x * IM.s + sx, Y = IM.dy + IM.my(y) * IM.s + sy; if (i) c.lineTo(X, Y); else c.moveTo(X, Y); });
@@ -1702,8 +1702,8 @@ function hudRidgePath(c, keep){   /* dashboard bölgesi (sırtın altı); sallan
 function hudMask(c){ if (!IMGMODE || !IM.my) return; c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; hudRidgePath(c); c.fill(); c.restore(); }
 /* ?ck=b ekran oranları (Blender ekran geometrisi v2: RADAR +%20 yükseklik, SYS/HULL %12 dar). Canlı tuvaller yalnızca ?ck=b çizilirken yeni oranda yeniden kurulur;
    paralaks (q) ve eski kokpitlerde oran değişmez. Katsayılar anchors/kasif.json'daki eski ve yeni ekran dörtgenlerinin (CKP) ölçülerinden. */
-const B_SCR_K = { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] };
-let scrShapeMode = 'q';
+var B_SCR_K = { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] };
+var scrShapeMode = 'q';   /* var: layoutCockpit bu satırdan önce de çağrılabilir */
 function scrShape(mode){
   if (mode === scrShapeMode) return; scrShapeMode = mode;
   for (const sc of SCR){ if (!sc.px) continue; const k = (mode === 'b' && B_SCR_K[sc.kind]) || [1, 1], lwp = sc.px[0] * k[0], lhp = sc.px[1] * k[1], kz = Math.max(1, 96 / Math.max(1, lhp));
