@@ -2080,17 +2080,17 @@ function radar2Screen(c, I){
   c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = lock ? SC2.w : SC2.d; c.fillText(lock ? 'KİLİTLİ' : (boosting ? '2,4' : '1') + ' KM', I.x, I.y + I.h - 1);
 }
 // ekran ışığı: her ekran çevresine yumuşak camgöbeği ışık saçar
-const SCRGLOW = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), g = x.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, 'rgba(90,205,255,0.3)'); g.addColorStop(0.5, 'rgba(90,205,255,0.07)'); g.addColorStop(1, 'rgba(90,205,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return cv; })();
+const SCRGLOW = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), g = x.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, 'rgba(90,205,255,0.5)'); g.addColorStop(0.5, 'rgba(90,205,255,0.13)'); g.addColorStop(1, 'rgba(90,205,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return cv; })();
 function scrGlow(c, sc){ const xs = sc.q.map(p => p[0]), ys = sc.q.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = x1 - x0, h = y1 - y0;
-  c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.22 + 0.02 * Math.sin(time * 3 + x0); c.drawImage(SCRGLOW, x0 - w * 0.28, y0 - h * 0.45, w * 1.56, h * 1.9); c.restore(); }
+  c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.36 + 0.03 * Math.sin(time * 3 + x0); c.drawImage(SCRGLOW, x0 - w * 0.28, y0 - h * 0.45, w * 1.56, h * 1.9); c.restore(); }
 function cockpitTone(k){
   if (window.__noTone) return;
   k.save(); k.globalCompositeOperation = 'source-atop';
-  let g = k.createLinearGradient(0, -CKM, 0, H + CKM); g.addColorStop(0, 'rgba(1,3,7,0.16)'); g.addColorStop(0.45, 'rgba(1,3,7,0.1)'); g.addColorStop(0.75, 'rgba(1,3,7,0.04)'); g.addColorStop(1, 'rgba(1,3,7,0.1)');
+  let g = k.createLinearGradient(0, -CKM, 0, H + CKM); g.addColorStop(0, 'rgba(1,3,7,0.5)'); g.addColorStop(0.45, 'rgba(1,3,7,0.42)'); g.addColorStop(0.75, 'rgba(1,3,7,0.3)'); g.addColorStop(1, 'rgba(1,3,7,0.42)');
   k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
   // ekranların ışığı panele vurur (ekranın hemen çevresi)
   for (const sc of SCR){ const cx = sc.q.reduce((t, p) => t + p[0], 0) / 4, cy = sc.q.reduce((t, p) => t + p[1], 0) / 4, r = Math.hypot(sc.q[1][0] - sc.q[0][0], sc.q[1][1] - sc.q[0][1]) * 0.8;
-    g = k.createRadialGradient(cx, cy, r * 0.3, cx, cy, r); g.addColorStop(0, 'rgba(80,200,255,0.07)'); g.addColorStop(1, 'rgba(80,200,255,0)'); k.fillStyle = g; k.fillRect(cx - r, cy - r, r * 2, r * 2); }
+    g = k.createRadialGradient(cx, cy, r * 0.3, cx, cy, r); g.addColorStop(0, 'rgba(80,200,255,0.2)'); g.addColorStop(1, 'rgba(80,200,255,0)'); k.fillStyle = g; k.fillRect(cx - r, cy - r, r * 2, r * 2); }
   k.restore();
 }
 function glassLayer(k, paint){
