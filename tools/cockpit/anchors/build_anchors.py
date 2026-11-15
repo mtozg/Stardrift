@@ -58,24 +58,26 @@ def center_screen(q, width, pit):
     P1 = plane_pts(R, n, -1.0); P = P1 * (width / np.linalg.norm(P1[1] - P1[0]))
     return P, n
 
-def side_screen(q, inner_idx, pin_z, width, pit):
-    """Yan ekran: iç üst köşe orta ekranın kenarıyla aynı derinliğe (pin_z) sabitlenir, böylece dashboard kesintisiz olur.
-    Düzlemin yaw açısı, ekranın gerçek genişliğini (width) tutturacak şekilde aranır."""
+def side_screen(q, inner_idx, outer_idx, pin_z, wrap, pit):
+    """Yan ekran: iç üst köşe orta ekranın kenarıyla aynı derinliğe (pin_z) sabitlenir. Düzlemin yaw açısı, DIŞ kenarın iç kenardan `wrap`
+    metre daha yakın (pilota doğru kıvrılan, çevreleyen dashboard) olmasını sağlar; böylece ekran kanopi kabuğunun önünde kalır.
+    Köşeler pilot kamerasının ışınları üzerinde kaldığından CKP izdüşümü birebir korunur."""
     R = [ray(*p) for p in q]
     pin = R[inner_idx] * (pin_z / R[inner_idx][2]); best = None
-    for yaw in np.linspace(-1.25, 1.25, 501):
+    for yaw in np.linspace(-1.25, 1.25, 1001):
         n = np.array([np.sin(yaw) * np.cos(pit), np.sin(pit), np.cos(yaw) * np.cos(pit)])
         if n[2] < 0.2 or abs(n @ R[inner_idx]) < 1e-3: continue
         P = plane_pts(R, n, n @ pin)
         if np.any(P[:, 2] > -0.3): continue
-        sc = abs(np.linalg.norm(P[1] - P[0]) - width)
+        zo = np.mean([P[k][2] for k in outer_idx]); sc = abs(zo - (pin_z + wrap))
         if best is None or sc < best[0]: best = (sc, P, n)
     return best[1], best[2]
 
 PIT = 0.20
+WRAP = 0.14   # dış kenar iç kenardan bu kadar pilota yakın (m)
 Pc, nc = center_screen(ckp['q'][1], WIDTH[1], PIT)
-PL, nL = side_screen(ckp['q'][0], 1, Pc[0][2], WIDTH[0], PIT)
-PR, nR = side_screen(ckp['q'][2], 0, Pc[1][2], WIDTH[2], PIT)
+PL, nL = side_screen(ckp['q'][0], 1, (0, 3), Pc[0][2], WRAP, PIT)
+PR, nR = side_screen(ckp['q'][2], 0, (1, 2), Pc[1][2], WRAP, PIT)
 screens = []
 for nm, q, P, n in (('SCR_SYS', ckp['q'][0], PL, nL), ('SCR_RADAR', ckp['q'][1], Pc, nc), ('SCR_HULL', ckp['q'][2], PR, nR)):
     screens.append({'name': nm, 'ckp': q, 'corners3d': P.round(4).tolist(), 'normal': n.round(4).tolist(), 'center': P.mean(0).round(4).tolist(),

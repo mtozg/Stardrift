@@ -33,22 +33,24 @@ def screen_fit(a):
     return worst, res
 
 
-def screen_clear(a, samples=200):
-    """Ekran önünde engel var mı: göz→ekran noktası ışınında, ekran yüzeyinden DAHA YAKIN bir geometri (koltuk, bezel dışı parça) bulunmamalı."""
+def screen_clear(a, samples=300):
+    """Her ekran için ayrı: göz→ekran noktası ışınında ekran yüzeyinden 4 mm'den DAHA YAKIN herhangi bir geometri (kabuk, dashboard, bezel, koltuk, ayrıntı) engeldir.
+    Dönüş: {ekran: (örnek, engelli, {nesne: adet})}"""
     import random
     from mathutils import geometry
-    cam = Cam(a); dg = bpy.context.evaluated_depsgraph_get(); sc = bpy.context.scene; rnd = random.Random(9); bad = {}; tot = 0
+    cam = Cam(a); dg = bpy.context.evaluated_depsgraph_get(); sc = bpy.context.scene; res = {}
     for s in a['screens']:
-        q = s['ckp']; so = bpy.data.objects[s['name']]; vs = [so.matrix_world @ v.co for v in so.data.vertices]
+        rnd = random.Random(9); q = s['ckp']; so = bpy.data.objects[s['name']]; vs = [so.matrix_world @ v.co for v in so.data.vertices]; bad = {}; tot = 0
         for _ in range(samples):
-            u1, v1 = rnd.uniform(0.04, 0.96), rnd.uniform(0.04, 0.96)
+            u1, v1 = rnd.uniform(0.03, 0.97), rnd.uniform(0.03, 0.97)
             top = (q[0][0] + (q[1][0] - q[0][0]) * u1, q[0][1] + (q[1][1] - q[0][1]) * u1); bot = (q[3][0] + (q[2][0] - q[3][0]) * u1, q[3][1] + (q[2][1] - q[3][1]) * u1)
-            u, v = top[0] + (bot[0] - top[0]) * v1, top[1] + (bot[1] - top[1]) * v1; tot += 1
+            u, v = top[0] + (bot[0] - top[0]) * v1, top[1] + (bot[1] - top[1]) * v1
             d = g2b(cam.ray(u, v)); dscr = None
             for tri in ((0, 1, 2), (0, 2, 3)):
                 x = geometry.intersect_ray_tri(vs[tri[0]], vs[tri[1]], vs[tri[2]], d, Vector((0, 0, 0)))
                 if x is not None: dscr = x.length
             if dscr is None: continue
-            hit, loc, nor, idx, ob, mat = sc.ray_cast(dg, Vector((0, 0, 0)), d)
-            if hit and not ob.name.startswith('SCR_') and loc.length < dscr - 0.004 and ob.name.startswith(('Seat', 'Detail', 'Dash_Plate', 'Dash_Ped', 'Bezel_')): bad[ob.name] = bad.get(ob.name, 0) + 1
-    return tot, sum(bad.values()), bad
+            tot += 1; hit, loc, nor, idx, ob, mat = sc.ray_cast(dg, Vector((0, 0, 0)), d)
+            if hit and not ob.name.startswith('SCR_') and loc.length < dscr - 0.004: bad[ob.name] = bad.get(ob.name, 0) + 1
+        res[s['name']] = (tot, sum(bad.values()), bad)
+    return res
