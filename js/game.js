@@ -10598,7 +10598,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     function loadB(){
       if (BP) return BP;
       BP = new Promise((res, rej) => {
-        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load('models/cockpit_kasif.glb' + v, g => { BM = g.scene; res(); }, undefined, e => { BF = true; rej(e); });
+        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? 'models/cockpit_kasif_m.glb' : 'models/cockpit_kasif.glb') + v,   /* telefon: 1024 dokulu hafif model (GPU ~22 MB), tablet/masaüstü: 2048 */ g => { BM = g.scene; res(); }, undefined, e => { BF = true; rej(e); });
         if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { BF = true; rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
       BP.catch(e => console.warn('kokpit (b) yüklenemedi, paralaks kokpite dönülüyor', e)); return BP;
     }

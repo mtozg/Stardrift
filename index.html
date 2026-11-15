@@ -132,9 +132,12 @@ body,button{font-size-adjust:.5}
 /* Kurtarma: sayfa üst üste iki kez yüklenirken çökerse (tarayıcı belleği/bozuk önbellek) ya da adrese ?sifirla=1 eklenirse
    service worker ve önbellek temizlenir, sayfa yeniden açılır. Kayıt (localStorage) silinmez. */
 (function(){ try {
+  /* ?ck=b (Blender kokpiti) yalnızca o sekme oturumunda geçerlidir: kalıcı kaydedilmez, yeni oturumda varsayılan kokpite dönülür (ağır model telefonu çökertmesin) */
+  var mb = /[?&]ck=b(&|$)/.test(location.search); if (mb) sessionStorage.setItem('sd_ckb', '1');
+  if (!mb && !sessionStorage.getItem('sd_ckb') && localStorage.getItem('sd_ck3') === 'b') localStorage.removeItem('sd_ck3');
   var n = +(localStorage.getItem('sd_boot') || 0), force = /[?&]sifirla=1/.test(location.search);
   if (force || n >= 2){
-    localStorage.setItem('sd_boot', '0'); if (n >= 2) localStorage.setItem('sd_nosync', '1'); var P = [];   /* çökme saptandı: bu cihazda çevrimdışı paket indirmesi kapanır */
+    localStorage.setItem('sd_boot', '0'); if (n >= 2) { localStorage.setItem('sd_nosync', '1'); localStorage.removeItem('sd_ck3'); } var P = [];   /* çökme: indirme ve kokpit denemesi kapanır */   /* çökme saptandı: bu cihazda çevrimdışı paket indirmesi kapanır */
     try { if (navigator.serviceWorker) P.push(navigator.serviceWorker.getRegistrations().then(function(r){ return Promise.all(r.map(function(x){ return x.unregister(); })); })); } catch (e) {}
     try { if (window.caches) P.push(caches.keys().then(function(k){ return Promise.all(k.map(function(x){ return caches.delete(x); })); })); } catch (e) {}
     Promise.all(P).catch(function(){}).then(function(){ location.replace(location.pathname); });
@@ -146,7 +149,7 @@ body,button{font-size-adjust:.5}
 <script>
 /* SÜRÜM: her güncellemede bu numarayı artır. Tarayıcı eski game.js dosyasını önbellekten getirmez,
    ayarlar panelinin altında da bu numara görünür. */
-window.SD_VERSION = '1.50.1';
+window.SD_VERSION = '1.50.2';
 window.SD_FB = { apiKey: "AIzaSyADLoPqH_HEHjSv1mwY23cJZkuce-KOkUo", authDomain: "stardrift-617de.firebaseapp.com", projectId: "stardrift-617de", storageBucket: "stardrift-617de.firebasestorage.app", messagingSenderId: "527698904689", appId: "1:527698904689:web:dfdceeabba807fdf747dd0" };   // Firebase istemci ayarı (gizli değildir; güvenlik Firestore kurallarındadır)
 document.write('<script src="vendor/three-bloom.js?v=' + window.SD_VERSION + '"><\/script>');
 document.write('<script src="js/game.js?v=' + window.SD_VERSION + '"><\/script>');

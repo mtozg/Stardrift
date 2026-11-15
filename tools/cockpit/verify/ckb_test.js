@@ -6,7 +6,7 @@ async function boot(b, dev, block){
   const ctx = await b.newContext({ ...devices[dev], serviceWorkers: 'block' });
   await ctx.addInitScript(() => { try { localStorage.setItem('sd_nointro', '1'); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); localStorage.setItem('sd_ck3', 'b'); window.__noFbk = 1; } catch (e) {} });
   const p = await ctx.newPage(); p.on('pageerror', e => console.log('PE', e.message.slice(0, 200))); p.on('console', m => { if (/kokpit|hata|Error/i.test(m.text())) console.log('  C:', m.text().slice(0, 160)); });
-  if (block) await p.route('**/models/cockpit_kasif.glb*', r => r.abort());
+  if (block) await p.route('**/models/cockpit_kasif*.glb*', r => r.abort());
   await p.goto('http://localhost:8765/'); await p.waitForTimeout(2500);
   await p.evaluate(() => document.getElementById('titleGo').click()); await p.waitForTimeout(1500);
   await p.evaluate(() => { const i = document.getElementById('ssName'); if (i) i.value = 'Test'; const k = document.querySelector('#sideSel .c[data-k="filo"] .pk'); k && k.click(); }); await p.waitForTimeout(1200);
