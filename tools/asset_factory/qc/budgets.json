@@ -1,0 +1,119 @@
+{
+ "_note": "STANDARDS.md §7 — başlangıç değerleri (karar 2026-11-15: gerçek cihaz ve görsel testlerden sonra revize edilecek). \"test\" sınıfı yalnızca Faz 0 test kutusu içindir ve player_ship satırının kopyasıdır.",
+ "warn_ratio": 0.9,
+ "classes": {
+  "item": {
+   "tris": [
+    800,
+    300,
+    80
+   ],
+   "calls": 2,
+   "glb_kb": 60,
+   "tex": "trim"
+  },
+  "env_rock": {
+   "tris": [
+    400,
+    150,
+    50
+   ],
+   "calls": 1,
+   "glb_kb": 40,
+   "tex": "trim"
+  },
+  "npc_ship_small": {
+   "tris": [
+    2500,
+    1100,
+    350
+   ],
+   "calls": 2,
+   "glb_kb": 150,
+   "tex": "trim"
+  },
+  "npc_ship_large": {
+   "tris": [
+    6000,
+    2700,
+    900
+   ],
+   "calls": 3,
+   "glb_kb": 300,
+   "tex": "trim"
+  },
+  "player_ship": {
+   "tris": [
+    12000,
+    5000,
+    1500
+   ],
+   "calls": 3,
+   "glb_kb": 1024,
+   "tex": "unique",
+   "tex_size": 1024
+  },
+  "boss": {
+   "tris": [
+    12000,
+    5000,
+    1500
+   ],
+   "calls": 3,
+   "glb_kb": 1024,
+   "tex": "unique",
+   "tex_size": 1024
+  },
+  "cockpit": {
+   "tris": [
+    60000
+   ],
+   "calls": 25,
+   "glb_kb": 4096,
+   "tex": "unique",
+   "tex_size": 2048
+  },
+  "structure_gate": {
+   "tris": [
+    10000,
+    4000,
+    1200
+   ],
+   "calls": 3,
+   "glb_kb": 1024,
+   "tex": "unique",
+   "tex_size": 1024
+  },
+  "station": {
+   "tris": [
+    25000,
+    10000,
+    3000
+   ],
+   "calls": 4,
+   "glb_kb": 2048,
+   "tex": "unique",
+   "tex_size": 2048
+  },
+  "interior": {
+   "tris": [
+    40000
+   ],
+   "calls": 6,
+   "glb_kb": 3584,
+   "tex": "unique",
+   "tex_size": 2048
+  },
+  "test": {
+   "tris": [
+    12000,
+    5000,
+    1500
+   ],
+   "calls": 3,
+   "glb_kb": 1024,
+   "tex": "unique",
+   "tex_size": 1024
+  }
+ }
+}

@@ -1,0 +1,35 @@
+{
+ "id": "test_box",
+ "family": "test",
+ "class": "test",
+ "seed": 1701,
+ "length_m": 1.78,
+ "test_asset": true,
+ "_note": "Faz 0 hattı doğrulama nesnesi. Gerçek oyun varlığı DEĞİLDİR; oyuna girmez.",
+ "materials": [
+  "hull_grey",
+  "gunmetal",
+  "steel_dark",
+  "emit_cyan",
+  "emit_amber"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.45,
+  0.15
+ ],
+ "params": {
+  "size": [
+   1.0,
+   1.6,
+   0.7
+  ],
+  "bevel": 0.035,
+  "greebles_per_side": 3,
+  "pipes": 2,
+  "antenna_h": 0.3
+ },
+ "reference": null
+}

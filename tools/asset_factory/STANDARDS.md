@@ -20,7 +20,7 @@ Mevcut oyun görselleri (`assets/img/`) incelendi. Fabrikanın koruyacağı dil 
 | Kadim | Mor, runik devre desenleri, ışıyan halkalar | `kadim` stili: koyu metal ve mor emisyonlu oyuk desen (trim) |
 | Boss / biyo | Organik, dikenli, yeşil biyolüminesans | `biyo` stili: organik kafes ve Subsurf şekiller, yeşil emisyon damarları |
 | Evrenler | Ankora (nötr, mavi gökyüzü), Kızıl (lav, pas, turuncu), Buzul (buz, soğuk mavi), Zümrüt (yeşil sis, kristal) | evren stili ton kaydırma, kir rengi ve emisyon tonunu belirler |
-| Silüet | Oyundaki üst ve yan çizimler oyuncunun tanıdığı şekil | Çizimi olan varlıkta silüet sadakati ölçülür (QC.md §4.2) |
+| Silüet | Oyundaki üst ve yan çizimler oyuncunun tanıdığı şekil | Çizimi olan varlıkta silüet sadakati ölçülür (QC.md §3). 0,80 yalnızca **prototip** eşiğidir; nihai eşikler sınıfa göre daha yüksektir (`qc/rules.json`) |
 
 Her varlığın `ref/<asset_id>/` klasöründe referans görsel ve kısa stil notu (`style.md`) bulunur. Kapı 1'de render bu referansla yan yana gösterilir.
 
@@ -83,7 +83,7 @@ Türkçe karakter yalnızca görünen metinde kullanılır, dosya ve düğüm ad
 | Normal | OpenGL / +Y (glTF standardı), tangent uzayı |
 | Texel yoğunluğu | gemi ve istasyon 256 px/m (yakın plan: kokpit 1024 px/m), asteroit 128 px/m, iç mekân 512 px/m. QC ±%30 |
 | Ada payı | 1024²'de ≥ 4 px, bake kenar uzatması ≥ 8 px |
-| Trim modu | Paylaşımlı atlas (taraf ve stil başına 1024²). UV kurala göre trim bantlarına yerleşir. AO ve hasar maskesi `COLOR_0` kanalında |
+| Trim modu | Paylaşımlı atlas **aile içinde** (ör. NPC gemileri kendi aralarında, asteroitler kendi aralarında; aile × stil başına 1024²). Bütün evren tek atlasa zorlanmaz. UV kurala göre trim bantlarına yerleşir. AO ve hasar maskesi `COLOR_0` kanalında |
 | Unique modu | Varlığa özgü atlas (Smart UV + paketleme). Çakışma yok |
 | İkinci UV | Yalnızca iç mekânda pişmiş ışık için (`TEXCOORD_1`, r128'de `uv2`) |
 
@@ -121,13 +121,15 @@ Kalite referansı Kaşif kokpiti: 3,78 MB GLB, gövde ≤ 60 bin üçgen, ≤ 25
 | station | 25 000 | 10 000 | 3 000 | ≤ 4 | unique 2048² | 2 MB |
 | interior / hangar | 40 000 | — | — | ≤ 6 | unique 2048² + ışık haritası | 3,5 MB |
 
+Karar (2026-11-15): bu tablo **başlangıç değeridir**; gerçek cihaz ve görsel kalite testlerinden sonra revize edilir.
+
 Sahne hedefi (GEÇİCİ): 12 NPC + 1 istasyon + 1 kapı, kokpit dışında ek yük ≤ 4 ms/kare (iPhone 13 sınıfı). GPU doku belleği için tüm evren ≤ 64 MB. Bütçeler ilk gerçek cihaz ölçümünden sonra yeniden ayarlanır.
 
 ## 8. Varyasyon ve tekrar üretilebilirlik
 
 - Tüm rastgelelik `seed`'den türetilir. Aynı spec, seed ve kütüphane sürümü, aynı geometri hash'ini verir (QC'de denetlenir).
 - Stil paketleri şekli değiştirmez. Değiştirdikleri: malzeme, renk, yıpranma, emisyon rengi, greeble türü ve asimetri.
-- Varyantlar aynı trim ve malzeme setini paylaşır. Bir aile ve taraf için tek doku seti olur.
+- Varyantlar aynı trim ve malzeme setini paylaşır. Paylaşım **aile sınırı içindedir**: NPC gemileri kendi atlasını, asteroitler kendi atlasını kullanır. Aileler arası ortak atlas yoktur.
 - Kütüphane (`library/`) sürümlenir. Bir varlık hangi kütüphane sürümüyle üretildiğini kaydeder.
 
 ## 9. Teslim paketi (her varlık)

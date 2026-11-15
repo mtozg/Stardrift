@@ -1,0 +1,72 @@
+{
+ "_note": "QC.md eşikleri. Kodda sabit eşik yok; hepsi buradan okunur.",
+ "allowed_extensions": [
+  "EXT_texture_webp",
+  "KHR_materials_unlit",
+  "KHR_texture_transform",
+  "KHR_mesh_quantization",
+  "EXT_meshopt_compression"
+ ],
+ "forbidden_extensions": [
+  "KHR_materials_emissive_strength",
+  "KHR_materials_transmission",
+  "KHR_materials_clearcoat",
+  "KHR_draco_mesh_compression"
+ ],
+ "length_tol": 0.02,
+ "texel_tol_fail": 0.3,
+ "texel_tol_warn": 0.15,
+ "texel_target": {
+  "test": 256,
+  "player_ship": 256,
+  "boss": 256,
+  "npc_ship_small": 256,
+  "npc_ship_large": 256,
+  "station": 256,
+  "structure_gate": 256,
+  "cockpit": 1024,
+  "env_rock": 128,
+  "interior": 512,
+  "item": 256
+ },
+ "uv_overlap_fail": 0.01,
+ "backface_visible_fail": 0.005,
+ "base_srgb_dielectric": [
+  30,
+  240
+ ],
+ "base_srgb_metal": [
+  120,
+  250
+ ],
+ "base_percentiles": [
+  5,
+  95
+ ],
+ "metal_mid_warn": 0.1,
+ "emit_area_max": 0.03,
+ "normal_len_tol": 0.08,
+ "max_materials": 3,
+ "silhouette_iou": {
+  "prototype": 0.8,
+  "final": {
+   "player_ship": 0.92,
+   "station": 0.92,
+   "structure_gate": 0.92,
+   "npc_ship_small": 0.88,
+   "npc_ship_large": 0.88,
+   "default": 0.85
+  }
+ },
+ "three_vs_golden": {
+  "lum_diff_fail": 0.08,
+  "deltaE_fail": 6.0,
+  "silhouette_fail": 0.01
+ },
+ "normal_side_diff_fail": 0.005,
+ "lod_silhouette_fail": 0.03,
+ "perf_regress_warn": 0.15,
+ "perf_regress_fail": 0.3,
+ "perf_abs_floor_ms": 1.5,
+ "perf_metric": "ms_p50"
+}

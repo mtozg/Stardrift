@@ -43,7 +43,7 @@ Onay `factory.py approve <id> --gate visual` ile kaydedilir. Onaylanan hero ve d
 | Uzantılar | izin verilenler dışında glTF uzantısı (STANDARDS §6) | yasak uzantı, özellikle `KHR_materials_emissive_strength` |
 | Geometri | sıfır alanlı yüz, gevşek ya da çakışık köşe, uygulanmamış dönüşüm, negatif ölçek | > 0 |
 | Geometri | normal yönü (dışa bakış ışın testi) | gövdede ters normal oranı > %0,5 |
-| Geometri | açık kenar (manifold) | gövdede > 0 (aile istisnası hariç) |
+| Geometri | dışarıdan görünen arka yüz (delik + ters normal, 26 yönlü ışın) | > %0,5. Gizli yüz silme gövdeyi bilinçli olarak açık bırakır; bu yüzden ölçüt "kapalılık" değil, **dışarıdan delik görünmemesi**dir |
 | Geometri | gizli yüz oranı (26 yönlü görünürlük) | > %5 |
 | UV | 0..1 dışı (unique), çakışma, ada payı, texel yoğunluğu | çakışma > %1, texel yoğunluğu hedefin ±%30'u dışında (WARN ±%15) |
 | Malzeme | sayı, PBR aralıkları, metaliklik ikiliği, emisyon ≤ 1, emisyon alan oranı | bütçe dışı ya da aralık dışı |
@@ -51,7 +51,7 @@ Onay `factory.py approve <id> --gate visual` ile kaydedilir. Onaylanan hero ve d
 | Bütçe | üçgen (LOD bazında), draw call, GLB boyutu, doku belleği (GPU tahmini) | `budgets.json` aşımı (WARN %90) |
 | LOD | oranlar, silüet kaybı | LOD1 silüet farkı > %3 piksel |
 | Tekrar üretilebilirlik | aynı spec ve seed ile yeniden üret, geometri hash'i | farklı |
-| Referans | silüet IoU (çizimin alfa maskesine karşı, üst ve yan) | < `silhouette_iou_min` (varsayılan 0,80; WARN 0,85) |
+| Referans | silüet IoU (çizimin alfa maskesine karşı, üst ve yan) | aşamaya ve sınıfa göre (`qc/rules.json`): **prototip 0,80**; nihai: oyuncu gemisi, büyük istasyon, kapı 0,92 · NPC gemisi 0,88 · diğer 0,85 |
 | Kokpite özel | cam açıklığı ışın testi, ekran köşe hizası (Kaşif `verify.py`) | engelli ışın > 0; köşe sapması > 0,05 px |
 
 ## 4. L3 — Motor sadakati (Three r128)
@@ -64,7 +64,7 @@ Test sayfası `qc/viewer/check.html`. Kaşif'in `glb_check.html` sayfasından ge
    - renk farkı (ΔE ortalaması) ≤ 6
    - silüet farkı ≤ %1
    Bu test, bake sırasında ya da glTF dönüşümünde kaybolan malzemeleri yakalar (örnek: emisyonun sönmesi, metalikliğin yanlış çıkması).
-3. **Normal yönü**: FrontSide ile DoubleSide render'ları arasındaki piksel farkı ≤ %0,5 (Kaşif testindeki yöntem).
+3. **Normal yönü**: FrontSide ile DoubleSide render'ları arasındaki piksel farkı ≤ %0,5 (Kaşif testindeki yöntem). Kenar yumuşatma tek piksellik kenar çizgileri ürettiğinden fark maskesi 3×3 erozyondan sonra sayılır (gerçek delik ve ters yüz leke oluşturur); ham değer de raporlanır.
 4. **Işık senaryoları**: oyunun ışık düzeni (GEÇİCİ: game_contract'tan alınacak) ile gündüz, gece ve patlama flaşı. Aşırı parlama ya da tamamen siyah bölge olmamalı.
 5. **Uzaklık testi**: oyunun tipik uzaklıklarında küçük boyutlu render. LOD geçişlerinde atlama görülmemeli.
 

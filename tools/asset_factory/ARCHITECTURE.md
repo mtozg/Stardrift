@@ -62,7 +62,7 @@ Fabrikada bu akış her aile için standart olur:
 5. Emisyon `Emission Strength > 1` ile veriliyor → r128 `KHR_materials_emissive_strength` desteklemiyor; oyunda sönük görünür. Kural: emisyon rengi ≤ 1, parlaklık oyunda (bloom) — `STANDARDS.md §6`.
 6. Tüm rastgelelik tek `seed`'den türetilir.
 
-Kokpit hattı yerinde **değiştirilmez**; fabrika kendi `core/` kopyasını genelleştirir. Kokpitin ileride `core/`'a taşınması ayrı karardır.
+Karar (2026-11-15): Kaşif kodu **kopyalanmaz**. İşe yarayan fikirler (koordinat dönüşümü, prosedürel aşınma, kanal bake, ORM, Three doğrulama sayfası) bağımsız ve genel bir `core/` olarak yeniden yazılır. Kaşif'in mevcut kodu ve PR'ı değiştirilmez.
 
 ## 4. Üretim hattı
 

@@ -1,0 +1,67 @@
+{
+ "version": 1,
+ "assets": {
+  "test_box": {
+   "state": "qc_pass",
+   "rev": 1,
+   "history": [
+    {
+     "t": "2026-11-15T18:33:36+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-15T18:33:53+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: L1 kontrol listesi geçti; alt dik görünüşte arka plan rengi kozmetik",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T18:36:46+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-15T18:37:30+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (63 PASS, 2 WARN, 0 FAIL)"
+    }
+   ],
+   "timings": {
+    "model": 290.7,
+    "prepare": 173.4,
+    "qc": 42.5
+   },
+   "approvals": [
+    {
+     "t": "2026-11-15T18:33:53+00:00",
+     "gate": "visual",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "L1 kontrol listesi geçti; alt dik görünüşte arka plan rengi kozmetik",
+     "accept_warn": []
+    }
+   ],
+   "geometry_hash": "4f5b25b31f5b1c1a2b10073ceb4cfaa1279eb5662845677402e1cc803f6c0e74",
+   "spec_hash": "af4e7443170a651d098ba29f4dc8da3f0292651bc41052c2acce005af6af2fe6",
+   "fast": false,
+   "perf_baseline": {
+    "masaüstü 1200×750|1": 7.3,
+    "masaüstü 1200×750|12": 45.4,
+    "masaüstü 1200×750|40": 110.1,
+    "iPad Pro 11 landscape|1": 9.3,
+    "iPad Pro 11 landscape|12": 43.6,
+    "iPad Pro 11 landscape|40": 115,
+    "iPhone 13 landscape|1": 10.5,
+    "iPhone 13 landscape|12": 49,
+    "iPhone 13 landscape|40": 113,
+    "Pixel 7 landscape|1": 10.5,
+    "Pixel 7 landscape|12": 50.2,
+    "Pixel 7 landscape|40": 116
+   }
+  }
+ }
+}

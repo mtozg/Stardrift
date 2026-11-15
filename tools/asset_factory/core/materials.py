@@ -1,0 +1,182 @@
+"""Prosedürel PBR malzemeler (bpy). Tanımlar library/materials/*.json içindedir; kod yalnızca düğüm grafiğini kurar.
+
+Kaşif kokpitindeki yaklaşımın genelleştirilmiş, yeniden yazılmış hâli: geniş bulut ton değişimi, fırça izi,
+çizik, kenar aşınması (Bevel normali ile geometrik normal farkı), girinti kiri (AO), kabartma.
+Farklar: (1) tüm katsayılar veriden gelir, (2) metaliklik malzeme tanımında ve bake'te gerçek kanal olarak taşınır,
+(3) emisyon gücü ≤ 1 (three r128 KHR_materials_emissive_strength desteklemez; parlaklık oyunda bloom ile verilir)."""
+import os, bpy
+from .paths import LIBRARY, load_json
+
+DEFAULTS = {
+    'kind': 'metal', 'base': [0.3, 0.3, 0.32], 'metallic': 1.0, 'rough': [0.3, 0.45],
+    'tone_var': [0.82, 1.15], 'cloud_scale': 2.6, 'brush': 0.0, 'brush_scale': 140.0,
+    'scratch': 0.0, 'scratch_color': [0.22, 0.23, 0.25], 'wear': 0.0, 'wear_color': [0.5, 0.52, 0.56], 'wear_radius': 0.01,
+    'dirt': 0.0, 'dirt_distance': 0.06, 'bump': 0.04, 'micro_scale': 420.0,
+    'emission': None,
+}
+
+
+def load_def(name):
+    d = dict(DEFAULTS)
+    d.update(load_json(os.path.join(LIBRARY, 'materials', name + '.json')))
+    d['name'] = name
+    return d
+
+
+def _graph(name):
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    for n in list(nt.nodes):
+        nt.nodes.remove(n)
+    return m, nt
+
+
+def _n(nt, t, **kw):
+    n = nt.nodes.new(t)
+    for k, v in kw.items():
+        setattr(n, k, v)
+    return n
+
+
+def _math(nt, op, a, b=None, clamp=False):
+    n = _n(nt, 'ShaderNodeMath', operation=op)
+    n.use_clamp = clamp
+    for i, x in enumerate((a, b)):
+        if x is None:
+            continue
+        if isinstance(x, (int, float)):
+            n.inputs[i].default_value = x
+        else:
+            nt.links.new(x, n.inputs[i])
+    return n.outputs[0]
+
+
+def _range(nt, src, fmin, fmax, tmin=0.0, tmax=1.0):
+    n = _n(nt, 'ShaderNodeMapRange')
+    n.inputs['From Min'].default_value = fmin
+    n.inputs['From Max'].default_value = fmax
+    n.inputs['To Min'].default_value = tmin
+    n.inputs['To Max'].default_value = tmax
+    nt.links.new(src, n.inputs['Value'])
+    return n.outputs['Result']
+
+
+def _mix(nt, mode, a, b, fac=1.0):
+    n = _n(nt, 'ShaderNodeMix', data_type='RGBA')
+    n.blend_type = mode
+    for sock, x in ((n.inputs['A'], a), (n.inputs['B'], b), (n.inputs['Factor'], fac)):
+        if isinstance(x, (int, float)):
+            sock.default_value = x
+        elif isinstance(x, (list, tuple)):
+            sock.default_value = (*x[:3], 1.0)
+        else:
+            nt.links.new(x, sock)
+    return n.outputs['Result']
+
+
+def build(defn):
+    """Tanımdan malzeme kur. Döndürülen malzemede m['sd_metallic'] ve m['sd_def'] saklanır."""
+    d = defn
+    m, nt = _graph('M_' + d['name'])
+    m['sd_def'] = d['name']
+    out = _n(nt, 'ShaderNodeOutputMaterial')
+    bsdf = _n(nt, 'ShaderNodeBsdfPrincipled')
+    nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
+
+    if d['kind'] == 'emit':
+        c = [min(1.0, x) for x in d['emission']]
+        bsdf.inputs['Base Color'].default_value = (0.02, 0.02, 0.02, 1)
+        bsdf.inputs['Roughness'].default_value = 0.4
+        bsdf.inputs['Metallic'].default_value = 0.0
+        bsdf.inputs['Emission Color'].default_value = (*c, 1)
+        bsdf.inputs['Emission Strength'].default_value = 1.0
+        m['sd_metallic'] = 0.0
+        return m
+
+    tc = _n(nt, 'ShaderNodeTexCoord')
+    obj = tc.outputs['Object']
+    cloud = _n(nt, 'ShaderNodeTexNoise')
+    cloud.inputs['Scale'].default_value = d['cloud_scale']
+    cloud.inputs['Detail'].default_value = 5.0
+    nt.links.new(obj, cloud.inputs['Vector'])
+
+    # fırça izi (bir eksende uzatılmış gürültü)
+    mp = _n(nt, 'ShaderNodeMapping')
+    mp.inputs['Scale'].default_value = (1.0, 38.0, 1.0)
+    nt.links.new(obj, mp.inputs['Vector'])
+    brush = _n(nt, 'ShaderNodeTexNoise')
+    brush.inputs['Scale'].default_value = d['brush_scale']
+    brush.inputs['Detail'].default_value = 7.0
+    nt.links.new(mp.outputs['Vector'], brush.inputs['Vector'])
+
+    # çizikler: ince eşiklenmiş şeritler
+    mp2 = _n(nt, 'ShaderNodeMapping')
+    mp2.inputs['Scale'].default_value = (1.0, 420.0, 1.0)
+    mp2.inputs['Rotation'].default_value = (0.0, 0.0, 0.35)
+    nt.links.new(obj, mp2.inputs['Vector'])
+    scr_n = _n(nt, 'ShaderNodeTexNoise')
+    scr_n.inputs['Scale'].default_value = 70.0
+    scr_n.inputs['Detail'].default_value = 1.0
+    nt.links.new(mp2.outputs['Vector'], scr_n.inputs['Vector'])
+    scratch = _range(nt, scr_n.outputs['Fac'], 0.69, 0.73)
+    scratch = _math(nt, 'MULTIPLY', scratch, d['scratch'])
+
+    # kenar aşınması: dışbükey kenarlarda bevel normali sapar
+    bv = _n(nt, 'ShaderNodeBevel')
+    bv.inputs['Radius'].default_value = d['wear_radius']
+    bv.samples = 6
+    geo = _n(nt, 'ShaderNodeNewGeometry')
+    dot = _n(nt, 'ShaderNodeVectorMath', operation='DOT_PRODUCT')
+    nt.links.new(bv.outputs['Normal'], dot.inputs[0])
+    nt.links.new(geo.outputs['Normal'], dot.inputs[1])
+    edge = _math(nt, 'SUBTRACT', 1.0, dot.outputs['Value'])
+    wear = _math(nt, 'MULTIPLY', _range(nt, edge, 0.01, 0.10), d['wear'], clamp=True)
+
+    # girinti kiri
+    ao = _n(nt, 'ShaderNodeAmbientOcclusion')
+    ao.inputs['Distance'].default_value = d['dirt_distance']
+    ao.samples = 8
+    dirt = _range(nt, ao.outputs['AO'], 0.0, 1.0, 1.0 - d['dirt'], 1.0)
+
+    # pürüzlülük
+    r_lo, r_hi = d['rough']
+    rough = _range(nt, cloud.outputs['Fac'], 0.3, 0.7, r_lo, r_hi)
+    rough = _math(nt, 'ADD', rough, _math(nt, 'MULTIPLY', brush.outputs['Fac'], 0.2 * d['brush']), clamp=True)
+    rough = _math(nt, 'SUBTRACT', rough, _math(nt, 'MULTIPLY', scratch, 0.35), clamp=True)
+    rough = _math(nt, 'SUBTRACT', rough, _math(nt, 'MULTIPLY', wear, 0.35), clamp=True)
+    nt.links.new(rough, bsdf.inputs['Roughness'])
+
+    # renk
+    tone = _range(nt, cloud.outputs['Fac'], 0.3, 0.7, d['tone_var'][0], d['tone_var'][1])
+    col = _mix(nt, 'MULTIPLY', d['base'], tone)
+    col = _mix(nt, 'MIX', col, d['scratch_color'], scratch)
+    col = _mix(nt, 'MIX', col, d['wear_color'], wear)
+    col = _mix(nt, 'MULTIPLY', col, dirt)
+    nt.links.new(col, bsdf.inputs['Base Color'])
+
+    bsdf.inputs['Metallic'].default_value = d['metallic']
+    m['sd_metallic'] = d['metallic']
+    if d['kind'] == 'dielectric':
+        try:
+            bsdf.inputs['Specular IOR Level'].default_value = 0.5
+        except KeyError:
+            pass
+
+    # kabartma: fırça + çizik + mikro gürültü
+    micro = _n(nt, 'ShaderNodeTexNoise')
+    micro.inputs['Scale'].default_value = d['micro_scale']
+    micro.inputs['Detail'].default_value = 2.0
+    nt.links.new(obj, micro.inputs['Vector'])
+    h = _math(nt, 'ADD', _math(nt, 'MULTIPLY', brush.outputs['Fac'], d['brush']), scratch)
+    h = _math(nt, 'ADD', h, _math(nt, 'MULTIPLY', micro.outputs['Fac'], 0.5))
+    bump = _n(nt, 'ShaderNodeBump')
+    bump.inputs['Strength'].default_value = d['bump']
+    bump.inputs['Distance'].default_value = 0.01
+    nt.links.new(h, bump.inputs['Height'])
+    nt.links.new(bump.outputs['Normal'], bsdf.inputs['Normal'])
+    return m
+
+
+def library(names):
+    return {n: build(load_def(n)) for n in names}
