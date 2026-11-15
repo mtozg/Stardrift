@@ -10281,7 +10281,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 
   // =====  3B KOKPİT (deneme): ince dikmeler, alçak ekran konsolu, dışarıdan gelen gerçek ışık. Şimdilik yalnızca Kaşif, ayar: localStorage sd_ck3 = 1
   (function(){
-    const want = () => { try { return localStorage.getItem('sd_ck3') === '1'; } catch (e) { return false; } };
+    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p'; } catch (e) { return false; } };
     let K = null;
     // ---- gemiye göre kokpit: cam/dikme düzeni eski çizim kokpitlerden; kaplama doğrudan o çizimlerden kesilir (gerçekçi boyalı metal)
     //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
@@ -10368,9 +10368,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         const g = new THREE.CylinderGeometry(1.3, 1.3, 0.06, 40, 1, true, Math.PI - 0.6, 1.2); const hm = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: C.hood, roughness: 0.55, metalness: 0.35, side: THREE.DoubleSide })); hm.position.y = -0.440; G.add(hm);
         const g2 = new THREE.RingGeometry(1.2, 1.3, 40, 1, Math.PI / 2 - 0.6, 1.2); g2.rotateX(-Math.PI / 2); const tp = new THREE.Mesh(g2, hm.material); tp.position.y = -0.410; G.add(tp); }
       // ışıklar
-      const amb = new THREE.AmbientLight(0x1b2638, 0.6); S.add(amb);
-      const sky = new THREE.DirectionalLight(C.rim, 0.6); sky.position.set(0, 4, -3); S.add(sky);
-      const side = new THREE.DirectionalLight(C.rim, 0.3); side.position.set(-3, 1, -1); S.add(side);
+      const GK = window.__guide ? 2.6 : 1;   /* rehber görüntüsü için daha aydınlık */
+      const amb = new THREE.AmbientLight(0x1b2638, 0.6 * GK); S.add(amb);
+      const sky = new THREE.DirectionalLight(C.rim, 0.6 * GK); sky.position.set(0, 4, -3); S.add(sky);
+      const side = new THREE.DirectionalLight(C.rim, 0.3 * GK); side.position.set(-3, 1, -1); S.add(side);
       const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); S.add(sun.target);
       const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 1.6, -2.6); S.add(fl);
       const lz = new THREE.PointLight(0xff6a8c, 0, 4); lz.position.set(0, -0.3, -1.6); S.add(lz);
@@ -10466,7 +10467,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (k.glb){ k.G.position.set(sway.x * 0.0009, -sway.y * 0.0009, 0); k.G.rotation.set(GLBTILT - sway.y * 0.0006, -sway.x * 0.0006, -sway.x * 0.0004); }
       else { k.G.position.set(sway.x * 0.0016, -sway.y * 0.0016, 0); k.G.rotation.set(-sway.y * 0.0009, -sway.x * 0.0009, -sway.x * 0.0006); }
       // ekran içerikleri
-      for (let si = 0; si < k.scr.length; si++){ const e = k.scr[si]; if (e.ex){ if ((k.t + si * 3) % (k.glb ? 8 : 12) === 0 || e.ver < 0){ drawExtra(e.ex, e.d.k); e.tex.needsUpdate = true; e.ver = 1; } continue; }
+      for (let si = 0; si < k.scr.length; si++){ const e = k.scr[si]; if (window.__guide) continue; if (e.ex){ if ((k.t + si * 3) % (k.glb ? 8 : 12) === 0 || e.ver < 0){ drawExtra(e.ex, e.d.k); e.tex.needsUpdate = true; e.ver = 1; } continue; }
         const sc = SCR.find(q => q.kind === e.d.k); if (!sc) continue; if (e.cv !== sc.cv){ e.cv = sc.cv; e.tex.image = sc.cv; e.tex.needsUpdate = true; } if (sc.ver !== e.ver){ e.ver = sc.ver; e.tex.needsUpdate = true; } }
       // güneş: gerçek yönünden gelir; önüne dönünce kokpitin iç yüzlerine vurur
       k.tq.copy(rig.quaternion).multiply(camera.quaternion).invert(); k.v.copy(sunDir).applyQuaternion(k.tq); k.sun.position.copy(k.v).multiplyScalar(5); k.sun.intensity = 1.6 * clamp(-k.v.z + 0.35, 0, 1);
@@ -10476,7 +10477,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (k.glb && !window.__nosrgb){ renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1; }
       renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam); renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
     }
-    const glbOn = () => { try { return localStorage.getItem('sd_ck3') !== '0'; } catch (e) { return true; } };
+    const glbOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v !== '0' && v !== 'p'; } catch (e) { return true; } };
     try { if (save.ship === 'kasif' && glbOn()) setTimeout(() => loadGLB().catch(() => {}), 0); } catch (e) {}   /* açılış ekranındayken arka planda yüklenir */
     const _rm = renderMain; renderMain = function(){ _rm();
       if (save.ship === 'kasif' && !GLBM && glbOn() && !GLBP && !GLBFAIL) loadGLB().catch(() => {});
