@@ -37,7 +37,10 @@ def offset_poly(poly, d):
             flip = -1 if point_in_poly(test, poly) else 1; break
     for i in range(n):
         p = Vector(poly[i]); fixed = abs(p.x) > 300 and (p.x < 0 or p.x > 1900) or p.y < -300
-        out.append((p.x, p.y) if fixed else (p.x + dirs[i].x * d * flip, p.y + dirs[i].y * d * flip))
+        if fixed:   # görüntü dışına uzatılmış köşe: kesici ile halka aynı düzlemi paylaşmasın diye d ile orantılı dışa kaydır
+            sx = -1 if p.x < -300 else (1 if p.x > 1900 else 0); sy = -1 if p.y < -300 else 0
+            out.append((p.x + sx * d * 1.5, p.y + sy * d * 1.5))
+        else: out.append((p.x + dirs[i].x * d * flip, p.y + dirs[i].y * d * flip))
     return out
 
 def prism(name, poly, cam, near=0.30, far=4.0):
@@ -74,12 +77,32 @@ def build(a, P, mats):
     flange_all = obj_from_bm('_flange_src', flange_src, mats['steel'], collection='_work')
     rings = []
     polys = [tuple(map(tuple, w['poly'])) for w in a['windows']]
-    cuts = [prism('_cut%d' % k, offset_poly(list(pl), 1.2), cam) for k, pl in enumerate(polys)]
+
+    def samples(poly, step=8.0):
+        out = []; n = len(poly)
+        for i in range(n):
+            A, B = Vector(poly[i]), Vector(poly[(i + 1) % n]); L = (B - A).length; c = max(1, int(L / step))
+            out += [tuple(A + (B - A) * (t / c)) for t in range(c)]
+        return out
+
+    def safe_offset(k):
+        """Flanş genişliği: komşu pencerenin açıklığına (3 px payla) girmeyecek en büyük değer."""
+        for d in [P['flange_w_px'] - 2 * i for i in range(0, 8)]:
+            if d < 5: break
+            po = offset_poly(list(polys[k]), d); smp = samples(po)
+            bad = any(point_in_poly(q, [(x, y) for x, y in polys[j]]) for q in smp for j in range(len(polys)) if j != k)
+            for j in range(len(polys)):
+                if j == k or bad: continue
+                bad = any(point_in_poly(q, po) for q in samples(polys[j]) if -300 < q[0] < 1900 and q[1] > -300)
+            if not bad: return max(4.0, d - 3.0)
+        return 4.0
+
+    cuts = [prism('_cut%d' % k, offset_poly(list(pl), 1.2), cam, near=0.30 + 0.0031 * k, far=4.0 + 0.0137 * k) for k, pl in enumerate(polys)]
     for k, pl in enumerate(polys):
-        big = prism('_big%d' % k, offset_poly(list(pl), P['flange_w_px']), cam)
+        d = safe_offset(k); print('  flanş', k, 'genişlik px', d)
+        big = prism('_big%d' % k, offset_poly(list(pl), d), cam, near=0.30 + 0.0017 * k, far=4.0 + 0.0071 * k)
         boolean(shell, cuts[k])
-        hollow = big
-        for c in cuts: boolean(hollow, c)           # halka komşu pencerelerin açıklığına taşmaz (dikmeler dar)
+        hollow = big; boolean(hollow, cuts[k])
         ring = flange_all.copy(); ring.data = flange_all.data.copy(); ring.name = 'Canopy_Flange%d' % k; coll('Cockpit').objects.link(ring)
         boolean(ring, hollow, 'INTERSECT'); rings.append(ring)
         bpy.data.objects.remove(hollow, do_unlink=True)
