@@ -2048,7 +2048,7 @@ function scr2Base(c, w, h, label, right){
   const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#03101a'); g.addColorStop(1, '#010609'); c.fillStyle = g; c.fillRect(0, 0, w, h);
   c.fillStyle = 'rgba(120,220,255,0.1)'; for (let x = 8; x < w; x += 8) for (let y = 20; y < h; y += 8) c.fillRect(x, y, 1, 1);
   c.strokeStyle = 'rgba(143,233,255,0.3)'; c.lineWidth = 1; c.beginPath(); for (let x = 7; x < w - 7; x += 4){ const L = (x - 7) % 20 ? 2 : 4; c.moveTo(x + 0.5, h - 3); c.lineTo(x + 0.5, h - 3 - L); } c.stroke();
-  c.font = fnt(600, 7.5); c.textAlign = 'left'; c.fillStyle = SC2.a; c.fillText(label.toLocaleUpperCase('tr-TR').split('').join(String.fromCharCode(8202)), 7, 11);
+  c.font = fnt(700, 9); c.textAlign = 'left'; c.fillStyle = SC2.a; c.fillText(label.toLocaleUpperCase('tr-TR').split('').join(String.fromCharCode(8202)), 7, 11);
   if (right){ c.textAlign = 'right'; c.fillStyle = SC2.d; c.fillText(right, w - 7, 11); }
   c.strokeStyle = SC2.d; c.beginPath(); c.moveTo(6, 14.5); c.lineTo(w - 6, 14.5); c.stroke();
   c.strokeStyle = 'rgba(143,233,255,0.55)'; c.beginPath(); const L = 5; for (const [x, y, sx, sy] of [[3, 3, 1, 1], [w - 3, 3, -1, 1], [3, h - 3, 1, -1], [w - 3, h - 3, -1, -1]]){ c.moveTo(x, y + sy * L); c.lineTo(x, y); c.lineTo(x + sx * L, y); } c.stroke();
@@ -2060,32 +2060,52 @@ function scr2Glass(c, w, h){   // tarama çizgileri ve ekran camının parlamas�
 }
 function bar2(c, x, y, w, f, col, h){ h = h || 3; c.fillStyle = SC2.f; c.fillRect(x, y, w, h); c.fillStyle = col; c.fillRect(x, y, w * clamp(f, 0, 1), h);
   c.fillStyle = 'rgba(2,11,18,0.9)'; for (let i = 1; i < 10; i++) c.fillRect(x + w * i / 10 - 0.5, y, 1, h); }
+/* ekran arayüzü v2: ince çerçeveli modül satırları; beyaz değerler, camgöbeği çubuklar, yalnız uyarıda kehribar/kırmızı */
+SC2.t = '#eaf8ff'; SC2.l = 'rgba(200,242,255,0.8)';
+function seg2(c, x, y, w, f, col, h){ h = h || 4; const n = 20, gw = w / n; for (let i = 0; i < n; i++){ c.fillStyle = (i + 0.5) / n <= f ? col : 'rgba(143,233,255,0.14)'; c.fillRect(x + i * gw, y, Math.max(1, gw - 1.2), h); } }
+function row2(c, x, y, w, name, val, f, col, big){
+  c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText(name, x, y);
+  c.font = fnt(700, big ? 14 : 12); c.textAlign = 'right'; c.fillStyle = col === SC2.a ? SC2.t : col; c.fillText(val, x + w, y + (big ? 1 : 0));
+  seg2(c, x, y + 4, w, f, col, big ? 5 : 4); }
 function sys2Screen(c, I){
-  const cs = cargoSum(), cap = cargoCap(), sp = Math.round(vel.length()), heat = laser.heat / 100, rk = (save.ammo || 0) + (save.ammoD || 0);
-  const rows = [['HIZ', sp + ' m/s', Math.min(1, sp / 420), SC2.a], ['ISI', laser.over ? 'AŞIRI' : Math.round(heat * 100) + '%', heat, laser.over || heat > 0.85 ? SC2.r : heat > 0.6 ? SC2.w : SC2.a],
-    ['KARGO', cs + '/' + cap, cs / Math.max(1, cap), cs >= cap ? SC2.w : SC2.a], ['ROKET', String(rk), Math.min(1, rk / (AMMO_MAX + DMAX)), rk ? SC2.a : SC2.r]];
-  const gw = I.w / 2, gh = (I.h - 12) / 2, vf = clamp(Math.min(gh * 0.42, gw * 0.2), 8, 22), lf = clamp(vf * 0.5, 6, 10);
-  rows.forEach(([n, v, f, col], i) => { const x = I.x + (i % 2) * gw + (i % 2 ? 5 : 0), y = I.y + ((i / 2) | 0) * gh, w = gw - 5;
-    c.font = fnt(600, lf); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText(n, x, y + lf);
-    c.font = fnt(700, vf); c.fillStyle = col; c.fillText(v, x, y + lf + vf + 1);
-    bar2(c, x, y + lf + vf + 5, w, f, col, Math.max(2, vf * 0.16)); });
-  c.font = fnt(600, lf); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('KREDİ', I.x, I.y + I.h - 1); c.textAlign = 'right'; c.fillStyle = SC2.w; c.font = fnt(700, lf * 1.25); c.fillText(String(save.kredi), I.x + I.w, I.y + I.h - 1);
+  const cs = cargoSum(), cap = cargoCap(), sp = Math.round(vel.length()), heat = laser.heat / 100, hf = hp.hull / hp.hullMax, en = 1 - heat;
+  const thr = clamp(thrustNow, 0, 1), rows = [
+    ['ENERJİ', Math.round(en * 100) + '%', en, laser.over ? SC2.r : en < 0.35 ? SC2.w : SC2.a],
+    ['MOTOR', boosting ? 'HIZLANDI' : sp + ' m/s', boosting ? 1 : Math.max(thr, Math.min(1, sp / 420)), boosting ? SC2.w : SC2.a],
+    ['SİSTEM', Math.round(hf * 100) + '%', hf, hf > 0.6 ? SC2.a : hf > 0.3 ? SC2.w : SC2.r]];
+  const rh = (I.h - 16) / 3;
+  rows.forEach((r, i) => row2(c, I.x, I.y + 9 + i * rh, I.w, r[0], r[1], r[2], r[3], true));
+  const y = I.y + I.h - 2; c.strokeStyle = SC2.f; c.lineWidth = 1; c.beginPath(); c.moveTo(I.x, y - 10.5); c.lineTo(I.x + I.w, y - 10.5); c.stroke();
+  c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText('KARGO', I.x, y); c.fillStyle = cs >= cap ? SC2.w : SC2.t; c.fillText(cs + '/' + cap, I.x + 40, y);
+  c.textAlign = 'right'; c.fillStyle = SC2.w; c.fillText(String(save.kredi), I.x + I.w, y);
 }
 function hull2Screen(c, I){
   const hf = hp.hull / hp.hullMax, sf = hp.shield / Math.max(1, hp.shieldMax), hc = hf > 0.6 ? SC2.a : hf > 0.3 ? SC2.w : SC2.r;
-  const hh = I.h - 30, cx = I.x + I.w * 0.5, cy = I.y + hh / 2 + 1, sc = Math.min(I.w * 0.24, hh * 0.42);
+  const lw = I.w * 0.5, hh = I.h, cx = I.x + lw * 0.5, cy = I.y + hh * 0.5, sc = Math.min(lw * 0.36, hh * 0.38);
+  c.strokeStyle = SC2.f; c.lineWidth = 1; c.beginPath(); c.arc(cx, cy, sc * 1.45, 0, TAU); c.stroke();
+  c.strokeStyle = 'rgba(143,233,255,0.55)'; c.beginPath(); c.arc(cx, cy, sc * 1.45, -Math.PI / 2, -Math.PI / 2 + TAU * sf); c.stroke();
   c.save(); c.globalAlpha = hf <= 0.3 ? 0.5 + 0.5 * Math.sin(time * 8) : 0.95; drawShipHolo(c, cx, cy, sc, hp.hit > 0 ? SC2.r : hc); c.restore();
-  c.strokeStyle = SC2.f; c.beginPath(); c.arc(cx, cy, sc * 1.35, 0, TAU); c.stroke(); c.strokeStyle = 'rgba(143,233,255,0.3)'; c.beginPath(); c.arc(cx, cy, sc * 1.35, -Math.PI / 2, -Math.PI / 2 + TAU * sf); c.stroke();
-  const y1 = I.y + I.h - 22; c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('GÖVDE', I.x, y1); c.textAlign = 'right'; c.fillStyle = hc; c.font = fnt(700, 8.5); c.fillText(String(Math.round(hp.hull)), I.x + I.w, y1);
-  bar2(c, I.x, y1 + 3, I.w, hf, hc, 3);
-  const y2 = y1 + 15; c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('KALKAN', I.x, y2); c.textAlign = 'right'; c.fillStyle = SC2.a; c.font = fnt(700, 8.5); c.fillText(String(Math.round(hp.shield)), I.x + I.w, y2);
-  bar2(c, I.x, y2 + 3, I.w, sf, '#9fc4ff', 2.5);
+  /* hasar bölgeleri: gövde yüzdesine göre sırayla uyarı verir */
+  const zx = I.x + lw + 8, zw = I.w - lw - 8, zones = [['BURUN', hf > 0.8], ['KANAT', hf > 0.55], ['MOTOR', hf > 0.3], ['KALKAN', sf > 0.25]];
+  zones.forEach(([n, ok], i) => { const y = I.y + 9 + i * ((hh - 22) / 3.4);
+    c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText(n, zx, y);
+    c.fillStyle = ok ? SC2.a : (hf > 0.3 || n === 'KALKAN' ? SC2.w : SC2.r); c.beginPath(); c.arc(zx + zw - 3, y - 2.6, 2.6, 0, TAU); c.fill(); });
+  const y1 = I.y + hh - 2; c.font = fnt(700, 12); c.textAlign = 'left'; c.fillStyle = hc === SC2.a ? SC2.t : hc; c.fillText(Math.round(hf * 100) + '%', I.x, y1);
+  c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('GÖVDE', I.x + 36, y1); c.textAlign = 'right'; c.fillStyle = SC2.t; c.fillText('KALKAN ' + Math.round(sf * 100) + '%', I.x + I.w, y1);
 }
 function radar2Screen(c, I){
-  const rad = Math.max(14, Math.min(I.w, I.h * 0.9) / 2 - 1), cx = I.x + I.w / 2, cy = I.y + I.h * 0.5;
+  const tw = I.w * 0.3, rad = Math.max(14, Math.min(I.w - tw - 4, I.h - 4) / 2), cx = I.x + (I.w - tw) / 2, cy = I.y + I.h * 0.5 - 2;
   drawRadar(c, cx, cy, rad);
-  c.strokeStyle = SC2.d; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, r0 = rad + 1.5, r1 = rad + (i % 6 ? 3.5 : 6); c.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); } c.stroke();
-  c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = lock ? SC2.w : SC2.d; c.fillText(lock ? 'KİLİTLİ' : (boosting ? '2,4' : '1') + ' KM', I.x, I.y + I.h - 1);
+  c.strokeStyle = SC2.d; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, r0 = rad + 1.5, r1 = rad + (i % 6 ? 3 : 5); c.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); } c.stroke();
+  /* tarama ışını */
+  const sa = (time * 1.6) % TAU, sg = c.createLinearGradient(cx, cy, cx + Math.cos(sa) * rad, cy + Math.sin(sa) * rad); sg.addColorStop(0, 'rgba(143,233,255,0)'); sg.addColorStop(1, 'rgba(143,233,255,0.7)');
+  c.strokeStyle = sg; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(sa) * rad, cy + Math.sin(sa) * rad); c.stroke();
+  /* hedef bilgisi */
+  const tx = I.x + I.w - tw, rng = boosting ? 2400 : 1000; let n = 0, near = 1e9;
+  for (const o of npcs){ if (!o.hostile) continue; const d = o.g.position.distanceTo(rig.position); if (d < rng){ n++; near = Math.min(near, d); } }
+  c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText('HEDEF', tx, I.y + 9); c.font = fnt(700, 14); c.fillStyle = lock ? SC2.w : SC2.t; c.fillText(lock ? 'KİLİT' : n ? String(n) : '—', tx, I.y + 23);
+  c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('MESAFE', tx, I.y + 37); c.font = fnt(700, 12); c.fillStyle = SC2.t; c.fillText(near < 1e9 ? Math.round(near) + ' m' : '—', tx, I.y + 49);
+  c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('MENZİL', tx, I.y + 63); c.fillStyle = SC2.a; c.fillText((rng / 1000).toLocaleString('tr-TR') + ' KM', tx, I.y + 74);
 }
 // ekran ışığı: her ekran çevresine yumuşak camgöbeği ışık saçar
 const SCRGLOW = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), g = x.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, 'rgba(90,205,255,0.5)'); g.addColorStop(0.5, 'rgba(90,205,255,0.13)'); g.addColorStop(1, 'rgba(90,205,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return cv; })();
@@ -10563,9 +10583,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         if (bind[o.name]){ const tx = new THREE.CanvasTexture(document.createElement('canvas')); tx.flipY = false; tx.encoding = THREE.sRGBEncoding; tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
           o.material = new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }); scr.push({ o, tx, kind: bind[o.name], ver: -1 }); }
         else if (o.material){ o.material.envMapIntensity = 0.9; o.frustumCulled = false; } });
-      try { const gc = document.createElement('canvas'); gc.width = 256; gc.height = 128; const gx = gc.getContext('2d'), gg = gx.createLinearGradient(0, 0, 0, 128); gg.addColorStop(0, '#7f98c8'); gg.addColorStop(0.5, '#1c2640'); gg.addColorStop(1, '#04060b'); gx.fillStyle = gg; gx.fillRect(0, 0, 256, 128);
+      try { const gc = document.createElement('canvas'); gc.width = 256; gc.height = 128; const gx = gc.getContext('2d'), gg = gx.createLinearGradient(0, 0, 0, 128); gg.addColorStop(0, '#7f98c8'); gg.addColorStop(0.5, '#2a3a5c'); gg.addColorStop(1, '#17223a'); gx.fillStyle = gg; gx.fillRect(0, 0, 256, 128);
         const gt = new THREE.CanvasTexture(gc); gt.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); S.environment = pm.fromEquirectangular(gt).texture; pm.dispose(); } catch (e) { console.warn(e); }
-      S.add(new THREE.HemisphereLight(0x6f86b8, 0x0a0d14, 0.55));
+      S.add(new THREE.HemisphereLight(0x7a92c4, 0x1c2840, 0.7));
       const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 0.5, -0.8); S.add(fl);
       const sg = new THREE.PointLight(0x4cc8ff, 0.45, 2.2); sg.position.set(0, -0.15, -0.55); S.add(sg); const lz = new THREE.PointLight(0xff6a8c, 0, 3); lz.position.set(0, -0.2, -0.5); S.add(lz);
       return { S, cam, G, scr, sun, fl, sg, lz, tq: new THREE.Quaternion(), v: new THREE.Vector3(), W: 0, H: 0 };

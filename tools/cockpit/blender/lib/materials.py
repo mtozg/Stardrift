@@ -116,8 +116,8 @@ def _metal(name, base, rough_lo, rough_hi, metallic=1.0, brush=1.0, scratch=0.6,
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
     return m
 
-def gunmetal():  return _metal('M_gunmetal', (0.060, 0.067, 0.082), 0.26, 0.44, scratch=1.0, bump=0.07, wear=1.1, dirt=0.65)
-def steel():     return _metal('M_dark_steel', (0.026, 0.030, 0.038), 0.38, 0.60, brush=0.7, scratch=0.6, bump=0.04, wear=1.0, dirt=0.7)
+def gunmetal():  return _metal('M_gunmetal', (0.085, 0.100, 0.130), 0.30, 0.46, scratch=1.0, bump=0.07, wear=1.1, dirt=0.65)
+def steel():     return _metal('M_dark_steel', (0.055, 0.066, 0.088), 0.38, 0.58, brush=0.7, scratch=0.6, bump=0.04, wear=1.0, dirt=0.7)
 def titanium():  return _metal('M_titanium', (0.34, 0.30, 0.26), 0.30, 0.46, scratch=0.8, bump=0.05, wear=0.9, dirt=0.5)
 def aluminum():  return _metal('M_aluminum', (0.40, 0.42, 0.45), 0.26, 0.40, brush=1.2, scratch=1.0, bump=0.06)
 
@@ -153,7 +153,7 @@ def fabric():
 
 def thread():
     m, nt = _mat('M_thread'); out = _n(nt, 'ShaderNodeOutputMaterial'); bsdf = _n(nt, 'ShaderNodeBsdfPrincipled')
-    bsdf.inputs['Base Color'].default_value = (0.36, 0.34, 0.29, 1); bsdf.inputs['Roughness'].default_value = 0.85; bsdf.inputs['Metallic'].default_value = 0.0
+    bsdf.inputs['Base Color'].default_value = (0.075, 0.080, 0.092, 1); bsdf.inputs['Roughness'].default_value = 0.9; bsdf.inputs['Metallic'].default_value = 0.0
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface']); return m
 
 def emission(name, color, strength):
