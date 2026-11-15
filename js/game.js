@@ -10530,7 +10530,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         for (const p of sc.q) v.push((cxs + (p[0] - cxs) * 1.035 - W / 2) * f, (H / 2 - (cys + (p[1] - cys) * 1.035)) * f, ds);   /* hafif büyük: oyuğun kenarı ekranı hiç açıkta bırakmasın */
         const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); gg.setIndex([0, 1, 2, 0, 2, 3]);
         const tx = new THREE.CanvasTexture(sc.cv); tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
-        S.add(new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }))); scr.push({ sc, tx, ver: -1 }); });
+        S.add(new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }))); scr.push({ sc, tx, ver: -1 });
+        { const P = [0, 1, 2, 3].map(i => [v[i * 3], v[i * 3 + 1]]), kk = 0.32, fl = [P[3][0] + (P[3][0] - P[0][0]) * kk, P[3][1] + (P[3][1] - P[0][1]) * kk], fr = [P[2][0] + (P[2][0] - P[1][0]) * kk, P[2][1] + (P[2][1] - P[1][1]) * kk];   /* ekranın alt kenarından konsola düşen soluk yansıma */
+          const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute([fl[0], fl[1], ds, fr[0], fr[1], ds, P[2][0], P[2][1], ds, P[3][0], P[3][1], ds], 3)); rg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); rg.setIndex([0, 1, 2, 0, 2, 3]);
+          const rm = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })); rm.renderOrder = 5; S.add(rm); } });
       Q = { S, cam, Dc, img, W, H, SC: SCR, s: IM.s, scr }; window.__Q = Q;
     }
     function renderPar(){
