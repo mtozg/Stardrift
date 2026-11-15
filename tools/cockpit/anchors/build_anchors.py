@@ -25,7 +25,7 @@ def ray(u, v):
 
 src = open(os.path.join(ROOT, 'js', 'game.js'), encoding='utf-8').read()
 ckp = json.loads(re.search(r'const CKP = (\{.*?\});\n', src).group(1))[ship]
-img = Image.open(os.path.join(ROOT, 'assets', 'img', 'ck_%s.webp' % ship)).convert('RGBA')
+img = Image.open(os.path.join(ROOT, 'tools', 'cockpit', 'source', 'ck_%s.webp' % ship)).convert('RGBA')
 al = np.asarray(img)[..., 3].astype(np.float32) / 255
 S = img.size[0] / IW
 hole = al < 0.5

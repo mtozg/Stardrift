@@ -1698,7 +1698,7 @@ let SCR_DEF = [
 ];
 /* HUD maskesi yalnızca 3B kokpit modlarında (Kaşif: varsayılan q ve ?ck=b) geçerli: HUD tuvali WebGL kokpitin üstünde durduğu için dashboard bölgesi HUD'dan kesilir.
    Çizgi: cam altı sırtı (anchors/kasif.json pencere alt sınırları, 1600x656 çizim uzayı). Eski 2D kokpitlerde kokpit resmi HUD'ın üstünde olduğundan gerekmez. */
-function ck3dSet(){ try { const v = localStorage.getItem('sd_ck3'); return save.ship === 'kasif' && (v === null || v === 'q' || v === 'b'); } catch (e) { return false; } }
+function ck3dSet(){ return save.ship === 'kasif'; }
 var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [250, 422], [300, 417], [350, 405], [400, 384], [450, 379], [500, 374], [550, 368], [600, 360], [650, 357], [950, 357], [1000, 360], [1050, 369], [1100, 374], [1150, 379], [1200, 384], [1250, 405], [1300, 417], [1350, 422], [1400, 427], [1450, 413], [1500, 353], [1550, 278], [2000, 278]];
 function hudRidgePath(c, keep, lo, still){   /* dashboard bölgesi (sırtın altı); sallanmayla birlikte kayar (sırt derinliği ≈ ağın %9'u). keep: mevcut yola ekle */
   const B = !!window.__ckMapB, sb = (H - OY) / 416.5, k = B ? 1.1 : 0.93, sx = still ? 0 : sway.x * k, sy = (still ? 0 : sway.y * k) + (lo || 0); if (!keep) c.beginPath();   /* ?ck=b: 3B kamera eşlemesi (ana nokta 239.5, ölçek (H-OY)/416.5); q: görüntü eşlemesi */
@@ -2182,7 +2182,7 @@ function scrPaint(sc){ sc.drawn = true; sc.ver = (sc.ver || 0) + 1; const g = sc
   (sc.kind === 'bars' ? sys2Screen : sc.kind === 'map' ? radar2Screen : hull2Screen)(g, I); scr2Glass(g, sc.lw, sc.lh); }
 function drawCockpitImg(c){
   const s = IM.s, my = IM.my || (y => y), mp = (x, y) => [IM.dx + x * s, IM.dy + my(y) * s];
-  if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, CKM * DPR, CKM * DPR); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
+  if (IMG.img && (ckDirty || ckx.__img !== IMG.img)){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, CKM * DPR, CKM * DPR); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
     const paint = (k = ckx) => { if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
       const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
       k.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
@@ -3486,11 +3486,16 @@ function exAct(a){
 }
 // =====================  /ÜS + KAÇAK + MÜRETTEBAT + OLAYLAR  =====================
 // =====================  HANGAR + KOKPİT  =====================
-const CK = {"kasif": "assets/img/ck_kasif.webp", "sahin": "assets/img/ck_sahin.webp", "yuk": "assets/img/ck_yuk.webp", "hayalet": "assets/img/ck_hayalet.webp"};
+const CK = {"sahin": "assets/img/ck_sahin.webp", "yuk": "assets/img/ck_yuk.webp", "hayalet": "assets/img/ck_hayalet.webp"};
 const CKP = {"kasif": {"q": [[[393, 411], [588, 392], [582, 501], [342, 525]], [[627, 382], [975, 383], [974, 498], [625, 498]], [[1009, 392], [1206, 411], [1257, 525], [1018, 501]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "sahin": {"q": [[[385, 398], [598, 372], [596, 490], [352, 518]], [[637, 377], [961, 377], [969, 485], [632, 485]], [[1000, 376], [1215, 398], [1248, 520], [1004, 495]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "yuk": {"q": [[[387, 397], [590, 379], [593, 481], [325, 526]], [[622, 362], [976, 361], [968, 483], [633, 480]], [[1006, 378], [1224, 405], [1277, 523], [1009, 481]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "hayalet": {"q": [[[378, 392], [587, 382], [591, 483], [329, 520]], [[652, 375], [947, 376], [968, 485], [635, 488]], [[1013, 382], [1220, 393], [1268, 518], [1009, 483]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}};
 
 function setCockpit(id){
-  const d = CK[id], P = CKP[id]; if (!d || !P) return; const im = new Image();
+  const d = CK[id], P = CKP[id]; if (!P) return;
+  if (id === 'kasif'){   /* Kaşif: 3B model; çizim resmi yok, yalnızca yerleşim bilgisi */
+    IMG.img = null; IMG.ok = true; IMG.hi = true; IMG.ih = 656; IMG.iw = 1600;
+    IMG.cfg = { lamps: P.lamps, boost: P.boost, defs: [{ q: P.q[0], kind: 'bars' }, { q: P.q[1], kind: 'map' }, { q: P.q[2], kind: 'hull' }] };
+    SCR_DEF = IMG.cfg.defs; resize(); return; }
+  if (!d) return; const im = new Image();
   im.onload = () => {
     IMG.img = im; IMG.ok = true; IMG.hi = true; IMG.ih = 656; IMG.iw = 1600;
     IMG.cfg = { lamps: P.lamps, boost: P.boost, defs: [{ q: P.q[0], kind: 'bars' }, { q: P.q[1], kind: 'map' }, { q: P.q[2], kind: 'hull' }] };
@@ -10345,269 +10350,19 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     try { if (KS() && save.ct){ for (const c of save.ct.offers.concat(save.ct.active)) if (c.type === 'av' && !c.ks){ c.ks = 1; c.txt = c.n + ' Filo ya da tüccar gemisi düşür'; } } } catch (e) {}
   })();
 
-  // =====  3B KOKPİT (deneme): ince dikmeler, alçak ekran konsolu, dışarıdan gelen gerçek ışık. Şimdilik yalnızca Kaşif, ayar: localStorage sd_ck3 = 1
+  // =====  Kaşif kokpiti: Blender modeli (tools/cockpit çıktısı GLB) tek kokpit. Diğer gemiler eski çizim kokpitiyle devam eder.
   (function(){
-    try { const m = /[?&]ck=([a-z0-9])/.exec(location.search); if (m) localStorage.setItem('sd_ck3', m[1]); } catch (e) {}   /* adres sonuna ?ck=q (paralaks kokpit denemesi) ya da ?ck=0 (kapat) */
-    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's' || v === 'q' || (v === 'b' && save.ship === 'kasif') || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };   /* ayar yoksa Kaşif paralaks kokpitle açılır; ?ck=0 kapatır */
-    let K = null;
-    // ---- gemiye göre kokpit: cam/dikme düzeni eski çizim kokpitlerden; kaplama doğrudan o çizimlerden kesilir (gerçekçi boyalı metal)
-    //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
-    const ED = -0.33;
-    const SHIPS3 = {
-      kasif:   { wrap: { bow: 0.06, thick: 0.03, topY: 0.5, topZ: -1.0, spread: 1.2, bx: 0.78 }, glow: 0x43d2ff, rim: 0x9cc2ff, U0: 0.86, ET: 0.6, topA: 1, scr: [['bars', -0.5, 1.22, -0.78, 0.45, 0.35, 0.14, 'tab'], ['map', 0, 1.28, -0.78, 0.38, 0.38, 0.12, 'tab'], ['hull', 0.5, 1.22, -0.78, 0.45, 0.35, 0.14, 'tab']], rO: 0.05, rT: 0.03, panel: [0.02, 0.78, 0.32, 0.99], strip: [0.005, 0.12, 0.045, 0.55],
-                 inner: [{ p: [[-0.3, ED], [-0.33, 0.5]], r: 0.022 }, { p: [[0.3, ED], [0.33, 0.5]], r: 0.022 }] },
-      sahin:   { wrap: { bow: 0.1, thick: 0.026, topY: 0.46, topZ: -1.0, spread: 1.1, arch: 1, bx: 0.7 }, glow: 0xff4d6a, rim: 0xa9b8d6, U0: 0.9, ET: 0.58, hood: 0x7a1f2b, scr: [['bars', -0.4, 1.28, -0.75, 0.50, 0.33, 0.35, 'flat'], ['map', 0, 1.30, -0.75, 0.40, 0.33, 0.35, 'flat'], ['hull', 0.4, 1.28, -0.75, 0.50, 0.33, 0.35, 'flat']], rO: 0.05, rT: 0.026, panel: [0.02, 0.78, 0.30, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
-                 inner: [{ p: [[-0.14, ED], [-0.34, 0.12], [-0.6, 0.42], [-0.84, 0.58]], r: 0.03 }, { p: [[0.14, ED], [0.34, 0.12], [0.6, 0.42], [0.84, 0.58]], r: 0.03 }] },
-      yuk:     { wrap: { bow: 0.0, thick: 0.03, topY: 0.46, topZ: -1.0, spread: 0.56, bx: 0.56, diag: 1 }, glow: 0xffb454, rim: 0xc9d2b0, U0: 0.84, ET: 0.5, scr: [['bars', -0.56, 1.27, -0.78, 0.62, 0.31, 0.28, 'tab'], ['map', 0, 1.24, -0.78, 0.38, 0.30, 0.32, 'tab'], ['hull', 0.56, 1.27, -0.78, 0.62, 0.31, 0.28, 'tab']], rO: 0.065, rT: 0.042, panel: [0.03, 0.80, 0.30, 0.99], strip: [0.005, 0.1, 0.05, 0.55], sill: 0.03,
-                 inner: [{ p: [[-0.4, ED], [-0.4, 0.46]], r: 0.024 }, { p: [[0.4, ED], [0.4, 0.46]], r: 0.024 }] },
-      hayalet: { wrap: { bow: -0.04, thick: 0.02, topY: 0.54, topZ: -1.0, spread: 1.3, arch: 1, noBar: 1, bx: 0.66 }, glow: 0xa77bff, rim: 0x8f9cc8, U0: 0.92, ET: 0.6, web: 1, scr: [['bars', -0.46, 1.32, -0.76, 0.58, 0.24, 0.42, 'slim'], ['map', 0, 1.34, -0.76, 0.45, 0.24, 0.42, 'slim'], ['hull', 0.46, 1.32, -0.76, 0.58, 0.24, 0.42, 'slim']], rO: 0.045, rT: 0.024, panel: [0.36, 0.86, 0.64, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
-                 inner: [{ p: [[0, ED], [0, 0.6]], r: 0.016 }, { p: [[-0.26, ED], [-0.56, 0.25], [-0.88, 0.6]], r: 0.03 }, { p: [[0.26, ED], [0.56, 0.25], [0.88, 0.6]], r: 0.03 }] }
-    };
-    const cpos = (u, e) => { const r = 1.75 - 0.55 * Math.abs(Math.sin(u)); return [Math.sin(u) * Math.cos(e) * r, Math.sin(e) * r, -Math.cos(u) * Math.cos(e) * r]; };
-    // eski kokpit resminden bir bölgeyi doku olarak kes (rot: şerit dikme boyunca uzansın diye çevir)
-    const imgCache = {};
-    function shipImg(id, cb){ const src = CK[id]; if (!src) return; if (imgCache[id]){ if (imgCache[id].complete) cb(imgCache[id]); else imgCache[id].addEventListener('load', () => cb(imgCache[id])); return; }
-      const im = new Image(); im.onload = () => cb(im); im.src = src; imgCache[id] = im; }
-    function cropTex(im, r, rot, rep){ const cv = document.createElement('canvas'), w = im.naturalWidth, h = im.naturalHeight, sx = r[0] * w, sy = r[1] * h, sw = (r[2] - r[0]) * w, sh = (r[3] - r[1]) * h;
-      cv.width = rot ? 512 : 512; cv.height = rot ? 128 : 256; const x = cv.getContext('2d');
-      if (rot){ x.translate(512, 0); x.rotate(Math.PI / 2); x.drawImage(im, sx, sy, sw, sh, 0, 0, 128, 512); } else x.drawImage(im, sx, sy, sw, sh, 0, 0, 512, 256);
-      const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; return t; }
-    // ---- çizimi 3B kabuğa kaplama: rehber görseliyle AYNI kameradan (sabit izdüşüm matrisi) her yüzeye çizimin kendi pikseli düşer; saf siyah (cam ve ekran) delinir
-    const PROJ = [0.54409, 0, 0, 0, 0, 1.32704, 0, 0, 0, -0.26974, -1.00501, -1, 0, 0, -0.10025, 0];   /* rehber kamerasının izdüşüm matrisi (1200x492, 74°, bakış merkezi kayık) */
-    window.__ck3Proj = PROJ;
-    const paintCache = {};
-    function paintTex(id, cb){ const c = paintCache[id]; if (c){ if (c.tex) cb(c.tex); else if (!c.fail) c.q.push(cb); return; }
-      const ent = paintCache[id] = { q: [cb], tex: null, fail: false }; const l = new THREE.TextureLoader();
-      l.load('assets/img/ck3p_' + id + '.webp?v=' + (window.SD_VERSION || ''), t => { t.anisotropy = 4; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; ent.tex = t; ent.q.forEach(f => f(t)); ent.q = []; }, undefined, () => { ent.fail = true; ent.q = []; }); }
-    function makePaintMat(tex){ return new THREE.ShaderMaterial({ side: THREE.DoubleSide, uniforms: { tMap: { value: tex }, uP: { value: new THREE.Matrix4().fromArray(PROJ) }, uGinv: { value: new THREE.Matrix4() }, uLit: { value: 0 } },
-      vertexShader: 'uniform mat4 uGinv; uniform mat4 uP; varying vec4 vC; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vC = uP * (uGinv * w); gl_Position = projectionMatrix * viewMatrix * w; }',
-      fragmentShader: 'uniform sampler2D tMap; uniform float uLit; varying vec4 vC; void main(){ if (vC.w <= 0.0) discard; vec2 uv = vC.xy / vC.w * 0.5 + 0.5; if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard; vec4 c = texture2D(tMap, uv); if (max(c.r, max(c.g, c.b)) < 0.035) discard; vec3 col = c.rgb * (1.0 + uLit * vec3(1.1, 0.7, 0.4)); gl_FragColor = vec4(col, 1.0); }' }); }
-    function build(id){
-      const C = SHIPS3[id] || SHIPS3.kasif; const TINT = { kasif: [0x3a4656, 0x2c3542], sahin: [0x3a3434, 0x5a1f28], yuk: [0x464a36, 0x34382a], hayalet: [0x1e2026, 0x16171b] }[id] || [0x3a4656, 0x2c3542];
-      const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.05, 20), G = new THREE.Group(); S.add(G);
-      const metal = new THREE.MeshStandardMaterial({ color: TINT[0], roughness: 0.55, metalness: 0.5, side: THREE.DoubleSide });
-      const pil = new THREE.MeshStandardMaterial({ color: TINT[0], roughness: 0.4, metalness: 0.7, emissive: 0x141a22 });
-      const rimM = new THREE.MeshBasicMaterial({ color: new THREE.Color(C.rim).multiplyScalar(0.55), transparent: true, opacity: 0.55 });
-      const dark = new THREE.MeshStandardMaterial({ color: 0x0e1218, roughness: 0.85, metalness: 0.3, side: THREE.DoubleSide });
-      const panelM = new THREE.MeshStandardMaterial({ color: TINT[1], roughness: 0.7, metalness: 0.35 });
-      const glow = new THREE.MeshBasicMaterial({ color: C.glow }), cable = new THREE.MeshStandardMaterial({ color: 0x0b0d10, roughness: 0.9, metalness: 0.1 });
-      if (false) shipImg(id, im => { try { metal.map = cropTex(im, C.panel, false, [1, 1]); metal.bumpMap = metal.map; metal.bumpScale = 0.003; metal.color.setHex(0xffffff); metal.needsUpdate = true;
-        const pt = cropTex(im, C.panel, false, [1, 1]); pt.center.set(0.5, 0.5); pt.rotation = Math.PI / 2; panelM.map = pt; panelM.bumpMap = pt; panelM.bumpScale = 0.003; panelM.color.setHex(0xd8dde4); panelM.needsUpdate = true;
-        pil.map = cropTex(im, C.strip, true, [3, 1]); pil.bumpMap = pil.map; pil.bumpScale = 0.002; pil.color.setHex(0xffffff); pil.needsUpdate = true; } catch (e) { console.warn(e); } });
-      const tube = (pts, r, m, seg) => { const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p))); const me = new THREE.Mesh(new THREE.TubeGeometry(c, 48, r, seg || 6, false), m); G.add(me); return { me, c }; };
-      const ctube = (ue, r, m, seg) => { const pts = []; for (let k = 0; k < ue.length - 1; k++){ const [u0, e0] = ue[k], [u1, e1] = ue[k + 1]; for (let q = 0; q < 8; q++){ const t = q / 8; pts.push(cpos(u0 + (u1 - u0) * t, e0 + (e1 - e0) * t)); } } pts.push(cpos(...ue[ue.length - 1])); return tube(pts, r, m, seg); };
-      const A = 1.4;
-      // konsol: pilota doğru uzanan üst yüzey (ekranlar bunun üstünde, hafif yukarıda); kol ve düğme sırası yok
-      { const g = new THREE.RingGeometry(1.15, 1.52, 48, 2, Math.PI / 2 - A, A * 2); g.rotateX(-Math.PI / 2); const me = new THREE.Mesh(g, dark); me.position.y = -0.785; G.add(me); }
-      // konsol üstü: kaplamanın düzgün oturduğu ayrı düz paneller (her biri eski çizimden kesilmiş gerçekçi panel)
-      { const N = 12, ri = 1.17, ro = 1.5, dA = 2 * A / N; for (let k = 0; k < N; k++){ const a = -A + dA * (k + 0.5), rm = (ri + ro) / 2, w = 2 * rm * Math.sin(dA / 2) * 0.985;
-          const g = new THREE.PlaneGeometry(w, ro - ri); g.rotateX(-Math.PI / 2); const me = new THREE.Mesh(g, panelM); me.position.set(Math.sin(a) * rm, -0.780, -Math.cos(a) * rm); me.rotation.y = -a; G.add(me); } }
-      { const g = new THREE.CylinderGeometry(1.52, 1.52, 0.1, 48, 1, true, Math.PI - A, A * 2); const me = new THREE.Mesh(g, dark); me.position.y = -0.830; G.add(me); }
-      { const g = new THREE.CylinderGeometry(1.15, 1.15, 1.6, 48, 1, true, Math.PI - A, A * 2); const me = new THREE.Mesh(g, dark); me.position.y = -1.580; G.add(me); }
-      { const g = new THREE.CylinderGeometry(1.75, 1.75, 1.6, 48, 1, true); const me = new THREE.Mesh(g, dark); me.position.y = -1.5; G.add(me); }
-      { const pts = []; for (let i = 0; i <= 30; i++){ const a = -A + 2 * A * i / 30; pts.push([Math.sin(a) * 1.5, -0.775, -Math.cos(a) * 1.5]); } tube(pts, 0.005, glow, 6); }
-      { const pts = []; for (let i = 0; i <= 30; i++){ const a = -A + 2 * A * i / 30; pts.push([Math.sin(a) * 1.16, -0.777, -Math.cos(a) * 1.16]); } tube(pts, 0.004, new THREE.MeshBasicMaterial({ color: new THREE.Color(C.glow).multiplyScalar(0.45) }), 6); }
-      // dış çerçeve: iki yan dikme, üst çerçeve, yanlara uzanan alt kenar ve arka dikmeler (yakında, kalın, köşeli)
-      if (C.wrap){   // seni saran kabuk: alttan ortaya yakın başlayıp yukarı doğru dışa açılan kalın dikmeler, köşede kıvrım, düz üst kiriş
-        const Wp = C.wrap, tY = Wp.topY, tZ = Wp.topZ, tx = Wp.spread;
-        for (const sx of [-1, 1]){
-          const bx = Wp.bx || 0.7, { c } = tube([[sx * bx, -0.5, -0.8], [sx * (bx + 0.12 + Wp.bow), -0.1, -0.86], [sx * (bx + 0.36 + Wp.bow), 0.3, -0.93], [sx * (tx + 0.04), tY - 0.1, tZ], [sx * (tx - 0.1), tY, tZ], [sx * (tx - 0.3), tY, tZ]], Wp.thick, pil, 5);
-          tube(c.getPoints(24).map(q => [q.x + sx * 0.05, q.y, q.z + 0.04]), 0.012, cable, 6);
-          for (const t of [0.15, 0.4, 0.62]){ const q = c.getPoint(t); const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.03, 0.05), metal); b.position.copy(q); b.lookAt(0, q.y, 0); G.add(b); }
-          const q2 = c.getPoint(0.3); const lt = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.045, 0.008), glow); lt.position.set(q2.x - sx * 0.04, q2.y, q2.z + 0.04); G.add(lt);
-          if (Wp.diag) tube([[sx * 0.56, tY, tZ], [sx * 1.0, 0.22, -0.9], [sx * 1.52, -0.14, -0.74]], 0.024, pil, 4);   // eğik tavan kirişi: yan camlar eğik (ikinci referans)
-        }
-        if (Wp.arch) tube([[-(tx - 0.3), tY, tZ], [-0.5, tY + 0.12, tZ - 0.05], [0, tY + 0.17, tZ - 0.08], [0.5, tY + 0.12, tZ - 0.05], [tx - 0.3, tY, tZ]], Wp.thick * 0.5, pil, 4);   // kemerli üst kiriş
-        else tube([[-(tx - 0.3), tY, tZ], [0, tY + 0.01, tZ], [tx - 0.3, tY, tZ]], Wp.thick * 0.7, pil, 4);                                       // düz üst kiriş
-        if (!Wp.noBar) for (const x of [-0.4, 0.4]){ const k2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.045, 0.06), metal); k2.position.set(x, tY - 0.01, tZ + 0.02); G.add(k2); }   // kiriş kancaları
-      }
-      if (C.outer !== false && !C.wrap) for (const sx of [-1, 1]){
-        const { c } = ctube([[sx * C.U0, ED - 0.02], [sx * C.U0 * 0.97, 0.15], [sx * C.U0 * 0.9, C.ET]], C.rO, pil, 4);
-        tube(c.getPoints(20).map(q => [q.x + sx * 0.05, q.y, q.z + 0.03]), 0.01, cable, 6);
-        for (const t of [0.25, 0.6]){ const q = c.getPoint(t); const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.045, 0.07), metal); b.position.copy(q); b.lookAt(0, q.y, 0); G.add(b); }
-      }
-      if (C.wrap){} else if (C.topA) ctube([[-C.U0 * 0.9, C.ET], [-0.34, C.ET + 0.08], [0.34, C.ET + 0.08], [C.U0 * 0.9, C.ET]], C.rT, pil, 4);   // köşeli üst çerçeve
-      else { const ue = []; for (let k = 0; k <= 12; k++) ue.push([-C.U0 * 0.9 + 1.8 * C.U0 * k / 12, C.ET + 0.02 * Math.sin(Math.PI * k / 12)]); ctube(ue, C.rT, pil, 4); }
-      if (C.rail) tube([[-1.1, 0.1, -0.84], [0, 0.1, -0.9], [1.1, 0.1, -0.84]], C.rail * 0.6, pil, 4);   // camları ızgaraya bölen yatay ara kiriş
-      if (C.web){ for (const sx of [-1, 1]){ ctube([[0, C.ET], [sx * 0.42, 0.22]], 0.014, pil, 4); ctube([[sx * 0.42, 0.22], [sx * C.U0 * 0.9, C.ET]], 0.014, pil, 4); ctube([[sx * 0.42, 0.22], [sx * 0.26, ED]], 0.014, pil, 4); ctube([[sx * 0.42, 0.22], [sx * C.U0 * 0.97, 0.12]], 0.012, pil, 4); } }   // kafes tavan
-      if (C.sill) ctube([[-C.U0, ED], [0, ED], [C.U0, ED]], C.sill, pil, 4);
-      for (const P of C.inner){ if (C.wrap) P.r = Math.max(P.r, 0.02); ctube(P.p, P.r, pil, 6); ctube(P.p.map(([u, e]) => [u + 0.004, e]), P.r * 0.25, rimM, 4); }   /* ince dikmenin kenarı dışarıdaki ışığı yakalar */
-      // ekranlar: beş ekran, panelin hafif yukarısında, pilota dönük
-      const scr = [];
-      const extra = () => { const cv = document.createElement('canvas'); cv.width = 360; cv.height = 220; return { cv, g: cv.getContext('2d') }; };
-      const btnM = [new THREE.MeshBasicMaterial({ color: C.glow }), new THREE.MeshBasicMaterial({ color: 0xffb454 }), new THREE.MeshBasicMaterial({ color: 0x5a6270 })];
-      const knobM = new THREE.MeshStandardMaterial({ color: 0x1a1d22, roughness: 0.5, metalness: 0.6 });
-      for (const [k, a, R, by, w, h, tilt, kind] of C.scr){ const d = { k, a, w };
-        const holder = new THREE.Group(); holder.position.set(Math.sin(a) * R, by, -Math.cos(a) * R); holder.rotation.y = -a; G.add(holder);
-        const t = new THREE.Group(); t.rotation.x = -tilt; holder.add(t);
-        if (kind === 'tab'){   // dik gösterge paneli: gövde, yan düğme sütunu, düğmeler ve ayak
-          const W2 = w + 0.13, H2 = h + 0.1; const bz = new THREE.Mesh(new THREE.BoxGeometry(W2, H2, 0.05), metal); bz.position.set(0.03, h / 2 + 0.02, -0.026); t.add(bz);
-          for (let r = 0; r < 5; r++) for (let c = 0; c < 2; c++){ const b = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.008), btnM[(r + c * 2) % 3]); b.position.set(w / 2 + 0.035 + c * 0.028, h * 0.85 - r * h * 0.17, 0.002); t.add(b); }
-          for (let r = 0; r < 2; r++){ const kn = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.02, 10), knobM); kn.rotation.x = Math.PI / 2; kn.position.set(-w / 2 - 0.035, h * 0.7 - r * h * 0.4, 0.01); t.add(kn); }
-          const st = new THREE.Mesh(new THREE.BoxGeometry(w * 0.35, 0.5, 0.05), dark); st.position.set(0, -0.25, -0.05); t.add(st); }
-        else if (kind === 'slim'){ const bz = new THREE.Mesh(new THREE.BoxGeometry(w + 0.02, h + 0.02, 0.02), dark); bz.position.set(0, h / 2 + 0.02, -0.012); t.add(bz); }
-        else { const bz = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, h + 0.05, 0.035), metal); bz.position.set(0, h / 2 + 0.02, -0.02); t.add(bz);
-          const st = new THREE.Mesh(new THREE.BoxGeometry(w * 0.3, 0.06, 0.05), dark); st.position.set(0, -0.02, -0.04); t.add(st); }
-        const ex = k === 'tgt' || k === 'mq' ? extra() : null;
-        const tex = new THREE.CanvasTexture(ex ? ex.cv : document.createElement('canvas')); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
-        const sm = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })); sm.position.set(0, h / 2 + 0.02, 0.001); t.add(sm);
-        const edge = new THREE.Mesh(new THREE.BoxGeometry(w + 0.03, 0.005, 0.005), glow); edge.position.set(0, kind === 'tab' ? -0.03 : -0.005, 0.0); t.add(edge);
-        scr.push({ d, tex, sm, ex, ver: -1, cv: null });
-      }
-      if (C.hood){   // Şahin: ekranların üstünde sarmal siper
-        const g = new THREE.CylinderGeometry(1.3, 1.3, 0.06, 40, 1, true, Math.PI - 0.6, 1.2); const hm = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: C.hood, roughness: 0.55, metalness: 0.35, side: THREE.DoubleSide })); hm.position.y = -0.440; G.add(hm);
-        const g2 = new THREE.RingGeometry(1.2, 1.3, 40, 1, Math.PI / 2 - 0.6, 1.2); g2.rotateX(-Math.PI / 2); const tp = new THREE.Mesh(g2, hm.material); tp.position.y = -0.410; G.add(tp); }
-      // ışıklar
-      const GK = window.__guide ? 2.6 : 1;   /* rehber görüntüsü için daha aydınlık */
-      const amb = new THREE.AmbientLight(0x1b2638, 0.6 * GK); S.add(amb);
-      const sky = new THREE.DirectionalLight(C.rim, 0.6 * GK); sky.position.set(0, 4, -3); S.add(sky);
-      const side = new THREE.DirectionalLight(C.rim, 0.3 * GK); side.position.set(-3, 1, -1); S.add(side);
-      const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); S.add(sun.target);
-      const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 1.6, -2.6); S.add(fl);
-      const lz = new THREE.PointLight(0xff6a8c, 0, 4); lz.position.set(0, -0.3, -1.6); S.add(lz);
-      const sl = new THREE.PointLight(C.glow, 0.5, 1.2); sl.position.set(0, -0.35, -0.85); S.add(sl);
-      const out = { id, S, cam, G, scr, sun, fl, lz, sl, tq: new THREE.Quaternion(), v: new THREE.Vector3(), t: 0, paint: null };
-      if (!window.__guide && localStorage.getItem('sd_ck3') !== 'p') paintTex(id, tex => { const pm = makePaintMat(tex); out.paint = pm; const keep = new Set(scr.map(e => e.sm)); G.traverse(o => { if (o.isMesh && !keep.has(o)) o.material = pm; }); });
-      return out;
-    }
-    // ---- hazır model: «Sci-fi Spaceship Cockpit 02» (NotARealStudio, CC BY 4.0) — Kaşif için
-    let GLBM = null, GLBP = null, GLBFAIL = false; const GLBEYE = [0, 1.6, -0.14], GLBTILT = -0.2, GLBTHIN = 0.021;
-    function loadGLB(){ if (GLBP) return GLBP; GLBP = new Promise((res, rej) => {
-        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load('assets/img/ck3_kokpit.glb' + v, g => { GLBM = g.scene; res(); }, undefined, e => { GLBP = null; rej(e); });
-        if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { GLBP = null; rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
-      GLBP.catch(e => { console.warn('kokpit modeli yüklenemedi', e); GLBFAIL = true; }); return GLBP; }
-    let ENVT = null;
-    // yansıma: PMREM yerine küçük, hiçbir GPU'da sorun çıkarmayan yumuşak bir küp dokusu (üst: parlak cam tavan, yanlar: soğuk ışık, alt: koyu)
-    function makeEnv(){ if (ENVT) return ENVT; try {
-        const face = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); draw(x); return c; };
-        const grad = (x, a, b, hor) => { const g = hor ? x.createLinearGradient(0, 0, 64, 0) : x.createLinearGradient(0, 0, 0, 64); g.addColorStop(0, a); g.addColorStop(1, b); x.fillStyle = g; x.fillRect(0, 0, 64, 64); };
-        const side = face(x => { grad(x, '#8fb0e0', '#1a2230'); x.fillStyle = 'rgba(210,230,255,.55)'; x.fillRect(10, 8, 44, 10); });
-        const top = face(x => { grad(x, '#9db8e6', '#cfe0ff'); x.fillStyle = '#ffffff'; x.fillRect(14, 14, 36, 36); });
-        const bot = face(x => { x.fillStyle = '#10141c'; x.fillRect(0, 0, 64, 64); });
-        const frontBack = face(x => { grad(x, '#6f90c0', '#141a26'); });
-        ENVT = new THREE.CubeTexture([side, side, top, bot, frontBack, frontBack]); ENVT.encoding = THREE.sRGBEncoding; ENVT.needsUpdate = true;
-      } catch (e) { console.warn('ortam haritası', e); ENVT = null; } return ENVT; }
-    // ince dikmeler: çerçeve ağının her köşesi düzgünleştirilmiş yüzey normali boyunca içeri çekilir (bağlantılar kopmaz)
-    function thinMesh(o, d){ const g = o.geometry.clone(), p = g.attributes.position, n = g.attributes.normal; if (!n) return; const acc = new Map(), key = i => Math.round(p.getX(i) * 2000) + ',' + Math.round(p.getY(i) * 2000) + ',' + Math.round(p.getZ(i) * 2000);
-      for (let i = 0; i < p.count; i++){ const k = key(i); let a = acc.get(k); if (!a){ a = [0, 0, 0]; acc.set(k, a); } a[0] += n.getX(i); a[1] += n.getY(i); a[2] += n.getZ(i); }
-      for (let i = 0; i < p.count; i++){ const a = acc.get(key(i)), l = Math.hypot(a[0], a[1], a[2]) || 1; p.setXYZ(i, p.getX(i) - a[0] / l * d, p.getY(i) - a[1] / l * d, p.getZ(i) - a[2] / l * d); }
-      p.needsUpdate = true; g.computeBoundingSphere(); o.geometry = g; }
-    function buildGLB(){
-      const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.02, 20), G = new THREE.Group(); S.add(G);
-      const root = new THREE.Group(); root.rotation.y = Math.PI; root.position.set(GLBEYE[0], -GLBEYE[1], GLBEYE[2]); G.add(root);   /* model +z'ye bakar, oyun -z'ye: yarım dönüş; göz orijine */
-      const mdl = GLBM.clone(true); root.add(mdl);
-      const scr = [];
-      const env = window.__noenv ? null : makeEnv();
-      mdl.traverse(o => { if (!o.isMesh) return;
-        if (/^CanopyFrame/.test(o.name)) { try { thinMesh(o, GLBTHIN); } catch (e) { console.warn(e); } }
-        if (/^Body_Emmissive_Blue/.test(o.name)) o.visible = false;            /* modelin hazır ekran dokusu: yerine bizim canlı ekranlar gelir */
-        if (/CanopyGlass/.test(o.name)){ o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.06; o.material.depthWrite = false; }
-        if (o.material){ o.material = o.material.clone(); if (o.material.map) o.material.map.anisotropy = 4; if (/Plastic_-_Glossy_(Blue|Green)/.test(o.material.name || '')) o.material.color.multiplyScalar(0.5);   /* parlak mavi-yeşil düğme blokları oyuncak gibi duruyordu */
-          if (/Emmissive/.test(o.material.name || '') && o.material.emissiveIntensity != null) o.material.emissiveIntensity = 0.7;
-          if (env){ o.material.envMap = env; o.material.envMapIntensity = /Chrome|Steel/.test(o.material.name || '') ? 0.9 : 0.45; } o.material.needsUpdate = true; } });
-      // ekranlar: modelin ışıklı yüzeylerinin köşelerine oturur (u: pilotun sağı = model -x)
-      const quad = (TL, TR, BL, BR) => { const g = new THREE.BufferGeometry(), v = [...BL, ...BR, ...TR, ...TL]; g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2)); g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals(); return g; };
-      const SL = (a, b) => [[a, 1.243, 0.742], [b, 1.243, 0.742], [a, 1.332, 0.831], [b, 1.332, 0.831]];
-      const defs = [ { k: 'gSys', q: [0.425, 0.225], w: 176, h: 55 }, { k: 'gTgt', q: [0.2, -0.2], w: 176, h: 55 }, { k: 'gHull', q: [-0.225, -0.425], w: 176, h: 55 }, { k: 'gRad', flat: 1, w: 230, h: 112 } ];
-      for (const d of defs){ let TL, TR, BL, BR; const o = 0.003;
-        if (d.flat){ TL = [0.225, 1.23 + o, 0.645]; TR = [-0.225, 1.23 + o, 0.645]; BL = [0.225, 1.23 + o, 0.425]; BR = [-0.225, 1.23 + o, 0.425]; }
-        else { const [a, b] = d.q; TL = [a, 1.332 + o, 0.831 - o]; TR = [b, 1.332 + o, 0.831 - o]; BL = [a, 1.243 + o, 0.742 - o]; BR = [b, 1.243 + o, 0.742 - o]; }
-        const ex = { cv: document.createElement('canvas'), lw: d.w, lh: d.h }; ex.cv.width = 512; ex.cv.height = Math.round(512 * d.h / d.w); ex.g = ex.cv.getContext('2d');
-        const tex = new THREE.CanvasTexture(ex.cv); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; tex.anisotropy = 4; tex.encoding = THREE.sRGBEncoding;
-        const sm = new THREE.Mesh(quad(TL, TR, BL, BR), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, side: THREE.DoubleSide })); mdl.add(sm);
-        scr.push({ d: { k: d.k }, tex, sm, ex, ver: -1, cv: null }); }
-      // ışıklar: dışarıdan soğuk ışık, güneş, patlama, lazer; ekranların kendi ışığı konsola vurur
-      S.add(new THREE.HemisphereLight(0xb8d0f4, 0x2a3446, 0.8));
-      const sky = new THREE.DirectionalLight(0xaecbff, 1.3); sky.position.set(0, 4, -3); S.add(sky);
-      const side = new THREE.DirectionalLight(0x9db6e0, 0.8); side.position.set(-3, 1, -1); S.add(side);
-      const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); S.add(sun.target);
-      const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 1.0, -1.2); S.add(fl);
-      const lz = new THREE.PointLight(0xff6a8c, 0, 3); lz.position.set(0, -0.2, -0.6); S.add(lz);
-      const sl = new THREE.PointLight(0x4cc8ff, 0.8, 1.2); sl.position.set(0, -0.28, -0.55); S.add(sl);
-      return { id: 'kasif', glb: 1, S, cam, G, scr, sun, fl, lz, sl, tq: new THREE.Quaternion(), v: new THREE.Vector3(), t: 0 };
-    }
-    // okunaklı büyük yazılı ekranlar (hazır model için; ince ekranlarda en çok 3 büyük değer)
-    function gSys(g, w, h){ const I = scr2Base(g, w, h, 'Sistem', thrustNow > 0.1 ? 'İTİŞ' : braking ? 'FREN' : ''); const sp = Math.round(vel.length()), heat = laser.heat / 100, cs = cargoSum(), cap = cargoCap();
-      const col = [['HIZ', String(sp), Math.min(1, sp / 420), SC2.a], ['ISI', Math.round(heat * 100) + '%', heat, (laser.over || heat > 0.85) ? SC2.r : heat > 0.6 ? SC2.w : SC2.a], ['KARGO', cs + '/' + cap, cs / Math.max(1, cap), cs >= cap ? SC2.w : SC2.a]]; const cw = I.w / 3;
-      col.forEach(([n, v, f, c], i) => { const x = I.x + i * cw; g.textAlign = 'left'; g.font = fnt(600, 8.5); g.fillStyle = SC2.d; g.fillText(n, x, I.y + 8); g.font = fnt(700, v.length > 4 ? 15 : 20); g.fillStyle = c; g.fillText(v, x, I.y + 27); bar2(g, x, I.y + 30, cw - 6, f, c, 2.2); }); scr2Glass(g, w, h); }
-    function gHull(g, w, h){ const hf = hp.hull / hp.hullMax, sf = hp.shield / Math.max(1, hp.shieldMax), hc = hf > 0.6 ? SC2.a : hf > 0.3 ? SC2.w : SC2.r; const I = scr2Base(g, w, h, 'Gövde', hp.hit > 0 ? 'HASAR' : ''); const cw = I.w / 2;
-      [['GÖVDE', Math.round(hp.hull), hf, hc], ['KALKAN', Math.round(hp.shield), sf, '#9fc4ff']].forEach(([n, v, f, c], i) => { const x = I.x + i * cw; g.textAlign = 'left'; g.font = fnt(600, 8.5); g.fillStyle = SC2.d; g.fillText(n, x, I.y + 8); g.font = fnt(700, 21); g.fillStyle = c; g.fillText(String(v), x, I.y + 28); bar2(g, x, I.y + 31, cw - 8, f, c, 2.4); }); scr2Glass(g, w, h); }
-    function gTgt(g, w, h){ const t = lock || aim; const I = scr2Base(g, w, h, 'Hedef', t && t === lock ? 'KİLİTLİ' : ''); g.textAlign = 'left';
-      if (t){ const d = Math.max(0, Math.round(rig.position.distanceTo(t.pos) - (t.r || 0))), hf = tHp(t), bad = t.kind === 'npc' && foe(t), c = bad ? SC2.r : (t.kind === 'npc' && rel(t) === 'prey') ? SC2.w : SC2.a;
-        g.font = fnt(700, 12); g.fillStyle = c; g.fillText(tName(t).toLocaleUpperCase('tr-TR').slice(0, 15), I.x, I.y + 11); g.font = fnt(700, 21); g.fillStyle = SC2.a; g.fillText(d > 2000 ? (d / 1000).toFixed(1) + ' km' : d + ' m', I.x, I.y + 30); if (hf !== null) bar2(g, I.x + I.w * 0.62, I.y + 24, I.w * 0.38, hf, c, 3); }
-      else { const L = String((window.__mqLine && window.__mqLine()) || 'Nişanda hedef yok').replace(/<[^>]+>/g, ''); g.font = fnt(600, 11.5); g.fillStyle = SC2.a; const words = L.split(' '); let line = '', y = I.y + 11, n = 0;
-        for (const wd of words){ const tl = line ? line + ' ' + wd : wd; if (g.measureText(tl).width > I.w && line){ g.fillText(line, I.x, y); y += 14; line = wd; if (++n >= 2) break; } else line = tl; } if (n < 2 && line) g.fillText(line, I.x, y); }
-      scr2Glass(g, w, h); }
-    function gRad(g, w, h){ const I = scr2Base(g, w, h, 'Radar', SYS[curSys].ad.toLocaleUpperCase('tr-TR')); const rad = I.h / 2 - 2, cx = I.x + rad + 2, cy = I.y + I.h / 2; drawRadar(g, cx, cy, rad);
-      const x = I.x + rad * 2 + 14, rk = (save.ammo || 0) + (save.ammoD || 0); g.textAlign = 'left';
-      [['ROKET', String(rk), rk ? SC2.a : SC2.r], ['KREDİ', String(save.kredi), SC2.w], [lock ? 'KİLİT' : 'MENZİL', lock ? 'AÇIK' : (boosting ? '2,4 km' : '1 km'), lock ? SC2.w : SC2.d]].forEach(([n, v, c], i) => { const y = I.y + i * 27; g.font = fnt(600, 8.5); g.fillStyle = SC2.d; g.fillText(n, x, y + 9); g.font = fnt(700, 16); g.fillStyle = c; g.fillText(v, x, y + 24); }); scr2Glass(g, w, h); }
-    function drawExtra(e, kind){ const g = e.g, w = e.lw || e.cv.width / 2, h = e.lh || e.cv.height / 2, sc = e.cv.width / w; g.setTransform(sc, 0, 0, sc, 0, 0); g.clearRect(0, 0, w, h);
-      if (kind === 'bars' || kind === 'map' || kind === 'hull'){ const I = scr2Base(g, w, h, kind === 'bars' ? 'Sistem' : kind === 'map' ? 'Radar' : 'Gövde', kind === 'map' ? SYS[curSys].ad.toLocaleUpperCase('tr-TR') : kind === 'bars' ? (thrustNow > 0.1 ? 'İTİŞ' : braking ? 'FREN' : '') : (hp.hit > 0 ? 'HASAR' : ''));
-        (kind === 'bars' ? sys2Screen : kind === 'map' ? radar2Screen : hull2Screen)(g, I); scr2Glass(g, w, h); return; }
-      if (kind === 'gSys' || kind === 'gHull' || kind === 'gTgt' || kind === 'gRad'){ (kind === 'gSys' ? gSys : kind === 'gHull' ? gHull : kind === 'gTgt' ? gTgt : gRad)(g, w, h); return; }
-      if (kind === 'tgt'){ const t = lock || aim; const I = scr2Base(g, w, h, 'Hedef', t ? (t === lock ? 'KİLİTLİ' : '') : '');
-        if (!t){ g.font = fnt(600, 9); g.fillStyle = SC2.d; g.textAlign = 'left'; g.fillText('Nişanda hedef yok', I.x, I.y + 14); }
-        else { const d = Math.max(0, Math.round(rig.position.distanceTo(t.pos) - (t.r || 0))), hf = tHp(t); g.textAlign = 'left'; g.font = fnt(700, 11); g.fillStyle = (t.kind === 'npc' && foe(t)) ? SC2.r : (t.kind === 'npc' && rel(t) === 'prey') ? SC2.w : SC2.a; g.fillText(tName(t).toLocaleUpperCase('tr-TR').slice(0, 18), I.x, I.y + 14);
-          g.font = fnt(700, 18); g.fillStyle = SC2.a; g.fillText(d > 2000 ? (d / 1000).toFixed(1) + ' km' : d + ' m', I.x, I.y + 40); if (hf !== null) bar2(g, I.x, I.y + 50, I.w, hf, (t.kind === 'npc' && foe(t)) ? SC2.r : SC2.a, 4); } }
-      else { const I = scr2Base(g, w, h, 'Ana görev', ''); const L = (window.__mqLine && window.__mqLine()) || ''; g.font = fnt(600, 9.5); g.fillStyle = SC2.a; g.textAlign = 'left';
-        const words = String(L).replace(/<[^>]+>/g, '').split(' '); let line = '', y = I.y + 14; for (const wd of words){ const tl = line ? line + ' ' + wd : wd; if (g.measureText(tl).width > I.w && line){ g.fillText(line, I.x, y); y += 13; line = wd; if (y > I.y + I.h) break; } else line = tl; } if (line && y <= I.y + I.h) g.fillText(line, I.x, y); }
-      scr2Glass(g, w, h); }
-    // ---- paralaks kokpit (sd_ck3 = q): çizim, derinlik haritalı bir ağa kaplanır; kafa hareketinde yakın parçalar (dikmeler, konsol, koltuk) uzaktakilerden fazla kayar. Ekranlar çizimdeki oyuklardan görünen ayrı yüzeylerdir.
-    let Q = null;
-    const qOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v === 'q' || (v === 'b' && save.ship === 'kasif') || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };   /* 'b' yüklenirken/başarısızken de paralaks kokpite düşer */
-    const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-    function qDepth(u, v){   /* u,v: 0..1 çizim koordinatı (v aşağı). Dönüş: izleyiciye doğru derinlik (piksel birimi) */
-      const sd = Math.abs(u - 0.5) * 2, side = 250 * Math.pow(sd, 2.3) * (0.55 + 0.45 * sstep(0.25, 0.75, v));
-      const top = 150 * Math.pow(clamp(1 - v / 0.55, 0, 1), 1.6);
-      const dash = 95 * sstep(0.5, 0.64, v) * (1 - sstep(0.8, 0.95, v));
-      const seat = 260 * Math.pow(sstep(0.78, 1.0, v), 1.4);
-      return Math.min(380, side + top + dash + seat);
-    }
-    function buildPar(img){
-      if (Q){ Q.S.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material){ if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
-      const Dc = 1200, S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(2 * Math.atan(H / 2 / Dc) * 180 / Math.PI, W / H, 10, 4000); cam.position.set(0, 0, Dc);
-      const mp = (x, y) => [IM.dx + x * IM.s, IM.dy + IM.my(y) * IM.s], IW = IMG.iw, IH = IMG.ih, nx = 128, ny = 72;
-      const pos = [], uv = [], idx = [], col = [];
-      /* kenar taşması: ağ altta ve yanlarda ~40 px büyütülür (uç piksel şeridi çekilir, derinlik kenardakiyle aynı); kamera kayınca yıldız şeridi/boşluk görünmez */
-      const MG = 40 / IM.s, xs = [-MG], ys = []; for (let i = 0; i <= nx; i++) xs.push(i / nx * IW); xs.push(IW + MG); for (let j = 0; j <= ny; j++) ys.push(j / ny * IH); ys.push(IH + MG);
-      for (let j = 0; j < ys.length; j++) for (let i = 0; i < xs.length; i++){ const X = xs[i], Y = ys[j], Xc = clamp(X, 0, IW), Yc = clamp(Y, 0, IH), q = mp(X, Y), d = qDepth(Xc / IW, Yc / IH), f = (Dc - d) / Dc;
-        pos.push((q[0] - W / 2) * f, (H / 2 - q[1]) * f, d); const Xm = clamp(X < 0 ? -X : X > IW ? 2 * IW - X : X, 0, IW), Ym = clamp(Y > IH ? 2 * IH - Y : Y, 0, IH); uv.push(Xm / IW, 1 - Ym / IH);   /* taşma şeridi uç pikseli uzatmaz, görüntüyü kenardan aynalar: dikey çizgi (streak) oluşmaz */ const edge = (i === 0 || i === xs.length - 1 || j === ys.length - 1) ? 0.3 : 1; col.push(edge, edge, edge); }   /* taşma şeridi uca doğru kararır: çekilen uç piksel çizgileri gölgeye dönüşür */
-      for (let j = 0; j < ys.length - 1; j++) for (let i = 0; i < xs.length - 1; i++){ const a = j * xs.length + i, b = a + 1, c = a + xs.length, e = c + 1; idx.push(a, c, b, b, c, e); }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx);
-      const tex = new THREE.Texture(img); tex.needsUpdate = true; tex.anisotropy = 4;
-      const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.02, color: 0x9aa2ad, vertexColors: true, side: THREE.DoubleSide })); S.add(mesh);
-      const scr = [];
-      SCR.forEach(sc => {   /* ekran: oyuğun hemen arkasında, görüntü eğik yüzeye oturur */
-        const cxs = sc.q.reduce((t, p) => t + p[0], 0) / 4, cys = sc.q.reduce((t, p) => t + p[1], 0) / 4, ds = Math.max(0, qDepth(((cxs - IM.dx) / IM.s) / IW, 0.62) - 6);
-        const f = (Dc - ds) / Dc, v = [], uvs = [0, 1, 1, 1, 1, 0, 0, 0];
-        for (const p of sc.q) v.push((cxs + (p[0] - cxs) * 1.0 - W / 2) * f, (H / 2 - (cys + (p[1] - cys) * 1.0)) * f, ds);   /* hafif büyük: oyuğun kenarı ekranı hiç açıkta bırakmasın */
-        const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); gg.setIndex([0, 1, 2, 0, 2, 3]);
-        const tx = new THREE.CanvasTexture(sc.cv); tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
-        S.add(new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }))); scr.push({ sc, tx, ver: -1 });
-        { const P = [0, 1, 2, 3].map(i => [v[i * 3], v[i * 3 + 1]]), kk = 0.32, fl = [P[3][0] + (P[3][0] - P[0][0]) * kk, P[3][1] + (P[3][1] - P[0][1]) * kk], fr = [P[2][0] + (P[2][0] - P[1][0]) * kk, P[2][1] + (P[2][1] - P[1][1]) * kk];   /* ekranın alt kenarından konsola düşen soluk yansıma */
-          const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute([fl[0], fl[1], ds, fr[0], fr[1], ds, P[2][0], P[2][1], ds, P[3][0], P[3][1], ds], 3)); rg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); rg.setIndex([0, 1, 2, 0, 2, 3]);
-          const rm = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })); rm.renderOrder = 5; S.add(rm); } });
-      Q = { S, cam, Dc, img, W, H, SC: SCR, s: IM.s, scr }; window.__Q = Q;
-    }
-    function renderPar(){
-      const img = IMG.img; if (!img || !IM.s || !SCR.length) return;
-      if (!Q || Q.img !== img || Q.W !== W || Q.H !== H || Q.SC !== SCR || Q.s !== IM.s) buildPar(img);
-      const k = Q; k.cam.position.set(-sway.x * 0.9, sway.y * 0.9, k.Dc);
-      for (const e of k.scr){ if (e.sc.cv !== e.tx.image){ e.tx.image = e.sc.cv; e.tx.needsUpdate = true; } if (e.sc.ver !== e.ver){ e.ver = e.sc.ver; e.tx.needsUpdate = true; } }
-      const ac = renderer.autoClear; renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam); renderer.autoClear = ac;
-    }
-    // ---- Blender kokpiti (sd_ck3 = b, yalnızca Kaşif, DENEME; varsayılan değil): tools/cockpit çıktısı GLB. Yüklenmezse, hata verirse ya da yavaş çalışırsa
-    //      otomatik paralaks kokpite (q) düşer. Ekranlar SCR_SYS / SCR_RADAR / SCR_HULL adlı ayrı mesh'ler; içerik mevcut SCR tuvallerinden canlı gelir.
+    // ---- Kaşif kokpiti = tools/cockpit çıktısı GLB. Ekranlar SCR_SYS / SCR_RADAR / SCR_HULL adlı ayrı mesh'ler; içerik mevcut SCR tuvallerinden canlı gelir.
     let BM = null, BP = null, BF = false, BK = null, bLast = 0, bEma = 0, bN = 0;
     const bStat = { calls: 0, tris: 0, ms: 0 };   /* test için: son kokpit çiziminin çizim çağrısı / üçgen / süre */
     window.__ckb = { get ready(){ return !!BM; }, get failed(){ return BF; }, get k(){ return BK; }, get stat(){ return bStat; }, get view(){ return { OX, OY, W, H }; } };
-    const bWant = () => { try { return localStorage.getItem('sd_ck3') === 'b' && save.ship === 'kasif' && !BF; } catch (e) { return false; } };
+    const bWant = () => save.ship === 'kasif' && !BF;
     function loadB(){
       if (BP) return BP;
       BP = new Promise((res, rej) => {
         const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? 'models/cockpit_kasif_m.glb' : 'models/cockpit_kasif.glb') + v,   /* telefon: 1024 dokulu hafif model (GPU ~22 MB), tablet/masaüstü: 2048 */ g => { BM = g.scene; res(); }, undefined, e => { BF = true; rej(e); });
         if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { BF = true; rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
-      BP.catch(e => console.warn('kokpit (b) yüklenemedi, paralaks kokpite dönülüyor', e)); return BP;
+      BP.catch(e => { console.warn('kokpit yüklenemedi', e); try { toast('Kokpit modeli yüklenemedi. Sayfayı yenile.', 5000); } catch (er) {} }); return BP;
     }
     function buildB(){
       const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.02, 30), G = new THREE.Group(); S.add(G); const mdl = BM.clone(true); G.add(mdl);
@@ -10625,7 +10380,6 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     }
     function renderB(){
       if (!BK) BK = buildB(); const k = BK;
-      const now = performance.now(); if (bLast){ const dt = now - bLast; if (dt < 250){ bEma = bEma ? bEma * 0.93 + dt * 0.07 : dt; if (++bN > 120 && bEma > 45 && !window.__noFbk){ BF = true; console.warn('kokpit (b) yavaş (' + Math.round(bEma) + ' ms/kare): paralaks kokpite dönülüyor'); } } } bLast = now;
       const fpx = 435.3 * Math.max(0.2, (H - OY) / 416.5);                 /* çizimin odak uzaklığı (1600x656 uzayında 435.3 px), alt kenar ekranın altına oturur */
       k.cam.fov = 2 * Math.atan((H / 2) / fpx) * 180 / Math.PI; k.cam.aspect = W / H; k.cam.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H); k.cam.updateProjectionMatrix();
       k.cam.position.set(-sway.x * 1.08 / fpx, sway.y * 1.08 / fpx, 0);   /* sallanma: kafa ötelemesi → yakın parçalar daha çok kayar */
@@ -10639,36 +10393,17 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
     }
     function render(){
-      { const useB = !!(bWant() && BM); scrShape(useB ? 'b' : 'q'); window.__ckMapB = useB;   /* ekran tuvalleri: yalnızca ?ck=b çizilirken yeni oran */
-        if (VIEW.b0 !== undefined) VIEW.b = (useB ? Math.min(VIEW.b0, OY + (382 - 239.5) * (H - OY) / 416.5 - 30) : VIEW.bq) + sway.y * (useB ? 1.1 : 0.93); }   /* sınır, sallanan dashboard ile birlikte kayar */   /* HUD işaretleri ekranların ~30 px üstünde biter (mod eşlemesine göre) */
-      if (bWant()){ if (BM){ try { return renderB(); } catch (e) { BF = true; console.warn('kokpit (b) hata, paralaks kokpite dönülüyor', e); } } else loadB(); }
-      if (qOn()) return renderPar();
-      const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++; window.__ck3K = k;
-      k.cam.aspect = W / H; k.cam.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H); k.cam.updateProjectionMatrix();
-      // sallanma: kokpit kameraya göre hafifçe kayar ve döner (derinlik hissi)
-      if (k.paint){ k.G.updateMatrixWorld(true); k.paint.uniforms.uGinv.value.copy(k.G.matrixWorld).invert(); k.paint.uniforms.uLit.value = clamp(k.fl.intensity / 6 * 0.9 + (firing ? 0.15 : 0) + hp.hit * 0.3, 0, 1); }
-      if (window.__ck3off && !k.glb){ k.G.position.set(window.__ck3off[0], window.__ck3off[1], window.__ck3off[2]); k.G.rotation.set(0, 0, 0); } else
-      if (k.glb){ k.G.position.set(sway.x * 0.0009, -sway.y * 0.0009, 0); k.G.rotation.set(GLBTILT - sway.y * 0.0006, -sway.x * 0.0006, -sway.x * 0.0004); }
-      else { k.G.position.set(sway.x * 0.0016, -sway.y * 0.0016, 0); k.G.rotation.set(-sway.y * 0.0009, -sway.x * 0.0009, -sway.x * 0.0006); }
-      // ekran içerikleri
-      for (let si = 0; si < k.scr.length; si++){ const e = k.scr[si]; if (window.__guide) continue; if (e.ex){ if ((k.t + si * 3) % (k.glb ? 8 : 12) === 0 || e.ver < 0){ drawExtra(e.ex, e.d.k); e.tex.needsUpdate = true; e.ver = 1; } continue; }
-        const sc = SCR.find(q => q.kind === e.d.k); if (!sc) continue; if (e.cv !== sc.cv){ e.cv = sc.cv; e.tex.image = sc.cv; e.tex.needsUpdate = true; } if (sc.ver !== e.ver){ e.ver = sc.ver; e.tex.needsUpdate = true; } }
-      // güneş: gerçek yönünden gelir; önüne dönünce kokpitin iç yüzlerine vurur
-      k.tq.copy(rig.quaternion).multiply(camera.quaternion).invert(); k.v.copy(sunDir).applyQuaternion(k.tq); k.sun.position.copy(k.v).multiplyScalar(5); k.sun.intensity = 1.6 * clamp(-k.v.z + 0.35, 0, 1);
-      let f = 0; if (flashLight.intensity > 0){ const d = flashLight.position.distanceTo(rig.position); f = clamp(flashLight.intensity / 6 * (1 - d / 1600), 0, 1); } k.fl.intensity = 6 * Math.max(f, scrFlash);
-      k.lz.intensity = firing ? 1.6 + Math.random() * 0.8 : 0; k.sl.intensity = 0.5 + (hp.hit > 0 ? 0.6 : 0);
-      const ac = renderer.autoClear, oe = renderer.outputEncoding, tm = renderer.toneMapping, te = renderer.toneMappingExposure;
-      if (k.glb && !window.__nosrgb){ renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1; }
-      renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam); renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
+      scrShape('b'); window.__ckMapB = true;   /* ekran tuvalleri Blender ekran oranında; HUD sınırı 3B kamera eşlemesiyle */
+      if (VIEW.b0 !== undefined) VIEW.b = Math.min(VIEW.b0, OY + (382 - 239.5) * (H - OY) / 416.5 - 30) + sway.y * 1.1;   /* HUD işaretleri ekranların ~30 px üstünde biter; sınır sallanan dashboard ile kayar */
+      renderB();
     }
-    const glbOn = () => { try { return localStorage.getItem('sd_ck3') === 'g'; } catch (e) { return true; } };
-    try { if (save.ship === 'kasif' && glbOn()) setTimeout(() => loadGLB().catch(() => {}), 0); } catch (e) {}   /* açılış ekranındayken arka planda yüklenir */
+    try { if (save.ship === 'kasif') setTimeout(() => loadB().catch(() => {}), 0); } catch (e) {}   /* açılış ekranındayken arka planda yüklenir */
     { const _dhm = drawHud; drawHud = function(){ _dhm(); if (window.__ck3on && !window.__noHudMask) try { hudMask(hctx); } catch (e) {} }; }   /* en son sarmalayıcı: tüm işaretler çizildikten sonra dashboard bölgesini siler */
     const _rm = renderMain; renderMain = function(){ _rm();
-      if (save.ship === 'kasif' && !GLBM && glbOn() && !GLBP && !GLBFAIL) loadGLB().catch(() => {});
-      window.__ck3wait = save.ship === 'kasif' && glbOn() && !GLBM && !GLBFAIL && performance.now() < 9000;   /* model gelene kadar eski çizim kokpit gösterilmez (en fazla 9 sn) */
-      const glbReady = save.ship === 'kasif' && !!GLBM && glbOn();
-      window.__ck3on = (glbReady || want()) && IMGMODE && !docked && !window.__ck3bad; if (window.__ck3on) try { render(); } catch (e) { console.warn(e); window.__ck3bad = true; window.__ck3on = false; } };
+      const kas = save.ship === 'kasif'; if (kas && !BM && !BP && !BF) loadB().catch(() => {});
+      window.__ck3on = kas && !!BM && IMGMODE && !docked && !window.__ck3bad;
+      window.__ck3wait = kas && IMGMODE && !window.__ck3on;   /* Kaşif'in çizim (2B) kokpiti yok: model gelene kadar ve kenetliyken yalnızca HUD */
+      if (window.__ck3on) try { render(); } catch (e) { console.warn(e); window.__ck3bad = true; window.__ck3on = false; } };
   })();
   /* ---- bekçi: güncelleme döngüsü (hareket/ateş/fizik) 3,5 sn çalışmazsa nedenini bulur, takılı durumu düzeltir ve ekranda söyler.
      Nedenler: yanlışlıkla duraklatma (yatay ekranda), görünmez menü bayrağı, takılı kamera sahnesi, menüsü görünmeyen kenetlenme. ---- */
