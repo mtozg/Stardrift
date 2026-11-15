@@ -10281,7 +10281,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 
   // =====  3B KOKPİT (deneme): ince dikmeler, alçak ekran konsolu, dışarıdan gelen gerçek ışık. Şimdilik yalnızca Kaşif, ayar: localStorage sd_ck3 = 1
   (function(){
-    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p'; } catch (e) { return false; } };
+    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's'; } catch (e) { return false; } };
     let K = null;
     // ---- gemiye göre kokpit: cam/dikme düzeni eski çizim kokpitlerden; kaplama doğrudan o çizimlerden kesilir (gerçekçi boyalı metal)
     //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
@@ -10305,6 +10305,16 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       cv.width = rot ? 512 : 512; cv.height = rot ? 128 : 256; const x = cv.getContext('2d');
       if (rot){ x.translate(512, 0); x.rotate(Math.PI / 2); x.drawImage(im, sx, sy, sw, sh, 0, 0, 128, 512); } else x.drawImage(im, sx, sy, sw, sh, 0, 0, 512, 256);
       const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(rep[0], rep[1]); t.anisotropy = 4; return t; }
+    // ---- çizimi 3B kabuğa kaplama: rehber görseliyle AYNI kameradan (sabit izdüşüm matrisi) her yüzeye çizimin kendi pikseli düşer; saf siyah (cam ve ekran) delinir
+    const PROJ = [0.54409, 0, 0, 0, 0, 1.32704, 0, 0, 0, -0.26974, -1.00501, -1, 0, 0, -0.10025, 0];   /* rehber kamerasının izdüşüm matrisi (1200x492, 74°, bakış merkezi kayık) */
+    window.__ck3Proj = PROJ;
+    const paintCache = {};
+    function paintTex(id, cb){ const c = paintCache[id]; if (c){ if (c.tex) cb(c.tex); else if (!c.fail) c.q.push(cb); return; }
+      const ent = paintCache[id] = { q: [cb], tex: null, fail: false }; const l = new THREE.TextureLoader();
+      l.load('assets/img/ck3p_' + id + '.webp?v=' + (window.SD_VERSION || ''), t => { t.anisotropy = 4; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; ent.tex = t; ent.q.forEach(f => f(t)); ent.q = []; }, undefined, () => { ent.fail = true; ent.q = []; }); }
+    function makePaintMat(tex){ return new THREE.ShaderMaterial({ side: THREE.DoubleSide, uniforms: { tMap: { value: tex }, uP: { value: new THREE.Matrix4().fromArray(PROJ) }, uGinv: { value: new THREE.Matrix4() }, uLit: { value: 0 } },
+      vertexShader: 'uniform mat4 uGinv; uniform mat4 uP; varying vec4 vC; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vC = uP * (uGinv * w); gl_Position = projectionMatrix * viewMatrix * w; }',
+      fragmentShader: 'uniform sampler2D tMap; uniform float uLit; varying vec4 vC; void main(){ if (vC.w <= 0.0) discard; vec2 uv = vC.xy / vC.w * 0.5 + 0.5; if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard; vec4 c = texture2D(tMap, uv); if (max(c.r, max(c.g, c.b)) < 0.035) discard; vec3 col = c.rgb * (1.0 + uLit * vec3(1.1, 0.7, 0.4)); gl_FragColor = vec4(col, 1.0); }' }); }
     function build(id){
       const C = SHIPS3[id] || SHIPS3.kasif; const TINT = { kasif: [0x3a4656, 0x2c3542], sahin: [0x3a3434, 0x5a1f28], yuk: [0x464a36, 0x34382a], hayalet: [0x1e2026, 0x16171b] }[id] || [0x3a4656, 0x2c3542];
       const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.05, 20), G = new THREE.Group(); S.add(G);
@@ -10389,7 +10399,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 1.6, -2.6); S.add(fl);
       const lz = new THREE.PointLight(0xff6a8c, 0, 4); lz.position.set(0, -0.3, -1.6); S.add(lz);
       const sl = new THREE.PointLight(C.glow, 0.5, 1.2); sl.position.set(0, -0.35, -0.85); S.add(sl);
-      return { id, S, cam, G, scr, sun, fl, lz, sl, tq: new THREE.Quaternion(), v: new THREE.Vector3(), t: 0 };
+      const out = { id, S, cam, G, scr, sun, fl, lz, sl, tq: new THREE.Quaternion(), v: new THREE.Vector3(), t: 0, paint: null };
+      if (!window.__guide && localStorage.getItem('sd_ck3') !== 'p') paintTex(id, tex => { const pm = makePaintMat(tex); out.paint = pm; const keep = new Set(scr.map(e => e.sm)); G.traverse(o => { if (o.isMesh && !keep.has(o)) o.material = pm; }); });
+      return out;
     }
     // ---- hazır model: «Sci-fi Spaceship Cockpit 02» (NotARealStudio, CC BY 4.0) — Kaşif için
     let GLBM = null, GLBP = null, GLBFAIL = false; const GLBEYE = [0, 1.6, -0.14], GLBTILT = -0.2, GLBTHIN = 0.021;
@@ -10474,9 +10486,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         const words = String(L).replace(/<[^>]+>/g, '').split(' '); let line = '', y = I.y + 14; for (const wd of words){ const tl = line ? line + ' ' + wd : wd; if (g.measureText(tl).width > I.w && line){ g.fillText(line, I.x, y); y += 13; line = wd; if (y > I.y + I.h) break; } else line = tl; } if (line && y <= I.y + I.h) g.fillText(line, I.x, y); }
       scr2Glass(g, w, h); }
     function render(){
-      const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++;
+      const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++; window.__ck3K = k;
       k.cam.aspect = W / H; k.cam.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H); k.cam.updateProjectionMatrix();
       // sallanma: kokpit kameraya göre hafifçe kayar ve döner (derinlik hissi)
+      if (k.paint){ k.G.updateMatrixWorld(true); k.paint.uniforms.uGinv.value.copy(k.G.matrixWorld).invert(); k.paint.uniforms.uLit.value = clamp(k.fl.intensity / 6 * 0.9 + (firing ? 0.15 : 0) + hp.hit * 0.3, 0, 1); }
+      if (window.__ck3off && !k.glb){ k.G.position.set(window.__ck3off[0], window.__ck3off[1], window.__ck3off[2]); k.G.rotation.set(0, 0, 0); } else
       if (k.glb){ k.G.position.set(sway.x * 0.0009, -sway.y * 0.0009, 0); k.G.rotation.set(GLBTILT - sway.y * 0.0006, -sway.x * 0.0006, -sway.x * 0.0004); }
       else { k.G.position.set(sway.x * 0.0016, -sway.y * 0.0016, 0); k.G.rotation.set(-sway.y * 0.0009, -sway.x * 0.0009, -sway.x * 0.0006); }
       // ekran içerikleri
@@ -10490,7 +10504,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (k.glb && !window.__nosrgb){ renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1; }
       renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam); renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
     }
-    const glbOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v !== '0' && v !== 'p'; } catch (e) { return true; } };
+    const glbOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v !== '0' && v !== 'p' && v !== 's'; } catch (e) { return true; } };
     try { if (save.ship === 'kasif' && glbOn()) setTimeout(() => loadGLB().catch(() => {}), 0); } catch (e) {}   /* açılış ekranındayken arka planda yüklenir */
     const _rm = renderMain; renderMain = function(){ _rm();
       if (save.ship === 'kasif' && !GLBM && glbOn() && !GLBP && !GLBFAIL) loadGLB().catch(() => {});
