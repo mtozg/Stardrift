@@ -10297,7 +10297,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // =====  3B KOKPİT (deneme): ince dikmeler, alçak ekran konsolu, dışarıdan gelen gerçek ışık. Şimdilik yalnızca Kaşif, ayar: localStorage sd_ck3 = 1
   (function(){
     try { const m = /[?&]ck=([a-z0-9])/.exec(location.search); if (m) localStorage.setItem('sd_ck3', m[1]); } catch (e) {}   /* adres sonuna ?ck=q (paralaks kokpit denemesi) ya da ?ck=0 (kapat) */
-    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's' || v === 'q'; } catch (e) { return false; } };
+    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's' || v === 'q' || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };   /* ayar yoksa Kaşif paralaks kokpitle açılır; ?ck=0 kapatır */
     let K = null;
     // ---- gemiye göre kokpit: cam/dikme düzeni eski çizim kokpitlerden; kaplama doğrudan o çizimlerden kesilir (gerçekçi boyalı metal)
     //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
@@ -10503,7 +10503,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       scr2Glass(g, w, h); }
     // ---- paralaks kokpit (sd_ck3 = q): çizim, derinlik haritalı bir ağa kaplanır; kafa hareketinde yakın parçalar (dikmeler, konsol, koltuk) uzaktakilerden fazla kayar. Ekranlar çizimdeki oyuklardan görünen ayrı yüzeylerdir.
     let Q = null;
-    const qOn = () => { try { return localStorage.getItem('sd_ck3') === 'q'; } catch (e) { return false; } };
+    const qOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v === 'q' || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };
     const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
     function qDepth(u, v){   /* u,v: 0..1 çizim koordinatı (v aşağı). Dönüş: izleyiciye doğru derinlik (piksel birimi) */
       const sd = Math.abs(u - 0.5) * 2, side = 250 * Math.pow(sd, 2.3) * (0.55 + 0.45 * sstep(0.25, 0.75, v));
@@ -10527,7 +10527,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       SCR.forEach(sc => {   /* ekran: oyuğun hemen arkasında, görüntü eğik yüzeye oturur */
         const cxs = sc.q.reduce((t, p) => t + p[0], 0) / 4, cys = sc.q.reduce((t, p) => t + p[1], 0) / 4, ds = Math.max(0, qDepth(((cxs - IM.dx) / IM.s) / IW, 0.62) - 6);
         const f = (Dc - ds) / Dc, v = [], uvs = [0, 1, 1, 1, 1, 0, 0, 0];
-        for (const p of sc.q) v.push((cxs + (p[0] - cxs) * 1.035 - W / 2) * f, (H / 2 - (cys + (p[1] - cys) * 1.035)) * f, ds);   /* hafif büyük: oyuğun kenarı ekranı hiç açıkta bırakmasın */
+        for (const p of sc.q) v.push((cxs + (p[0] - cxs) * 1.0 - W / 2) * f, (H / 2 - (cys + (p[1] - cys) * 1.0)) * f, ds);   /* hafif büyük: oyuğun kenarı ekranı hiç açıkta bırakmasın */
         const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); gg.setIndex([0, 1, 2, 0, 2, 3]);
         const tx = new THREE.CanvasTexture(sc.cv); tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
         S.add(new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }))); scr.push({ sc, tx, ver: -1 });
