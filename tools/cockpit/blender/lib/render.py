@@ -36,6 +36,10 @@ def lights_default():
     add_light('AREA', (-1.4, 1.9, 1.6), 300, (1.0, 0.95, 0.88), 1.5, (math.radians(62), 0, math.radians(-38)), 'KeyBox')
     add_light('AREA', (1.8, 1.5, 1.3), 150, (0.62, 0.78, 1.0), 1.4, (math.radians(65), 0, math.radians(40)), 'RimBox')
     add_light('AREA', (0.0, 0.15, 1.1), 7, (0.7, 0.8, 1.0), 1.8, (0, 0, 0), 'TopFill')
+    # (c) dashboard alt bölgesi: pilotun dizlerinden yumuşak, kontrollü dolgu + yanlardan ince kenar ışıkları (gölgeleri korur)
+    add_light('AREA', (0.0, -0.30, -0.42), 11, (0.78, 0.86, 1.0), 1.3, (math.radians(102), 0, 0), 'DashFill')
+    add_light('AREA', (-0.95, -0.35, -0.20), 7, (0.9, 0.95, 1.0), 0.5, (math.radians(95), 0, math.radians(30)), 'KickL')
+    add_light('AREA', (0.95, -0.35, -0.20), 7, (0.9, 0.95, 1.0), 0.5, (math.radians(95), 0, math.radians(-30)), 'KickR')
     # ekran ışığı: her ekrandan konsola ve pilota yumuşak camgöbeği (oyundaki ekran ışığı)
     for x, e in ((-0.75, 0.9), (0.0, 1.6), (0.75, 0.9)):
         add_light('AREA', (x, 0.92, -0.42), e, (0.3, 0.8, 1.0), 0.5, (math.radians(95), 0, 0), 'ScreenGlow')

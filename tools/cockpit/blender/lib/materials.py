@@ -83,7 +83,7 @@ def _metal(name, base, rough_lo, rough_hi, metallic=1.0, brush=1.0, scratch=0.6,
         hp = sc2(sp.outputs['Red'], 'PROJ_HP'); mid = sc2(sp.outputs['Green'], 'PROJ_MID'); hp_node = hp
         at = _n(nt, 'ShaderNodeAttribute', name='PROJ_W'); at.attribute_name = 'projw'; at.attribute_type = 'GEOMETRY'
         wm = _n(nt, 'ShaderNodeMath', operation='MULTIPLY', name='PROJ_S'); wm.inputs[1].default_value = PROJ['strength']; nt.links.new(at.outputs['Fac'], wm.inputs[0])
-        k1 = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); k1.inputs[1].default_value = 0.55; nt.links.new(hp.outputs['Value'], k1.inputs[0])
+        k1 = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); k1.inputs[1].default_value = 0.32; nt.links.new(hp.outputs['Value'], k1.inputs[0])
         k2 = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); k2.inputs[1].default_value = 0.35; nt.links.new(mid.outputs['Value'], k2.inputs[0])
         ad = _n(nt, 'ShaderNodeMath', operation='ADD'); nt.links.new(k1.outputs['Value'], ad.inputs[0]); nt.links.new(k2.outputs['Value'], ad.inputs[1])
         mw = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); nt.links.new(ad.outputs['Value'], mw.inputs[0]); nt.links.new(wm.outputs['Value'], mw.inputs[1])
@@ -109,16 +109,16 @@ def _metal(name, base, rough_lo, rough_hi, metallic=1.0, brush=1.0, scratch=0.6,
     if hp_node is not None:
         hh = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); nt.links.new(hp_node.outputs['Value'], hh.inputs[0]); nt.links.new(wm.outputs['Value'], hh.inputs[1])
         h2 = _n(nt, 'ShaderNodeMath', operation='ADD'); h2.inputs[1].default_value = 0.5; nt.links.new(hh.outputs['Value'], h2.inputs[0])
-        b2 = _n(nt, 'ShaderNodeBump'); b2.inputs['Strength'].default_value = 0.45; b2.inputs['Distance'].default_value = 0.004
+        b2 = _n(nt, 'ShaderNodeBump'); b2.inputs['Strength'].default_value = 0.22; b2.inputs['Distance'].default_value = 0.004
         nt.links.new(h2.outputs['Value'], b2.inputs['Height']); nt.links.new(bmp.outputs['Normal'], b2.inputs['Normal']); nt.links.new(b2.outputs['Normal'], bsdf.inputs['Normal'])
     else:
         nt.links.new(bmp.outputs['Normal'], bsdf.inputs['Normal'])
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
     return m
 
-def gunmetal():  return _metal('M_gunmetal', (0.075, 0.082, 0.098), 0.28, 0.46, scratch=1.0, bump=0.07)
-def steel():     return _metal('M_dark_steel', (0.040, 0.045, 0.056), 0.40, 0.62, brush=0.7, scratch=0.6, bump=0.04)
-def titanium():  return _metal('M_titanium', (0.34, 0.30, 0.26), 0.30, 0.46, scratch=0.8, bump=0.05)
+def gunmetal():  return _metal('M_gunmetal', (0.060, 0.067, 0.082), 0.26, 0.44, scratch=1.0, bump=0.07, wear=1.1, dirt=0.65)
+def steel():     return _metal('M_dark_steel', (0.026, 0.030, 0.038), 0.38, 0.60, brush=0.7, scratch=0.6, bump=0.04, wear=1.0, dirt=0.7)
+def titanium():  return _metal('M_titanium', (0.34, 0.30, 0.26), 0.30, 0.46, scratch=0.8, bump=0.05, wear=0.9, dirt=0.5)
 def aluminum():  return _metal('M_aluminum', (0.40, 0.42, 0.45), 0.26, 0.40, brush=1.2, scratch=1.0, bump=0.06)
 
 def composite():
