@@ -10293,7 +10293,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
 
   // =====  3B KOKPİT (deneme): ince dikmeler, alçak ekran konsolu, dışarıdan gelen gerçek ışık. Şimdilik yalnızca Kaşif, ayar: localStorage sd_ck3 = 1
   (function(){
-    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's'; } catch (e) { return false; } };
+    try { const m = /[?&]ck=([a-z0-9])/.exec(location.search); if (m) localStorage.setItem('sd_ck3', m[1]); } catch (e) {}   /* adres sonuna ?ck=q (paralaks kokpit denemesi) ya da ?ck=0 (kapat) */
+    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's' || v === 'q'; } catch (e) { return false; } };
     let K = null;
     // ---- gemiye göre kokpit: cam/dikme düzeni eski çizim kokpitlerden; kaplama doğrudan o çizimlerden kesilir (gerçekçi boyalı metal)
     //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
@@ -10497,7 +10498,47 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       else { const I = scr2Base(g, w, h, 'Ana görev', ''); const L = (window.__mqLine && window.__mqLine()) || ''; g.font = fnt(600, 9.5); g.fillStyle = SC2.a; g.textAlign = 'left';
         const words = String(L).replace(/<[^>]+>/g, '').split(' '); let line = '', y = I.y + 14; for (const wd of words){ const tl = line ? line + ' ' + wd : wd; if (g.measureText(tl).width > I.w && line){ g.fillText(line, I.x, y); y += 13; line = wd; if (y > I.y + I.h) break; } else line = tl; } if (line && y <= I.y + I.h) g.fillText(line, I.x, y); }
       scr2Glass(g, w, h); }
+    // ---- paralaks kokpit (sd_ck3 = q): çizim, derinlik haritalı bir ağa kaplanır; kafa hareketinde yakın parçalar (dikmeler, konsol, koltuk) uzaktakilerden fazla kayar. Ekranlar çizimdeki oyuklardan görünen ayrı yüzeylerdir.
+    let Q = null;
+    const qOn = () => { try { return localStorage.getItem('sd_ck3') === 'q'; } catch (e) { return false; } };
+    const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+    function qDepth(u, v){   /* u,v: 0..1 çizim koordinatı (v aşağı). Dönüş: izleyiciye doğru derinlik (piksel birimi) */
+      const sd = Math.abs(u - 0.5) * 2, side = 250 * Math.pow(sd, 2.3) * (0.55 + 0.45 * sstep(0.25, 0.75, v));
+      const top = 150 * Math.pow(clamp(1 - v / 0.55, 0, 1), 1.6);
+      const dash = 95 * sstep(0.5, 0.64, v) * (1 - sstep(0.8, 0.95, v));
+      const seat = 260 * Math.pow(sstep(0.78, 1.0, v), 1.4);
+      return Math.min(380, side + top + dash + seat);
+    }
+    function buildPar(img){
+      if (Q){ Q.S.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material){ if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
+      const Dc = 1200, S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(2 * Math.atan(H / 2 / Dc) * 180 / Math.PI, W / H, 10, 4000); cam.position.set(0, 0, Dc);
+      const mp = (x, y) => [IM.dx + x * IM.s, IM.dy + IM.my(y) * IM.s], IW = IMG.iw, IH = IMG.ih, nx = 128, ny = 72;
+      const pos = [], uv = [], idx = [];
+      for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++){ const X = i / nx * IW, Y = j / ny * IH, q = mp(X, Y), d = qDepth(X / IW, Y / IH), f = (Dc - d) / Dc;
+        pos.push((q[0] - W / 2) * f, (H / 2 - q[1]) * f, d); uv.push(X / IW, 1 - Y / IH); }
+      for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){ const a = j * (nx + 1) + i, b = a + 1, c = a + nx + 1, e = c + 1; idx.push(a, c, b, b, c, e); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+      const tex = new THREE.Texture(img); tex.needsUpdate = true; tex.anisotropy = 4;
+      const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.02, color: 0x9aa2ad, side: THREE.DoubleSide })); S.add(mesh);
+      const scr = [];
+      SCR.forEach(sc => {   /* ekran: oyuğun hemen arkasında, görüntü eğik yüzeye oturur */
+        const cxs = sc.q.reduce((t, p) => t + p[0], 0) / 4, cys = sc.q.reduce((t, p) => t + p[1], 0) / 4, ds = Math.max(0, Math.min(...sc.q.map(p => { const X = (p[0] - IM.dx) / IM.s; return qDepth(X / IW, 0.62); })) - 40);
+        const f = (Dc - ds) / Dc, v = [], uvs = [0, 1, 1, 1, 1, 0, 0, 0];
+        for (const p of sc.q) v.push((p[0] - W / 2) * f, (H / 2 - p[1]) * f, ds);
+        const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); gg.setIndex([0, 1, 2, 0, 2, 3]);
+        const tx = new THREE.CanvasTexture(sc.cv); tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
+        S.add(new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }))); scr.push({ sc, tx, ver: -1 }); });
+      Q = { S, cam, Dc, img, W, H, SC: SCR, s: IM.s, scr }; window.__Q = Q;
+    }
+    function renderPar(){
+      const img = IMG.img; if (!img || !IM.s || !SCR.length) return;
+      if (!Q || Q.img !== img || Q.W !== W || Q.H !== H || Q.SC !== SCR || Q.s !== IM.s) buildPar(img);
+      const k = Q; k.cam.position.set(-sway.x * 0.9, sway.y * 0.9, k.Dc);
+      for (const e of k.scr){ if (e.sc.cv !== e.tx.image){ e.tx.image = e.sc.cv; e.tx.needsUpdate = true; } if (e.sc.ver !== e.ver){ e.ver = e.sc.ver; e.tx.needsUpdate = true; } }
+      const ac = renderer.autoClear; renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam); renderer.autoClear = ac;
+    }
     function render(){
+      if (qOn()) return renderPar();
       const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++; window.__ck3K = k;
       k.cam.aspect = W / H; k.cam.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H); k.cam.updateProjectionMatrix();
       // sallanma: kokpit kameraya göre hafifçe kayar ve döner (derinlik hissi)
