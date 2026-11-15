@@ -134,11 +134,16 @@ def leather():
     m, nt = _mat('M_leather'); out = _n(nt, 'ShaderNodeOutputMaterial'); bsdf = _n(nt, 'ShaderNodeBsdfPrincipled')
     tc = _n(nt, 'ShaderNodeTexCoord'); vo = _n(nt, 'ShaderNodeTexVoronoi'); vo.inputs['Scale'].default_value = 900.0
     nt.links.new(tc.outputs['Object'], vo.inputs['Vector'])
-    bsdf.inputs['Base Color'].default_value = (0.020, 0.023, 0.030, 1); bsdf.inputs['Roughness'].default_value = 0.52; bsdf.inputs['Metallic'].default_value = 0.0
+    bsdf.inputs['Base Color'].default_value = (0.030, 0.034, 0.045, 1); bsdf.inputs['Roughness'].default_value = 0.46; bsdf.inputs['Metallic'].default_value = 0.0
     try: bsdf.inputs['Specular IOR Level'].default_value = 0.45
     except Exception: pass
     bmp = _n(nt, 'ShaderNodeBump'); bmp.inputs['Strength'].default_value = 0.35; bmp.inputs['Distance'].default_value = 0.0015
     nt.links.new(vo.outputs['Distance'], bmp.inputs['Height']); nt.links.new(bmp.outputs['Normal'], bsdf.inputs['Normal'])
+    nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface']); return m
+
+def thread():
+    m, nt = _mat('M_thread'); out = _n(nt, 'ShaderNodeOutputMaterial'); bsdf = _n(nt, 'ShaderNodeBsdfPrincipled')
+    bsdf.inputs['Base Color'].default_value = (0.36, 0.34, 0.29, 1); bsdf.inputs['Roughness'].default_value = 0.85; bsdf.inputs['Metallic'].default_value = 0.0
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface']); return m
 
 def emission(name, color, strength):

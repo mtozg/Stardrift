@@ -16,7 +16,7 @@ from lib import project
 arr = None
 if args.proj > 0:
     arr = project.load_drawing(os.path.join(COCKPIT, '..', '..', 'assets', 'img', 'ck_%s.webp' % args.ship), args.out); materials.PROJ['strength'] = args.proj
-mats = {'gunmetal': materials.gunmetal(), 'steel': materials.steel(), 'titanium': materials.titanium(), 'aluminum': materials.aluminum(), 'composite': materials.composite(), 'leather': materials.leather()}
+mats = {'gunmetal': materials.gunmetal(), 'steel': materials.steel(), 'titanium': materials.titanium(), 'aluminum': materials.aluminum(), 'composite': materials.composite(), 'leather': materials.leather(), 'thread': materials.thread()}
 t0 = time.time(); objs = []
 objs += canopy.build(a, P, mats); print('kanopi', round(time.time() - t0, 1), 's')
 if args.stage != 'canopy': objs += canopy.build_panels(a, P, mats); print('paneller', round(time.time() - t0, 1), 's')
@@ -45,6 +45,8 @@ if 'oblique_l' in args.views:
     cam = R.camera(a, 'OblL', loc=g2b((-0.55, 0.05, 0.10)), look=g2b((0.15, -0.30, -1.05)), fovy=70); R.render(os.path.join(args.out, 'kasif_oblique_l.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
 if 'low' in args.views:
     cam = R.camera(a, 'Low', loc=g2b((0.0, -0.30, 0.25)), look=g2b((0.0, -0.58, -1.0)), fovy=62); R.render(os.path.join(args.out, 'kasif_low.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
+if 'seat' in args.views:
+    cam = R.camera(a, 'SeatCam', loc=g2b((0.34, -0.30, -0.02)), look=g2b((-0.02, -0.74, -0.62)), fovy=50); R.render(os.path.join(args.out, 'kasif_seat.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
 if 'close' in args.views:
     cam = R.camera(a, 'Close', loc=g2b((0.38, -0.04, -0.28)), look=g2b((-0.05, -0.50, -1.0)), fovy=44); R.render(os.path.join(args.out, 'kasif_close.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
 if 'persp' in args.views:
