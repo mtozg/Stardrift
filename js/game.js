@@ -2262,10 +2262,10 @@ function drawGlass(c, speed){
   c.fillStyle = g; c.fillRect(0, 0, W, H);
   c.strokeStyle = 'rgba(255,255,255,0.05)'; c.lineWidth = 1;
   scratches.forEach(s => { c.beginPath(); c.moveTo(s.x * W, s.y * Hv); c.lineTo(s.x * W + Math.cos(s.a) * s.l, s.y * Hv + Math.sin(s.a) * s.l); c.stroke(); });
-  g = c.createLinearGradient(0, Hv - 150, 0, Hv + 10);
+  g = c.createLinearGradient(0, Hv - 150, 0, Hv + 90);   /* üst ve altta sıfıra iner: sert kenar (yatay bant) kalmaz */
   const fl = 0.9 + 0.1 * Math.sin(time * 9);
-  g.addColorStop(0, 'rgba(255,170,70,0)'); g.addColorStop(1, `rgba(255,170,70,${0.09 * fl})`);
-  c.fillStyle = g; c.fillRect(0, Hv - 150, W, 160);
+  g.addColorStop(0, 'rgba(255,170,70,0)'); g.addColorStop(0.62, `rgba(255,170,70,${0.08 * fl})`); g.addColorStop(1, 'rgba(255,170,70,0)');
+  c.fillStyle = g; c.fillRect(0, Hv - 150, W, 240);
   const vg = c.createRadialGradient(ox, oy, Math.min(W, H) * 0.4, ox, oy, Math.max(W, H) * 0.8);
   vg.addColorStop(0, 'rgba(0,0,10,0)'); vg.addColorStop(1, 'rgba(0,0,10,0.45)'); c.fillStyle = vg; c.fillRect(0, 0, W, H);
   c.restore();
