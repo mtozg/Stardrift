@@ -1700,8 +1700,18 @@ function hudRidgePath(c){   /* dashboard bölgesi (sırtın altı); sallanmayla 
   c.lineTo(W + 600, H + 600); c.lineTo(-600, H + 600); c.closePath();
 }
 function hudMask(c){ if (!IMGMODE || !IM.my) return; c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; hudRidgePath(c); c.fill(); c.restore(); }
+/* ?ck=b ekran oranları (Blender ekran geometrisi v2: RADAR +%20 yükseklik, SYS/HULL %12 dar). Canlı tuvaller yalnızca ?ck=b çizilirken yeni oranda yeniden kurulur;
+   paralaks (q) ve eski kokpitlerde oran değişmez. Katsayılar anchors/kasif.json'daki eski ve yeni ekran dörtgenlerinin (CKP) ölçülerinden. */
+const B_SCR_K = { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] };
+let scrShapeMode = 'q';
+function scrShape(mode){
+  if (mode === scrShapeMode) return; scrShapeMode = mode;
+  for (const sc of SCR){ if (!sc.px) continue; const k = (mode === 'b' && B_SCR_K[sc.kind]) || [1, 1], lwp = sc.px[0] * k[0], lhp = sc.px[1] * k[1], kz = Math.max(1, 96 / Math.max(1, lhp));
+    sc.cv = document.createElement('canvas'); sc.cv.width = Math.round(lwp * DPR * SCRK); sc.cv.height = Math.round(lhp * DPR * SCRK); sc.g = sc.cv.getContext('2d');
+    sc.lw = Math.round(lwp * kz); sc.lh = Math.round(lhp * kz); sc.ps = DPR * SCRK / kz; sc.drawn = false; }
+}
 function layoutCockpit(){
-  OX = W / 2; IMGMODE = false; $('toast').style.top = ''; { const hs = $('hint').style; hs.top = ''; hs.fontSize = ''; hs.maxWidth = ''; }
+  scrShapeMode = 'q'; OX = W / 2; IMGMODE = false; $('toast').style.top = ''; { const hs = $('hint').style; hs.top = ''; hs.fontSize = ''; hs.maxWidth = ''; }
   if (LAND && IMG.ok){
     const s0 = Math.max(W / IMG.iw, H / IMG.ih) * 1.04, s = IMG.cfg ? s0 : Math.max(s0, H / 582 * 1.02, Math.min(s0 * 1.45, W / 1000)), dx = (W - IMG.iw * s) / 2, dy = H - (IMG.cfg ? IMG.ih : 582) * s;
     const CK = ckMapping(); IM.s = s; IM.dx = dx; IM.dy = dy; IM.R1 = CK.R1; IM.a = CK.a; IM.b = CK.b; IM.T = 0; IMGMODE = true; WINS = [];
@@ -1717,7 +1727,7 @@ function layoutCockpit(){
       const lh = Math.round((Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1])) / 2);
       // küçük ekranlarda içerik üst üste binmesin: ekran içi en az 96 birim yükseklikte çizilir, sonra ekrana küçültülür
       const kz = Math.max(1, 96 / Math.max(1, lh)), cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * SCRK); cv.height = Math.round(lh * DPR * SCRK);
-      return { q, lw: Math.round(lw * kz), lh: Math.round(lh * kz), ps: DPR * SCRK / kz, cv, g: cv.getContext('2d'), kind: d.kind };
+      return { q, lw: Math.round(lw * kz), lh: Math.round(lh * kz), ps: DPR * SCRK / kz, cv, g: cv.getContext('2d'), kind: d.kind, px: [lw, lh] };
     });
     return;
   }
@@ -10618,6 +10628,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
     }
     function render(){
+      scrShape(bWant() && BM ? 'b' : 'q');   /* ekran tuvalleri: yalnızca ?ck=b çizilirken yeni oran */
       if (bWant()){ if (BM){ try { return renderB(); } catch (e) { BF = true; console.warn('kokpit (b) hata, paralaks kokpite dönülüyor', e); } } else loadB(); }
       if (qOn()) return renderPar();
       const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++; window.__ck3K = k;
