@@ -2091,6 +2091,9 @@ function radar2Screen(c, I){
 const SCRGLOW = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), g = x.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, 'rgba(90,205,255,0.5)'); g.addColorStop(0.5, 'rgba(90,205,255,0.13)'); g.addColorStop(1, 'rgba(90,205,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return cv; })();
 function scrGlow(c, sc){ const xs = sc.q.map(p => p[0]), ys = sc.q.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = x1 - x0, h = y1 - y0;
   c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.36 + 0.03 * Math.sin(time * 3 + x0); c.drawImage(SCRGLOW, x0 - w * 0.28, y0 - h * 0.45, w * 1.56, h * 1.9); c.restore(); }
+/* ekranın alt kenarından konsola düşen çok soluk yansıma: içerik dikey çevrilip bezelin ve metalin üstüne eklenir */
+function scrRefl(c, sc){ const [TL, TR, BR, BL] = sc.q, k = 0.32, fl = [BL[0] + (BL[0] - TL[0]) * k, BL[1] + (BL[1] - TL[1]) * k], fr = [BR[0] + (BR[0] - TR[0]) * k, BR[1] + (BR[1] - TR[1]) * k];
+  c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.07; drawQuad(c, { cv: sc.cv, q: [fl, fr, BR, BL] }); c.restore(); }
 function cockpitTone(k){
   if (window.__noTone) return;
   k.save(); k.globalCompositeOperation = 'source-atop';
@@ -2165,7 +2168,7 @@ function drawCockpitImg(c){
       if (window.__oldScr){ const I = scrBase(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde'); (sc.kind === 'bars' ? barsScreen : sc.kind === 'map' ? radarScreen : hullScreen)(g, I); }
       else { const I = scr2Base(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde', sc.kind === 'map' ? SYS[curSys].ad.toLocaleUpperCase('tr-TR') : sc.kind === 'bars' ? (thrustNow > 0.1 ? 'İTİŞ' : braking ? 'FREN' : '') : (hp.hit > 0 ? 'HASAR' : ''));
         (sc.kind === 'bars' ? sys2Screen : sc.kind === 'map' ? radar2Screen : hull2Screen)(g, I); scr2Glass(g, sc.lw, sc.lh); } }
-    drawQuad(sbx, sc); scrGlow(c, sc);
+    drawQuad(sbx, sc); scrGlow(c, sc); scrRefl(c, sc);
   });
   sbx.restore();
   // panel lambaları: tehlikede kırmızı kristaller hızlı yanıp söner, hızlanırken mavi halka yanar
@@ -10522,9 +10525,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.02, color: 0x9aa2ad, side: THREE.DoubleSide })); S.add(mesh);
       const scr = [];
       SCR.forEach(sc => {   /* ekran: oyuğun hemen arkasında, görüntü eğik yüzeye oturur */
-        const cxs = sc.q.reduce((t, p) => t + p[0], 0) / 4, cys = sc.q.reduce((t, p) => t + p[1], 0) / 4, ds = Math.max(0, Math.min(...sc.q.map(p => { const X = (p[0] - IM.dx) / IM.s; return qDepth(X / IW, 0.62); })) - 40);
+        const cxs = sc.q.reduce((t, p) => t + p[0], 0) / 4, cys = sc.q.reduce((t, p) => t + p[1], 0) / 4, ds = Math.max(0, qDepth(((cxs - IM.dx) / IM.s) / IW, 0.62) - 6);
         const f = (Dc - ds) / Dc, v = [], uvs = [0, 1, 1, 1, 1, 0, 0, 0];
-        for (const p of sc.q) v.push((p[0] - W / 2) * f, (H / 2 - p[1]) * f, ds);
+        for (const p of sc.q) v.push((cxs + (p[0] - cxs) * 1.035 - W / 2) * f, (H / 2 - (cys + (p[1] - cys) * 1.035)) * f, ds);   /* hafif büyük: oyuğun kenarı ekranı hiç açıkta bırakmasın */
         const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); gg.setIndex([0, 1, 2, 0, 2, 3]);
         const tx = new THREE.CanvasTexture(sc.cv); tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
         S.add(new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }))); scr.push({ sc, tx, ver: -1 }); });
