@@ -298,7 +298,11 @@ const ruins = [];
 function foe(n){ if (!n) return false; if (n.kind !== 'npc') return !!n.hostile; if (save.side === 'korsan') return n.role === 'patrol' || !!n.hunter || n.rev > time; return !!n.hostile || n.rev > time; }
 // lazer bu gemiye vurur mu? Korsan için: Birlik gemileri hariç her şey. Diğerleri için: korsanlar ve sana saldıran.
 function shootable(n){ if (!n || n.kind !== 'npc') return false; if (save.side === 'korsan') return n.role !== 'pirate' || !!n.hunter; return !!n.hostile || n.rev > time; }
-const aimInfo = a => ORE[a.type] || { css: foe(a) ? '#ff5a6e' : '#6cc4ff', ad: a.name || 'Gemi' };
+/* ilişki (taraf mantığının tek kaynağı): 'foe' = düşman (kırmızı), 'prey' = av (kehribar; yalnızca Korsan'da kargo/madenci), 'ally' = dost ya da tarafsız (mavi).
+   Filo / Lonca: korsanlar düşman; devriye, kargo, madenci dost. Korsan: devriye ve Filo avcıları düşman; korsanlar dost; kargo ve madenciler av. */
+function rel(n){ if (!n) return 'ally'; if (n.kind !== 'npc') return n.hostile ? 'foe' : 'ally'; if (foe(n)) return 'foe'; if (save.side === 'korsan' && shootable(n)) return 'prey'; return 'ally'; }
+const REL_COL = { foe: '#ff5a6e', prey: '#ffb454', ally: '#6cc4ff' };
+const aimInfo = a => ORE[a.type] || { css: REL_COL[rel(a)], ad: a.name || 'Gemi' };
 window.OREI = {"demir": "assets/img/orei_demir.webp", "buz": "assets/img/orei_buz.webp", "kristal": "assets/img/orei_kristal.webp"};
 window.DEVI = ["assets/img/devi_0.webp", "assets/img/devi_1.webp", "assets/img/devi_2.webp", "assets/img/devi_3.webp"];
 const ORE = {
@@ -1668,7 +1672,9 @@ function drawRadar(c, cx, cy, rr){
   // gemiler: düşman kırmızı üçgen, dost mavi nokta (yakınlarsa)
   for (let _q28 = 0; _q28 < npcs.length; _q28++){ const n = npcs[_q28];
     const q = pt(n.g.position), d = Math.hypot(q.px, q.py); if (d > rr - 3) continue;
-    if (n.hostile){ c.fillStyle = '#ff5a6e'; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 4.5); c.lineTo(cx + q.px - 3.5, cy + q.py + 3); c.lineTo(cx + q.px + 3.5, cy + q.py + 3); c.closePath(); c.fill(); }
+    const rl = rel(n);
+    if (rl === 'foe'){ c.fillStyle = REL_COL.foe; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 4.5); c.lineTo(cx + q.px - 3.5, cy + q.py + 3); c.lineTo(cx + q.px + 3.5, cy + q.py + 3); c.closePath(); c.fill(); }
+    else if (rl === 'prey'){ c.fillStyle = REL_COL.prey; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 3.6); c.lineTo(cx + q.px + 3.6, cy + q.py); c.lineTo(cx + q.px, cy + q.py + 3.6); c.lineTo(cx + q.px - 3.6, cy + q.py); c.closePath(); c.fill(); }
     else if (d < rr * 0.75){ c.fillStyle = '#6cc4ff'; c.beginPath(); c.arc(cx + q.px, cy + q.py, 2.6, 0, TAU); c.fill(); }
   }
   // seçili hedef ve nişandaki hedef: halka
@@ -2002,7 +2008,7 @@ function mapContent(c, I, opts){
   for (const it of items){
     const p = it.p;
     if (it.t === 0){ c.fillStyle = it.col; c.fillRect(p.x - it.sz / 2, p.y - it.sz / 2, it.sz, it.sz); continue; }
-    const col = it.t === 4 ? (foe(it.obj) ? '#ff5a6e' : '#6cc4ff') : it.t === 3 ? '#5ff0d0' : it.t === 2 ? '#7fb8ff' : it.col;
+    const col = it.t === 4 ? REL_COL[rel(it.obj)] : it.t === 3 ? '#5ff0d0' : it.t === 2 ? '#7fb8ff' : it.col;
     if (it.t !== 4 && Math.abs(p.y - p.gy) > 3){ c.strokeStyle = 'rgba(127,216,255,0.28)'; c.beginPath(); c.moveTo(p.x, p.gy); c.lineTo(p.x, p.y); c.stroke(); c.fillStyle = 'rgba(127,216,255,0.2)'; c.beginPath(); c.ellipse(p.x, p.gy, 3, 1.5, 0, 0, TAU); c.fill(); }
     if (it.t === 1){
       { const mi = window.__MI && window.__MI.i_st; if (mi && mi.complete && mi.naturalWidth){ const z = big ? 22 : 13; c.drawImage(mi, p.x - z / 2, p.y - z / 2, z, z); } else { c.save(); c.shadowColor = it.col; c.shadowBlur = big ? 8 : 4; c.strokeStyle = it.col; c.lineWidth = 1.5; c.strokeRect(p.x - 3.5, p.y - 3.5, 7, 7); c.restore(); c.fillStyle = it.col; c.fillRect(p.x - 1.5, p.y - 1.5, 3, 3); } } label(it.obj.ad.split(' ')[0] + ' · ' + dist(it.obj), p.x, p.y, it.col);
@@ -2021,11 +2027,11 @@ function mapContent(c, I, opts){
       { const mi = window.__MI && (it.obj.i === 9 && window.__MI.i_kadim ? window.__MI.i_kadim : it.obj.gate ? window.__MI.i_gate : window.__MI.i_ruin); if (mi && mi.complete && mi.naturalWidth){ const z = big ? 20 : 12; c.save(); c.globalAlpha = it.found ? 0.6 : (0.55 + 0.45 * Math.sin(time * 3)); c.drawImage(mi, p.x - z / 2, p.y - z / 2, z, z); c.restore(); } else { c.beginPath(); c.moveTo(p.x, p.y - 4); c.lineTo(p.x + 4, p.y); c.lineTo(p.x, p.y + 4); c.lineTo(p.x - 4, p.y); c.closePath(); c.stroke(); } }
       label((it.found ? (it.obj.label || ruinName(it.obj.i)) : 'Sinyal') + ' · ' + dist(it.obj), p.x, p.y, '#5ff0d0');
     } else {
-      const n = it.obj; if (big && n.hostile && window.__ic){ window.__ic(c, 'i_foe', p.x - 8, p.y - 8, 16); } const sp = Math.hypot(n.vel.x, n.vel.z); let ang = -Math.PI / 2;
+      const n = it.obj; if (big && rel(n) === 'foe' && window.__ic){ window.__ic(c, 'i_foe', p.x - 8, p.y - 8, 16); } const sp = Math.hypot(n.vel.x, n.vel.z); let ang = -Math.PI / 2;
       if (sp > 1){ const rx = n.vel.x * -hz + n.vel.z * hx, fw = n.vel.x * hx + n.vel.z * hz; ang = Math.atan2(-fw * es, rx); }
       c.save(); c.translate(p.x, p.y); c.rotate(ang); c.fillStyle = foe(n) ? `rgba(255,90,110,${0.7 + 0.3 * Math.sin(time * 8)})` : col;
       const z = big ? 4 : 3; c.beginPath(); c.moveTo(z, 0); c.lineTo(-z, -z * 0.7); c.lineTo(-z, z * 0.7); c.closePath(); c.fill(); c.restore();
-      if (big && n.hostile) label(n.name, p.x, p.y, col);
+      if (big && rel(n) !== 'ally') label(n.name, p.x, p.y, col);
     }
     if (opts.hits && it.obj) mapHits.push({ x: p.x, y: p.y, obj: it.obj });
   }
@@ -2122,7 +2128,7 @@ function radar2Screen(c, I){
   c.strokeStyle = sg; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(sa) * rad, cy + Math.sin(sa) * rad); c.stroke();
   /* hedef bilgisi */
   const tx = I.x + I.w - tw, rng = boosting ? 2400 : 1000; let n = 0, near = 1e9;
-  for (const o of npcs){ if (!o.hostile) continue; const d = o.g.position.distanceTo(rig.position); if (d < rng){ n++; near = Math.min(near, d); } }
+  for (const o of npcs){ if (!foe(o)) continue; const d = o.g.position.distanceTo(rig.position); if (d < rng){ n++; near = Math.min(near, d); } }
   c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText('HEDEF', tx, I.y + 9); c.font = fnt(700, 14); c.fillStyle = lock ? SC2.w : SC2.t; c.fillText(lock ? 'KİLİT' : n ? String(n) : '—', tx, I.y + 23);
   c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('MESAFE', tx, I.y + 37); c.font = fnt(700, 12); c.fillStyle = SC2.t; c.fillText(near < 1e9 ? Math.round(near) + ' m' : '—', tx, I.y + 49);
   c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('MENZİL', tx, I.y + 63); c.fillStyle = SC2.a; c.fillText((rng / 1000).toLocaleString('tr-TR') + ' KM', tx, I.y + 74);
@@ -2403,7 +2409,7 @@ function mapScreen(c, I){
   mapContent(c, { x: I.x, y: I.y, w: I.w, h: I.h - 13 });
   c.textAlign = 'center'; c.font = fnt(600, 9); const cx = I.x + I.w / 2, yy = I.y + I.h - 2;
   if (lock){ c.fillStyle = '#ffb454'; c.fillText('‹ KİLİTLİ · ' + tName(lock).toLocaleUpperCase('tr-TR') + ' ›', cx, yy); }
-  else if (aim){ c.fillStyle = (aim.kind === 'npc' && !foe(aim)) ? '#6cc4ff' : '#ff6b8a'; c.fillText(tName(aim) + ' ' + Math.max(0, Math.round(rig.position.distanceTo(aim.pos) - aim.r)) + ' m', cx, yy); }
+  else if (aim){ c.fillStyle = aim.kind === 'npc' ? REL_COL[rel(aim)] : '#ff6b8a'; c.fillText(tName(aim) + ' ' + Math.max(0, Math.round(rig.position.distanceTo(aim.pos) - aim.r)) + ' m', cx, yy); }
   else { c.fillStyle = '#5d6a8f'; c.fillText('Hedef yok', cx, yy); }
 }
 function overlayRect(k){
@@ -2520,7 +2526,7 @@ function drawHud(){
 
     if (aim){
       const d = rig.position.distanceTo(aim.pos), p = proj(aim.pos), range = laserRange(), ok = d - aim.r <= range, shootable_ = !!(aim.mesh || shootable(aim));
-      const rad = clamp(aim.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2 * 1.2, 16, 140), col = aim === lock ? '#ffb454' : (ok ? ((aim.kind === 'npc' && !foe(aim)) ? '#6cc4ff' : '#ff6b8a') : 'rgba(255,255,255,0.45)');
+      const rad = clamp(aim.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2 * 1.2, 16, 140), col = aim === lock ? '#ffb454' : (ok ? (aim.kind === 'npc' ? REL_COL[rel(aim)] : '#ff6b8a') : 'rgba(255,255,255,0.45)');
       c.strokeStyle = col; c.lineWidth = 2; const L = Math.min(12, rad * 0.5);
       for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){
         c.beginPath(); c.moveTo(p.x + sx * rad, p.y + sy * (rad - L)); c.lineTo(p.x + sx * rad, p.y + sy * rad); c.lineTo(p.x + sx * (rad - L), p.y + sy * rad); c.stroke();
@@ -4558,7 +4564,7 @@ function commOpen(){
   comm.open = true; comm.n = n; comm.t0 = time;
   const dm = new THREE.Object3D(); dm.position.copy(rig.position); dm.lookAt(rig.position.clone().sub(n.pos.clone().sub(rig.position))); comm.q0 = rig.quaternion.clone(); comm.q1 = dm.quaternion.clone();
   const el = $('comm'), civ = n.civ;
-  const chip = el.querySelector('.chip'); chip.textContent = civ ? civ.ab : (n.hostile ? 'KRS' : n.role === 'patrol' ? 'DEV' : 'SİV'); chip.style.color = civ ? civ.col : foe(n) ? '#ff6b8a' : n.hostile ? '#7be0a4' : '#7fd8ff';
+  const chip = el.querySelector('.chip'); chip.textContent = civ ? civ.ab : (n.hostile ? 'KRS' : n.role === 'patrol' ? 'DEV' : 'SİV'); chip.style.color = civ ? civ.col : foe(n) ? '#ff6b8a' : rel(n) === 'prey' ? REL_COL.prey : n.hostile ? '#7be0a4' : '#7fd8ff';
   el.querySelector('.nm').textContent = n.name; el.querySelector('.sub').textContent = (civ ? civ.ad + ' · ' : '') + ROLETXT[n.role] + ' · ' + Math.round(n.pos.distanceTo(rig.position)) + ' m';
   el.classList.add('on'); commShow(commRoot(n)); blip(640, 0.06); setTimeout(() => blip(820, 0.08), 80);
 }
@@ -4774,7 +4780,7 @@ const A5 = {"em0": "assets/img/a5_em0.webp", "em1": "assets/img/a5_em1.webp", "e
     let img = sh.querySelector('.pt'); if (!img){ img = document.createElement('img'); img.className = 'pt'; img.alt = ''; sh.insertBefore(img, sh.firstChild); }
     const k = n.hostile ? 3 : ci >= 0 ? ci : n.role === 'patrol' ? 4 : 5;
     img.src = A5['pt' + k];
-    sh.style.setProperty('--pc', foe(n) ? '#ff6b8a' : ci >= 0 ? n.civ.col : n.role === 'patrol' ? '#8ab4ff' : '#7fd8ff');
+    sh.style.setProperty('--pc', foe(n) ? '#ff6b8a' : rel(n) === 'prey' ? REL_COL.prey : ci >= 0 ? n.civ.col : n.role === 'patrol' ? '#8ab4ff' : '#7fd8ff');
     if (ci >= 0) el.querySelector('.chip').innerHTML = '<img alt="" src="' + A5['em' + ci] + '">' + n.civ.ab;
   };
 }
@@ -5608,7 +5614,9 @@ function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === (
 {
   const _dn = damageNpc;
   damageNpc = function(n, dmg, by){
-    const fr = by === 'player' && !n.hostile && npcs.indexOf(n) >= 0;
+    const KSd = save.side === 'korsan', fr = by === 'player' && !n.hostile && !KSd && npcs.indexOf(n) >= 0;   /* Korsan'da kargo av, devriye düşman: "dost ateşi" uyarısı yok */
+    if (by === 'player' && KSd && n.role === 'patrol' && !n.hostile && npcs.indexOf(n) >= 0 && !(n.rev > time)){   /* Korsan'ın vurduğu devriye ve yakındakiler karşılık verir */
+      n.rev = time + 60; radio(n.name, 'Korsan ateş açtı! Müdahale ediyoruz!', '#ff5a6e'); for (let _qk = 0, qq; _qk < npcs.length && ((qq = npcs[_qk]), true); _qk++) if (qq.role === 'patrol' && !qq.hostile && qq.pos.distanceTo(n.pos) < 3500) qq.rev = time + 60; }
     if (fr){
       if (!n.ffW){ n.ffW = time; if (time - (window.__ffT || -99) > 5){ window.__ffT = time; toast('Dost gemiye ateş ettin! Tekrarlarsan karşılık verirler.', 3400); } radio(n.name, 'Ateş etme, dostuz! Bir daha olursa karşılık veririm.', '#ffb454'); }
       else if (time - n.ffW > 1.3 && !(n.rev > time)){
@@ -5618,7 +5626,7 @@ function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === (
       if (n.rev > time) n.rev = time + 45;
     }
     _dn(n, dmg, by);
-    if (fr && n.rev > time && npcs.indexOf(n) >= 0){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.alertT = 0; }
+    if ((fr || (KSd && by === 'player' && n.role === 'patrol')) && n.rev > time && npcs.indexOf(n) >= 0){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.alertT = 0; }
   };
   const _nt = npcThink;
   npcThink = function(n){
@@ -5852,7 +5860,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     { t: 'Üsse dön', x: () => 'Sarı işaret ' + (STATION && STATION.ad || 'ev istasyonunu') + ' gösteriyor. Yaklaşınca ' + K('F', 'Kenetlen') + ' ile kenetlen.', ok: () => docked },
     { t: 'Sat', x: () => '<span class="k">İstasyon</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.' + (save.side === 'korsan' ? ' Kaçak malı yalnızca Kara Liman alır.' : ''), enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
     { t: 'Ana görev', x: () => '<span class="k">Görevler</span> sekmesinde <b>Ana görev</b> hikâyeyi anlatır ve seni yönlendirir; bölüm bitirdikçe yeni sistemlerin kapıları açılır. Panodaki <b>yan görevler</b> isteğe bağlıdır. Uçarken sol tarafta sıradaki adım yazar.', ok: () => (document.getElementById('dock') || {}).dataset && document.getElementById('dock').dataset.t === 'ct' || !docked },
-    { t: 'Tarafın', x: () => (save.side === 'korsan' ? 'Korsan Birliği\'ndesin: korsanlar sana dokunmaz, sen de onlara dokunma. Yıldız Filosu devriyeleri ve Filo avcıları seni avlar; aranma yıldızın arttıkça daha çok gelirler. Kaçak malı gizli bölmede taşı, Kara Liman\'da sat.'
+    { t: 'Tarafın', x: () => (save.side === 'korsan' ? 'Korsan Birliği\'ndesin: korsanlar sana dokunmaz, sen de onlara dokunma. Renkler: kırmızı düşman, kehribar av, mavi dost. Yıldız Filosu devriyeleri ve Filo avcıları (kırmızı) seni avlar; aranma yıldızın arttıkça daha çok gelirler. Kargo ve madenciler avındır (kehribar): vurunca aranman artar. Kaçak malı gizli bölmede taşı, Kara Liman\'da sat.'
         : save.side === 'lonca' ? 'Tüccar Loncası\'ndasın: kazancın ticaretten. İstasyon fiyatlarını karşılaştır, acil siparişleri yetiştir, cevherini en iyi fiyata sat. Korsanlar yükünü ister; kaçmak da bir seçenek.'
         : 'Yıldız Filosu\'ndasın: devriyeler yanında, korsanlar karşında. Korsan avladıkça ödül ve itibar kazanırsın; reisleri yenmek Filo\'nun en büyük işidir.')
         + ' ' + K('T', 'Kilit') + ' nişandaki hedefe kilitlenir; kilitliyken lazer kendiliğinden vurur. Haritayı ' + K('M', '') + ' ile aç.', last: true }
@@ -10526,7 +10534,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     function gHull(g, w, h){ const hf = hp.hull / hp.hullMax, sf = hp.shield / Math.max(1, hp.shieldMax), hc = hf > 0.6 ? SC2.a : hf > 0.3 ? SC2.w : SC2.r; const I = scr2Base(g, w, h, 'Gövde', hp.hit > 0 ? 'HASAR' : ''); const cw = I.w / 2;
       [['GÖVDE', Math.round(hp.hull), hf, hc], ['KALKAN', Math.round(hp.shield), sf, '#9fc4ff']].forEach(([n, v, f, c], i) => { const x = I.x + i * cw; g.textAlign = 'left'; g.font = fnt(600, 8.5); g.fillStyle = SC2.d; g.fillText(n, x, I.y + 8); g.font = fnt(700, 21); g.fillStyle = c; g.fillText(String(v), x, I.y + 28); bar2(g, x, I.y + 31, cw - 8, f, c, 2.4); }); scr2Glass(g, w, h); }
     function gTgt(g, w, h){ const t = lock || aim; const I = scr2Base(g, w, h, 'Hedef', t && t === lock ? 'KİLİTLİ' : ''); g.textAlign = 'left';
-      if (t){ const d = Math.max(0, Math.round(rig.position.distanceTo(t.pos) - (t.r || 0))), hf = tHp(t), bad = t.kind === 'npc' && foe(t), c = bad ? SC2.r : SC2.a;
+      if (t){ const d = Math.max(0, Math.round(rig.position.distanceTo(t.pos) - (t.r || 0))), hf = tHp(t), bad = t.kind === 'npc' && foe(t), c = bad ? SC2.r : (t.kind === 'npc' && rel(t) === 'prey') ? SC2.w : SC2.a;
         g.font = fnt(700, 12); g.fillStyle = c; g.fillText(tName(t).toLocaleUpperCase('tr-TR').slice(0, 15), I.x, I.y + 11); g.font = fnt(700, 21); g.fillStyle = SC2.a; g.fillText(d > 2000 ? (d / 1000).toFixed(1) + ' km' : d + ' m', I.x, I.y + 30); if (hf !== null) bar2(g, I.x + I.w * 0.62, I.y + 24, I.w * 0.38, hf, c, 3); }
       else { const L = String((window.__mqLine && window.__mqLine()) || 'Nişanda hedef yok').replace(/<[^>]+>/g, ''); g.font = fnt(600, 11.5); g.fillStyle = SC2.a; const words = L.split(' '); let line = '', y = I.y + 11, n = 0;
         for (const wd of words){ const tl = line ? line + ' ' + wd : wd; if (g.measureText(tl).width > I.w && line){ g.fillText(line, I.x, y); y += 14; line = wd; if (++n >= 2) break; } else line = tl; } if (n < 2 && line) g.fillText(line, I.x, y); }
@@ -10540,7 +10548,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (kind === 'gSys' || kind === 'gHull' || kind === 'gTgt' || kind === 'gRad'){ (kind === 'gSys' ? gSys : kind === 'gHull' ? gHull : kind === 'gTgt' ? gTgt : gRad)(g, w, h); return; }
       if (kind === 'tgt'){ const t = lock || aim; const I = scr2Base(g, w, h, 'Hedef', t ? (t === lock ? 'KİLİTLİ' : '') : '');
         if (!t){ g.font = fnt(600, 9); g.fillStyle = SC2.d; g.textAlign = 'left'; g.fillText('Nişanda hedef yok', I.x, I.y + 14); }
-        else { const d = Math.max(0, Math.round(rig.position.distanceTo(t.pos) - (t.r || 0))), hf = tHp(t); g.textAlign = 'left'; g.font = fnt(700, 11); g.fillStyle = (t.kind === 'npc' && foe(t)) ? SC2.r : SC2.a; g.fillText(tName(t).toLocaleUpperCase('tr-TR').slice(0, 18), I.x, I.y + 14);
+        else { const d = Math.max(0, Math.round(rig.position.distanceTo(t.pos) - (t.r || 0))), hf = tHp(t); g.textAlign = 'left'; g.font = fnt(700, 11); g.fillStyle = (t.kind === 'npc' && foe(t)) ? SC2.r : (t.kind === 'npc' && rel(t) === 'prey') ? SC2.w : SC2.a; g.fillText(tName(t).toLocaleUpperCase('tr-TR').slice(0, 18), I.x, I.y + 14);
           g.font = fnt(700, 18); g.fillStyle = SC2.a; g.fillText(d > 2000 ? (d / 1000).toFixed(1) + ' km' : d + ' m', I.x, I.y + 40); if (hf !== null) bar2(g, I.x, I.y + 50, I.w, hf, (t.kind === 'npc' && foe(t)) ? SC2.r : SC2.a, 4); } }
       else { const I = scr2Base(g, w, h, 'Ana görev', ''); const L = (window.__mqLine && window.__mqLine()) || ''; g.font = fnt(600, 9.5); g.fillStyle = SC2.a; g.textAlign = 'left';
         const words = String(L).replace(/<[^>]+>/g, '').split(' '); let line = '', y = I.y + 14; for (const wd of words){ const tl = line ? line + ' ' + wd : wd; if (g.measureText(tl).width > I.w && line){ g.fillText(line, I.x, y); y += 13; line = wd; if (y > I.y + I.h) break; } else line = tl; } if (line && y <= I.y + I.h) g.fillText(line, I.x, y); }
