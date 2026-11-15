@@ -10663,5 +10663,23 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const glbReady = save.ship === 'kasif' && !!GLBM && glbOn();
       window.__ck3on = (glbReady || want()) && IMGMODE && !docked && !window.__ck3bad; if (window.__ck3on) try { render(); } catch (e) { console.warn(e); window.__ck3bad = true; window.__ck3on = false; } };
   })();
+  /* ---- tanı: yakalanmayan hatalar ekranda kısaca görünür; adrese ?tani=1 eklenirse küçük bir durum paneli açılır (hareket/ateş sorunlarını cihazdan okumak için) ---- */
+  (function(){
+    let lastErr = '', errAt = 0; const evs = [];
+    const note = m => { lastErr = String(m).slice(0, 120); const t = performance.now(); if (t - errAt > 8000){ errAt = t; try { toast('Hata: ' + lastErr, 5000); } catch (e) {} } };
+    window.addEventListener('error', e => note((e && e.message) || 'hata'));
+    window.addEventListener('unhandledrejection', e => note('söz: ' + ((e && e.reason && (e.reason.message || e.reason)) || '')));
+    if (!/[?&]tani=1/.test(location.search)) return;
+    const oe = console.error; console.error = function(){ try { lastErr = [].slice.call(arguments).map(a => (a && a.message) || a).join(' ').slice(0, 120); } catch (e) {} return oe.apply(console, arguments); };
+    let fr = 0, up = 0, fr0 = 0, fps = 0; const _u = update; update = function(dt){ up++; return _u(dt); };
+    (function tick(){ fr++; requestAnimationFrame(tick); })();
+    for (const t of ['pointerdown', 'touchstart', 'click']) document.addEventListener(t, e => { const el = e.target; evs.unshift(t.replace('pointer', 'p').replace('touch', 't') + ':' + ((el && (el.id || String(el.className).slice(0, 12) || el.tagName)) || '?')); evs.length = Math.min(evs.length, 6); }, true);
+    const box = document.createElement('div'); box.style.cssText = 'position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:99999;font:10px/1.3 ui-monospace,Menlo,monospace;color:#9ff;background:rgba(0,10,20,.78);padding:4px 8px;border:1px solid #3aa;border-radius:6px;pointer-events:none;white-space:pre;max-width:92vw'; document.body.appendChild(box);
+    setInterval(() => { fps = (fr - fr0) * 2; fr0 = fr; let ck = ''; try { ck = localStorage.getItem('sd_ck3'); } catch (e) {}
+      box.textContent = 'v' + (window.SD_VERSION || '?') + ' ' + innerWidth + 'x' + innerHeight + ' W' + W + 'x' + H + ' k' + (+SK).toFixed(2) + ' land' + (+LAND) + ' img' + (+IMGMODE) + ' ck3=' + ck + ' on' + (+!!window.__ck3on) + (window.__ck3bad ? ' BAD' : '') + '\n'
+        + 'fps ' + fps + ' kare ' + fr + ' fizik ' + up + ' | paused ' + (+paused) + ' menu ' + (+!!window.__menuOn) + ' hc ' + (+!!window.__hcOn) + ' hj ' + (+!!window.__hjOn) + ' docked ' + (+docked) + '\n'
+        + 'hız ' + Math.round(vel.length()) + ' itiş ' + (+thrustNow).toFixed(1) + ' ateş ' + (+!!firing) + ' lazer ' + (+!!laserOn) + ' | olay ' + evs.join(' ') + '\n'
+        + 'hata: ' + (lastErr || '-'); }, 500);
+  })();
   requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('sd-ready')));   // açılış perdesi kalkar (index.html)
 })();
