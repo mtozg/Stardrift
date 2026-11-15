@@ -9762,7 +9762,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const report = () => { try { const c = navigator.serviceWorker.controller || (window.__swReg && window.__swReg.active); if (!c) return;
       const urls = [...new Set(performance.getEntriesByType('resource').map(r => r.name).filter(u => u.indexOf(location.origin) === 0 && !/\/sw\.js/.test(u)))]; urls.push(location.href.split('#')[0]);
       c.postMessage({ type: 'cache', urls }); } catch (e) {} };
-    navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(r => { setTimeout(report, 4000); setInterval(report, 60000); try { (navigator.serviceWorker.controller || r.active).postMessage({ type: 'sync' }); } catch (e) {} }); }).catch(() => {});
+    let noSync = false; try { noSync = localStorage.getItem('sd_nosync') === '1'; } catch (e) {}   /* açılış kurtarma çökme saptarsa çevrimdışı paket indirmesi bu cihazda kapanır */
+    navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(r => { if (noSync) return;
+      /* oyun açılırken bellek yarışmasın: paket indirmesi ve dosya kaydı oyun açıldıktan 60 sn sonra, sayfa görünürken başlar */
+      setTimeout(() => { report(); setInterval(report, 120000); }, 60000);
+      setTimeout(() => { try { if (document.visibilityState === 'visible') (navigator.serviceWorker.controller || r.active).postMessage({ type: 'sync' }); } catch (e) {} }, 60000); }); }).catch(() => {});
     // çevrimdışı paket durumu: Ayarlar'ın altında görünür; ilk kez tamamlanınca bir kez haber verilir
     navigator.serviceWorker.addEventListener('message', e => { const d = e.data || {}; if (d.type !== 'offline') return; window.__offline = d;
       const el = document.getElementById('offSt'); if (el) el.textContent = offTxt();
