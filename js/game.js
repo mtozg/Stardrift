@@ -1624,11 +1624,11 @@ function proj(pos){
 function drawNpcTags(c){
   c.save(); c.textAlign = 'center'; c.font = `600 11px ${FONT}`;
   for (let _q26 = 0; _q26 < npcs.length; _q26++){ const n = npcs[_q26];
-    if (n.hostile) continue;
+    const rl = rel(n); if (rl === 'foe') continue;   /* düşmanlar kırmızı işaretle ayrıca gösterilir */
     const d = rig.position.distanceTo(n.pos); if (d > 650 && n !== lock) continue;
     const p = proj(n.pos); if (p.behind || p.x < VIEW.l + 8 || p.x > VIEW.r - 8 || p.y < VIEW.t + 8 || p.y > VIEW.b - 8) continue;
     const sz = clamp(n.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2, 5, 60), y = p.y - sz - 8;
-    c.fillStyle = '#6cc4ff'; c.strokeStyle = 'rgba(108,196,255,0.7)'; c.lineWidth = 1;
+    c.fillStyle = REL_COL[rl]; c.strokeStyle = rl === 'prey' ? 'rgba(255,180,84,0.7)' : 'rgba(108,196,255,0.7)'; c.lineWidth = 1;
     c.beginPath(); c.moveTo(p.x - 4, y + 5); c.lineTo(p.x + 4, y + 5); c.lineTo(p.x, y + 10); c.closePath(); c.fill();
     c.fillText(n.name + ' · ' + (d > 1000 ? (d / 1000).toFixed(1) + ' km' : Math.round(d) + ' m'), p.x, y);
   }
