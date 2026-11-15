@@ -7,19 +7,10 @@ from lib.common import *
 from lib import materials, canopy, render as R
 
 ap = argparse.ArgumentParser(); ap.add_argument('--ship', default='kasif'); ap.add_argument('--stage', default='all'); ap.add_argument('--out', default=os.path.join(COCKPIT, 'out'))
-ap.add_argument('--screen_set', default=''); ap.add_argument('--verify', action='store_true'); ap.add_argument('--proj', type=float, default=1.0); ap.add_argument('--export', action='store_true'); ap.add_argument('--tex', type=int, default=2048); ap.add_argument('--bake_samples', type=int, default=24); ap.add_argument('--samples', type=int, default=32); ap.add_argument('--views', default='pilot'); ap.add_argument('--scale', type=float, default=1.0)
+ap.add_argument('--verify', action='store_true'); ap.add_argument('--proj', type=float, default=1.0); ap.add_argument('--export', action='store_true'); ap.add_argument('--tex', type=int, default=2048); ap.add_argument('--bake_samples', type=int, default=24); ap.add_argument('--samples', type=int, default=32); ap.add_argument('--views', default='pilot'); ap.add_argument('--scale', type=float, default=1.0)
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:])
 os.makedirs(args.out, exist_ok=True)
 a = load_json('anchors/%s.json' % args.ship); P = load_json('params/%s.json' % args.ship)
-if args.screen_set:   # ekran oranı önerisi: köşeleri kendi düzlemleri içinde oranla kaydırır (top/bot: yüksekliğe, left/right: genişliğe oran; eksi = daralma)
-    from mathutils import Vector
-    for s in a['screens']:
-        c = P['screen_sets'][args.screen_set].get(s['name'])
-        if not c: continue
-        TL, TR, BR, BL = [Vector(q) for q in s['corners3d']]; u = ((TL - BL) + (TR - BR)) * 0.5; h = u.length; u.normalize(); r = ((TR - TL) + (BR - BL)) * 0.5; w = r.length; r.normalize()
-        TL += u * c['top'] * h; TR += u * c['top'] * h; BL -= u * c['bot'] * h; BR -= u * c['bot'] * h
-        TL -= r * c['left'] * w; BL -= r * c['left'] * w; TR += r * c['right'] * w; BR += r * c['right'] * w
-        s['corners3d'] = [list(q) for q in (TL, TR, BR, BL)]
 clear_scene()
 from lib import project
 arr = None
