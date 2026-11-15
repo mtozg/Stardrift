@@ -45,7 +45,13 @@ def bake_all(body, size=2048, samples=24, log=print):
         if typ == 'DIFFUSE': bk.use_pass_direct = False; bk.use_pass_indirect = False; bk.use_pass_color = True
         if typ == 'AO': sc.cycles.samples = max(samples, 48)
         else: sc.cycles.samples = samples if typ != 'NORMAL' else 4
+        saved = []
+        if typ == 'DIFFUSE':   # tam metal yüzeyde difüz renk geçişi siyah çıkar: taban rengi için metaliği geçici sıfırla
+            for m in mats:
+                for n in m.node_tree.nodes:
+                    if n.type == 'BSDF_PRINCIPLED': saved.append((n, n.inputs['Metallic'].default_value)); n.inputs['Metallic'].default_value = 0.0
         log('bake', typ); bpy.ops.object.bake(type=typ)
+        for n, v in saved: n.inputs['Metallic'].default_value = v
     return imgs
 
 def _px(im):
