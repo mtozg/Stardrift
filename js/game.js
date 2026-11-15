@@ -10287,13 +10287,13 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
     const ED = -0.33;
     const SHIPS3 = {
-      kasif:   { wrap: { bow: 0.08, thick: 0.062, topY: 0.5, topZ: -1.0, spread: 1.22 }, glow: 0x43d2ff, rim: 0x9cc2ff, U0: 0.86, ET: 0.6, topA: 1, scr: [['bars', -0.5, 1.22, -0.78, 0.45, 0.35, 0.14, 'tab'], ['map', 0, 1.28, -0.78, 0.38, 0.38, 0.12, 'tab'], ['hull', 0.5, 1.22, -0.78, 0.45, 0.35, 0.14, 'tab']], rO: 0.05, rT: 0.03, panel: [0.02, 0.78, 0.32, 0.99], strip: [0.005, 0.12, 0.045, 0.55],
+      kasif:   { wrap: { bow: 0.06, thick: 0.03, topY: 0.5, topZ: -1.0, spread: 1.2, bx: 0.78 }, glow: 0x43d2ff, rim: 0x9cc2ff, U0: 0.86, ET: 0.6, topA: 1, scr: [['bars', -0.5, 1.22, -0.78, 0.45, 0.35, 0.14, 'tab'], ['map', 0, 1.28, -0.78, 0.38, 0.38, 0.12, 'tab'], ['hull', 0.5, 1.22, -0.78, 0.45, 0.35, 0.14, 'tab']], rO: 0.05, rT: 0.03, panel: [0.02, 0.78, 0.32, 0.99], strip: [0.005, 0.12, 0.045, 0.55],
                  inner: [{ p: [[-0.3, ED], [-0.33, 0.5]], r: 0.022 }, { p: [[0.3, ED], [0.33, 0.5]], r: 0.022 }] },
-      sahin:   { wrap: { bow: 0.14, thick: 0.058, topY: 0.46, topZ: -1.0, spread: 1.1, arch: 1 }, glow: 0xff4d6a, rim: 0xa9b8d6, U0: 0.9, ET: 0.58, hood: 0x7a1f2b, scr: [['bars', -0.4, 1.28, -0.75, 0.50, 0.33, 0.35, 'flat'], ['map', 0, 1.30, -0.75, 0.40, 0.33, 0.35, 'flat'], ['hull', 0.4, 1.28, -0.75, 0.50, 0.33, 0.35, 'flat']], rO: 0.05, rT: 0.026, panel: [0.02, 0.78, 0.30, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
+      sahin:   { wrap: { bow: 0.1, thick: 0.026, topY: 0.46, topZ: -1.0, spread: 1.1, arch: 1, bx: 0.7 }, glow: 0xff4d6a, rim: 0xa9b8d6, U0: 0.9, ET: 0.58, hood: 0x7a1f2b, scr: [['bars', -0.4, 1.28, -0.75, 0.50, 0.33, 0.35, 'flat'], ['map', 0, 1.30, -0.75, 0.40, 0.33, 0.35, 'flat'], ['hull', 0.4, 1.28, -0.75, 0.50, 0.33, 0.35, 'flat']], rO: 0.05, rT: 0.026, panel: [0.02, 0.78, 0.30, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
                  inner: [{ p: [[-0.14, ED], [-0.34, 0.12], [-0.6, 0.42], [-0.84, 0.58]], r: 0.03 }, { p: [[0.14, ED], [0.34, 0.12], [0.6, 0.42], [0.84, 0.58]], r: 0.03 }] },
-      yuk:     { wrap: { bow: 0.0, thick: 0.078, topY: 0.48, topZ: -1.0, spread: 1.08 }, glow: 0xffb454, rim: 0xc9d2b0, U0: 0.84, ET: 0.5, rail: 0.04, scr: [['bars', -0.56, 1.27, -0.78, 0.62, 0.31, 0.28, 'tab'], ['map', 0, 1.24, -0.78, 0.38, 0.30, 0.32, 'tab'], ['hull', 0.56, 1.27, -0.78, 0.62, 0.31, 0.28, 'tab']], rO: 0.065, rT: 0.042, panel: [0.03, 0.80, 0.30, 0.99], strip: [0.005, 0.1, 0.05, 0.55], sill: 0.03,
-                 inner: [{ p: [[-0.42, ED], [-0.42, 0.44]], r: 0.026 }, { p: [[0, ED], [0, 0.44]], r: 0.026 }, { p: [[0.42, ED], [0.42, 0.44]], r: 0.026 }] },
-      hayalet: { wrap: { bow: -0.06, thick: 0.045, topY: 0.54, topZ: -1.0, spread: 1.32, arch: 1, noBar: 1 }, glow: 0xa77bff, rim: 0x8f9cc8, U0: 0.92, ET: 0.6, web: 1, scr: [['bars', -0.46, 1.32, -0.76, 0.58, 0.24, 0.42, 'slim'], ['map', 0, 1.34, -0.76, 0.45, 0.24, 0.42, 'slim'], ['hull', 0.46, 1.32, -0.76, 0.58, 0.24, 0.42, 'slim']], rO: 0.045, rT: 0.024, panel: [0.36, 0.86, 0.64, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
+      yuk:     { wrap: { bow: 0.0, thick: 0.03, topY: 0.46, topZ: -1.0, spread: 0.56, bx: 0.56, diag: 1 }, glow: 0xffb454, rim: 0xc9d2b0, U0: 0.84, ET: 0.5, scr: [['bars', -0.56, 1.27, -0.78, 0.62, 0.31, 0.28, 'tab'], ['map', 0, 1.24, -0.78, 0.38, 0.30, 0.32, 'tab'], ['hull', 0.56, 1.27, -0.78, 0.62, 0.31, 0.28, 'tab']], rO: 0.065, rT: 0.042, panel: [0.03, 0.80, 0.30, 0.99], strip: [0.005, 0.1, 0.05, 0.55], sill: 0.03,
+                 inner: [{ p: [[-0.4, ED], [-0.4, 0.46]], r: 0.024 }, { p: [[0.4, ED], [0.4, 0.46]], r: 0.024 }] },
+      hayalet: { wrap: { bow: -0.04, thick: 0.02, topY: 0.54, topZ: -1.0, spread: 1.3, arch: 1, noBar: 1, bx: 0.66 }, glow: 0xa77bff, rim: 0x8f9cc8, U0: 0.92, ET: 0.6, web: 1, scr: [['bars', -0.46, 1.32, -0.76, 0.58, 0.24, 0.42, 'slim'], ['map', 0, 1.34, -0.76, 0.45, 0.24, 0.42, 'slim'], ['hull', 0.46, 1.32, -0.76, 0.58, 0.24, 0.42, 'slim']], rO: 0.045, rT: 0.024, panel: [0.36, 0.86, 0.64, 0.99], strip: [0.005, 0.1, 0.04, 0.5],
                  inner: [{ p: [[0, ED], [0, 0.6]], r: 0.016 }, { p: [[-0.26, ED], [-0.56, 0.25], [-0.88, 0.6]], r: 0.03 }, { p: [[0.26, ED], [0.56, 0.25], [0.88, 0.6]], r: 0.03 }] }
     };
     const cpos = (u, e) => { const r = 1.75 - 0.55 * Math.abs(Math.sin(u)); return [Math.sin(u) * Math.cos(e) * r, Math.sin(e) * r, -Math.cos(u) * Math.cos(e) * r]; };
@@ -10334,14 +10334,15 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (C.wrap){   // seni saran kabuk: alttan ortaya yakın başlayıp yukarı doğru dışa açılan kalın dikmeler, köşede kıvrım, düz üst kiriş
         const Wp = C.wrap, tY = Wp.topY, tZ = Wp.topZ, tx = Wp.spread;
         for (const sx of [-1, 1]){
-          const { c } = tube([[sx * 0.62, -0.55, -0.6], [sx * (0.78 + Wp.bow), -0.1, -0.72], [sx * (0.98 + Wp.bow), 0.3, -0.86], [sx * (tx + 0.04), tY - 0.1, tZ], [sx * (tx - 0.1), tY, tZ], [sx * (tx - 0.3), tY, tZ]], Wp.thick, pil, 5);
+          const bx = Wp.bx || 0.7, { c } = tube([[sx * bx, -0.5, -0.8], [sx * (bx + 0.12 + Wp.bow), -0.1, -0.86], [sx * (bx + 0.36 + Wp.bow), 0.3, -0.93], [sx * (tx + 0.04), tY - 0.1, tZ], [sx * (tx - 0.1), tY, tZ], [sx * (tx - 0.3), tY, tZ]], Wp.thick, pil, 5);
           tube(c.getPoints(24).map(q => [q.x + sx * 0.05, q.y, q.z + 0.04]), 0.012, cable, 6);
-          for (const t of [0.15, 0.4, 0.62]){ const q = c.getPoint(t); const b = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.055, 0.09), metal); b.position.copy(q); b.lookAt(0, q.y, 0); G.add(b); }
-          const q2 = c.getPoint(0.3); const lt = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.1, 0.02), glow); lt.position.set(q2.x - sx * 0.09, q2.y, q2.z + 0.06); G.add(lt);
+          for (const t of [0.15, 0.4, 0.62]){ const q = c.getPoint(t); const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.03, 0.05), metal); b.position.copy(q); b.lookAt(0, q.y, 0); G.add(b); }
+          const q2 = c.getPoint(0.3); const lt = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.045, 0.008), glow); lt.position.set(q2.x - sx * 0.04, q2.y, q2.z + 0.04); G.add(lt);
+          if (Wp.diag) tube([[sx * 0.56, tY, tZ], [sx * 1.0, 0.22, -0.9], [sx * 1.52, -0.14, -0.74]], 0.024, pil, 4);   // eğik tavan kirişi: yan camlar eğik (ikinci referans)
         }
         if (Wp.arch) tube([[-(tx - 0.3), tY, tZ], [-0.5, tY + 0.12, tZ - 0.05], [0, tY + 0.17, tZ - 0.08], [0.5, tY + 0.12, tZ - 0.05], [tx - 0.3, tY, tZ]], Wp.thick * 0.5, pil, 4);   // kemerli üst kiriş
-        else tube([[-(tx - 0.3), tY, tZ], [0, tY + 0.01, tZ], [tx - 0.3, tY, tZ]], Wp.thick * 0.42, pil, 4);                                       // düz üst kiriş
-        if (!Wp.noBar) for (const x of [-0.5, 0.5]){ const k2 = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.075, 0.1), metal); k2.position.set(x, tY - 0.01, tZ + 0.02); G.add(k2); }   // kiriş kancaları
+        else tube([[-(tx - 0.3), tY, tZ], [0, tY + 0.01, tZ], [tx - 0.3, tY, tZ]], Wp.thick * 0.7, pil, 4);                                       // düz üst kiriş
+        if (!Wp.noBar) for (const x of [-0.4, 0.4]){ const k2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.045, 0.06), metal); k2.position.set(x, tY - 0.01, tZ + 0.02); G.add(k2); }   // kiriş kancaları
       }
       if (C.outer !== false && !C.wrap) for (const sx of [-1, 1]){
         const { c } = ctube([[sx * C.U0, ED - 0.02], [sx * C.U0 * 0.97, 0.15], [sx * C.U0 * 0.9, C.ET]], C.rO, pil, 4);
