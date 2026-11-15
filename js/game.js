@@ -56,7 +56,7 @@ window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); if (lo
 window.__qCap = () => QCAP[window.__qLevel];
 // kokpit oranı: pencere (üst) büyür, gösterge paneli (alt) küçülür. 0 klasik, 1 dengeli, 2 geniş cam
 const CKB = [1, 0.85, 0.72];
-window.__ckLevel = (() => { try { const v = localStorage.getItem('sd_ck'); return v === null ? 2 : Math.max(0, Math.min(2, +v || 0)); } catch (e) { return 2; } })();
+window.__ckLevel = 2;   /* 'Kokpit görünümü' ayarı kaldırıldı: Geniş cam sabit (eski kayıtlı seçim yok sayılır) */
 window.__ckSet = lv => { window.__ckLevel = lv; try { localStorage.setItem('sd_ck', String(lv)); } catch (e) {} resize(); };
 function ckMapping(){
   const K = IMG.cfg; if (!K || !K.defs) return { R1: 0, a: 1, b: 1 };
@@ -7000,7 +7000,6 @@ window.__xpal = {
       + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
       + '<div id="ctlSet"></div>'
       + '<div class="sect">Grafik</div>'
-      + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
@@ -10670,6 +10669,23 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       window.__ck3wait = save.ship === 'kasif' && glbOn() && !GLBM && !GLBFAIL && performance.now() < 9000;   /* model gelene kadar eski çizim kokpit gösterilmez (en fazla 9 sn) */
       const glbReady = save.ship === 'kasif' && !!GLBM && glbOn();
       window.__ck3on = (glbReady || want()) && IMGMODE && !docked && !window.__ck3bad; if (window.__ck3on) try { render(); } catch (e) { console.warn(e); window.__ck3bad = true; window.__ck3on = false; } };
+  })();
+  /* ---- bekçi: güncelleme döngüsü (hareket/ateş/fizik) 3,5 sn çalışmazsa nedenini bulur, takılı durumu düzeltir ve ekranda söyler.
+     Nedenler: yanlışlıkla duraklatma (yatay ekranda), görünmez menü bayrağı, takılı kamera sahnesi, menüsü görünmeyen kenetlenme. ---- */
+  (function(){
+    let lastUp = performance.now(), fixedAt = 0, hcSince = 0, dkSince = 0; const _u2 = update; update = function(dt){ lastUp = performance.now(); return _u2(dt); };
+    const overlayUp = () => { for (const e of document.body.children){ if (e.tagName === 'CANVAS' || e.id === 'stage' || e.id === 'rotate' || e.id === 'toast') continue; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < 0.05 || cs.position !== 'fixed' || cs.pointerEvents === 'none') continue;   /* yalnızca dokunmayı yakalayan (gerçek menü) katmanlar */ const r = e.getBoundingClientRect(); if (r.width >= innerWidth * 0.5 && r.height >= innerHeight * 0.5) return true; } const d = $('dock'); return !!(d && !d.classList.contains('hidden')); };
+    setInterval(() => {
+      const tt = document.getElementById('title'); if (document.visibilityState !== 'visible' || (tt && !tt.classList.contains('off'))) return; const now = performance.now(); if (window.__hcOn){ hcSince = hcSince || now; } else hcSince = 0;
+      if (docked && !overlayUp()){ dkSince = dkSince || now; } else dkSince = 0;
+      if (dkSince && now - dkSince > 3500 && now - fixedAt > 6000){ try { renderDock(); $('dock').classList.remove('hidden'); fixedAt = now; dkSince = 0; toast('Oyun durmuştu, düzeltildi (kenetlenme menüsü).', 5200); console.warn('bekçi: kenetlenme menüsü'); } catch (e) {} return; }
+      if (now - lastUp < 3500 || now - fixedAt < 6000) return;
+      const why = [];
+      if (paused && innerWidth > innerHeight){ paused = false; why.push('duraklatma'); }
+      if (window.__menuOn && !overlayUp()){ window.__menuOn = false; why.push('menü bayrağı'); }
+      if (window.__hcOn && hcSince && now - hcSince > 20000){ window.__hcOn = false; why.push('sahne'); }
+      if (why.length){ fixedAt = now; try { toast('Oyun durmuştu, düzeltildi (' + why.join(', ') + ').', 5200); } catch (e) {} console.warn('bekçi:', why.join(',')); }
+    }, 1000);
   })();
   /* ---- tanı: yakalanmayan hatalar ekranda kısaca görünür; adrese ?tani=1 eklenirse küçük bir durum paneli açılır (hareket/ateş sorunlarını cihazdan okumak için) ---- */
   (function(){
