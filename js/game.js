@@ -1694,8 +1694,8 @@ let SCR_DEF = [
    Çizgi: cam altı sırtı (anchors/kasif.json pencere alt sınırları, 1600x656 çizim uzayı). Eski 2D kokpitlerde kokpit resmi HUD'ın üstünde olduğundan gerekmez. */
 function ck3dSet(){ try { const v = localStorage.getItem('sd_ck3'); return save.ship === 'kasif' && (v === null || v === 'q' || v === 'b'); } catch (e) { return false; } }
 var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [250, 422], [300, 417], [350, 405], [400, 384], [450, 379], [500, 374], [550, 368], [600, 360], [650, 357], [950, 357], [1000, 360], [1050, 369], [1100, 374], [1150, 379], [1200, 384], [1250, 405], [1300, 417], [1350, 422], [1400, 427], [1450, 413], [1500, 353], [1550, 278], [2000, 278]];
-function hudRidgePath(c, keep, lo){   /* dashboard bölgesi (sırtın altı); sallanmayla birlikte kayar (sırt derinliği ≈ ağın %9'u). keep: mevcut yola ekle */
-  const B = !!window.__ckMapB, sb = (H - OY) / 416.5, k = B ? 1.1 : 0.93, sx = sway.x * k, sy = sway.y * k + (lo || 0); if (!keep) c.beginPath();   /* ?ck=b: 3B kamera eşlemesi (ana nokta 239.5, ölçek (H-OY)/416.5); q: görüntü eşlemesi */
+function hudRidgePath(c, keep, lo, still){   /* dashboard bölgesi (sırtın altı); sallanmayla birlikte kayar (sırt derinliği ≈ ağın %9'u). keep: mevcut yola ekle */
+  const B = !!window.__ckMapB, sb = (H - OY) / 416.5, k = B ? 1.1 : 0.93, sx = still ? 0 : sway.x * k, sy = (still ? 0 : sway.y * k) + (lo || 0); if (!keep) c.beginPath();   /* ?ck=b: 3B kamera eşlemesi (ana nokta 239.5, ölçek (H-OY)/416.5); q: görüntü eşlemesi */
   HUD_RIDGE.forEach(([x, y], i) => { const X = (B ? OX + (x - 800) * sb : IM.dx + x * IM.s) + sx, Y = (B ? OY + (y - 239.5) * sb : IM.dy + IM.my(y) * IM.s) + sy; if (i) c.lineTo(X, Y); else c.moveTo(X, Y); });
   c.lineTo(W + 600, H + 600); c.lineTo(-600, H + 600); c.closePath();
 }
@@ -2550,7 +2550,7 @@ function drawHud(){
   { const c = hctx2; c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, W, H);
   if (!IMGMODE && ckx.__img !== null){ ckx.__img = null; ckx.setTransform(1, 0, 0, 1, 0, 0); ckx.clearRect(0, 0, ckc.width, ckc.height); scb.getContext('2d').clearRect(0, 0, scb.width, scb.height); }
   drawCockpit(c);
-  if (!docked){ if (window.__ck3on && IMGMODE){ c.save(); c.beginPath(); c.rect(-600, -600, W + 1200, H + 1200); hudRidgePath(c, true, 14); c.clip('evenodd');   /* halka yazıları sırta oturur: 14 px pay */ drawRing(c, ox, oy, speed); c.restore(); } else drawRing(c, ox, oy, speed); drawOverlay(c); }
+  if (!docked){ if (window.__ck3on && IMGMODE){ c.save(); c.beginPath(); c.rect(-600, -600, W + 1200, H + 1200); hudRidgePath(c, true, 14, true); c.clip('evenodd');   /* halka yazıları sırta oturur (14 px pay) ve sallanmayla gizlenmez: nötr sırta göre kırpılır */ drawRing(c, ox, oy, speed); c.restore(); } else drawRing(c, ox, oy, speed); drawOverlay(c); }
   // hız hissi: kenarlarda kararma ve mavi parıltı
   { const sp = clamp((speed - 100) / 450, 0, 1) + (boosting ? 0.25 : 0);
     if (sp > 0.02){ const R = Math.hypot(W, H) * 0.6, g = c.createRadialGradient(ox, oy, R * 0.35, ox, oy, R); g.addColorStop(0, 'rgba(10,30,70,0)'); g.addColorStop(1, `rgba(20,60,140,${Math.min(0.5, sp * 0.45)})`); c.fillStyle = g; c.fillRect(0, 0, W, H); } }
@@ -10629,7 +10629,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     }
     function render(){
       { const useB = !!(bWant() && BM); scrShape(useB ? 'b' : 'q'); window.__ckMapB = useB;   /* ekran tuvalleri: yalnızca ?ck=b çizilirken yeni oran */
-        if (VIEW.b0 !== undefined) VIEW.b = useB ? Math.min(VIEW.b0, OY + (382 - 239.5) * (H - OY) / 416.5 - 30) : VIEW.bq; }   /* HUD işaretleri ekranların ~30 px üstünde biter (mod eşlemesine göre) */
+        if (VIEW.b0 !== undefined) VIEW.b = (useB ? Math.min(VIEW.b0, OY + (382 - 239.5) * (H - OY) / 416.5 - 30) : VIEW.bq) + sway.y * (useB ? 1.1 : 0.93); }   /* sınır, sallanan dashboard ile birlikte kayar */   /* HUD işaretleri ekranların ~30 px üstünde biter (mod eşlemesine göre) */
       if (bWant()){ if (BM){ try { return renderB(); } catch (e) { BF = true; console.warn('kokpit (b) hata, paralaks kokpite dönülüyor', e); } } else loadB(); }
       if (qOn()) return renderPar();
       const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++; window.__ck3K = k;
