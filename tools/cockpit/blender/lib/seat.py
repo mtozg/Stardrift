@@ -42,7 +42,7 @@ def build(a, P, mats):
     S = P['seat']; out = []; L = mats['leather']; T = mats['thread']; C = mats['composite']
     pieces = []
     for sx in (-1, 1):
-        ob = rbox('Seat_Bolster%d' % (sx > 0), (S['bw'], S['bd'], S['bh']), (sx * S['bx'], S['y'], S['z']), L, bev=0.05, seg=5, rot=(math.radians(S['tilt']), 0, sx * math.radians(S['splay'])))
+        ob = rbox('Seat_Bolster%d' % (sx > 0), (S['bw'], S['bd'], S['bh']), (sx * S['bx'], S['y'], S['z']), L, bev=0.07, seg=6, rot=(math.radians(S['tilt']), 0, sx * math.radians(S['splay'])))
         out.append(ob); pieces.append((ob, (S['bw'], S['bd'], S['bh'])))
         # yan destek kanadı (dışa açılı, daha ince)
         w = rbox('Seat_Wing%d' % (sx > 0), (0.13, S['bd'] * 0.9, S['bh'] * 0.85), (sx * (S['bx'] + S['bw'] * 0.5 + 0.05), S['y'] - 0.015, S['z'] + 0.02), L, bev=0.04, seg=4, rot=(math.radians(S['tilt']), 0, sx * math.radians(S['splay'] + 16)))
@@ -52,12 +52,16 @@ def build(a, P, mats):
     # kapitone panel (teknik kumaş) + dikiş hattı + biye
     for (ob, size) in pieces:
         sx, sy, sz = size
-        panel = box('Seat_panel', (sx * 0.62, sy * 0.62, 0.008), Vector((0, 0, 0)), C, bev=0.003)
-        panel.parent = ob; panel.location = (0, 0, sz / 2 + 0.003); panel.matrix_parent_inverse = Matrix.Identity(4); out.append(panel)
+        panel = rbox('Seat_panel', (sx * 0.62, sy * 0.62, 0.02), (0, 0, 0), mats['fabric'], bev=0.012, seg=3)
+        panel.parent = ob; panel.location = (0, 0, sz / 2 - 0.002); panel.matrix_parent_inverse = Matrix.Identity(4); out.append(panel)
+        # kapitone: panel üstünde çapraz iki dikiş hattı
+        for (p0, p1) in (((-sx * 0.30, 0, 0), (sx * 0.30, 0, 0)), ((0, -sy * 0.30, 0), (0, sy * 0.30, 0))):
+            n = 12; pts = [ob.matrix_world @ (Vector((p0[0] + (p1[0] - p0[0]) * k / n, p0[1] + (p1[1] - p0[1]) * k / n, sz / 2 + 0.014))) for k in range(n + 1)]
+            out += stitches('st3', pts, T, 0.012, 0.003)
         out += stitches('st', top_outline(ob, size, 0.035, 0.026), T)                  # dış dikiş
         out += stitches('st2', top_outline(ob, (sx * 0.62, sy * 0.62, sz), 0.012, 0.022), T, 0.012, 0.003)   # panel çevresi
         pip = top_outline(ob, size, 0.012, 0.03)
-        out.append(tube('Seat_piping', [b2g(p) for p in pip], 0.0055, mats['steel'], 6))
+        out.append(tube('Seat_piping', [b2g(p) for p in pip], 0.0075, L, 8))
     # ray ve braketler (koltuğun altında)
     for sx in (-1, 1):
         x = sx * S['bx']

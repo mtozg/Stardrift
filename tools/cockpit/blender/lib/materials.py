@@ -141,6 +141,16 @@ def leather():
     nt.links.new(vo.outputs['Distance'], bmp.inputs['Height']); nt.links.new(bmp.outputs['Normal'], bsdf.inputs['Normal'])
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface']); return m
 
+def fabric():
+    m, nt = _mat('M_fabric'); out = _n(nt, 'ShaderNodeOutputMaterial'); bsdf = _n(nt, 'ShaderNodeBsdfPrincipled')
+    tc = _n(nt, 'ShaderNodeTexCoord'); mp = _n(nt, 'ShaderNodeMapping'); mp.inputs['Scale'].default_value = (260.0, 260.0, 260.0)
+    ck = _n(nt, 'ShaderNodeTexChecker'); ck.inputs['Scale'].default_value = 1.0
+    nt.links.new(tc.outputs['Object'], mp.inputs['Vector']); nt.links.new(mp.outputs['Vector'], ck.inputs['Vector'])
+    bsdf.inputs['Base Color'].default_value = (0.060, 0.068, 0.082, 1); bsdf.inputs['Roughness'].default_value = 0.82; bsdf.inputs['Metallic'].default_value = 0.0
+    bmp = _n(nt, 'ShaderNodeBump'); bmp.inputs['Strength'].default_value = 0.35; bmp.inputs['Distance'].default_value = 0.0012
+    nt.links.new(ck.outputs['Fac'], bmp.inputs['Height']); nt.links.new(bmp.outputs['Normal'], bsdf.inputs['Normal'])
+    nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface']); return m
+
 def thread():
     m, nt = _mat('M_thread'); out = _n(nt, 'ShaderNodeOutputMaterial'); bsdf = _n(nt, 'ShaderNodeBsdfPrincipled')
     bsdf.inputs['Base Color'].default_value = (0.36, 0.34, 0.29, 1); bsdf.inputs['Roughness'].default_value = 0.85; bsdf.inputs['Metallic'].default_value = 0.0
