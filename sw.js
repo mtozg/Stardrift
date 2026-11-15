@@ -14,7 +14,7 @@ self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => fetch(scopeUrl(u), { cache: 'reload' }).then(r => r.ok && c.put(keyOf(new URL(scopeUrl(u))), r)).catch(() => {})))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('stardrift-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()).then(() => { sync(); }));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('stardrift-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));   /* paket indirmesi artık otomatik başlamaz: oyun yüklenirken bellek yarışmasın; sayfa 'sync' isteyince başlar */
 });
 
 const sameOrigin = u => u.origin === self.location.origin;
@@ -30,7 +30,7 @@ async function page(req){
   try {
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
     const res = await fetch(req.url, { cache: 'no-store', signal: ctl.signal }); clearTimeout(t);
-    if (res.ok){ await put(c, key, res.clone()); sync(); return res; }
+    if (res.ok){ await put(c, key, res.clone()); return res; }
     throw new Error('HTTP ' + res.status);
   } catch (err){ const hit = await c.match(key) || await c.match(scopeUrl('./')); if (hit) return hit; throw err; }
 }
@@ -63,6 +63,7 @@ function sync(){
       if (meta[f] !== list[f] || !(await c.match(key))){ try { const res = await fetch(key, { cache: 'reload' }); if (res.ok){ await c.put(key, res); meta[f] = list[f]; } } catch (err) {} }
       else meta[f] = list[f];
       state.done++; if (state.done % 12 === 0) { await c.put(META, new Response(JSON.stringify(meta))); tell(); }
+      await new Promise(r => setTimeout(r, 120));   /* tek dosya, sonra kısa mola: bellek tepe yapmaz */
     }
     await c.put(META, new Response(JSON.stringify(meta)));
     state.ready = files.every(f => meta[f] === list[f]); tell();
