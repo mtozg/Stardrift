@@ -98,7 +98,12 @@ def stitched_panel(parent, bvh, axis, frame_z, rect, mats, label, step=0.026):
         n = max(2, int(math.dist(a, b) / step))
         outline += line_pts(bvh, a, b, axis, n, frame_z)[:-1]
     if outline: outline.append(outline[0])
-    out += dashes(parent, outline, mats['thread'])
+    ex = 0.024; outer = []                                               # dış dikiş hattı: biyenin dışında, deri üzerinde
+    for (a, b) in rect_loop(u0 - ex, u1 + ex, v0 - ex, v1 + ex):
+        n = max(2, int(math.dist(a, b) / step))
+        outer += line_pts(bvh, a, b, axis, n, frame_z)[:-1]
+    if outer: outer.append(outer[0])
+    out += dashes(parent, outer, mats['thread'], 0.019, 0.0045)
     pip = tube('Seat_piping', [Vector((p.x, -p.y, p.z)) for p, nrm in [(q[0] + q[1] * 0.0075, q[1]) for q in []]], 0.0075, mats['leather'], 8) if False else None
     # biye: dış kenar boyunca deri boru (oyun uzayına çevrilmeden doğrudan yerel)
     ring = [q[0] + q[1] * 0.0085 for q in outline]
@@ -116,7 +121,7 @@ def stitched_panel(parent, bvh, axis, frame_z, rect, mats, label, step=0.026):
     cu, cv = (u0 + u1) / 2, (v0 + v1) / 2
     for (a, b) in (((u0 + (u1 - u0) * 0.1, cv), (u1 - (u1 - u0) * 0.1, cv)), ((cu, v0 + (v1 - v0) * 0.1), (cu, v1 - (v1 - v0) * 0.1)),
                    ((u0 + (u1 - u0) * 0.1, v0 + (v1 - v0) * 0.1), (u1 - (u1 - u0) * 0.1, v1 - (v1 - v0) * 0.1)), ((u0 + (u1 - u0) * 0.1, v1 - (v1 - v0) * 0.1), (u1 - (u1 - u0) * 0.1, v0 + (v1 - v0) * 0.1))):
-        out += dashes(parent, line_pts(bvh, a, b, axis, 12, frame_z), mats['thread'], 0.012, 0.003)
+        out += dashes(parent, line_pts(bvh, a, b, axis, 14, frame_z), mats['thread'], 0.013, 0.0035, lift=0.0092)
     return out
 
 def build(a, P, mats):
