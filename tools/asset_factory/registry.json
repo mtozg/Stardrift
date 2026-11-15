@@ -2,7 +2,7 @@
  "version": 1,
  "assets": {
   "test_box": {
-   "state": "qc_pass",
+   "state": "delivered",
    "rev": 1,
    "history": [
     {
@@ -29,6 +29,19 @@
      "from": "prepared",
      "to": "qc_pass",
      "reason": "QC WARN (63 PASS, 2 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-15T18:50:21+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: QC 0 FAIL; 2 WARN raporda açıklandı",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T18:50:21+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/test_box/r001"
     }
    ],
    "timings": {
@@ -43,6 +56,16 @@
      "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
      "note": "L1 kontrol listesi geçti; alt dik görünüşte arka plan rengi kozmetik",
      "accept_warn": []
+    },
+    {
+     "t": "2026-11-15T18:50:21+00:00",
+     "gate": "tech",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "QC 0 FAIL; 2 WARN raporda açıklandı",
+     "accept_warn": [
+      "pbr.base_metal",
+      "gltf.validator_warnings"
+     ]
     }
    ],
    "geometry_hash": "4f5b25b31f5b1c1a2b10073ceb4cfaa1279eb5662845677402e1cc803f6c0e74",

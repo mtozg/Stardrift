@@ -1,8 +1,44 @@
-# Asset Factory Standartları (v0.2, onay bekliyor)
+# Asset Factory Standartları (v0.3)
 
 "GEÇİCİ" işaretli maddeler oyun kodunun gözleminden çıkarıldı. Ana sohbetten gelecek `contracts/game_contract.md` ile kesinleşecek.
 
 ---
+
+## 0. Bağlayıcı kararlar (kullanıcı, 2026-11-15) — diğer bütün maddelerin önündedir
+
+### 0.1 Kokpit standardı ve Kaşif referansı
+- **Tek görsel ve teknik kalite referansı: onaylanmış Blender 3B Kaşif kokpiti.**
+  - Teknik referans (GLB): `models/cockpit_kasif.glb`, dal `claude/bold-bardeen-oqf73o` (3,78 MB; yalnızca `?ck=b`).
+  - Üretim referansı: aynı daldaki `tools/cockpit/` hattı (Blender → bake → GLB → Three.js doğrulama).
+  - Bu dosyalar **değiştirilmez, yeniden üretilmez, üzerine yazılmaz**. Fabrika onları yalnızca okur.
+- Şahin, Yük Devi ve Hayalet kokpitleri **gerçek 3B modelleme** ile ve **Blender → GLB → Three.js** hattıyla üretilir.
+- **Yasak:** Yeni üretimde eski 2B kokpit çizimleri (`ck_*.webp`, main ve dal sürümleri) ve paralaks kokpit sistemi (`?ck=q`) kullanılmaz. Ne kaynak, ne doku, ne izdüşüm, ne de "referans çizim" olarak.
+- Eski çizimler ve eski Kaşif kokpiti yalnızca **tarihsel referans**tır (örneğin oyunun hangi ekran sayısını beklediğini anlamak için). Tasarım kaynağı değildir.
+- Her geminin kokpiti **özgün** tasarlanır: geometri, cam yapısı, ekranlar, konsol ve koltuk o geminin karakterinden ve rolünden türetilir. Kaşif'in tasarımı **kopyalanmaz**; yalnızca kalite düzeyi (malzeme dili, gerçekçilik, ayrıntı yoğunluğu) ve teknik yaklaşım örnek alınır.
+- Belirsiz bir durumda hangi dosyanın onaylı görseli temsil ettiği tahmin edilmez. Adaylar karşılaştırmalı olarak sunulur.
+
+### 0.2 Dal ve entegrasyon
+- Asset Factory dalı bağımsızdır. Main'le **otomatik birleştirme yapılmaz**, ana oyun koduna doğrudan müdahale edilmez.
+- GLB entegrasyonu ayrı bir aşamadır. **Her entegrasyon ayrı kullanıcı onayı** ister.
+
+### 0.3 Hareketli parçalar (örnek: Yük Devi kıskacı)
+- İlk modelde **statik** üretilir. Ancak animasyona hazırdır: her eklem için ayrı düğüm (`ART_<parça>_<eklem>`), pivot eklem merkezinde, yerel eksen dönüş ekseniyle hizalı, ebeveyn-çocuk hiyerarşisi kinematik zinciri izler (gövde → omuz → dirsek → bilek → çeneler).
+- Bağlantı noktaları soket olarak işaretlenir. Animasyon kararı, oyun mekaniği netleşince yeniden değerlendirilir.
+
+### 0.4 Hazır model politikası
+- Varsayılan yöntem **özgün modelleme**dir.
+- Sketchfab ve benzeri kaynaklardan model kullanmak yasak değil, ama her kullanımdan önce lisans, görsel kalite, teknik uyumluluk ve optimizasyon incelenir. **Kullanıcı onayı olmadan hazır model kullanılmaz.**
+
+### 0.5 Konsepti bulunmayan varlıklar
+Bu grup: Varak, Morr, üs modülleri, ziyaretçi gemileri ve benzerleri.
+1. Önce oyundaki görevleri ve işlevleri koddan araştırılır.
+2. 2–3 farklı görsel konsept alternatifi sunulur.
+3. PREVIEW render'ları gösterilir.
+4. Kullanıcı onayı olmadan PRODUCTION'a geçilmez.
+
+### 0.6 Profiller ve onaylar
+- **PREVIEW** (hızlı blokaj ve render) → Kapı 1, görsel onay → **PRODUCTION** (ayrıntılı model, UV, bake, optimizasyon, GLB, QC) → Kapı 2, teknik onay → Kapı 3, oyuna entegrasyon onayı.
+- Hiçbir model üretimi, ilgili hazırlık ve referans onayı alınmadan başlamaz.
 
 ## 1. Görsel dil
 

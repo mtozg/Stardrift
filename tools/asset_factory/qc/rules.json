@@ -68,5 +68,18 @@
  "perf_regress_warn": 0.15,
  "perf_regress_fail": 0.3,
  "perf_abs_floor_ms": 1.5,
- "perf_metric": "ms_p50"
+ "perf_metric": "ms_p50",
+ "forbidden_references": {
+  "_note": "STANDARDS.md §0.1 (2026-11-15): yeni kokpitlerde eski 2B/paralaks kokpit kaynakları kullanılmaz",
+  "families": [
+   "cockpit",
+   "player_ship"
+  ],
+  "patterns": [
+   "ck_",
+   "ck3",
+   "ckb_",
+   "paralaks"
+  ]
+ }
 }

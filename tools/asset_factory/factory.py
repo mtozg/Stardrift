@@ -42,8 +42,20 @@ def commit():
         return '?'
 
 
+def check_forbidden_refs(spec):
+    """STANDARDS.md §0.1: kokpit/oyuncu gemisi tariflerinde eski 2B ve paralaks kokpit kaynakları yasak."""
+    fr = load_json(os.path.join(QC, 'rules.json')).get('forbidden_references', {})
+    if spec.get('family') not in fr.get('families', []):
+        return
+    txt = json.dumps(spec.get('reference') or {}, ensure_ascii=False) + json.dumps(spec.get('params', {}), ensure_ascii=False)
+    bad = [p for p in fr.get('patterns', []) if p in txt]
+    if bad:
+        raise SystemExit('RED: tarif eski kokpit kaynaklarına referans veriyor %s (STANDARDS.md §0.1)' % bad)
+
+
 def cmd_model(a):
     spec = load_spec(a.id)
+    check_forbidden_refs(spec)
     reg = registry.get(a.id, create=True)
     if reg['state'] not in ('draft', 'modeled'):
         raise SystemExit('model yalnızca draft/modeled durumunda yeniden çalışır (şu an %s); yeni revizyon gerekir' % reg['state'])

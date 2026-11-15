@@ -1,4 +1,6 @@
-# Stardrift Asset Envanteri ve Üretim Planı (v1, onay bekliyor)
+# Stardrift Asset Envanteri ve Üretim Planı (v1.1)
+
+> **Bağlayıcı kararlar `STANDARDS.md §0` içindedir.** Üretim sırası (§7) onaylandı (2026-11-15). Kokpitlerde tek referans onaylı Blender 3B Kaşif kokpitidir; eski 2B ve paralaks kokpitler yalnızca tarihsel referanstır.
 
 Tarih: 2026-11-15 · Hazırlayan: Asset Factory oturumu · **Bu belge hiçbir varlık üretmez, oyun koduna dokunmaz.**
 
@@ -82,7 +84,8 @@ Not (dal geçmişi): 1.47.0'da Hayalet ve Yük Devi için **Sketchfab hazır mod
 
 ### 3.2 Kokpitler
 
-Kokpit, uçuşun %100'ünde ekranda olan katmandır. **İki nesil var ve main ile dal farklı:**
+Kokpit, uçuşun %100'ünde ekranda olan katmandır. Aşağıdaki tablo **yalnızca tarihsel kayıt** içindir.
+**Karar (2026-11-15):** Yeni kokpitler gerçek 3B modelleme ile Blender → GLB → Three.js hattında üretilir. Tek görsel ve teknik referans `models/cockpit_kasif.glb`'dir (dal). Aşağıdaki 2B çizimler ve paralaks sistem yeni üretimde **kullanılmaz** (`STANDARDS.md §0.1`).
 
 | | main (1.44.1, yayındaki) | dal `claude/bold-bardeen-oqf73o` (birleşmemiş) |
 |---|---|---|
@@ -99,13 +102,13 @@ Dalda tanımlı ama **dosyası olmayan yuvalar**: `assets/img/ck3p_<gemi>.webp` 
 | Varlık | Durum | Kalite | Yeniden modelleme | Öncelik |
 |---|---|---|---|---|
 | Kaşif dış | OYUNDA | K3+ / **K5 (onaylı)** | **Hayır — dondurulmuş** | — |
-| Kaşif kokpit | main: 2B çizim · dal: paralaks + GLB | **K5 (onaylı)** | **Hayır — dondurulmuş** | — |
+| Kaşif kokpit | **Onaylı referans: Blender GLB** `models/cockpit_kasif.glb` (dal, `?ck=b`). main'deki 2B çizim ve daldaki paralaks yalnızca tarihsel | **K5 (onaylı)** | **Hayır — dondurulmuş** | — |
 | Şahin dış | OYUNDA | K3 | Evet (GLB, hangar yakın planına uygun) | **P1** |
-| Şahin kokpit | OYUNDA (2B çizim) | 2B | Evet (Kaşif GLB hattıyla) | **P1** |
+| Şahin kokpit | OYUNDA (2B çizim, tarihsel) | 2B | Evet: özgün 3B tasarım, Blender → GLB | **P1** |
 | Yük Devi dış | OYUNDA | K3 (+kıskaç) | Evet | **P1** |
-| Yük Devi kokpit | OYUNDA (2B çizim) | 2B | Evet | **P1** |
+| Yük Devi kokpit | OYUNDA (2B çizim, tarihsel) | 2B | Evet: özgün 3B tasarım, Blender → GLB | **P1** |
 | Hayalet dış | OYUNDA | K3 | Evet | **P1** |
-| Hayalet kokpit | OYUNDA (2B çizim) | 2B | Evet | **P1** |
+| Hayalet kokpit | OYUNDA (2B çizim, tarihsel) | 2B | Evet: özgün 3B tasarım, Blender → GLB | **P1** |
 
 Teknik bağımlılıklar (dördü için ortak): GLTFLoader yalnızca dalda (`vendor/GLTFLoader.js`); main'de yok. Kokpit GLB yolu (`?ck=b`) yalnızca Kaşif'e bağlı ve dalda. Canlı ekran sözleşmesi (`SCR_SYS/RADAR/HULL`, `CKP` izdüşümü). Çevrimdışı paket politikası (GLB `offline.json`'a eklenmiyor).
 
@@ -286,7 +289,7 @@ Oyun sözleşmesi (ana sohbet: koordinat, ölçek, ışık, LOD, kalite seviyele
  └─ Çevrimdışı paket politikası (GLB'ler offline.json'a girecek mi?)
 
 Oyuncu gemisi dış modeli ──► hangar görüntüleyici, hiper atlama, kapı geçişi, hangar sineması (mkShip ile otomatik)
-Oyuncu kokpiti ──► canlı ekran sözleşmesi (SCR_*, CKP), kokpit çiziminin hangi nesli kanonik? (main / dal)
+Oyuncu kokpiti ──► canlı ekran sözleşmesi (SCR_* düğümleri, Kaşif GLB'deki gibi); eski CKP 2B izdüşümü yeni gemiler için bağlayıcı değil
 NPC ortak atlası (aile içi) ──► 9 NPC gemisi; patronlar unique bake
 Asteroit ortak atlası ──► 15 kaya + lav kayaları + pickup'lar; instancing (oyun tarafı kararı)
 korsanA/B/C ──► ödül avcısı, aranan korsan, korsan kampı korumaları (yeniden kullanım)
@@ -305,7 +308,7 @@ Varak, Morr, üs modülleri, ziyaretçi gemileri ──► ÖNCE KONSEPT/TASARIM
 
 ### Grup 1: Oyuncu gemileri (ilk üretim grubu)
 
-Kaşif **tamamlanmış ve onaylı**; dosyalarına dokunulmaz, kalite ve teknik referanstır.
+Kaşif **tamamlanmış ve onaylı**; dosyalarına dokunulmaz. Kokpit referansı: onaylı Blender 3B kokpit (`models/cockpit_kasif.glb`).
 
 Önerilen sıra:
 
@@ -362,12 +365,14 @@ Fabrikada bu iki profil şu an `--fast` bayrağı ve aşama kapılarıyla karş�
 
 ---
 
-## 9. Senden karar gereken noktalar
+## 9. Kararlar ve açık noktalar
 
-1. **"Onaylı Kaşif" tam olarak hangi çıktı?** Dalda Blender GLB kokpit (`?ck=b`), dalda paralaks kokpit (`?ck=q`, varsayılan), main'de eski 2B çizim ve dış model `buildKasif3D`. Dördünü de dondurulmuş sayıyorum; kalite referansı olarak hangisini esas alayım?
-2. **Kokpit çiziminin kanonik nesli:** Şahin, Yük Devi ve Hayalet kokpitleri main'deki eski çizimlere mi, daldaki yeni (1.46.0) çizimlere mi göre modellenecek?
-3. **Dalın durumu:** `claude/bold-bardeen-oqf73o` main'e birleşecek mi? GLB entegrasyonu (GLTFLoader) buna bağlı. Bu, ana sohbetin kararı.
-4. **Gemi içi sıra:** Her gemide önce kokpit mi, önce dış model mi? (Önerim: kokpit.)
-5. **Yük Devi kıskacı:** Statik model mi, hareketli parça mı?
-6. **Sketchfab denemesinin geri alınması (1.47.0):** Hazır model / üçüncü taraf varlık kullanmama bir ilke mi? (Fabrika şu an tamamen prosedürel üretiyor.)
-7. Tasarımı olmayan varlıklar için (Varak, Morr, üs modülleri, ziyaretçi gemileri) **konsept önce kimden gelecek?** Senden çizim mi, yoksa fabrikada PREVIEW blokajı ile konsept önerisi mi?
+| # | Konu | Durum |
+|---|---|---|
+| 1 | Onaylı Kaşif | **Karar:** Blender 3B kokpit `models/cockpit_kasif.glb` tek görsel ve teknik referanstır. Dış model `buildKasif3D` dondurulmuştur. Hiçbiri değiştirilmez |
+| 2 | Diğer gemilerin kokpit referansı | **Karar:** Eski 2B ve paralaks çizimler kullanılmaz. Her kokpit özgün 3B tasarım |
+| 3 | Dal / birleştirme | **Karar:** Fabrika dalı bağımsız, otomatik birleştirme yok; her entegrasyon ayrı onay |
+| 4 | Gemi içi sıra (kokpit / dış model) | Açık; önerim kokpit önce |
+| 5 | Yük Devi kıskacı | **Karar:** Statik, animasyona hazır hiyerarşi (`STANDARDS.md §0.3`) |
+| 6 | Hazır model | **Karar:** Varsayılan özgün; hazır model ancak inceleme ve kullanıcı onayıyla |
+| 7 | Konsepti olmayan varlıklar | **Karar:** Araştırma → 2–3 konsept → PREVIEW → onay |

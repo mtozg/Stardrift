@@ -20,7 +20,7 @@ Oyunda kullanılacak 3B varlıkları **Blender Python (bpy) ile prosedürel**, t
 3. **Entegrasyon kodu yok** — oyunun Three.js mimarisi ve koordinat sözleşmesi ana sohbetten gelip `contracts/game_contract.md`'ye işlenmeden yükleyici/oyun kodu yazılmaz. O zamana dek entegrasyon notları "GEÇİCİ" damgalıdır.
 4. **Her varlık bağımsız**: tek komutla, tek tariften (spec), başka varlığa bağlı olmadan üretilir; parçaları ve malzemeleri kütüphaneden paylaşır.
 5. **Görsel dil korunur**: mevcut oyun görselleri her varlığın referansıdır (bkz. `STANDARDS.md §1`); sadakat ölçülür (`QC.md`).
-6. **Kalite referansı Kaşif kokpitidir** (hibrit süreç, §3).
+6. **Kalite referansı onaylanmış Blender 3B Kaşif kokpitidir** (`models/cockpit_kasif.glb`; bağlayıcı kurallar `STANDARDS.md §0`). Eski 2B ve paralaks kokpit sistemi yeni üretimde kullanılmaz.
 
 ## 2. Kapsam — varlık aileleri
 
@@ -44,7 +44,7 @@ Fabrikada bu akış her aile için standart olur:
 
 | Kokpit adımı | Fabrikadaki genel karşılığı |
 |---|---|
-| `ck_kasif.webp` onaylı çizim | `ref/` — oyundaki mevcut görseller (üst/yan/ön/arka, `ships_*`, `shipx_*`, `olay_*`, `gate_*`, `boss_*`, `a3_*` …) |
+| `ck_kasif.webp` çizimi (Kaşif'te yalnızca hat geliştirme aşamasındaki kaynaktı) | **Kokpitlerde kullanılmaz** (`STANDARDS.md §0.1`). Dış modeller ve diğer varlıklarda `ref/`: oyundaki görseller (`ships_*`, `shipx_*`, `olay_*`, `gate_*`, `boss_*`, `a3_*` …) |
 | `anchors/build_anchors.py` (cam çokgenleri, ekran düzlemleri) | `core/reference.py` — çizimden siluet maskesi, boy/oran, renk paleti, emisyon noktaları çıkarımı |
 | `params/kasif.json` | `specs/<family>/<id>.json` |
 | `lib/canopy, dash, seat…` | `families/<family>/parts/*.py` |
