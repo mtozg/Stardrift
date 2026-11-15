@@ -1698,7 +1698,7 @@ function layoutCockpit(){
       const lw = Math.round((Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[3][0], q[2][1] - q[3][1])) / 2);
       const lh = Math.round((Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1])) / 2);
       // küçük ekranlarda içerik üst üste binmesin: ekran içi en az 96 birim yükseklikte çizilir, sonra ekrana küçültülür
-      const kz = Math.max(1.35, 145 / Math.max(1, lh)), cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * SCRK); cv.height = Math.round(lh * DPR * SCRK);
+      const kz = Math.max(1, 96 / Math.max(1, lh)), cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * SCRK); cv.height = Math.round(lh * DPR * SCRK);
       return { q, lw: Math.round(lw * kz), lh: Math.round(lh * kz), ps: DPR * SCRK / kz, cv, g: cv.getContext('2d'), kind: d.kind };
     });
     return;
@@ -3428,7 +3428,7 @@ function exAct(a){
 // =====================  /ÜS + KAÇAK + MÜRETTEBAT + OLAYLAR  =====================
 // =====================  HANGAR + KOKPİT  =====================
 const CK = {"kasif": "assets/img/ck_kasif.webp", "sahin": "assets/img/ck_sahin.webp", "yuk": "assets/img/ck_yuk.webp", "hayalet": "assets/img/ck_hayalet.webp"};
-const CKP = {"kasif": {"q": [[[391, 397], [597, 377], [590, 505], [330, 531]], [[619, 368], [983, 369], [982, 503], [617, 503]], [[1000, 377], [1209, 397], [1269, 531], [1010, 505]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "sahin": {"q": [[[383, 417], [591, 365], [599, 485], [347, 520]], [[630, 363], [968, 363], [977, 490], [624, 490]], [[1007, 365], [1215, 415], [1248, 525], [1002, 484]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "yuk": {"q": [[[385, 383], [598, 364], [601, 485], [313, 533]], [[613, 348], [985, 347], [976, 488], [625, 485]], [[997, 363], [1227, 391], [1289, 530], [1001, 485]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "hayalet": {"q": [[[375, 378], [595, 368], [599, 487], [318, 527]], [[646, 361], [952, 362], [977, 490], [626, 493]], [[1005, 368], [1223, 379], [1279, 525], [1001, 487]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}};
+const CKP = {"kasif": {"q": [[[393, 411], [588, 392], [582, 501], [342, 525]], [[627, 382], [975, 383], [974, 498], [625, 498]], [[1009, 392], [1206, 411], [1257, 525], [1018, 501]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "sahin": {"q": [[[385, 398], [598, 372], [596, 490], [352, 518]], [[637, 377], [961, 377], [969, 485], [632, 485]], [[1000, 376], [1215, 398], [1248, 520], [1004, 495]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "yuk": {"q": [[[387, 397], [590, 379], [593, 481], [325, 526]], [[622, 362], [976, 361], [968, 483], [633, 480]], [[1006, 378], [1224, 405], [1277, 523], [1009, 481]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "hayalet": {"q": [[[378, 392], [587, 382], [591, 483], [329, 520]], [[652, 375], [947, 376], [968, 485], [635, 488]], [[1013, 382], [1220, 393], [1268, 518], [1009, 483]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}};
 
 function setCockpit(id){
   const d = CK[id], P = CKP[id]; if (!d || !P) return; const im = new Image();
