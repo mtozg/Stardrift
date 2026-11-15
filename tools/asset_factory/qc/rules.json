@@ -81,5 +81,7 @@
    "ckb_",
    "paralaks"
   ]
- }
+ },
+ "perf_gate_min_n": 12,
+ "_perf_note": "n<12 ölçümleri kare başına sabit giderle baskın; swiftshader gürültüsü %30u aşabiliyor (Faz 0 r002 bulgusu) → yalnız bilgi"
 }

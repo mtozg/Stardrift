@@ -21,10 +21,13 @@ def empty(name, parent=None, loc=(0, 0, 0), props=None, coll=None):
 
 
 def socket(root, name, loc_b, dir_b=(0, 1, 0), extras=None):
-    """Soket: konum Blender uzayında; yön, nesnenin −Z ekseni olarak hizalanır (glTF'te de −Z)."""
+    """Soket: konum ve yön Blender uzayında verilir; glTF düğümünün yerel −Z ekseni bu yönü gösterir.
+    Dikkat: glTF dışa aktarıcısı (Y-up) düğümün yerel eksenlerini de dönüştürür: glTF yerel −Z = Blender yerel +Y.
+    Bu yüzden Blender'da yerel +Y yöne hizalanır. (Faz 0 raporunda bulunan hata: önceden −Z hizalanıyordu.)"""
     ob = empty(name, root, loc_b)
     ob.empty_display_type = 'SINGLE_ARROW'
-    ob.rotation_euler = Vector(dir_b).to_track_quat('-Z', 'Z' if abs(Vector(dir_b).normalized().z) < 0.99 else 'Y').to_euler()
+    d = Vector(dir_b).normalized()
+    ob.rotation_euler = d.to_track_quat('Y', 'Z' if abs(d.z) < 0.99 else 'X').to_euler()
     for k, v in (extras or {}).items():
         ob[k] = v
     return ob

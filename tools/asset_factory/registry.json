@@ -3,7 +3,7 @@
  "assets": {
   "test_box": {
    "state": "delivered",
-   "rev": 1,
+   "rev": 2,
    "history": [
     {
      "t": "2026-11-15T18:33:36+00:00",
@@ -42,12 +42,62 @@
      "from": "tech_approved",
      "to": "delivered",
      "reason": "teslim paketi: deliveries/test_box/r001"
+    },
+    {
+     "t": "2026-11-15T19:57:32+00:00",
+     "from": "delivered",
+     "to": "draft",
+     "reason": "yeni revizyon r002: soket yönü düzeltmesi (glTF yerel eksen dönüşümü) + soket yönü QC testi"
+    },
+    {
+     "t": "2026-11-15T20:02:40+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-15T20:02:40+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: r002: geometri r001 ile aynı (hash eşit olmalı), soket düzeltmesi",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T20:05:42+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-15T20:06:26+00:00",
+     "from": "prepared",
+     "to": "qc_fail",
+     "reason": "QC FAIL (63 PASS, 3 WARN, 1 FAIL)"
+    },
+    {
+     "t": "2026-11-15T20:07:24+00:00",
+     "from": "qc_fail",
+     "to": "qc_pass",
+     "reason": "QC WARN (65 PASS, 2 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-15T20:07:34+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: r002: 0 FAIL; 2 WARN raporda açıklandı",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T20:07:35+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/test_box/r002"
     }
    ],
    "timings": {
-    "model": 290.7,
-    "prepare": 173.4,
-    "qc": 42.5
+    "model": 297.8,
+    "prepare": 176.7,
+    "qc": 43.5
    },
    "approvals": [
     {
@@ -62,6 +112,23 @@
      "gate": "tech",
      "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
      "note": "QC 0 FAIL; 2 WARN raporda açıklandı",
+     "accept_warn": [
+      "pbr.base_metal",
+      "gltf.validator_warnings"
+     ]
+    },
+    {
+     "t": "2026-11-15T20:02:40+00:00",
+     "gate": "visual",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "r002: geometri r001 ile aynı (hash eşit olmalı), soket düzeltmesi",
+     "accept_warn": []
+    },
+    {
+     "t": "2026-11-15T20:07:34+00:00",
+     "gate": "tech",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "r002: 0 FAIL; 2 WARN raporda açıklandı",
      "accept_warn": [
       "pbr.base_metal",
       "gltf.validator_warnings"

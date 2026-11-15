@@ -1,0 +1,403 @@
+<title>Stardrift Asset Factory</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: solda yapışkan içindekiler (masaüstü), sağda tek sütun teknik metin; telefonda içindekiler üstte yatay kayar. */
+:root {
+  --bg: #f4f6f8; --surface: #ffffff; --ink: #172230; --muted: #566578; --line: #d9e0e8;
+  --accent: #0f7fa6; --accent-soft: #e2f2f8; --warn: #a76a00; --warn-soft: #fbf1dc; --bad: #b3363f; --bad-soft: #fae6e8; --good: #237a4b; --good-soft: #e3f3ea;
+  --code-bg: #eef2f6;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0c1118; --surface: #131a24; --ink: #dde5ef; --muted: #8e9cb0; --line: #243042;
+  --accent: #4cc8ff; --accent-soft: #10303f; --warn: #f0b74a; --warn-soft: #3a2d10; --bad: #ff8590; --bad-soft: #3a1820; --good: #6fd6a0; --good-soft: #12301f;
+  --code-bg: #182230; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0c1118; --surface: #131a24; --ink: #dde5ef; --muted: #8e9cb0; --line: #243042;
+  --accent: #4cc8ff; --accent-soft: #10303f; --warn: #f0b74a; --warn-soft: #3a2d10; --bad: #ff8590; --bad-soft: #3a1820; --good: #6fd6a0; --good-soft: #12301f;
+  --code-bg: #182230; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 32px 80px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 40px; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; font-size: 14px; }
+nav.toc .k { font: 600 12px var(--f-display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+nav.toc a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--ink); text-decoration: none; border-left: 2px solid transparent }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); border-left-color: var(--accent); outline: none }
+nav.toc a span { font-family: var(--f-mono); font-size: 12px; color: var(--muted); margin-right: 6px }
+main { min-width: 0 }
+header.top { padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 8px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 44px/1.05 var(--f-display); letter-spacing: .01em; margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 30px/1.15 var(--f-display); margin: 56px 0 12px; text-wrap: balance; scroll-margin-top: 20px }
+h2 .n { font-family: var(--f-mono); font-size: 16px; color: var(--accent); vertical-align: middle; margin-right: 10px; font-weight: 500 }
+h3 { font: 600 21px/1.25 var(--f-display); margin: 28px 0 8px; letter-spacing: .01em }
+p, li { max-width: 72ch }
+.lede { font-size: 18px; color: var(--muted); max-width: 70ch }
+.meta { font: 13px var(--f-mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px }
+code { font: 0.86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; word-break: break-word }
+a { color: var(--accent) }
+.tbl { overflow-x: auto; margin: 12px 0 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface) }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 }
+td.num { text-align: right; white-space: nowrap }
+.pill { display: inline-block; font: 600 12px var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.p-ok { background: var(--good-soft); color: var(--good) } .p-warn { background: var(--warn-soft); color: var(--warn) } .p-bad { background: var(--bad-soft); color: var(--bad) } .p-info { background: var(--accent-soft); color: var(--accent) }
+.rule { border-left: 3px solid var(--accent); background: var(--surface); padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0 }
+.rule.warn { border-left-color: var(--warn) }
+.rule.bad { border-left-color: var(--bad) }
+.rule h4 { margin: 0 0 6px; font: 600 15px var(--f-display); letter-spacing: .06em; text-transform: uppercase }
+.rule p, .rule ul { margin: 6px 0 } .rule ul { padding-left: 20px }
+figure { margin: 14px 0 22px }
+figure img { display: block; width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0b0f16 }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 6px; max-width: 80ch }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0 }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px }
+.kpi b { display: block; font: 700 24px var(--f-display); font-variant-numeric: tabular-nums }
+.kpi span { font-size: 12.5px; color: var(--muted) }
+pre.flow { font: 13px/1.5 var(--f-mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; overflow-x: auto; white-space: pre }
+ol.steps { padding-left: 22px } ol.steps li { margin: 4px 0 }
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 16px }
+  nav.toc { position: static; overflow-x: auto }
+  nav.toc ol { display: flex; gap: 4px; padding-bottom: 6px }
+  nav.toc a { white-space: nowrap; border-left: 0; border-bottom: 2px solid transparent }
+  h1 { font-size: 34px } h2 { font-size: 25px }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="İçindekiler">
+  <div class="k">İçindekiler</div>
+  <ol>
+    <li><a href="#ozet"><span>00</span>Özet ve kararlar</a></li>
+    <li><a href="#kasif"><span>01</span>Kaşif referansı</a></li>
+    <li><a href="#hayalet"><span>01b</span>Hayalet teşhisi</a></li>
+    <li><a href="#test"><span>02</span>Test kutusu raporu</a></li>
+    <li><a href="#envanter"><span>03</span>Asset envanteri</a></li>
+    <li><a href="#mimari"><span>04</span>Mimari ve hat</a></li>
+    <li><a href="#standart"><span>05</span>Standartlar</a></li>
+    <li><a href="#qc"><span>06</span>Kalite kontrol</a></li>
+    <li><a href="#yol"><span>07</span>Üretim yol haritası</a></li>
+    <li><a href="#acik"><span>08</span>Açık noktalar</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="top">
+  <div class="eyebrow">Stardrift · 3B varlık üretimi</div>
+  <h1>Stardrift Asset Factory</h1>
+  <p class="lede">Blender Python ile prosedürel 3B varlık üretimi, GLB çıktısı, oyunun Three.js r128 motorunda doğrulama ve mobil bütçeler: mimari, standartlar, envanter, raporlar ve üretim planı tek belgede.</p>
+  <div class="meta"><span>Sürüm 1.0 · 2026-11-15</span><span>Dal <code>claude/awesome-cannon-qb1ro2</code></span><span>Oyun kodu: değiştirilmedi</span></div>
+</header>
+
+<section id="ozet">
+<h2><span class="n">00</span>Özet ve bağlayıcı kararlar</h2>
+<div class="kpis">
+  <div class="kpi"><b>Hazır</b><span>Faz 0 hattı (Blender → GLB → Three r128 → QC)</span></div>
+  <div class="kpi"><b>0 FAIL</b><span>Test kutusu r002 QC (65 PASS · 2 WARN)</span></div>
+  <div class="kpi"><b>4 / 4</b><span>QC öz-testinde yakalanan bozuk dosya</span></div>
+  <div class="kpi"><b>8 grup</b><span>Onaylı üretim sırası</span></div>
+  <div class="kpi"><b>Bekliyor</b><span>Şahin kokpit konsept seçimi</span></div>
+</div>
+<div class="rule"><h4>Bağlayıcı kararlar (kullanıcı, 2026-11-15)</h4>
+<ul>
+  <li><b>Tek kokpit referansı:</b> onaylı Blender 3B Kaşif kokpiti (<code>models/cockpit_kasif.glb</code>) ve <code>tools/cockpit/</code> hattı. İkisi de yalnızca okunur; değiştirilmez, yeniden üretilmez.</li>
+  <li><b>Yeni kokpitler:</b> Şahin, Yük Devi ve Hayalet gerçek 3B modelleme ile, Blender → GLB → Three.js hattında üretilir. Eski 2B kokpit çizimleri ve paralaks sistem yeni üretimde <b>kullanılmaz</b>; yalnızca tarihsel referanstır. Fabrika, bu kaynaklara referans veren kokpit tariflerini reddeder.</li>
+  <li><b>Özgünlük:</b> Her kokpit ve dış model gemiye özgü tasarlanır; Kaşif'ten kalite standardı ve teknik yaklaşım alınır, tasarımı kopyalanmaz. Dört geminin görsel kimliği korunur.</li>
+  <li><b>Dal ve entegrasyon:</b> Fabrika dalı bağımsızdır; main'e otomatik birleştirme yapılmaz. Her GLB entegrasyonu ayrı onay ister.</li>
+  <li><b>Yük Devi kıskacı:</b> İlk modelde statik; pivot, bağlantı noktaları ve hiyerarşi animasyona hazır.</li>
+  <li><b>Hazır model:</b> Varsayılan özgün modelleme; hazır model ancak lisans, kalite, uyumluluk ve optimizasyon incelemesinden sonra ve onayla kullanılır.</li>
+  <li><b>Konsepti olmayan varlıklar</b> (Varak, Morr, üs modülleri, ziyaretçi gemileri): araştırma → 2–3 konsept → PREVIEW → onay.</li>
+  <li><b>Akış:</b> PREVIEW → Kapı 1 (görsel onay) → PRODUCTION → Kapı 2 (teknik onay) → Kapı 3 (entegrasyon onayı, ayrı).</li>
+</ul></div>
+</section>
+
+<section id="kasif">
+<h2><span class="n">01</span>Onaylı Kaşif GLB: teknik referans analizi</h2>
+<p>Salt okuma ile yapıldı. Kaşif dosyalarına yazılmadı, hiçbir şey yeniden üretilmedi.</p>
+<figure><img src="img/kasif_oyun_ici_glb.webp" alt="Onaylı Kaşif kokpiti oyun içinde, Blender GLB modu"><figcaption>Onaylı görsel: Kaşif Blender kokpiti, oyunun içinde (<code>?ck=b</code>), canlı Sistem, Radar ve Gövde ekranlarıyla. Dal <code>claude/bold-bardeen-oqf73o</code> @ <code>f5e4733</code>.</figcaption></figure>
+
+<h3>Referans seti</h3>
+<div class="tbl"><table>
+<tr><th>Rol</th><th>Dosya</th><th>Kimlik</th></tr>
+<tr><td>Onaylı görsel</td><td><code>models/cockpit_kasif.glb</code>, oyunda <code>?ck=b</code></td><td>yukarıdaki ekran görüntüsü</td></tr>
+<tr><td>Teknik GLB referansı</td><td><code>models/cockpit_kasif.glb</code></td><td>3 967 884 bayt · sha256 <code>9d793c24…f848ba</code></td></tr>
+<tr><td>Üretim hattı referansı</td><td><code>tools/cockpit/</code>: build_cockpit, canopy, dash, seat, materials, bake, verify (1 266 satır)</td><td>yalnızca okunur</td></tr>
+<tr><td>Entegrasyon referansı</td><td><code>INTEGRATION_PLAN.md</code>, <code>verify/glb_check.*</code>, <code>verify/ckb_test.js</code></td><td>yalnızca okunur</td></tr>
+<tr><td>Dış model (dondurulmuş)</td><td><code>buildKasif3D</code> (<code>js/game.js:3553</code>) + çizimleri</td><td>main ve dalda piksel düzeyinde aynı</td></tr>
+<tr><td>Tarihsel, referans değil</td><td><code>ck_kasif.webp</code>, paralaks <code>?ck=q</code></td><td>yeni üretimde yasak</td></tr>
+</table></div>
+
+<h3>Yapı ve ölçümler</h3>
+<div class="tbl"><table>
+<tr><th>Ölçü</th><th>Değer</th><th>Hedef (INTEGRATION_PLAN)</th><th></th></tr>
+<tr><td>GLB</td><td class="num">3,78 MB</td><td>≤ 4 MB</td><td><span class="pill p-ok">uygun</span></td></tr>
+<tr><td>Üçgen</td><td class="num">56 556 (gövde 56 374)</td><td>≤ 60 bin</td><td><span class="pill p-ok">uygun</span></td></tr>
+<tr><td>Draw call (Three r128)</td><td class="num">15</td><td>≤ 25</td><td><span class="pill p-ok">uygun</span></td></tr>
+<tr><td>Malzeme</td><td class="num">10</td><td>—</td><td><span class="pill p-info">bilgi</span></td></tr>
+<tr><td>Görsel / doku girdisi</td><td class="num">4 / 24</td><td>—</td><td><span class="pill p-warn">ders</span></td></tr>
+<tr><td>GPU doku nesnesi (<code>renderer.info</code>)</td><td class="num">26</td><td>—</td><td><span class="pill p-warn">ders</span></td></tr>
+<tr><td>GPU doku belleği (tahmin)</td><td class="num">~512 MB</td><td>≤ 40 MB</td><td><span class="pill p-bad">aşıyor</span></td></tr>
+<tr><td>glTF Validator</td><td class="num">0 hata · 8 uyarı</td><td>0 hata</td><td><span class="pill p-ok">uygun</span></td></tr>
+</table></div>
+<p>Gövde tek mesh ve tek UV atlası. Sekiz malzeme (gunmetal, koyu çelik, deri, alüminyum, titanyum, kompozit, iplik, kumaş) aynı dokuları kullanıyor, yalnızca metaliklik katsayısıyla ayrışıyor. Blender dışa aktarıcısı her malzeme için ayrı doku girdisi yazdı ve ORM görselini iki kez gömdü. Three r128, aynı görüntüyü her doku nesnesi için GPU'ya ayrı yükler (görüntü paylaşımı r138'de geldi). GPU belleği bu yüzden şişiyor. Kaşif'e dokunulmayacak; bu bulgu yeni gemiler için kural oldu.</p>
+<div class="grid2">
+<figure><img src="img/kasif_pilot.webp" alt="Kaşif pilot görünümü"><figcaption>Pilot kamerası: FOV 74°, asal nokta 36,5 %. Ekranlar yer tutucu renk.</figcaption></figure>
+<figure><img src="img/kasif_capraz.webp" alt="Kaşif çapraz görünüm"><figcaption>Çapraz: konsol, ekran çerçeveleri, anatomik koltuk.</figcaption></figure>
+<figure><img src="img/kasif_konsol.webp" alt="Kaşif konsol yakın plan"><figcaption>Yakın plan: perçinli çerçeveler, biyeli deri, dikişler.</figcaption></figure>
+<figure><img src="img/kasif_dis.webp" alt="Kaşif kabuğu dıştan"><figcaption>Dıştan: yalnızca gözün önünü saran kabuk (Z −1,57…−0,37 m).</figcaption></figure>
+</div>
+
+<h3>Örnek alınacak kalite standardı</h3>
+<ul>
+  <li><b>Malzeme dili:</b> fırçalı koyu gunmetal, koyu çelik, titanyum ve alüminyum vurgular, kompozit paneller, kapitone deri, kumaş, kontrast dikiş.</li>
+  <li><b>Yüzey:</b> Kenar aşınması, girinti kiri, çizik, fırça izi; hepsi tek atlasa pişirilmiş.</li>
+  <li><b>Ayrıntı:</b> perçinli ekran çerçeveleri, panjurlu ızgaralar, pencere flanşları, dikmelerde ince ışık şeridi, Subsurf ile yumuşatılmış koltuk, ray ve braketler.</li>
+  <li><b>Doğrulama:</b> göz → cam ışın testi, ekran köşesi izdüşüm hatası ≤ 0,05 px, ekran önü engel testi, Three r128'de isim ve draw call denetimi, Playwright ile oyun içi test ve yedek.</li>
+</ul>
+
+<h3>Yeni gemiler için teknik kurallar</h3>
+<div class="tbl"><table>
+<tr><th>Konu</th><th>Kaşif'te</th><th>Şahin · Yük Devi · Hayalet</th></tr>
+<tr><td>Doku paylaşımı</td><td>8 malzeme × 3 doku girdisi → 24 GPU dokusu</td><td>Tek gövde malzemesi, tek doku seti; metaliklik ORM.B'de. GPU ≤ 40 MB</td></tr>
+<tr><td>Draw call</td><td>15</td><td>gövde 1 + emisyon 1 + ekran 3 (+ cam 1) → ≤ 6</td></tr>
+<tr><td>Emisyon</td><td><code>emissive_strength = 4</code>; r128'de 1 görünür</td><td>Renk ≤ 1, parlaklık bloom'dan</td></tr>
+<tr><td>Doku biçimi</td><td>JPEG; ORM iki kez</td><td>WebP; ORM tek kez; ICC profilsiz</td></tr>
+<tr><td>Yüz</td><td><code>doubleSided</code></td><td>Tek yüz; gizli yüz silme</td></tr>
+<tr><td>Ekran sözleşmesi</td><td><code>SCR_SYS / SCR_RADAR / SCR_HULL</code>, UV 0..1</td><td>Adlar ve UV düzeni aynı; yerleşim ve biçim gemiye özgü</td></tr>
+<tr><td>Kamera</td><td>FOV 74°, göz orijinde</td><td>Aynı sözleşme; kabuk, cam ve konsol gemiye özgü</td></tr>
+<tr><td>Bütçe</td><td>56,5 bin üçgen · 3,78 MB</td><td>≤ 60 bin · ≤ 4 MB · GPU ≤ 40 MB</td></tr>
+</table></div>
+</section>
+
+<section id="hayalet">
+<h2><span class="n">01b</span>Hayalet: mor şeritler ve köşeli kimlik neden kayboluyor?</h2>
+<p>Oyunun kendi <code>mkShip()</code> kurucusu, geometri değiştirilmeden render edildi. Teşhis renkleri yalnızca test tarayıcısının bellekteki kopyasında uygulandı; diskteki oyun dosyasına dokunulmadı.</p>
+<div class="tbl"><table>
+<tr><th>Ölçü</th><th>Şahin</th><th>Yük Devi</th><th>Hayalet</th></tr>
+<tr><td>Yedek gri kaplaması (yan / üst)</td><td class="num">7 % / 7 %</td><td class="num">1 % / 1 %</td><td class="num">2,5 % / 3,5 %</td></tr>
+<tr><td>Parlaklık, render ⟷ çizim (yan)</td><td class="num">91 ⟷ 84</td><td class="num">63 ⟷ 76</td><td class="num"><b>72 ⟷ 61 (+17 %)</b></td></tr>
+<tr><td>Mor piksel, render ⟷ çizim</td><td class="num">—</td><td class="num">—</td><td class="num"><b>0,01 % ⟷ 0,29 %</b></td></tr>
+<tr><td>Boyayan çizim, 3/4 önden (yan / üst / ön)</td><td class="num">27 / 63 / 4</td><td class="num">35 / 44 / 13</td><td class="num"><b>28 / 67 / 0</b></td></tr>
+</table></div>
+<div class="grid2">
+<figure><img src="img/hayalet_teshis_projeksiyon.webp" alt="Hayalet yüzeyinin hangi çizimle boyandığı"><figcaption>Kırmızı = yan çizim, yeşil = üst çizim, mavi = ön çizim. Yassı gövdede üst çizim baskın; ön çizim hiç kullanılmıyor.</figcaption></figure>
+<figure><img src="img/hayalet_teshis_yedek.webp" alt="Hayalet yedek gri teşhisi ve çizimler"><figcaption>Macenta = yedek gri (yalnızca burun ucu ve motor ağızları). Sağda çizimler: mor şeritler ve mor kokpit camı.</figcaption></figure>
+</div>
+<ol class="steps">
+  <li><b>Projeksiyon ağırlığı (ana neden).</b> Yüzey, normaline göre üst ya da yan çizimden boyanıyor. Yassı Hayalet'te görünür yüzeyin %64–67'si üst çizimle boyanıyor; üst çizimde mor yok denecek kadar az.</li>
+  <li><b>Ön çizim devre dışı.</b> Mor kokpit camı ön çizimde. Ön doku yalnızca öne bakan yüzeylere uygulanıyor; sivri burunda böyle yüzey yok.</li>
+  <li><b>Emisyon kanalı yok.</b> Şeritler ışık saçmıyor, renk olarak çiziliyor. 1–3 piksellik çizgiler uzaktan bakınca mipmap ortalamasında kayboluyor; bloom etkilemiyor.</li>
+  <li><b>Işık modeli.</b> Özel shader sahne ışığını ve yansımayı kullanmıyor; sabit taban ışık ve kazanç koyu, parlak metali %17–22 açıyor. Sonuç mat gümüş-gri görünüm.</li>
+  <li><b>Geometri (bilgi için).</b> Kesitler yumuşak süperelips; köşeli yüzeyler geometride değil, yalnızca dokuda çizgi olarak var.</li>
+</ol>
+<div class="rule"><h4>Sonuç</h4><p>Kayıp yapısal: çizimden izdüşüm tekniği yassı ve köşeli bir gövdenin kimliğini taşıyamıyor. Yeni Hayalet modeli bunu çözecek: köşeli yüzeyler gerçek geometride, mor şeritler ayrı emisyon olarak, koyu parlak metal PBR ve yansımayla, kokpit camı ayrı malzemeyle. Mevcut oyundaki modele malzeme düzeyinde geçici bir iyileştirme de mümkün, ama oyun koduna dokunduğu için yalnızca ayrı onayla ve ana sohbette yapılabilir.</p></div>
+</section>
+
+<section id="test">
+<h2><span class="n">02</span>Faz 0 test kutusu: teslim paketi raporu</h2>
+<p>Teslim paketi: <code>deliveries/test_box/r002/</code>. Test kutusu yalnızca hattı doğrulayan bir nesnedir; oyuna girmez.</p>
+<div class="rule warn"><h4>r001 → r002: QC'nin kaçırdığı hata</h4><p>Rapor hazırlanırken soket yönlerinin yanlış olduğu görüldü: motor soketi geriye değil aşağıya bakıyordu. glTF dışa aktarıcısı düğümün yerel eksenlerini de Y-up'a çeviriyor. Hata düzeltildi, QC'ye <code>contract.socket_dir</code> testi eklendi (≤ 1°) ve aynı geometriyle (hash eşit) r002 üretildi; iki soket de testi geçiyor.</p></div>
+<div class="kpis">
+  <div class="kpi"><b>1 177</b><span>üçgen LOD0 (LOD1 540 · LOD2 195)</span></div>
+  <div class="kpi"><b>2</b><span>draw call (Three r128)</span></div>
+  <div class="kpi"><b>272 KB</b><span>GLB (dokular gömülü)</span></div>
+  <div class="kpi"><b>1,9–2,7</b><span>ΔE ortalaması</span></div>
+  <div class="kpi"><b>8,6 dk</b><span>toplam üretim süresi</span></div>
+</div>
+<figure><img src="img/test_blender_hero.webp" alt="Test kutusu Blender lookdev render"><figcaption>Blender render (Cycles lookdev).</figcaption></figure>
+<figure><img src="img/test_blender_three_dE.webp" alt="Blender, Three.js ve ΔE karşılaştırması"><figcaption>Soldan sağa: Blender (nötr ışık, altın referans), Three r128 (oyunun motoru, aynı kamera ve eşdeğer ışık), ΔE haritası.</figcaption></figure>
+<div class="tbl"><table>
+<tr><th>Kamera</th><th>Parlaklık farkı</th><th>ΔE ort.</th><th>ΔE p95</th><th>Siluet farkı</th></tr>
+<tr><td>Ön 3/4</td><td class="num">4,2 %</td><td class="num">2,33</td><td class="num">11,1</td><td class="num">0,24 %</td></tr>
+<tr><td>Arka 3/4</td><td class="num">2,3 %</td><td class="num">2,69</td><td class="num">11,3</td><td class="num">0,22 %</td></tr>
+<tr><td>Yan</td><td class="num">1,7 %</td><td class="num">1,90</td><td class="num">7,0</td><td class="num">0,17 %</td></tr>
+<tr><td>FAIL eşiği</td><td class="num">8 %</td><td class="num">6,0</td><td class="num">—</td><td class="num">1 %</td></tr>
+</table></div>
+<p>ΔE p95'in 7–11 olması kenar piksellerinden, 1 cm altı ızgara ve anten ayrıntısından ve motor çanının içinden geliyor (Cycles'ta çoklu yansıma var, Three'de dolaylı ışık yok). Düz yüzeylerde fark neredeyse sıfır.</p>
+<figure><img src="img/test_dokular.webp" alt="Test kutusu dokuları"><figcaption>Dokular (WebP, 1024²): base 37 KB · ORM 99 KB · normal 11 KB · emisyon 4 KB.</figcaption></figure>
+<h3>QC sonucu ve iki WARN</h3>
+<div class="tbl"><table>
+<tr><th>Katman</th><th>Sonuç</th></tr>
+<tr><td>L2 statik (validator, sözleşme, geometri, UV, PBR, bütçe, tekrar üretilebilirlik)</td><td>47 PASS · 2 WARN</td></tr>
+<tr><td>L3 motor sadakati (yükleme, malzeme, draw call, soket yönü, yüz yönü, LOD silueti, Blender ⟷ Three)</td><td>11 PASS</td></tr>
+<tr><td>L4 performans (4 profil × n = 1 / 12 / 40)</td><td>12 PASS · gerçek cihaz SKIP</td></tr>
+</table></div>
+<ol class="steps">
+  <li><span class="pill p-warn">WARN</span> <code>pbr.base_metal</code> [116, 159], sınır ≥ 120. Prosedürel kir metal taban rengini koyulaştırıyor. Doğrusu: kir dielektrik olmalı, metalikliği düşürmeli, pürüzlülüğü artırmalı. Gerçek varlıklardan önce düzeltilecek.</li>
+  <li><span class="pill p-warn">WARN</span> Validator: <code>MESH_PRIMITIVE_GENERATED_TANGENT_SPACE</code> ×3. Tangent yok; Three çalışma anında üretiyor. Kaşif'te de aynı uyarı var. Ölçülen etki ΔE ≤ 2,7; tangentsiz devam ediliyor, ΔE izlenecek.</li>
+</ol>
+<p>Öz-test: bilerek bozulan 4 dosyanın 4'ü yakalandı. Bu yalnızca bu dört hata türünü kapsar; gerçek varlıkların bütün kontrollerden geçeceğini göstermez. Soket hatası tam da böyle bir boşluktu.</p>
+<div class="tbl"><table>
+<tr><th>Aşama</th><th>Süre</th><th>Ayrıntı</th></tr>
+<tr><td>Model + lookdev</td><td class="num">297,8 s</td><td>lookdev render ~250 s · dik görünüşler ~20 s · altın referans ~26 s</td></tr>
+<tr><td>Hazırlık</td><td class="num">176,7 s</td><td>UV ~40 s · bake ~131 s · dışa aktarma ve doku &lt; 2 s</td></tr>
+<tr><td>QC</td><td class="num">43,5 s</td><td>Three r128 + 4 cihaz profili 41,8 s</td></tr>
+<tr><td><b>Toplam</b></td><td class="num"><b>~518 s</b></td><td>hızlı mod ~2 dk</td></tr>
+</table></div>
+</section>
+
+<section id="envanter">
+<h2><span class="n">03</span>Stardrift asset envanteri</h2>
+<p>Kaynak: main <code>js/game.js</code> (10 267 satır), <code>assets/img</code> (275 dosyanın tamamı kodda kullanılıyor), README, birleşmemiş dal <code>claude/bold-bardeen-oqf73o</code>, <code>cizim-deneme</code> notları. Oyun içi kalite, aşağıdaki kurallarla oyunun kendi koduyla render edilerek doğrulandı (oyuncu gemileri). Diğer sınıflar kodun çizim tekniğinden çıkarıldı.</p>
+<h3>Mevcut çizim teknikleri</h3>
+<div class="tbl"><table>
+<tr><th>Sınıf</th><th>Teknik</th><th>Örnek</th></tr>
+<tr><td>K5</td><td>Onaylı referans</td><td>Kaşif (kokpit GLB, dış model)</td></tr>
+<tr><td>K4</td><td>Blender GLB, pişmiş PBR</td><td>yalnızca <code>cockpit_kasif.glb</code> (dal)</td></tr>
+<tr><td>K3</td><td>Üst + yan çizimden izdüşümle 3B gövde</td><td>Şahin, Yük Devi, Hayalet dış; NPC'ler; istasyonlar; olay modelleri</td></tr>
+<tr><td>K2</td><td>Sprite, çapraz düzlem, düz düzlem</td><td>Cevher kayaları, uydu tarlası, roket</td></tr>
+<tr><td>K1</td><td>İlkel geometri ya da başka varlığın kopyası</td><td>Buz devi, monolit, kaçak yük, Varak, Morr</td></tr>
+</table></div>
+
+<h3>Oyuncu gemileri</h3>
+<div class="tbl"><table>
+<tr><th>Gemi</th><th>Fiyat</th><th>Rol</th><th>Dış görsel kimlik (çizimlerden)</th><th>Dış model</th><th>Kokpit</th></tr>
+<tr><td><b>Kaşif</b></td><td class="num">0</td><td>Dengeli</td><td>Gri-mavi gövde, 4 motor kapsülü, süpürülmüş kanat</td><td>K5 dondurulmuş</td><td>K5 Blender GLB</td></tr>
+<tr><td><b>Şahin</b></td><td class="num">4 500</td><td>Avcı: çevik, güçlü kalkan, küçük kargo</td><td>Beyaz-gri, kırmızı şeritler, ok kanat, ikiz eğik kuyruk, damla kanopi, tek büyük motor</td><td>K3 → yeni GLB</td><td>2B (tarihsel) → yeni 3B</td></tr>
+<tr><td><b>Yük Devi</b></td><td class="num">5 000</td><td>Ağır madenci: 2× kargo, sağlam gövde</td><td>Haki-amber kutu gövde, konteyner dizileri, 8 motor (3-2-3), burunda kıskaç kol</td><td>K3 → yeni GLB</td><td>2B (tarihsel) → yeni 3B</td></tr>
+<tr><td><b>Hayalet</b></td><td class="num">7 500</td><td>En hızlı, ince gövde</td><td>Antrasit köşeli gövde, mor ışık şeritleri, 4 motor (2×2)</td><td>K3 → yeni GLB</td><td>2B (tarihsel) → yeni 3B</td></tr>
+</table></div>
+<figure><img src="img/gemiler_cizimler.webp" alt="Dört oyuncu gemisinin çizimleri"><figcaption>Dış görsel kimliğin kaynağı: üst, yan, ön, arka ve alt çizimler (<code>shipart_*</code>, <code>shipx_*</code>).</figcaption></figure>
+<figure><img src="img/gemiler_dis_main.webp" alt="Dört gemi oyunun kendi koduyla render"><figcaption>Bugünkü oyun içi dış modeller (main), oyunun <code>mkShip()</code> kurucusuyla aynı açılardan. Dalda Kaşif aynı; diğerlerinde yalnızca ortam yansıması farkı var.</figcaption></figure>
+
+<h3>Diğer varlıklar</h3>
+<div class="tbl"><table>
+<tr><th>Kategori</th><th>Varlıklar</th><th>Bugünkü durum</th><th>Grup</th></tr>
+<tr><td>Cevher kayaları ve parçaları</td><td>5 tür × 3 kaya varyantı; 5 toplanan parça</td><td>K2 sprite; çekirdek döngü</td><td>2</td></tr>
+<tr><td>Korsan · devriye · tüccar</td><td>Akbaba, Kurt, Yağmacı; korvet; kargo, tanker, kurye, madenci</td><td>K3</td><td>2</td></tr>
+<tr><td>İstasyonlar</td><td>Ankora, oyuncu üssü, Demirhan, Buzul Durağı, Kristal Kapısı, Lonca Pazarı, Kara Liman</td><td>K3</td><td>3</td></tr>
+<tr><td>Kapılar ve kalıntılar</td><td>Geçit kapıları, ücra kapılar, Kadim Kapı, kalıntı (16 nokta)</td><td>Prosedürel çerçeve + shader; K3</td><td>4</td></tr>
+<tr><td>Patronlar</td><td>Dorak, Zerha, Hiem, Verdan, korsan lideri; <b>Varak, Morr</b></td><td>K3; Varak ve Morr K1 (başka patronun modeli)</td><td>5</td></tr>
+<tr><td>Geçici çevre</td><td>Buz devleri, kristal monolitler, patron inleri, uydu tarlası, korsan kampı, terk edilmiş istasyon, lav kayaları</td><td>K1–K3</td><td>6</td></tr>
+<tr><td>Küçük nesneler</td><td>Roket (güdümlü ve güdümsüz), kaçak yük konteyneri, kayıp sonda, enkaz</td><td>K1–K2</td><td>7</td></tr>
+<tr><td>İç mekân ve kararsızlar</td><td>Hangar ve tüneller, üs modülleri, ziyaretçi gemileri, ödül avcısı, roket türleri, 3B donanım simgeleri</td><td>Prosedürel / yok / karar bekliyor</td><td>8</td></tr>
+</table></div>
+<p>Yer tutucu olanlar: Varak ve Morr'un gemileri, patron inleri, buz devleri, monolitler, kaçak yük, kayıp sonda ve ziyaretçi gemileri. Tasarımda tanımlı ama üretilmemiş: üs eklenti modülleri. Ayrıntılı tablolar ve satır referansları: <code>tools/asset_factory/INVENTORY.md</code>.</p>
+</section>
+
+<section id="mimari">
+<h2><span class="n">04</span>Mimari ve üretim hattı</h2>
+<pre class="flow">spec.json + ref/ ─► MODEL (bpy, seed) ─► GÖRÜNÜM (prosedürel PBR, Cycles lookdev)
+                                                   │
+                                   ◆ Kapı 1 — görsel onay (PREVIEW sonu)
+                                                   │
+   HAZIRLIK: birleştirme → gizli yüz silme → UV → kanal bake (base, ORM, normal, emisyon)
+             → LOD → soketler → GLB (WebP, ICC profilsiz)
+                                                   │
+   QC: L2 statik · L3 Three r128 sadakati · L4 performans ─► rapor (json + html)
+                                                   │
+                                   ◆ Kapı 2 — teknik onay (PRODUCTION sonu)
+                                                   │
+   TESLİM: GLB · dokular · spec sheet · QC raporu · önizleme · entegrasyon notu
+                                                   │
+                                   ◆ Kapı 3 — oyuna entegrasyon (ayrı onay, ana sohbette)</pre>
+<div class="tbl"><table>
+<tr><th>Klasör</th><th>İçerik</th></tr>
+<tr><td><code>factory.py</code></td><td>Tek CLI: <code>model · review · approve · prepare · qc · deliver · revise · status</code>; kapılar komut düzeyinde zorlanır</td></tr>
+<tr><td><code>core/</code></td><td>geo, materials, render, cleanup, uv, bake, lod, export, glbpack, seed, registry, paths. Kaşif hattından fikirler alınarak yeniden yazıldı, kopyalanmadı</td></tr>
+<tr><td><code>families/</code></td><td>Aile kurucuları (şimdilik <code>test</code>; sıradaki <code>cockpit</code>, <code>player_ship</code>)</td></tr>
+<tr><td><code>library/materials</code></td><td>Malzeme tanımları (JSON): hull_grey, gunmetal, steel_dark, emit_*</td></tr>
+<tr><td><code>specs/</code>, <code>ref/</code></td><td>Tarifler (kaynak gerçeği) ve referans görseller</td></tr>
+<tr><td><code>qc/</code></td><td>Kurallar, bütçeler, statik ve Blender testleri, Three r128 görüntüleyici (<code>check.html</code>, <code>bench.html</code>), öz-test</td></tr>
+<tr><td><code>registry.json</code></td><td>Durum, revizyon, hash, onay kayıtları</td></tr>
+<tr><td><code>deliveries/</code>, <code>reports/</code></td><td>Teslim paketleri ve aşama raporları</td></tr>
+</table></div>
+<p>Ortam: Blender Python <code>bpy 5.3.0</code>, Node 22, Playwright (swiftshader), Khronos glTF Validator 2.0.0-dev.3.10, oyunun <code>vendor/three.min.js</code> (r128) ve fabrikanın sabitlenmiş GLTFLoader r128 kopyası.</p>
+</section>
+
+<section id="standart">
+<h2><span class="n">05</span>Standartlar</h2>
+<div class="tbl"><table>
+<tr><th>Alan</th><th>Kural</th></tr>
+<tr><td>Görsel dil</td><td>Yıpranmış, gerçekçi sert yüzey. Taraf renkleri: Filo temiz mavi-beyaz, Lonca amber, Korsan pas ve kırmızı. Kadim mor runik, patronlar organik. Emisyon küçük ve kontrollü</td></tr>
+<tr><td>Koordinat (GEÇİCİ)</td><td>Metre; +Y yukarı, burun −Z; kokpitte göz orijinde. Ana sohbetten gelecek sözleşmeyle kesinleşecek</td></tr>
+<tr><td>Adlandırma</td><td><code>SD_&lt;id&gt;</code> kök · <code>LODn_body|emit|glass</code> · <code>SOCK_&lt;tür&gt;_&lt;n&gt;</code> (yön düğümün −Z ekseni) · <code>SCR_*</code> ekran · <code>ART_&lt;parça&gt;_&lt;eklem&gt;</code> hareketli parça · <code>MAT_&lt;rol&gt;</code></td></tr>
+<tr><td>Malzeme</td><td>≤ 3 malzeme, metallic-roughness; emisyon rengi ≤ 1 (<code>KHR_materials_emissive_strength</code> yasak). Transmission ve clearcoat yok</td></tr>
+<tr><td>Doku</td><td>WebP (base q88, ORM/normal q92), 2'nin kuvveti; ORM = AO/pürüzlülük/metaliklik; normal OpenGL +Y. Aile içi ortak atlas, aileler arası paylaşım yok</td></tr>
+<tr><td>Geometri</td><td>Biçimi silüet verir, ince ayrıntıyı doku; gizli yüz yok; tek yüz; LOD1 ≈ %45, LOD2 ≈ %15</td></tr>
+<tr><td>Siluet sadakati</td><td>Prototip 0,80; nihai: oyuncu gemisi, istasyon, kapı 0,92 · NPC 0,88 · diğer 0,85</td></tr>
+<tr><td>Teslim paketi</td><td>GLB, dokular, önizlemeler, <code>spec_sheet.md</code>, <code>qc_report</code>, <code>integration.md</code> (kod yok), <code>manifest.json</code>, <code>source.json</code></td></tr>
+</table></div>
+<h3>Performans bütçeleri (başlangıç değerleri)</h3>
+<div class="tbl"><table>
+<tr><th>Sınıf</th><th>Üçgen LOD0 / 1 / 2</th><th>Draw call</th><th>Doku</th><th>GLB</th></tr>
+<tr><td>Kokpit</td><td class="num">60 000</td><td class="num">≤ 25 (yeni hedef ≤ 6)</td><td>unique 2048², GPU ≤ 40 MB</td><td class="num">4 MB</td></tr>
+<tr><td>Oyuncu gemisi / patron</td><td class="num">12 000 / 5 000 / 1 500</td><td class="num">≤ 3</td><td>unique 1024²</td><td class="num">1 MB</td></tr>
+<tr><td>NPC büyük / küçük</td><td class="num">6 000 · 2 500</td><td class="num">≤ 3 · ≤ 2</td><td>trim (aile)</td><td class="num">300 · 150 KB</td></tr>
+<tr><td>İstasyon</td><td class="num">25 000 / 10 000 / 3 000</td><td class="num">≤ 4</td><td>unique 2048²</td><td class="num">2 MB</td></tr>
+<tr><td>Kapı</td><td class="num">10 000 / 4 000 / 1 200</td><td class="num">≤ 3</td><td>unique 1024²</td><td class="num">1 MB</td></tr>
+<tr><td>Kaya (instancing)</td><td class="num">400 / 150 / 50</td><td class="num">1</td><td>trim (aile)</td><td class="num">40 KB</td></tr>
+<tr><td>Prop</td><td class="num">800 / 300 / 80</td><td class="num">≤ 2</td><td>trim</td><td class="num">60 KB</td></tr>
+<tr><td>İç mekân</td><td class="num">40 000</td><td class="num">≤ 6</td><td>unique 2048² + ışık haritası</td><td class="num">3,5 MB</td></tr>
+</table></div>
+<p>Bütçeler gerçek cihaz ve görsel kalite testlerinden sonra revize edilecek.</p>
+</section>
+
+<section id="qc">
+<h2><span class="n">06</span>Kalite kontrol sistemi</h2>
+<div class="tbl"><table>
+<tr><th>Katman</th><th>Ne zaman</th><th>Testler</th></tr>
+<tr><td>L1 görsel</td><td>Kapı 1 öncesi</td><td>Lookdev, 6 dik görünüş, yakın plan, referansla yan yana, 128 px okunabilirlik; Claude ön kontrolü + kullanıcı onayı</td></tr>
+<tr><td>L2 statik</td><td>Hazırlıktan sonra</td><td>Khronos validator; sözleşme (ad, hiyerarşi, extras, yön, boy); uzantılar; sıfır alanlı yüz, gevşek köşe; dışarıdan görünen arka yüz (20 bin ışın); UV çakışması (piksel merkezi rasteri), texel yoğunluğu; UV kapsamlı PBR aralıkları; bütçe; tekrar üretilebilirlik (geometri hash'i); referans siluet</td></tr>
+<tr><td>L3 motor</td><td>L2 sonrası</td><td>Three r128'de yükleme, malzeme tipi, draw call, <b>soket yönü</b>, FrontSide ⟷ DoubleSide (erozyonlu), LOD silueti, Blender ⟷ Three (parlaklık, ΔE, siluet)</td></tr>
+<tr><td>L4 performans</td><td>L3 sonrası</td><td>Masaüstü, iPad Pro 11, iPhone 13, Pixel 7 emülasyonu; n = 1 / 12 / 40; gerileme kararı n ≥ 12'de; gerçek cihaz <code>bench.html</code> ile</td></tr>
+</table></div>
+<h3>Kaşif analizinden eklenecek QC kuralları (Faz 1 öncesi)</h3>
+<ul>
+  <li>Doku girdisi sayısı ≤ görsel sayısı (her görsel tek doku nesnesi); aynı görselin iki kez gömülmesi FAIL.</li>
+  <li>GPU doku belleği tahmini, sınıf bütçesine karşı (kokpit ≤ 40 MB).</li>
+  <li>Kokpit ailesi: göz → cam ışın testi, ekran köşesi izdüşümü, ekran önü engel testi (Kaşif <code>verify.py</code> yaklaşımı, fabrikada yeniden yazılarak).</li>
+  <li>Kir katmanının dielektrik olması (metal taban rengi WARN'ının kalıcı çözümü).</li>
+</ul>
+</section>
+
+<section id="yol">
+<h2><span class="n">07</span>Üretim yol haritası (onaylı sıra)</h2>
+<div class="tbl"><table>
+<tr><th>Grup</th><th>Kapsam</th><th>Ön koşul / not</th></tr>
+<tr><td>0 ✓</td><td>Faz 0: hat ve QC doğrulandı (test kutusu r002)</td><td>Tamam</td></tr>
+<tr><td>0,5</td><td>Hazırlık: bu belge, Kaşif referansı, <a href="https://claude.ai/artifact/WY6ViUZF4fiSEieEgRqpBS">Şahin kokpit konseptleri</a></td><td><b>Onay bekliyor</b></td></tr>
+<tr><td>1</td><td><b>Oyuncu gemileri:</b> Kaşif (dondurulmuş) → <b>Şahin</b> → <b>Yük Devi</b> → <b>Hayalet</b>. Her gemide kokpit, sonra dış model</td><td>Kokpit ailesi modülleri ve yukarıdaki QC kuralları; Şahin kokpit konsept onayı</td></tr>
+<tr><td>2</td><td>Cevher kayaları ve parçaları → korsan, devriye, tüccar gemileri</td><td>Aile atlasları (kaya, NPC)</td></tr>
+<tr><td>3</td><td>İstasyonlar: Ankora'dan başlayarak</td><td>—</td></tr>
+<tr><td>4</td><td>Kapılar, Kadim Kapı ve kalıntılar</td><td>Kapı shader'ıyla çerçeve sözleşmesi</td></tr>
+<tr><td>5</td><td>Patronlar; Varak ve Morr için önce konsept</td><td>Konsept politikası</td></tr>
+<tr><td>6</td><td>Geçici çevre nesneleri</td><td>—</td></tr>
+<tr><td>7</td><td>Roket, kaçak yük konteyneri, sonda, enkaz</td><td>—</td></tr>
+<tr><td>8</td><td>İç mekânlar ve karar bekleyen varlıklar</td><td>Tasarım kararları</td></tr>
+</table></div>
+<h3>Bir oyuncu gemisinin akışı</h3>
+<ol class="steps">
+  <li><b>Kokpit konsepti:</b> 2–3 yön; kullanıcı seçer.</li>
+  <li><b>Kokpit PREVIEW:</b> Blokaj, pilot kamerası, ekran sözleşmesi ve cam görüşü testi; hızlı render → Kapı 1.</li>
+  <li><b>Kokpit PRODUCTION:</b> Ayrıntı, malzeme, bake, GLB → QC → Kapı 2.</li>
+  <li><b>Dış model PREVIEW:</b> Çizimlerdeki kimliğe sadakat, siluet ≥ 0,92 hedefi → Kapı 1.</li>
+  <li><b>Dış model PRODUCTION</b> → QC → Kapı 2.</li>
+  <li><b>Entegrasyon notu</b> hazırlanır; entegrasyonun kendisi ayrı onayla, ana sohbette yapılır.</li>
+</ol>
+</section>
+
+<section id="acik">
+<h2><span class="n">08</span>Açık noktalar</h2>
+<div class="tbl"><table>
+<tr><th>Konu</th><th>Durum</th></tr>
+<tr><td>Oyun sözleşmesi (koordinat, ölçek, ışık, LOD, kalite seviyeleri)</td><td>Ana sohbetten bekleniyor; o zamana dek entegrasyon notları GEÇİCİ</td></tr>
+<tr><td>GLTFLoader main'de yok</td><td>Her GLB entegrasyonu buna bağlı; karar ana sohbette</td></tr>
+<tr><td>Oyuncu gemilerinin gerçek boyu (metre)</td><td>Kodda tanımlı değil; kokpitte göz ölçeği Kaşif'ten alınabilir</td></tr>
+<tr><td>Gemi içi sıra</td><td>Önerim kokpit önce</td></tr>
+<tr><td>Sabit emisyonun taşınması</td><td>Ayrı emisyon dokusu GPU'da pahalı; alfa kanalı, vertex color ya da <code>MAT_emit</code> seçenekleri Faz 1'de denenecek</td></tr>
+<tr><td>Gerçek cihaz ölçümü</td><td><code>bench.html</code> hazır; telefonda bir ölçüm gerekiyor</td></tr>
+</table></div>
+</section>
+</main>
+</div>

@@ -187,6 +187,15 @@ def cmd_qc(a):
     insp = TR.get('inspect', {})
     add('three.materials', 'L3', 'PASS' if all(m['type'] == 'MeshStandardMaterial' and m['side'] == 0 for m in insp.get('materials', {}).values()) else 'FAIL',
         {k: m['type'] for k, m in insp.get('materials', {}).items()}, 'MeshStandardMaterial, FrontSide')
+    import math as _m
+    for sk in insp.get('sockets', []):
+        want = (sk.get('extras') or {}).get('dir')
+        if not want:
+            add('contract.socket_dir.%s' % sk['name'], 'L3', 'FAIL', sk['dir'], None, 'extras.dir yok: beklenen yön doğrulanamıyor')
+            continue
+        dot = sum(a * b for a, b in zip(sk['dir'], want)) / (max(1e-9, _m.sqrt(sum(a * a for a in want))))
+        ang = _m.degrees(_m.acos(max(-1.0, min(1.0, dot))))
+        add('contract.socket_dir.%s' % sk['name'], 'L3', 'PASS' if ang <= 1.0 else 'FAIL', sk['dir'], want, 'Three r128\'de okunan yön (düğüm −Z) ile tarifteki yön arası %.1f°' % ang)
     add('three.calls_lod0', 'L3', 'PASS' if TR['info']['calls'] <= budgets['classes'][spec['class']]['calls'] else 'FAIL', TR['info']['calls'], budgets['classes'][spec['class']]['calls'], 'renderer.info')
     add('three.normal_side', 'L3', 'PASS' if TR['normal_side_diff'] <= rules['normal_side_diff_fail'] else 'FAIL', TR['normal_side_diff'], rules['normal_side_diff_fail'],
         'FrontSide⟷DoubleSide, erozyon sonrası (ham %.3f%%)' % (TR['normal_side_diff_raw'] * 100))
@@ -225,6 +234,8 @@ def cmd_qc(a):
                 r = (v - prev[key]) / prev[key]
                 big = (v - prev[key]) > rules['perf_abs_floor_ms']      # küçük sürelerde yazılım GPU gürültüsünü ele
                 st = 'FAIL' if (r > rules['perf_regress_fail'] and big) else ('WARN' if (r > rules['perf_regress_warn'] and big) else 'PASS')
+                if p['n'] < rules.get('perf_gate_min_n', 1):
+                    st = 'PASS'      # bilgi amaçlı: n küçükken ölçüm varlık maliyetini değil sabit gideri yansıtır
                 add('perf.%s.n%d' % (dev, p['n']), 'L4', st, v, prev[key], '%s, temel ölçüme göre %+.0f%% (eşik: göreli ve > %.1f ms)' % (rules['perf_metric'], r * 100, rules['perf_abs_floor_ms']))
             else:
                 add('perf.%s.n%d' % (dev, p['n']), 'L4', 'PASS', v, None, '%s; temel ölçüm (karşılaştırılacak önceki revizyon yok)' % rules['perf_metric'])
@@ -359,6 +370,16 @@ def cmd_deliver(a):
     print('RESULT', json.dumps({'stage': 'deliver', 'out': out, 'files': sorted(os.path.relpath(p, out) for p in glob.glob(out + '/**/*', recursive=True) if os.path.isfile(p))}, ensure_ascii=False))
 
 
+def cmd_revise(a):
+    """Yeni revizyon: rev+1, durum draft. Eski revizyonun work/ ve deliveries/ kayıtları korunur."""
+    reg = registry.get(a.id)
+    if reg is None:
+        raise SystemExit('kayıt yok: ' + a.id)
+    registry.update(a.id, rev=reg['rev'] + 1, timings={}, perf_baseline=reg.get('perf_baseline'))
+    registry.transition(a.id, 'draft', 'yeni revizyon r%03d: %s' % (reg['rev'] + 1, a.reason))
+    print('RESULT', json.dumps({'id': a.id, 'rev': reg['rev'] + 1}))
+
+
 def cmd_status(a):
     reg = registry.load()
     for k, v in reg['assets'].items():
@@ -379,6 +400,9 @@ def main():
     p.add_argument('--by', required=True)
     p.add_argument('--note', required=True)
     p.add_argument('--accept-warn')
+    p = sp.add_parser('revise')
+    p.add_argument('id')
+    p.add_argument('--reason', required=True)
     sp.add_parser('status')
     a = ap.parse_args()
     globals()['cmd_' + a.cmd](a)

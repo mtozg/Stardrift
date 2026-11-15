@@ -124,7 +124,7 @@ for i, group in lods.items():
 sock_objs = []
 for e in [o for o in bpy.data.objects if o.type == 'EMPTY' and o.name.startswith('SOCK_')]:
     sd = json.loads(e['sd_socket'])
-    s = export.socket(root, e.name + '_x', tuple(e.location), tuple(sd['dir']), {'sd_socket_extras': json.dumps(sd['extras'], ensure_ascii=False)})
+    s = export.socket(root, e.name + '_x', tuple(e.location), tuple(sd['dir']), {'sd_socket_extras': json.dumps(dict(sd['extras'], dir=[round(x, 4) for x in geo.b2g(sd['dir'])]), ensure_ascii=False)})
     name = e.name
     bpy.data.objects.remove(e)
     s.name = name
