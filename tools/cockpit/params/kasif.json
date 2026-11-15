@@ -693,5 +693,13 @@
   "conduit_off": 0.115,
   "conduit_r": 0.011,
   "rivet_px": 40
+ },
+ "proj": {
+  "Canopy_Shell": 1.0,
+  "Canopy_Flange": 0.7,
+  "Canopy_Panel": 1.0,
+  "Dash_Body": 1.0,
+  "Dash_Plate": 0.9,
+  "Dash_Pedestal": 0.5
  }
 }

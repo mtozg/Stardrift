@@ -70,25 +70,49 @@ def _metal(name, base, rough_lo, rough_hi, metallic=1.0, brush=1.0, scratch=0.6,
     c3 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c3.blend_type = 'MULTIPLY'; c3.inputs['Factor'].default_value = 1.0
     nt.links.new(c2.outputs['Result'], c3.inputs['A']); nt.links.new(aor.outputs['Result'], c3.inputs['B'])
     last = c3
-    if proj > 0:   # onaylı çizimden sınırlı kamera-projeksiyon detayı: köşe başına ağırlık (görünür+yüze dönük) ile karışır
+    hp_node = None
+    if proj > 0:   # onaylı çizimden yalnızca İNCE detay (yüksek geçiren) ve orta frekans lekelenme: çizik, panel hattı, kir. Büyük şekil/ışık/gölge taşınmaz.
         uvn = _n(nt, 'ShaderNodeUVMap'); uvn.uv_map = 'ProjUV'
         tx = _n(nt, 'ShaderNodeTexImage', name='PROJ_IMG'); tx.interpolation = 'Linear'; tx.extension = 'EXTEND'
         if PROJ['img']: tx.image = PROJ['img']
         nt.links.new(uvn.outputs['UV'], tx.inputs['Vector'])
+        sp = _n(nt, 'ShaderNodeSeparateColor'); nt.links.new(tx.outputs['Color'], sp.inputs['Color'])
+        def sc2(src, name):   # (x-0.5)*2
+            a = _n(nt, 'ShaderNodeMath', operation='SUBTRACT'); a.inputs[1].default_value = 0.5; nt.links.new(src, a.inputs[0])
+            b = _n(nt, 'ShaderNodeMath', operation='MULTIPLY', name=name); b.inputs[1].default_value = 2.0; nt.links.new(a.outputs['Value'], b.inputs[0]); return b
+        hp = sc2(sp.outputs['Red'], 'PROJ_HP'); mid = sc2(sp.outputs['Green'], 'PROJ_MID'); hp_node = hp
         at = _n(nt, 'ShaderNodeAttribute', name='PROJ_W'); at.attribute_name = 'projw'; at.attribute_type = 'GEOMETRY'
-        wmix = _n(nt, 'ShaderNodeMath', operation='MULTIPLY', name='PROJ_S'); wmix.inputs[1].default_value = PROJ['strength']; nt.links.new(at.outputs['Fac'], wmix.inputs[0])
-        # çizim ışıklı: albedo için hafif karart ve tabanla birlikte çarp (iki katlı aydınlanmayı azaltır)
-        dk = _n(nt, 'ShaderNodeMix', data_type='RGBA'); dk.blend_type = 'MULTIPLY'; dk.inputs['Factor'].default_value = 1.0
-        nt.links.new(tx.outputs['Color'], dk.inputs['A']); dk.inputs['B'].default_value = (0.78, 0.8, 0.84, 1.0)
-        c4 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c4.blend_type = 'MIX'
-        nt.links.new(c3.outputs['Result'], c4.inputs['A']); nt.links.new(dk.outputs['Result'], c4.inputs['B']); nt.links.new(wmix.outputs['Value'], c4.inputs['Factor'])
+        wm = _n(nt, 'ShaderNodeMath', operation='MULTIPLY', name='PROJ_S'); wm.inputs[1].default_value = PROJ['strength']; nt.links.new(at.outputs['Fac'], wm.inputs[0])
+        k1 = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); k1.inputs[1].default_value = 0.55; nt.links.new(hp.outputs['Value'], k1.inputs[0])
+        k2 = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); k2.inputs[1].default_value = 0.35; nt.links.new(mid.outputs['Value'], k2.inputs[0])
+        ad = _n(nt, 'ShaderNodeMath', operation='ADD'); nt.links.new(k1.outputs['Value'], ad.inputs[0]); nt.links.new(k2.outputs['Value'], ad.inputs[1])
+        mw = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); nt.links.new(ad.outputs['Value'], mw.inputs[0]); nt.links.new(wm.outputs['Value'], mw.inputs[1])
+        mu = _n(nt, 'ShaderNodeMath', operation='ADD'); mu.use_clamp = False; mu.inputs[1].default_value = 1.0; nt.links.new(mw.outputs['Value'], mu.inputs[0])
+        mc = _n(nt, 'ShaderNodeMath', operation='MAXIMUM'); mc.inputs[1].default_value = 0.25; nt.links.new(mu.outputs['Value'], mc.inputs[0])
+        cb = _n(nt, 'ShaderNodeCombineColor'); [nt.links.new(mc.outputs['Value'], cb.inputs[i]) for i in range(3)]
+        c4 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c4.blend_type = 'MULTIPLY'; c4.inputs['Factor'].default_value = 1.0
+        nt.links.new(c3.outputs['Result'], c4.inputs['A']); nt.links.new(cb.outputs['Color'], c4.inputs['B'])
         last = c4
+        # roughness: ince çizik/çukurda parlaklık değişir
+        rk = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); rk.inputs[1].default_value = 0.20
+        nt.links.new(hp.outputs['Value'], rk.inputs[0])
+        rw = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); nt.links.new(rk.outputs['Value'], rw.inputs[0]); nt.links.new(wm.outputs['Value'], rw.inputs[1])
+        r4 = _n(nt, 'ShaderNodeMath', operation='SUBTRACT'); r4.use_clamp = True; nt.links.new(r3.outputs['Value'], r4.inputs[0]); nt.links.new(rw.outputs['Value'], r4.inputs[1])
+        nt.links.new(r4.outputs['Value'], bsdf.inputs['Roughness'])
+        PROJ_W_NODE = wm
     nt.links.new(last.outputs['Result'], bsdf.inputs['Base Color'])
     bsdf.inputs['Metallic'].default_value = metallic
     # kabartma: fırça + çizik
     bmp = _n(nt, 'ShaderNodeBump'); bmp.inputs['Strength'].default_value = bump; bmp.inputs['Distance'].default_value = 0.01
     addh = _n(nt, 'ShaderNodeMath', operation='ADD'); nt.links.new(nz.outputs['Fac'], addh.inputs[0]); nt.links.new(sr.outputs['Result'], addh.inputs[1])
-    nt.links.new(addh.outputs['Value'], bmp.inputs['Height']); nt.links.new(bmp.outputs['Normal'], bsdf.inputs['Normal'])
+    nt.links.new(addh.outputs['Value'], bmp.inputs['Height'])
+    if hp_node is not None:
+        hh = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); nt.links.new(hp_node.outputs['Value'], hh.inputs[0]); nt.links.new(wm.outputs['Value'], hh.inputs[1])
+        h2 = _n(nt, 'ShaderNodeMath', operation='ADD'); h2.inputs[1].default_value = 0.5; nt.links.new(hh.outputs['Value'], h2.inputs[0])
+        b2 = _n(nt, 'ShaderNodeBump'); b2.inputs['Strength'].default_value = 0.45; b2.inputs['Distance'].default_value = 0.004
+        nt.links.new(h2.outputs['Value'], b2.inputs['Height']); nt.links.new(bmp.outputs['Normal'], b2.inputs['Normal']); nt.links.new(b2.outputs['Normal'], bsdf.inputs['Normal'])
+    else:
+        nt.links.new(bmp.outputs['Normal'], bsdf.inputs['Normal'])
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
     return m
 

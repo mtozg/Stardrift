@@ -7,7 +7,7 @@ from lib.common import *
 from lib import materials, canopy, render as R
 
 ap = argparse.ArgumentParser(); ap.add_argument('--ship', default='kasif'); ap.add_argument('--stage', default='all'); ap.add_argument('--out', default=os.path.join(COCKPIT, 'out'))
-ap.add_argument('--verify', action='store_true'); ap.add_argument('--proj', type=float, default=0.7); ap.add_argument('--export', action='store_true'); ap.add_argument('--tex', type=int, default=2048); ap.add_argument('--bake_samples', type=int, default=24); ap.add_argument('--samples', type=int, default=32); ap.add_argument('--views', default='pilot'); ap.add_argument('--scale', type=float, default=1.0)
+ap.add_argument('--verify', action='store_true'); ap.add_argument('--proj', type=float, default=1.0); ap.add_argument('--export', action='store_true'); ap.add_argument('--tex', type=int, default=2048); ap.add_argument('--bake_samples', type=int, default=24); ap.add_argument('--samples', type=int, default=32); ap.add_argument('--views', default='pilot'); ap.add_argument('--scale', type=float, default=1.0)
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:])
 os.makedirs(args.out, exist_ok=True)
 a = load_json('anchors/%s.json' % args.ship); P = load_json('params/%s.json' % args.ship)
@@ -15,7 +15,7 @@ clear_scene()
 from lib import project
 arr = None
 if args.proj > 0:
-    arr = project.load_drawing(os.path.join(COCKPIT, '..', '..', 'assets', 'img', 'ck_%s.webp' % args.ship)); materials.PROJ['strength'] = args.proj
+    arr = project.load_drawing(os.path.join(COCKPIT, '..', '..', 'assets', 'img', 'ck_%s.webp' % args.ship), args.out); materials.PROJ['strength'] = args.proj
 mats = {'gunmetal': materials.gunmetal(), 'steel': materials.steel(), 'titanium': materials.titanium(), 'aluminum': materials.aluminum(), 'composite': materials.composite(), 'leather': materials.leather()}
 t0 = time.time(); objs = []
 objs += canopy.build(a, P, mats); print('kanopi', round(time.time() - t0, 1), 's')
@@ -25,7 +25,7 @@ for stage_mod in ('dash', 'dash_detail', 'side', 'seat', 'detail'):
         m = __import__('lib.' + stage_mod, fromlist=['build'])
         if args.stage in ('all',): objs += m.build(a, P, mats)
     except ModuleNotFoundError: pass
-if arr is not None: print('projeksiyon (köşe, görünür):', project.apply(a, arr))
+if arr is not None: print('projeksiyon (köşe, görünür):', project.apply(a, arr, P['proj']))
 smooth_by_angle([o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith(('Canopy', 'Dash', 'Seat', 'Bezel'))], 40)
 if args.verify:
     from lib import verify
@@ -41,6 +41,10 @@ for o in bpy.data.objects:
         import mathutils; bb=[o.matrix_world @ mathutils.Vector(c) for c in o.bound_box]; print(o.name, 'bbox', [round(min(v[i] for v in bb),2) for i in range(3)], [round(max(v[i] for v in bb),2) for i in range(3)], 'verts', len(o.data.vertices))
 if 'oblique' in args.views:
     cam = R.camera(a, 'Obl', loc=g2b((0.55, 0.05, 0.10)), look=g2b((-0.15, -0.30, -1.05)), fovy=70); R.render(os.path.join(args.out, 'kasif_oblique.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
+if 'oblique_l' in args.views:
+    cam = R.camera(a, 'OblL', loc=g2b((-0.55, 0.05, 0.10)), look=g2b((0.15, -0.30, -1.05)), fovy=70); R.render(os.path.join(args.out, 'kasif_oblique_l.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
+if 'low' in args.views:
+    cam = R.camera(a, 'Low', loc=g2b((0.0, -0.30, 0.25)), look=g2b((0.0, -0.58, -1.0)), fovy=62); R.render(os.path.join(args.out, 'kasif_low.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
 if 'close' in args.views:
     cam = R.camera(a, 'Close', loc=g2b((0.38, -0.04, -0.28)), look=g2b((-0.05, -0.50, -1.0)), fovy=44); R.render(os.path.join(args.out, 'kasif_close.png'), cam, (int(1200 * args.scale), int(640 * args.scale)), args.samples)
 if 'persp' in args.views:
