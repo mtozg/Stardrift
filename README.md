@@ -73,7 +73,6 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 - [three.js](https://threejs.org) (r128) ile 3B. Kopyası ve parlama (bloom) eklentileri `vendor/` içinde, internet olmadan da çalışır.
 - Ses efektlerinin çoğu ve yazı tipleri sayfanın içine gömülü; yeni efektler `assets/sfx/` klasöründe, müzikler ayrı mp3 dosyalarıdır.
 - `assets/sfx/` içindeki ses efektleri [ElevenLabs](https://elevenlabs.io) ile üretildi.
-- Kaşif kokpiti: [«Sci-fi Spaceship Cockpit 02»](https://sketchfab.com/3d-models/sci-fi-spaceship-cockpit-02-c6825892999242319c1a29326c4e7713), NotARealStudio, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Dokular küçültüldü, ekranlar oyunun kendi canlı ekranlarıyla değiştirildi (`assets/img/ck3_kokpit.glb`). Yükleyici: three.js `GLTFLoader` (r128, MIT).
 
 ## Dosya yapısı
 

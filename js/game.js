@@ -2085,7 +2085,7 @@ function scrGlow(c, sc){ const xs = sc.q.map(p => p[0]), ys = sc.q.map(p => p[1]
 function cockpitTone(k){
   if (window.__noTone) return;
   k.save(); k.globalCompositeOperation = 'source-atop';
-  let g = k.createLinearGradient(0, -CKM, 0, H + CKM); g.addColorStop(0, 'rgba(1,3,7,0.86)'); g.addColorStop(0.45, 'rgba(1,3,7,0.78)'); g.addColorStop(0.75, 'rgba(1,3,7,0.66)'); g.addColorStop(1, 'rgba(1,3,7,0.8)');
+  let g = k.createLinearGradient(0, -CKM, 0, H + CKM); g.addColorStop(0, 'rgba(1,3,7,0.16)'); g.addColorStop(0.45, 'rgba(1,3,7,0.1)'); g.addColorStop(0.75, 'rgba(1,3,7,0.04)'); g.addColorStop(1, 'rgba(1,3,7,0.1)');
   k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
   // ekranların ışığı panele vurur (ekranın hemen çevresi)
   for (const sc of SCR){ const cx = sc.q.reduce((t, p) => t + p[0], 0) / 4, cy = sc.q.reduce((t, p) => t + p[1], 0) / 4, r = Math.hypot(sc.q[1][0] - sc.q[0][0], sc.q[1][1] - sc.q[0][1]) * 0.8;
@@ -3427,7 +3427,7 @@ function exAct(a){
 // =====================  /ÜS + KAÇAK + MÜRETTEBAT + OLAYLAR  =====================
 // =====================  HANGAR + KOKPİT  =====================
 const CK = {"kasif": "assets/img/ck_kasif.webp", "sahin": "assets/img/ck_sahin.webp", "yuk": "assets/img/ck_yuk.webp", "hayalet": "assets/img/ck_hayalet.webp"};
-const CKP = {"kasif": {"q": [[[304, 412], [549, 400], [552, 526], [312, 551]], [[702, 400], [900, 400], [902, 518], [702, 518]], [[1054, 402], [1292, 416], [1290, 546], [1054, 520]]], "lamps": [[205, 545], [1395, 545]], "boost": [1180, 572]}, "sahin": {"q": [[[392, 382], [590, 374], [596, 500], [408, 516]], [[704, 372], [896, 372], [896, 494], [704, 494]], [[1010, 374], [1208, 382], [1192, 516], [1004, 500]]], "lamps": [[332, 522], [1250, 548]], "boost": [1130, 562]}, "yuk": {"q": [[[268, 382], [520, 376], [534, 504], [278, 528]], [[690, 378], [910, 376], [912, 498], [688, 498]], [[1080, 376], [1332, 382], [1322, 528], [1066, 504]]], "lamps": [[610, 430], [640, 430]], "boost": [1120, 572]}, "hayalet": {"q": [[[254, 414], [594, 402], [600, 548], [258, 584]], [[658, 398], [944, 398], [944, 542], [658, 542]], [[1004, 400], [1346, 412], [1344, 582], [1004, 545]]], "lamps": [[300, 610], [1300, 610]], "boost": [1120, 590]}};
+const CKP = {"kasif": {"q": [[[391, 397], [597, 377], [590, 505], [330, 531]], [[619, 368], [983, 369], [982, 503], [617, 503]], [[1000, 377], [1209, 397], [1269, 531], [1010, 505]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "sahin": {"q": [[[383, 417], [591, 365], [599, 485], [347, 520]], [[630, 363], [968, 363], [977, 490], [624, 490]], [[1007, 365], [1215, 415], [1248, 525], [1002, 484]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "yuk": {"q": [[[385, 383], [598, 364], [601, 485], [313, 533]], [[613, 348], [985, 347], [976, 488], [625, 485]], [[997, 363], [1227, 391], [1289, 530], [1001, 485]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "hayalet": {"q": [[[375, 378], [595, 368], [599, 487], [318, 527]], [[646, 361], [952, 362], [977, 490], [626, 493]], [[1005, 368], [1223, 379], [1279, 525], [1001, 487]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}};
 
 function setCockpit(id){
   const d = CK[id], P = CKP[id]; if (!d || !P) return; const im = new Image();
@@ -6945,7 +6945,6 @@ window.__xpal = {
       + line('Giriş hikâyesi', 'Kadim Kapı ve üç tarafın hikâyesi', '<button class="act" data-set="story">İzle</button>')
       + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
       + '<div class="sver">Sürüm <button data-set="ver">' + (window.SD_VERSION || '?') + '</button></div>'
-      + '<div class="sver" style="margin-top:4px;font-size:10px;letter-spacing:.04em;opacity:.75">Kaşif kokpiti: «Sci-fi Spaceship Cockpit 02» · NotARealStudio · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#9fc4e8">CC BY 4.0</a></div>'
       + '</div>';
   }
   let verTap = 0;
@@ -10504,7 +10503,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (k.glb && !window.__nosrgb){ renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1; }
       renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam); renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
     }
-    const glbOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v !== '0' && v !== 'p' && v !== 's'; } catch (e) { return true; } };
+    const glbOn = () => { try { return localStorage.getItem('sd_ck3') === 'g'; } catch (e) { return true; } };
     try { if (save.ship === 'kasif' && glbOn()) setTimeout(() => loadGLB().catch(() => {}), 0); } catch (e) {}   /* açılış ekranındayken arka planda yüklenir */
     const _rm = renderMain; renderMain = function(){ _rm();
       if (save.ship === 'kasif' && !GLBM && glbOn() && !GLBP && !GLBFAIL) loadGLB().catch(() => {});
