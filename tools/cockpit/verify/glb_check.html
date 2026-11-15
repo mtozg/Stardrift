@@ -11,10 +11,10 @@ const cam = new THREE.PerspectiveCamera(74, W / H, 0.02, 30); cam.setViewOffset(
 S.add(new THREE.HemisphereLight(0x6f86b8, 0x0a0d14, 0.55)); const d = new THREE.DirectionalLight(0xfff0dc, 1.8); d.position.set(-1.5, 2, 1); S.add(d);
 const pl = new THREE.PointLight(0x4cc8ff, 0.45, 2.2); pl.position.set(0, -0.15, -0.55); S.add(pl);
 Promise.all([fetch('/tools/cockpit/anchors/kasif.json').then(x => x.json())]).then(([A]) => {
-  new THREE.GLTFLoader().load('/tools/cockpit/out/cockpit_kasif.glb', g => {
+  new THREE.GLTFLoader().load('/models/cockpit_kasif.glb', g => {
     const m = g.scene; S.add(m); const names = [], mats = [], scr = {};
     m.traverse(o => { if (!o.isMesh) return; names.push(o.name); const mm = Array.isArray(o.material) ? o.material : [o.material];
-      mm.forEach(x => { const t = k => x[k] && x[k].image ? [x[k].image.width, x[k].image.height] : null; mats.push({ mesh: o.name, mat: x.name, type: x.type, map: t('map'), normal: t('normalMap'), orm: t('metalnessMap'), ao: t('aoMap'), metal: x.metalness, rough: x.roughness, side: x.side }); });
+      mm.forEach(x => { const t = k => x[k] && x[k].image ? [x[k].image.width, x[k].image.height] : null; mats.push({ mesh: o.name, mat: x.name, type: x.type, map: t('map'), normal: t('normalMap'), orm: t('metalnessMap'), ao: t('aoMap'), metal: x.metalness, rough: x.roughness, side: x.side, emis: x.emissive ? x.emissive.getHex() : null, ei: x.emissiveIntensity }); });
       if (o.name.startsWith('SCR_')){ scr[o.name] = o; o.material = new THREE.MeshBasicMaterial({ color: o.name === 'SCR_RADAR' ? 0x1a6a8a : 0x0d4a63, toneMapped: false, side: THREE.DoubleSide }); } });
     R.names = names; R.mats = mats; R.screens = Object.keys(scr);
     // kamera hizası: ekran köşeleri → 1600x656 piksel; CKP ile fark
