@@ -159,10 +159,17 @@ const EXTRA = [];
 const BOUND = 32000, AST_TARGET = 230;   // 1.40: harita 2,1 kat genişledi
 const SYSC = { kr: 1, ice: 1, danger: 1, px: {}, hull: 1, bounty: 1, dmg: 1, rock: 1, pay: 1 }; let curSys = 0;
 
+/* uzay ortam haritası: istasyon gövdeleri soğuk gökyüzü ve güneş parıltısını yansıtır */
+let _spEnv = null;
+function spaceEnv(){ if (_spEnv !== null) return _spEnv || undefined; _spEnv = false;
+  try { const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#9fb8dc'); g.addColorStop(0.42, '#2c3a52'); g.addColorStop(0.55, '#0a0e18'); g.addColorStop(1, '#04060b'); x.fillStyle = g; x.fillRect(0, 0, 256, 128);
+    const sg = x.createRadialGradient(80, 28, 2, 80, 28, 30); sg.addColorStop(0, 'rgba(255,244,220,1)'); sg.addColorStop(1, 'rgba(255,244,220,0)'); x.fillStyle = sg; x.fillRect(40, 0, 80, 70);
+    const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); _spEnv = pm.fromEquirectangular(t).texture; pm.dispose(); } catch (e) { _spEnv = false; }
+  return _spEnv || undefined; }
 const stationGroup = new THREE.Group(); scene.add(stationGroup);
 const stationLights = [];
 {
-  const hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.6, metalness: 0.5, flatShading: true });
+  const hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.45, metalness: 0.6, flatShading: true, envMap: spaceEnv(), envMapIntensity: 0.9 });
   stationGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(16, 16, 70, 10), hull));
   const ring = new THREE.Mesh(new THREE.TorusGeometry(62, 5, 8, 48), hull); ring.rotation.x = Math.PI / 2; stationGroup.add(ring);
   for (let i = 0; i < 4; i++){
@@ -178,7 +185,7 @@ const stationLights = [];
 }
 STATION.group = stationGroup; STATION.lights = stationLights;
 function buildOutpost(st){
-  const g = new THREE.Group(), hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.6, metalness: 0.5, flatShading: true }), lights = [];
+  const g = new THREE.Group(), hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.45, metalness: 0.6, flatShading: true, envMap: spaceEnv(), envMapIntensity: 0.9 }), lights = [];
   g.add(new THREE.Mesh(new THREE.CylinderGeometry(16, 16, 70, 10), hull));
   const ring = new THREE.Mesh(new THREE.TorusGeometry(62, 5, 8, 48), hull); ring.rotation.x = Math.PI / 2; g.add(ring);
   for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2, sp = new THREE.Mesh(new THREE.BoxGeometry(46, 3, 3), hull); sp.position.set(Math.cos(a) * 39, 0, -Math.sin(a) * 39); sp.rotation.y = a; g.add(sp); }
@@ -3772,18 +3779,20 @@ function hgEnvMap(){
 function buildShip3D(THREE, TEX, S){
   const G=new THREE.Group();
   const rootInv=new THREE.Matrix4();
-  const VS='uniform mat4 uInv; varying vec3 vP; varying vec3 vN; varying vec3 vW; void main(){ vec4 wp=modelMatrix*vec4(position,1.0); vP=(uInv*wp).xyz; vN=normalize(mat3(uInv)*mat3(modelMatrix)*normal); vW=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*wp; }';
-  const FS=DMG_GLSL+'uniform sampler2D tTop; uniform sampler2D tSide; uniform sampler2D tF; uniform sampler2D tR; uniform sampler2D tB; uniform float uTa; uniform float uSa; uniform float uYc; uniform float uZc; uniform float uGain; uniform vec3 uFB; uniform float uMode; uniform float uInfer; uniform float uSx; uniform vec3 uTint; varying vec3 vP; varying vec3 vN; varying vec3 vW;'+
+  const VS='uniform mat4 uInv; varying vec3 vP; varying vec3 vN; varying vec3 vW; varying vec3 vWP; void main(){ vec4 wp=modelMatrix*vec4(position,1.0); vWP=wp.xyz; vP=(uInv*wp).xyz; vN=normalize(mat3(uInv)*mat3(modelMatrix)*normal); vW=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*wp; }';
+  const FS=DMG_GLSL+'uniform sampler2D tTop; uniform sampler2D tSide; uniform sampler2D tF; uniform sampler2D tR; uniform sampler2D tB; uniform float uTa; uniform float uSa; uniform float uYc; uniform float uZc; uniform float uGain; uniform vec3 uFB; uniform float uMode; uniform float uInfer; uniform float uSx; uniform vec3 uTint; varying vec3 vP; varying vec3 vN; varying vec3 vW; varying vec3 vWP;'+
+    /* ortam yansıması: uzay ışığı gökyüzü gradyanı, güneş parlaması ve kenar (fresnel) parıltısı; gri/metal yüzeyler daha çok yansıtır */
+    'vec3 envR(vec3 col, vec3 wn){ vec3 V=normalize(cameraPosition-vWP); vec3 R=reflect(-V,wn); float up=R.y*0.5+0.5; vec3 sky=mix(vec3(0.02,0.03,0.06),vec3(0.5,0.64,0.9),smoothstep(0.25,1.0,up)); float sun=pow(max(dot(R,normalize(vec3(0.35,0.85,0.4))),0.0),22.0); float fr=pow(1.0-max(dot(wn,V),0.0),3.0); float sat=max(col.r,max(col.g,col.b))-min(col.r,min(col.g,col.b)); float met=0.35+0.65*(1.0-smoothstep(0.08,0.45,sat)); return col+(sky*0.2+vec3(1.0,0.94,0.84)*sun*0.45)*met*(0.35+0.65*fr)+vec3(0.35,0.5,0.85)*fr*0.16; }'+
     'void main(){ vec3 n=normalize(vN); vec3 wn=normalize(vW); float l=0.70+0.45*max(dot(wn,normalize(vec3(0.35,0.85,0.4))),0.0)+0.12*max(dot(wn,normalize(vec3(-0.6,0.2,-0.5))),0.0);'+
     'vec2 uvT=vec2(vP.x+0.5,0.5+uZc-vP.z/uTa); vec2 uvS=vec2(0.5+vP.x*uSx,vP.y*uSx/uSa+uYc); vec4 ct=texture2D(tTop,uvT); vec4 cs=texture2D(tSide,uvS); vec3 fb=vec3(0.30,0.33,0.36);'+
     'vec3 c1=mix(fb,cs.rgb,step(0.5,cs.a)); vec3 c2=mix(fb,ct.rgb,step(0.5,ct.a));'+
-    'if(uMode>0.5&&uMode<1.5){ gl_FragColor=vec4(min(c1*l*uGain,vec3(1.0)),1.0); return; }'+
-    'if(uMode>1.5){ gl_FragColor=vec4(min(c2*l*uGain,vec3(1.0)),1.0); return; }'+
+    'if(uMode>0.5&&uMode<1.5){ gl_FragColor=vec4(min(envR(c1*l*uGain,wn),vec3(1.0)),1.0); return; }'+
+    'if(uMode>1.5){ gl_FragColor=vec4(min(envR(c2*l*uGain,wn),vec3(1.0)),1.0); return; }'+
     'float wy=smoothstep(0.3,0.8,abs(n.y)); vec3 col=mix(c1,c2,wy);'+
     'if(n.y<0.0){ vec4 cb=texture2D(tB,vec2(vP.x+0.5,0.5-uZc+vP.z/uTa)); if(cb.a>0.5){ col=mix(col,cb.rgb,wy);} else if(uInfer>0.5){ col=mix(col,c2*0.78,wy);} else { float g=dot(col,vec3(0.3,0.59,0.11)); col=mix(col,vec3(g*0.6),wy*0.7);} }'+
     'float fv=(vP.y-uFB.y)/(uFB.z-uFB.y); vec4 cc=n.x>0.0?texture2D(tF,vec2(0.5-vP.z/(2.0*uFB.x),fv)):texture2D(tR,vec2(0.5+vP.z/(2.0*uFB.x),fv)); float wx=smoothstep(0.45,0.85,abs(n.x));'+
     'if(cc.a>0.5){ col=mix(col,cc.rgb,wx);} else if(uInfer>0.5){ vec4 cn=texture2D(tSide,vec2(n.x>0.0?0.965:0.035,uvS.y)); vec3 c3=mix(c1,cn.rgb,step(0.5,cn.a)); col=mix(col,c3*0.92,wx); }'+
-    'col=dmgFx(col,vP); gl_FragColor=vec4(min(col*l*uGain*uTint,vec3(1.0)),1.0); }';
+    'col=dmgFx(col,vP); gl_FragColor=vec4(min(envR(col*l*uGain*uTint,wn),vec3(1.0)),1.0); }';
   const UNI={tTop:{value:TEX.top},tSide:{value:TEX.side},tF:{value:TEX.f},tR:{value:TEX.r},tB:{value:TEX.b},uTa:{value:TEX.ta},uSa:{value:TEX.sa},uYc:{value:S.yc},uZc:{value:S.zc||0},uGain:{value:S.gain||1.0},uFB:{value:new THREE.Vector3(0.5,-0.1,0.1)},uInfer:{value:S.infer?1:0},uSx:{value:S.sx||1.0},uInv:{value:rootInv},uDmg:{value:new THREE.Vector4(0,0,0,0)},uTint:{value:new THREE.Color(1,1,1)}};
   const mkPM=mode=>new THREE.ShaderMaterial({uniforms:Object.assign({},UNI,{uMode:{value:mode}}),vertexShader:VS,fragmentShader:FS,side:THREE.DoubleSide});
   const PM=mkPM(0), PMside=mkPM(1), PMtop=mkPM(2);
