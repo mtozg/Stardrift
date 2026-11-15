@@ -23,11 +23,27 @@ def join_body():
     bpy.ops.object.material_slot_remove_unused()
     return body
 
-def unwrap(body, margin=0.002):
+def cull_hidden(body, thr=0.35):
+    """Göze dönük olmayan (kalınlıklı katıların arka/dış) yüzleri sil: atlas yalnızca kokpit içinden görünen yüzeylere harcanır."""
+    import bmesh
+    bm = bmesh.new(); bm.from_mesh(body.data); bm.normal_update(); kill = []
+    for f in bm.faces:
+        c = f.calc_center_median(); l = c.length
+        if l > 1e-6 and f.normal.dot(c) / l > thr: kill.append(f)
+    bmesh.ops.delete(bm, geom=kill, context='FACES'); bm.to_mesh(body.data); bm.free(); body.data.update()
+    return len(kill)
+
+def unwrap(body, margin=0.0025):
+    me = body.data
+    if 'Atlas' not in me.uv_layers: me.uv_layers.new(name='Atlas')
+    me.uv_layers.active = me.uv_layers['Atlas']
     bpy.context.view_layer.objects.active = body; body.select_set(True)
     bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=margin, area_weight=0.4)
+    bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=margin, area_weight=0.5)
     bpy.ops.object.mode_set(mode='OBJECT')
+    me.uv_layers.active_index = list(me.uv_layers.keys()).index('Atlas')
+    for i, l in enumerate(me.uv_layers):
+        l.active_render = (l.name == 'Atlas')
 
 def bake_all(body, size=2048, samples=24, log=print):
     sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = samples; sc.cycles.use_denoising = False
@@ -88,6 +104,11 @@ def rebuild_materials(body, imgs, orm):
         else: b.inputs['Metallic'].default_value = METALLIC.get(base, 0.0)
         nt.links.new(tn.outputs['Color'], nm_.inputs['Color']); nt.links.new(nm_.outputs['Normal'], b.inputs['Normal']); nt.links.new(b.outputs['BSDF'], out.inputs['Surface'])
         slot.material = m
+
+def strip_proj(body):
+    me = body.data
+    if 'ProjUV' in me.uv_layers: me.uv_layers.remove(me.uv_layers['ProjUV'])
+    if 'projw' in me.attributes: me.attributes.remove(me.attributes['projw'])
 
 def export_glb(path, quality=85):
     for o in bpy.context.selected_objects: o.select_set(False)

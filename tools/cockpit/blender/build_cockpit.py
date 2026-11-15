@@ -7,20 +7,25 @@ from lib.common import *
 from lib import materials, canopy, render as R
 
 ap = argparse.ArgumentParser(); ap.add_argument('--ship', default='kasif'); ap.add_argument('--stage', default='all'); ap.add_argument('--out', default=os.path.join(COCKPIT, 'out'))
-ap.add_argument('--verify', action='store_true'); ap.add_argument('--export', action='store_true'); ap.add_argument('--tex', type=int, default=2048); ap.add_argument('--bake_samples', type=int, default=24); ap.add_argument('--samples', type=int, default=32); ap.add_argument('--views', default='pilot'); ap.add_argument('--scale', type=float, default=1.0)
+ap.add_argument('--verify', action='store_true'); ap.add_argument('--proj', type=float, default=0.7); ap.add_argument('--export', action='store_true'); ap.add_argument('--tex', type=int, default=2048); ap.add_argument('--bake_samples', type=int, default=24); ap.add_argument('--samples', type=int, default=32); ap.add_argument('--views', default='pilot'); ap.add_argument('--scale', type=float, default=1.0)
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:])
 os.makedirs(args.out, exist_ok=True)
 a = load_json('anchors/%s.json' % args.ship); P = load_json('params/%s.json' % args.ship)
 clear_scene()
+from lib import project
+arr = None
+if args.proj > 0:
+    arr = project.load_drawing(os.path.join(COCKPIT, '..', '..', 'assets', 'img', 'ck_%s.webp' % args.ship)); materials.PROJ['strength'] = args.proj
 mats = {'gunmetal': materials.gunmetal(), 'steel': materials.steel(), 'titanium': materials.titanium(), 'aluminum': materials.aluminum(), 'composite': materials.composite(), 'leather': materials.leather()}
 t0 = time.time(); objs = []
 objs += canopy.build(a, P, mats); print('kanopi', round(time.time() - t0, 1), 's')
 if args.stage != 'canopy': objs += canopy.build_panels(a, P, mats); print('paneller', round(time.time() - t0, 1), 's')
-for stage_mod in ('dash', 'seat', 'detail'):
+for stage_mod in ('dash', 'dash_detail', 'side', 'seat', 'detail'):
     try:
         m = __import__('lib.' + stage_mod, fromlist=['build'])
         if args.stage in ('all',): objs += m.build(a, P, mats)
     except ModuleNotFoundError: pass
+if arr is not None: print('projeksiyon (köşe, görünür):', project.apply(a, arr))
 smooth_by_angle([o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith(('Canopy', 'Dash', 'Seat', 'Bezel'))], 40)
 if args.verify:
     from lib import verify
@@ -44,9 +49,9 @@ if 'side' in args.views:
     cam = R.camera(a, 'Side', loc=(3.2, 0.2, 0.0), look=(0, 0.2, -0.3), fovy=45); R.render(os.path.join(args.out, 'kasif_side.png'), cam, (int(900 * args.scale), int(560 * args.scale)), args.samples)
 if args.stage in ('export', 'all') and args.export:
     from lib import bake
-    body = bake.join_body(); bake.unwrap(body); print('gövde üçgen', tri_count([body]))
+    body = bake.join_body(); print('gizli yüz silindi:', bake.cull_hidden(body)); bake.unwrap(body); print('gövde üçgen', tri_count([body]))
     imgs = bake.bake_all(body, size=args.tex, samples=args.bake_samples)
-    orm = bake.compose_orm(imgs, args.tex); bake.rebuild_materials(body, imgs, orm)
+    orm = bake.compose_orm(imgs, args.tex); bake.rebuild_materials(body, imgs, orm); bake.strip_proj(body)
     sz = bake.export_glb(os.path.join(args.out, 'cockpit_%s.glb' % args.ship)); print('GLB bayt', sz, round(sz / 1048576, 2), 'MB')
     for k, im in list(imgs.items()) + [('orm', orm)]:
         im.filepath_raw = os.path.join(args.out, 'tex_%s_%s.png' % (args.ship, k)); im.file_format = 'PNG'; im.save()

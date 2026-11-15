@@ -17,55 +17,74 @@ def _n(nt, t, **kw):
             except Exception: pass
     return n
 
-def _metal(name, base, rough_lo, rough_hi, metallic=1.0, brush=1.0, scratch=0.6, tint_var=0.06, aniso=0.0, bump=0.06):
+PROJ = {'img': None, 'strength': 0.0}   # build_cockpit tarafından doldurulur: onaylı çizim (detay referansı)
+
+def _metal(name, base, rough_lo, rough_hi, metallic=1.0, brush=1.0, scratch=0.6, tint_var=0.06, aniso=0.0, bump=0.06, wear=0.8, dirt=0.55, proj=1.0):
     m, nt = _mat(name)
     out = _n(nt, 'ShaderNodeOutputMaterial'); bsdf = _n(nt, 'ShaderNodeBsdfPrincipled')
     tc = _n(nt, 'ShaderNodeTexCoord')
-    # 1) fırça: çok uzun, dar gürültü (yatay çizgiler)
-    mp = _n(nt, 'ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1.0, 55.0, 1.0)
-    nz = _n(nt, 'ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 90.0; nz.inputs['Detail'].default_value = 6.0; nz.inputs['Roughness'].default_value = 0.6
+    # fırça: uzun dar gürültü (yatay çizgiler) — daha kontrastlı
+    mp = _n(nt, 'ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1.0, 38.0, 1.0)
+    nz = _n(nt, 'ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 140.0; nz.inputs['Detail'].default_value = 7.0; nz.inputs['Roughness'].default_value = 0.65
     nt.links.new(tc.outputs['Object'], mp.inputs['Vector']); nt.links.new(mp.outputs['Vector'], nz.inputs['Vector'])
-    # 2) geniş bulutlu değişim (pürüzlülük / ton)
-    cl = _n(nt, 'ShaderNodeTexNoise'); cl.inputs['Scale'].default_value = 3.5; cl.inputs['Detail'].default_value = 4.0
+    # geniş bulutlu değişim (pürüzlülük / ton)
+    cl = _n(nt, 'ShaderNodeTexNoise'); cl.inputs['Scale'].default_value = 2.6; cl.inputs['Detail'].default_value = 5.0
     nt.links.new(tc.outputs['Object'], cl.inputs['Vector'])
-    # 3) çizikler: uzun ince Voronoi benzeri; ince şerit gürültüsü eşiklenir
-    mp2 = _n(nt, 'ShaderNodeMapping'); mp2.inputs['Scale'].default_value = (1.0, 600.0, 1.0); mp2.inputs['Rotation'].default_value = (0.0, 0.0, 0.35)
-    nz2 = _n(nt, 'ShaderNodeTexNoise'); nz2.inputs['Scale'].default_value = 120.0; nz2.inputs['Detail'].default_value = 1.0
+    # çizikler: ince şeritler, eşiklenmiş
+    mp2 = _n(nt, 'ShaderNodeMapping'); mp2.inputs['Scale'].default_value = (1.0, 420.0, 1.0); mp2.inputs['Rotation'].default_value = (0.0, 0.0, 0.35)
+    nz2 = _n(nt, 'ShaderNodeTexNoise'); nz2.inputs['Scale'].default_value = 70.0; nz2.inputs['Detail'].default_value = 1.0
     nt.links.new(tc.outputs['Object'], mp2.inputs['Vector']); nt.links.new(mp2.outputs['Vector'], nz2.inputs['Vector'])
-    sr = _n(nt, 'ShaderNodeMapRange'); sr.inputs['From Min'].default_value = 0.70; sr.inputs['From Max'].default_value = 0.73
+    sr = _n(nt, 'ShaderNodeMapRange'); sr.inputs['From Min'].default_value = 0.69; sr.inputs['From Max'].default_value = 0.73
     nt.links.new(nz2.outputs['Fac'], sr.inputs['Value'])
-    # roughness
-    rr = _n(nt, 'ShaderNodeMapRange'); rr.inputs['To Min'].default_value = rough_lo; rr.inputs['To Max'].default_value = rough_hi
-    mixr = _n(nt, 'ShaderNodeMath', operation='ADD'); mixr.use_clamp = True
+    # kenar aşınması: bevel normali ile geometrik normal farkı (dışbükey kenarlar)
+    bv = _n(nt, 'ShaderNodeBevel'); bv.inputs['Radius'].default_value = 0.010; bv.samples = 6
+    geo = _n(nt, 'ShaderNodeNewGeometry'); dot = _n(nt, 'ShaderNodeVectorMath', operation='DOT_PRODUCT')
+    nt.links.new(bv.outputs['Normal'], dot.inputs[0]); nt.links.new(geo.outputs['Normal'], dot.inputs[1])
+    inv = _n(nt, 'ShaderNodeMath', operation='SUBTRACT'); inv.inputs[0].default_value = 1.0; nt.links.new(dot.outputs['Value'], inv.inputs[1])
+    wr = _n(nt, 'ShaderNodeMapRange'); wr.inputs['From Min'].default_value = 0.01; wr.inputs['From Max'].default_value = 0.10
+    nt.links.new(inv.outputs['Value'], wr.inputs['Value'])
+    wmul = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); wmul.inputs[1].default_value = wear; nt.links.new(wr.outputs['Result'], wmul.inputs[0])
+    # AO kirlenmesi: girintilerde koyulaşma
+    ao = _n(nt, 'ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = 0.07; ao.samples = 8
+    aor = _n(nt, 'ShaderNodeMapRange'); aor.inputs['To Min'].default_value = 1.0 - dirt; aor.inputs['To Max'].default_value = 1.0
+    nt.links.new(ao.outputs['AO'], aor.inputs['Value'])
+    # --- roughness: bulut aralığı + fırça + (aşınmada düşer) - çizik
+    rr = _n(nt, 'ShaderNodeMapRange'); rr.inputs['To Min'].default_value = rough_lo * 0.85; rr.inputs['To Max'].default_value = rough_hi * 1.25
     nt.links.new(cl.outputs['Fac'], rr.inputs['Value'])
-    mulb = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); mulb.inputs[1].default_value = 0.12 * brush
-    nt.links.new(nz.outputs['Fac'], mulb.inputs[0])
-    nt.links.new(rr.outputs['Result'], mixr.inputs[0]); nt.links.new(mulb.outputs['Value'], mixr.inputs[1])
-    # çizik: pürüzlülüğü düşür (parlak çizgi)
-    sc = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); sc.inputs[1].default_value = 0.35 * scratch
-    nt.links.new(sr.outputs['Result'], sc.inputs[0])
-    sub = _n(nt, 'ShaderNodeMath', operation='SUBTRACT'); sub.use_clamp = True
-    nt.links.new(mixr.outputs['Value'], sub.inputs[0]); nt.links.new(sc.outputs['Value'], sub.inputs[1])
-    nt.links.new(sub.outputs['Value'], bsdf.inputs['Roughness'])
-    # renk: baz renk x hafif bulut değişimi (+ çizikte hafif açılma)
-    mixc = _n(nt, 'ShaderNodeMix', data_type='RGBA'); mixc.blend_type = 'MULTIPLY'; mixc.inputs['Factor'].default_value = tint_var * 4
-    mixc.inputs['A'].default_value = (*base, 1.0); mixc.inputs['B'].default_value = (1.0, 1.0, 1.0, 1.0)
-    cr = _n(nt, 'ShaderNodeMapRange'); cr.inputs['To Min'].default_value = 0.85; cr.inputs['To Max'].default_value = 1.12
+    mulb = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); mulb.inputs[1].default_value = 0.26 * brush; nt.links.new(nz.outputs['Fac'], mulb.inputs[0])
+    r1 = _n(nt, 'ShaderNodeMath', operation='ADD'); r1.use_clamp = True; nt.links.new(rr.outputs['Result'], r1.inputs[0]); nt.links.new(mulb.outputs['Value'], r1.inputs[1])
+    sc = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); sc.inputs[1].default_value = 0.40 * scratch; nt.links.new(sr.outputs['Result'], sc.inputs[0])
+    r2 = _n(nt, 'ShaderNodeMath', operation='SUBTRACT'); r2.use_clamp = True; nt.links.new(r1.outputs['Value'], r2.inputs[0]); nt.links.new(sc.outputs['Value'], r2.inputs[1])
+    wl = _n(nt, 'ShaderNodeMath', operation='MULTIPLY'); wl.inputs[1].default_value = 0.45; nt.links.new(wmul.outputs['Value'], wl.inputs[0])
+    r3 = _n(nt, 'ShaderNodeMath', operation='SUBTRACT'); r3.use_clamp = True; nt.links.new(r2.outputs['Value'], r3.inputs[0]); nt.links.new(wl.outputs['Value'], r3.inputs[1])
+    nt.links.new(r3.outputs['Value'], bsdf.inputs['Roughness'])
+    # --- renk: taban × bulut değişimi, çizikte açılma, kenarda çıplak metal, girintide koyulaşma
+    cr = _n(nt, 'ShaderNodeMapRange'); cr.inputs['To Min'].default_value = 0.80; cr.inputs['To Max'].default_value = 1.18
     nt.links.new(cl.outputs['Fac'], cr.inputs['Value'])
-    mulc = _n(nt, 'ShaderNodeVectorMath', operation='SCALE')
-    mulc.inputs['Scale'].default_value = 1.0
-    mixc.inputs['A'].default_value = (*base, 1.0)
-    scr_add = _n(nt, 'ShaderNodeMix', data_type='RGBA'); scr_add.blend_type = 'ADD'
-    scr_add.inputs['A'].default_value = (*base, 1.0); scr_add.inputs['B'].default_value = (0.20, 0.21, 0.23, 1.0)
-    nt.links.new(sr.outputs['Result'], scr_add.inputs['Factor'])
-    scr_mul = _n(nt, 'ShaderNodeMix', data_type='RGBA'); scr_mul.blend_type = 'MULTIPLY'; scr_mul.inputs['Factor'].default_value = 1.0
-    nt.links.new(scr_add.outputs['Result'], scr_mul.inputs['A'])
-    nt.links.new(cr.outputs['Result'], scr_mul.inputs['B'])   # float → renk; çarpan
-    nt.links.new(scr_mul.outputs['Result'], bsdf.inputs['Base Color'])
+    c0 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c0.blend_type = 'MULTIPLY'; c0.inputs['Factor'].default_value = 1.0
+    c0.inputs['A'].default_value = (*base, 1.0); nt.links.new(cr.outputs['Result'], c0.inputs['B'])
+    c1 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c1.blend_type = 'ADD'
+    nt.links.new(c0.outputs['Result'], c1.inputs['A']); c1.inputs['B'].default_value = (0.22, 0.23, 0.25, 1.0); nt.links.new(sr.outputs['Result'], c1.inputs['Factor'])
+    c2 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c2.blend_type = 'MIX'
+    nt.links.new(c1.outputs['Result'], c2.inputs['A']); c2.inputs['B'].default_value = (0.50, 0.52, 0.56, 1.0); nt.links.new(wmul.outputs['Value'], c2.inputs['Factor'])
+    c3 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c3.blend_type = 'MULTIPLY'; c3.inputs['Factor'].default_value = 1.0
+    nt.links.new(c2.outputs['Result'], c3.inputs['A']); nt.links.new(aor.outputs['Result'], c3.inputs['B'])
+    last = c3
+    if proj > 0:   # onaylı çizimden sınırlı kamera-projeksiyon detayı: köşe başına ağırlık (görünür+yüze dönük) ile karışır
+        uvn = _n(nt, 'ShaderNodeUVMap'); uvn.uv_map = 'ProjUV'
+        tx = _n(nt, 'ShaderNodeTexImage', name='PROJ_IMG'); tx.interpolation = 'Linear'; tx.extension = 'EXTEND'
+        if PROJ['img']: tx.image = PROJ['img']
+        nt.links.new(uvn.outputs['UV'], tx.inputs['Vector'])
+        at = _n(nt, 'ShaderNodeAttribute', name='PROJ_W'); at.attribute_name = 'projw'; at.attribute_type = 'GEOMETRY'
+        wmix = _n(nt, 'ShaderNodeMath', operation='MULTIPLY', name='PROJ_S'); wmix.inputs[1].default_value = PROJ['strength']; nt.links.new(at.outputs['Fac'], wmix.inputs[0])
+        # çizim ışıklı: albedo için hafif karart ve tabanla birlikte çarp (iki katlı aydınlanmayı azaltır)
+        dk = _n(nt, 'ShaderNodeMix', data_type='RGBA'); dk.blend_type = 'MULTIPLY'; dk.inputs['Factor'].default_value = 1.0
+        nt.links.new(tx.outputs['Color'], dk.inputs['A']); dk.inputs['B'].default_value = (0.78, 0.8, 0.84, 1.0)
+        c4 = _n(nt, 'ShaderNodeMix', data_type='RGBA'); c4.blend_type = 'MIX'
+        nt.links.new(c3.outputs['Result'], c4.inputs['A']); nt.links.new(dk.outputs['Result'], c4.inputs['B']); nt.links.new(wmix.outputs['Value'], c4.inputs['Factor'])
+        last = c4
+    nt.links.new(last.outputs['Result'], bsdf.inputs['Base Color'])
     bsdf.inputs['Metallic'].default_value = metallic
-    if aniso > 0:
-        try: bsdf.inputs['Anisotropic'].default_value = aniso
-        except Exception: pass
     # kabartma: fırça + çizik
     bmp = _n(nt, 'ShaderNodeBump'); bmp.inputs['Strength'].default_value = bump; bmp.inputs['Distance'].default_value = 0.01
     addh = _n(nt, 'ShaderNodeMath', operation='ADD'); nt.links.new(nz.outputs['Fac'], addh.inputs[0]); nt.links.new(sr.outputs['Result'], addh.inputs[1])
@@ -73,7 +92,7 @@ def _metal(name, base, rough_lo, rough_hi, metallic=1.0, brush=1.0, scratch=0.6,
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
     return m
 
-def gunmetal():  return _metal('M_gunmetal', (0.075, 0.082, 0.098), 0.30, 0.48, scratch=0.9, bump=0.05)
+def gunmetal():  return _metal('M_gunmetal', (0.075, 0.082, 0.098), 0.28, 0.46, scratch=1.0, bump=0.07)
 def steel():     return _metal('M_dark_steel', (0.040, 0.045, 0.056), 0.40, 0.62, brush=0.7, scratch=0.6, bump=0.04)
 def titanium():  return _metal('M_titanium', (0.34, 0.30, 0.26), 0.30, 0.46, scratch=0.8, bump=0.05)
 def aluminum():  return _metal('M_aluminum', (0.40, 0.42, 0.45), 0.26, 0.40, brush=1.2, scratch=1.0, bump=0.06)

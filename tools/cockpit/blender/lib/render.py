@@ -15,10 +15,10 @@ def setup_world(strength=1.0):
     e = cr.color_ramp.elements.new(0.45); e.color = (0.020, 0.030, 0.060, 1)
     cr.color_ramp.elements[2].position = 1.0; cr.color_ramp.elements[2].color = (0.30, 0.42, 0.70, 1)
     # yıldızlar
-    vo = nt.nodes.new('ShaderNodeTexVoronoi'); vo.feature = 'DISTANCE_TO_EDGE' if False else 'F1'; vo.inputs['Scale'].default_value = 420.0
+    vo = nt.nodes.new('ShaderNodeTexVoronoi'); vo.feature = 'DISTANCE_TO_EDGE' if False else 'F1'; vo.inputs['Scale'].default_value = 300.0
     nt.links.new(tc.outputs['Object'], vo.inputs['Vector'])
-    st = nt.nodes.new('ShaderNodeMapRange'); st.inputs['From Min'].default_value = 0.075; st.inputs['From Max'].default_value = 0.02; nt.links.new(vo.outputs['Distance'], st.inputs['Value'])
-    mul = nt.nodes.new('ShaderNodeMath'); mul.operation = 'MULTIPLY'; mul.inputs[1].default_value = 6.0; nt.links.new(st.outputs['Result'], mul.inputs[0])
+    st = nt.nodes.new('ShaderNodeMapRange'); st.inputs['From Min'].default_value = 0.035; st.inputs['From Max'].default_value = 0.012; nt.links.new(vo.outputs['Distance'], st.inputs['Value'])
+    mul = nt.nodes.new('ShaderNodeMath'); mul.operation = 'MULTIPLY'; mul.inputs[1].default_value = 2.4; nt.links.new(st.outputs['Result'], mul.inputs[0])
     add = nt.nodes.new('ShaderNodeMix'); add.data_type = 'RGBA'; add.blend_type = 'ADD'; add.inputs['Factor'].default_value = 1.0
     nt.links.new(cr.outputs['Color'], add.inputs['A']); nt.links.new(mul.outputs['Value'], add.inputs['B'])
     nt.links.new(add.outputs['Result'], bg.inputs['Color']); bg.inputs['Strength'].default_value = strength; nt.links.new(bg.outputs['Background'], out.inputs['Surface'])
