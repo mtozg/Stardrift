@@ -157,9 +157,11 @@ def thread():
     nt.links.new(bsdf.outputs['BSDF'], out.inputs['Surface']); return m
 
 def emission(name, color, strength):
-    m, nt = _mat(name); out = _n(nt, 'ShaderNodeOutputMaterial'); em = _n(nt, 'ShaderNodeEmission')
-    em.inputs['Color'].default_value = (*color, 1); em.inputs['Strength'].default_value = strength
-    nt.links.new(em.outputs['Emission'], out.inputs['Surface']); return m
+    """Işıklı şerit: Principled BSDF + emisyon (glTF dışa aktarımı emissive/KHR_materials_emissive_strength olarak taşır)."""
+    m, nt = _mat(name); out = _n(nt, 'ShaderNodeOutputMaterial'); b = _n(nt, 'ShaderNodeBsdfPrincipled')
+    b.inputs['Base Color'].default_value = (0.01, 0.02, 0.03, 1); b.inputs['Metallic'].default_value = 0.0; b.inputs['Roughness'].default_value = 0.5
+    b.inputs['Emission Color'].default_value = (*color, 1); b.inputs['Emission Strength'].default_value = strength
+    nt.links.new(b.outputs['BSDF'], out.inputs['Surface']); return m
 
 def screen_mat(image_path=None, strength=1.0):
     m, nt = _mat('M_screen'); out = _n(nt, 'ShaderNodeOutputMaterial'); em = _n(nt, 'ShaderNodeEmission')

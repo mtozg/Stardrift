@@ -10546,6 +10546,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     // ---- Blender kokpiti (sd_ck3 = b, yalnızca Kaşif, DENEME; varsayılan değil): tools/cockpit çıktısı GLB. Yüklenmezse, hata verirse ya da yavaş çalışırsa
     //      otomatik paralaks kokpite (q) düşer. Ekranlar SCR_SYS / SCR_RADAR / SCR_HULL adlı ayrı mesh'ler; içerik mevcut SCR tuvallerinden canlı gelir.
     let BM = null, BP = null, BF = false, BK = null, bLast = 0, bEma = 0, bN = 0;
+    const bStat = { calls: 0, tris: 0, ms: 0 };   /* test için: son kokpit çiziminin çizim çağrısı / üçgen / süre */
+    window.__ckb = { get ready(){ return !!BM; }, get failed(){ return BF; }, get k(){ return BK; }, get stat(){ return bStat; }, get view(){ return { OX, OY, W, H }; } };
     const bWant = () => { try { return localStorage.getItem('sd_ck3') === 'b' && save.ship === 'kasif' && !BF; } catch (e) { return false; } };
     function loadB(){
       if (BP) return BP;
@@ -10580,7 +10582,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       k.lz.intensity = firing ? 1.5 + Math.random() * 0.7 : 0; k.sg.intensity = 0.45 + (hp.hit > 0 ? 0.5 : 0);
       const ac = renderer.autoClear, oe = renderer.outputEncoding, tm = renderer.toneMapping, te = renderer.toneMappingExposure;
       renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-      renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam);
+      renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); const t0 = performance.now(); renderer.render(k.S, k.cam); bStat.ms = performance.now() - t0; bStat.calls = renderer.info.render.calls; bStat.tris = renderer.info.render.triangles;
       renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
     }
     function render(){

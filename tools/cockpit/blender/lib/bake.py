@@ -4,7 +4,7 @@ import bpy, math, os
 import numpy as np
 from .common import *
 
-METALLIC = {'M_gunmetal': 1.0, 'M_dark_steel': 1.0, 'M_titanium': 1.0, 'M_aluminum': 1.0, 'M_composite': 0.35, 'M_leather': 0.0}
+METALLIC = {'M_gunmetal': 1.0, 'M_dark_steel': 1.0, 'M_titanium': 1.0, 'M_aluminum': 1.0, 'M_composite': 0.35, 'M_leather': 0.0, 'M_thread': 0.0, 'M_fabric': 0.0}
 
 def _set_bake_target(mats, img):
     for m in mats:
