@@ -10547,9 +10547,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const Dc = 1200, S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(2 * Math.atan(H / 2 / Dc) * 180 / Math.PI, W / H, 10, 4000); cam.position.set(0, 0, Dc);
       const mp = (x, y) => [IM.dx + x * IM.s, IM.dy + IM.my(y) * IM.s], IW = IMG.iw, IH = IMG.ih, nx = 128, ny = 72;
       const pos = [], uv = [], idx = [];
-      for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++){ const X = i / nx * IW, Y = j / ny * IH, q = mp(X, Y), d = qDepth(X / IW, Y / IH), f = (Dc - d) / Dc;
-        pos.push((q[0] - W / 2) * f, (H / 2 - q[1]) * f, d); uv.push(X / IW, 1 - Y / IH); }
-      for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){ const a = j * (nx + 1) + i, b = a + 1, c = a + nx + 1, e = c + 1; idx.push(a, c, b, b, c, e); }
+      /* kenar taşması: ağ altta ve yanlarda ~40 px büyütülür (uç piksel şeridi çekilir, derinlik kenardakiyle aynı); kamera kayınca yıldız şeridi/boşluk görünmez */
+      const MG = 40 / IM.s, xs = [-MG], ys = []; for (let i = 0; i <= nx; i++) xs.push(i / nx * IW); xs.push(IW + MG); for (let j = 0; j <= ny; j++) ys.push(j / ny * IH); ys.push(IH + MG);
+      for (let j = 0; j < ys.length; j++) for (let i = 0; i < xs.length; i++){ const X = xs[i], Y = ys[j], Xc = clamp(X, 0, IW), Yc = clamp(Y, 0, IH), q = mp(X, Y), d = qDepth(Xc / IW, Yc / IH), f = (Dc - d) / Dc;
+        pos.push((q[0] - W / 2) * f, (H / 2 - q[1]) * f, d); uv.push(Xc / IW, 1 - Yc / IH); }
+      for (let j = 0; j < ys.length - 1; j++) for (let i = 0; i < xs.length - 1; i++){ const a = j * xs.length + i, b = a + 1, c = a + xs.length, e = c + 1; idx.push(a, c, b, b, c, e); }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
       const tex = new THREE.Texture(img); tex.needsUpdate = true; tex.anisotropy = 4;
       const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.02, color: 0x9aa2ad, side: THREE.DoubleSide })); S.add(mesh);
