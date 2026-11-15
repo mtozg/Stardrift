@@ -10297,7 +10297,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // =====  3B KOKPİT (deneme): ince dikmeler, alçak ekran konsolu, dışarıdan gelen gerçek ışık. Şimdilik yalnızca Kaşif, ayar: localStorage sd_ck3 = 1
   (function(){
     try { const m = /[?&]ck=([a-z0-9])/.exec(location.search); if (m) localStorage.setItem('sd_ck3', m[1]); } catch (e) {}   /* adres sonuna ?ck=q (paralaks kokpit denemesi) ya da ?ck=0 (kapat) */
-    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's' || v === 'q' || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };   /* ayar yoksa Kaşif paralaks kokpitle açılır; ?ck=0 kapatır */
+    const want = () => { try { const v = localStorage.getItem('sd_ck3'); return v === '1' || v === 'p' || v === 's' || v === 'q' || (v === 'b' && save.ship === 'kasif') || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };   /* ayar yoksa Kaşif paralaks kokpitle açılır; ?ck=0 kapatır */
     let K = null;
     // ---- gemiye göre kokpit: cam/dikme düzeni eski çizim kokpitlerden; kaplama doğrudan o çizimlerden kesilir (gerçekçi boyalı metal)
     //      dikmeler kanopi yüzeyinde (u: yatay açı, e: yükseklik açısı) tanımlanır; yanlara doğru kameraya yaklaşır
@@ -10503,7 +10503,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       scr2Glass(g, w, h); }
     // ---- paralaks kokpit (sd_ck3 = q): çizim, derinlik haritalı bir ağa kaplanır; kafa hareketinde yakın parçalar (dikmeler, konsol, koltuk) uzaktakilerden fazla kayar. Ekranlar çizimdeki oyuklardan görünen ayrı yüzeylerdir.
     let Q = null;
-    const qOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v === 'q' || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };
+    const qOn = () => { try { const v = localStorage.getItem('sd_ck3'); return v === 'q' || (v === 'b' && save.ship === 'kasif') || (v === null && save.ship === 'kasif'); } catch (e) { return false; } };   /* 'b' yüklenirken/başarısızken de paralaks kokpite düşer */
     const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
     function qDepth(u, v){   /* u,v: 0..1 çizim koordinatı (v aşağı). Dönüş: izleyiciye doğru derinlik (piksel birimi) */
       const sd = Math.abs(u - 0.5) * 2, side = 250 * Math.pow(sd, 2.3) * (0.55 + 0.45 * sstep(0.25, 0.75, v));
@@ -10543,7 +10543,48 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       for (const e of k.scr){ if (e.sc.cv !== e.tx.image){ e.tx.image = e.sc.cv; e.tx.needsUpdate = true; } if (e.sc.ver !== e.ver){ e.ver = e.sc.ver; e.tx.needsUpdate = true; } }
       const ac = renderer.autoClear; renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam); renderer.autoClear = ac;
     }
+    // ---- Blender kokpiti (sd_ck3 = b, yalnızca Kaşif, DENEME; varsayılan değil): tools/cockpit çıktısı GLB. Yüklenmezse, hata verirse ya da yavaş çalışırsa
+    //      otomatik paralaks kokpite (q) düşer. Ekranlar SCR_SYS / SCR_RADAR / SCR_HULL adlı ayrı mesh'ler; içerik mevcut SCR tuvallerinden canlı gelir.
+    let BM = null, BP = null, BF = false, BK = null, bLast = 0, bEma = 0, bN = 0;
+    const bWant = () => { try { return localStorage.getItem('sd_ck3') === 'b' && save.ship === 'kasif' && !BF; } catch (e) { return false; } };
+    function loadB(){
+      if (BP) return BP;
+      BP = new Promise((res, rej) => {
+        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load('models/cockpit_kasif.glb' + v, g => { BM = g.scene; res(); }, undefined, e => { BF = true; rej(e); });
+        if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { BF = true; rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
+      BP.catch(e => console.warn('kokpit (b) yüklenemedi, paralaks kokpite dönülüyor', e)); return BP;
+    }
+    function buildB(){
+      const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.02, 30), G = new THREE.Group(); S.add(G); const mdl = BM.clone(true); G.add(mdl);
+      const bind = { SCR_SYS: 'bars', SCR_RADAR: 'map', SCR_HULL: 'hull' }, scr = [];
+      mdl.traverse(o => { if (!o.isMesh) return;
+        if (bind[o.name]){ const tx = new THREE.CanvasTexture(document.createElement('canvas')); tx.flipY = false; tx.encoding = THREE.sRGBEncoding; tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
+          o.material = new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }); scr.push({ o, tx, kind: bind[o.name], ver: -1 }); }
+        else if (o.material){ o.material.envMapIntensity = 0.9; o.frustumCulled = false; } });
+      try { const gc = document.createElement('canvas'); gc.width = 256; gc.height = 128; const gx = gc.getContext('2d'), gg = gx.createLinearGradient(0, 0, 0, 128); gg.addColorStop(0, '#7f98c8'); gg.addColorStop(0.5, '#1c2640'); gg.addColorStop(1, '#04060b'); gx.fillStyle = gg; gx.fillRect(0, 0, 256, 128);
+        const gt = new THREE.CanvasTexture(gc); gt.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); S.environment = pm.fromEquirectangular(gt).texture; pm.dispose(); } catch (e) { console.warn(e); }
+      S.add(new THREE.HemisphereLight(0x6f86b8, 0x0a0d14, 0.55));
+      const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 0.5, -0.8); S.add(fl);
+      const sg = new THREE.PointLight(0x4cc8ff, 0.45, 2.2); sg.position.set(0, -0.15, -0.55); S.add(sg); const lz = new THREE.PointLight(0xff6a8c, 0, 3); lz.position.set(0, -0.2, -0.5); S.add(lz);
+      return { S, cam, G, scr, sun, fl, sg, lz, tq: new THREE.Quaternion(), v: new THREE.Vector3(), W: 0, H: 0 };
+    }
+    function renderB(){
+      if (!BK) BK = buildB(); const k = BK;
+      const now = performance.now(); if (bLast){ const dt = now - bLast; if (dt < 250){ bEma = bEma ? bEma * 0.93 + dt * 0.07 : dt; if (++bN > 120 && bEma > 45 && !window.__noFbk){ BF = true; console.warn('kokpit (b) yavaş (' + Math.round(bEma) + ' ms/kare): paralaks kokpite dönülüyor'); } } } bLast = now;
+      const fpx = 435.3 * Math.max(0.2, (H - OY) / 416.5);                 /* çizimin odak uzaklığı (1600x656 uzayında 435.3 px), alt kenar ekranın altına oturur */
+      k.cam.fov = 2 * Math.atan((H / 2) / fpx) * 180 / Math.PI; k.cam.aspect = W / H; k.cam.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H); k.cam.updateProjectionMatrix();
+      k.cam.position.set(-sway.x * 1.08 / fpx, sway.y * 1.08 / fpx, 0);   /* sallanma: kafa ötelemesi → yakın parçalar daha çok kayar */
+      for (const e of k.scr){ const sc = SCR.find(q => q.kind === e.kind); if (!sc) continue; if (e.tx.image !== sc.cv){ e.tx.image = sc.cv; e.tx.needsUpdate = true; } if (sc.ver !== e.ver){ e.ver = sc.ver; e.tx.needsUpdate = true; } }
+      k.tq.copy(rig.quaternion).multiply(camera.quaternion).invert(); k.v.copy(sunDir).applyQuaternion(k.tq); k.sun.position.copy(k.v).multiplyScalar(5); k.sun.intensity = 1.8 * clamp(-k.v.z + 0.35, 0, 1);
+      let f = 0; if (flashLight.intensity > 0){ const d = flashLight.position.distanceTo(rig.position); f = clamp(flashLight.intensity / 6 * (1 - d / 1600), 0, 1); } k.fl.intensity = 6 * Math.max(f, scrFlash);
+      k.lz.intensity = firing ? 1.5 + Math.random() * 0.7 : 0; k.sg.intensity = 0.45 + (hp.hit > 0 ? 0.5 : 0);
+      const ac = renderer.autoClear, oe = renderer.outputEncoding, tm = renderer.toneMapping, te = renderer.toneMappingExposure;
+      renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+      renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); renderer.render(k.S, k.cam);
+      renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
+    }
     function render(){
+      if (bWant()){ if (BM){ try { return renderB(); } catch (e) { BF = true; console.warn('kokpit (b) hata, paralaks kokpite dönülüyor', e); } } else loadB(); }
       if (qOn()) return renderPar();
       const wantGLB = save.ship === 'kasif' && !!GLBM && glbOn(); if (!K || K.id !== save.ship || !!K.glb !== wantGLB) K = wantGLB ? buildGLB() : build(save.ship); const k = K; k.t++; window.__ck3K = k;
       k.cam.aspect = W / H; k.cam.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H); k.cam.updateProjectionMatrix();

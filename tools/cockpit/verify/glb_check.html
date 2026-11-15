@@ -1,0 +1,41 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#05070d">
+<script src="/vendor/three.min.js"></script><script src="/vendor/GLTFLoader.js"></script>
+<script>
+// GLB doğrulama sahnesi: isimler, malzeme/dokular, normal yönü, kamera hizası (CKP), üçgen sayısı, çizim çağrısı.
+const W = 1200, H = 492, R = {};
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setSize(W, H); r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; document.body.appendChild(r.domElement);
+const S = new THREE.Scene(); S.background = new THREE.Color(0x070b16);
+const cam = new THREE.PerspectiveCamera(74, W / H, 0.02, 30); cam.setViewOffset(W, H, 0, H * 0.135, W, H);   // asal nokta 36,5 %
+{ const gc = document.createElement('canvas'); gc.width = 256; gc.height = 128; const gx = gc.getContext('2d'), gg = gx.createLinearGradient(0, 0, 0, 128); gg.addColorStop(0, '#7f98c8'); gg.addColorStop(0.5, '#1c2640'); gg.addColorStop(1, '#04060b'); gx.fillStyle = gg; gx.fillRect(0, 0, 256, 128);
+  const gt = new THREE.CanvasTexture(gc); gt.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(r); S.environment = pm.fromEquirectangular(gt).texture; }
+S.add(new THREE.HemisphereLight(0x6f86b8, 0x0a0d14, 0.55)); const d = new THREE.DirectionalLight(0xfff0dc, 1.8); d.position.set(-1.5, 2, 1); S.add(d);
+const pl = new THREE.PointLight(0x4cc8ff, 0.45, 2.2); pl.position.set(0, -0.15, -0.55); S.add(pl);
+Promise.all([fetch('/tools/cockpit/anchors/kasif.json').then(x => x.json())]).then(([A]) => {
+  new THREE.GLTFLoader().load('/tools/cockpit/out/cockpit_kasif.glb', g => {
+    const m = g.scene; S.add(m); const names = [], mats = [], scr = {};
+    m.traverse(o => { if (!o.isMesh) return; names.push(o.name); const mm = Array.isArray(o.material) ? o.material : [o.material];
+      mm.forEach(x => { const t = k => x[k] && x[k].image ? [x[k].image.width, x[k].image.height] : null; mats.push({ mesh: o.name, mat: x.name, type: x.type, map: t('map'), normal: t('normalMap'), orm: t('metalnessMap'), ao: t('aoMap'), metal: x.metalness, rough: x.roughness, side: x.side }); });
+      if (o.name.startsWith('SCR_')){ scr[o.name] = o; o.material = new THREE.MeshBasicMaterial({ color: o.name === 'SCR_RADAR' ? 0x1a6a8a : 0x0d4a63, toneMapped: false }); } });
+    R.names = names; R.mats = mats; R.screens = Object.keys(scr);
+    // kamera hizası: ekran köşeleri → 1600x656 piksel; CKP ile fark
+    cam.updateMatrixWorld(); const err = {};
+    for (const s of A.screens){ const o = scr[s.name]; if (!o){ err[s.name] = null; continue; } const pos = o.geometry.attributes.position; let mx = 0; const order = [];
+      for (let i = 0; i < pos.count; i++){ const v = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld).project(cam); order.push([(v.x * 0.5 + 0.5) * 1600, (1 - (v.y * 0.5 + 0.5)) * 656]); }
+      // köşe sırasını CKP'ye en yakın eşleştirerek karşılaştır
+      s.ckp.forEach(q => { let best = 1e9; order.forEach(p => { best = Math.min(best, Math.hypot(p[0] - q[0], p[1] - q[1])); }); mx = Math.max(mx, best); }); err[s.name] = +mx.toFixed(3); }
+    R.ckpErr = err;
+    // normal yönü: FrontSide ile DoubleSide görüntüsü karşılaştır
+    const px = () => { r.render(S, cam); const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.drawImage(r.domElement, 0, 0); return x.getImageData(0, 0, W, H).data; };
+    const setSide = side => m.traverse(o => { if (o.isMesh && !o.name.startsWith('SCR_')) (Array.isArray(o.material) ? o.material : [o.material]).forEach(x => { x.side = side; x.needsUpdate = true; }); });
+    setSide(THREE.DoubleSide); const a = px(); setSide(THREE.FrontSide); const b = px(); let diff = 0, tot = 0; for (let i = 0; i < a.length; i += 4){ tot++; if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 30) diff++; }
+    R.normalDiffPct = +(100 * diff / tot).toFixed(3);
+    r.info.reset(); r.render(S, cam); R.calls = r.info.render.calls; R.tris = r.info.render.triangles; R.textures = r.info.memory.textures; R.geometries = r.info.memory.geometries;
+    let t0 = performance.now(); for (let i = 0; i < 30; i++) r.render(S, cam); R.msPerFrame = +((performance.now() - t0) / 30).toFixed(1);
+    // CKP bindirmesi (kırmızı) ve görüntü
+    const ov = document.createElement('canvas'); ov.width = W; ov.height = H; ov.style.cssText = 'position:absolute;left:0;top:0'; document.body.appendChild(ov); const ox = ov.getContext('2d'); ox.strokeStyle = '#ff2d2d'; ox.lineWidth = 1.5;
+    const toPx = q => [q[0] * W / 1600, q[1] * H / 656]; A.screens.forEach(s => { ox.beginPath(); s.ckp.forEach((q, i) => { const p = toPx(q); i ? ox.lineTo(p[0], p[1]) : ox.moveTo(p[0], p[1]); }); ox.closePath(); ox.stroke(); });
+    R.done = 1;
+  }, undefined, e => { R.error = String(e); R.done = 1; });
+});
+window.__R = R;
+</script>
