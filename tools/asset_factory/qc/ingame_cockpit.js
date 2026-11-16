@@ -15,7 +15,8 @@ async function boot(b, dev, block){
   await p.goto('http://localhost:8765/'); await p.waitForTimeout(2500);
   await p.evaluate(() => document.getElementById('titleGo').click()); await p.waitForTimeout(1500);
   await p.evaluate(() => { const i = document.getElementById('ssName'); if (i) i.value = 'Test'; const k = document.querySelector('#sideSel .c[data-k="filo"] .pk'); k && k.click(); }); await p.waitForTimeout(1200);
-  for (let k = 0; k < 8; k++){ const m = await p.evaluate(() => { const g = document.querySelector('#ctrlSel [data-go]'); g && g.click(); return window.__menuOn; }); if (!m && k > 2) break; await p.waitForTimeout(600); }
+  /* kontrol yöntemi menüsü (masaüstü/tablet) başlıktan sonra gelir: menü kalmayana dek Devam */
+  let calm = 0; for (let k = 0; k < 40 && calm < 5; k++){ const m = await p.evaluate(() => { const g = document.querySelector('#ctrlSel [data-go]'); g && g.click(); return !!(window.__menuOn || document.getElementById('ctrlSel') || document.getElementById('sideSel')); }); calm = m ? 0 : calm + 1; await p.waitForTimeout(600); }
   return { ctx, p, log, glb };
 }
 const setShip = (p, id) => p.evaluate(id => window.__ckb.swap(id), id);
@@ -25,7 +26,9 @@ function measure(p, id){
     if (!k) return out; out.scr = k.scr.map(e => ({ kind: e.kind, canvas: e.tx.image ? [e.tx.image.width, e.tx.image.height] : null }));
     const m = B.scr.find(s => s.kind === 'map'); out.radarCanvasAspect = m ? +(m.cv.width / m.cv.height).toFixed(3) : null; out.radarLogical = m ? [m.lw, m.lh] : null;
     out.calls = B.stat.calls; out.tris = B.stat.tris; out.ms = +B.stat.ms.toFixed(2); out.texMem = B.mem.textures; out.geoMem = B.mem.geometries;
-    const Q = B.quads, s = (v.H - v.OY) / 416.5, names = { SCR_SYS: 0, SCR_RADAR: 1, SCR_HULL: 2 }, err = {}; const swayNow = [B.sway.x, B.sway.y];
+    /* hiza referansı: modeldeki SCR_* köşelerinin ideal kameradaki pikselleri (qc/cockpit_compat.py; Kaşif = main'deki cockpit_kasif.glb, Şahin = r012). Kaşif'in CKP dörtgenleri eski çapalar, model değil */
+    const REF = { kasif: [[[393, 411], [565, 393], [558, 504], [342, 525]], [[628, 369], [974, 370], [975, 508], [624, 508]], [[1032, 393], [1206, 411], [1257, 525], [1042, 504]]] };
+    const Q = REF[id] || B.quads, s = (v.H - v.OY) / 416.5, names = { SCR_SYS: 0, SCR_RADAR: 1, SCR_HULL: 2 }, err = {}; const swayNow = [B.sway.x, B.sway.y];
     for (const e of k.scr){ const q = Q[names[e.o.name]]; e.o.updateMatrixWorld(true); const pos = e.o.geometry.attributes.position, got = [];
       for (let i = 0; i < pos.count; i++){ const w = new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(e.o.matrixWorld).project(k.cam); got.push([(w.x * 0.5 + 0.5) * v.W, (1 - (w.y * 0.5 + 0.5)) * v.H]); }
       const fpx = 435.3 * s, ox = -swayNow[0] * 1.08, oy = swayNow[1] * 1.08;   /* sallanma kafa ötelemesi: beklenen konuma derinliğe bağlı kayma eklenir → hizayı sallanmasız ölç */

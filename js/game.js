@@ -1726,7 +1726,11 @@ var B_SCR_K = { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] 
 var scrShapeMode = 'q';   /* var: layoutCockpit bu satırdan önce de çağrılabilir */
 function scrShape(mode){
   if (mode === scrShapeMode) return; scrShapeMode = mode;
-  for (const sc of SCR){ if (!sc.px) continue; const k = (mode === 'b' && ((ck3Of() || {}).scrK || {})[sc.kind]) || [1, 1], lwp = sc.px[0] * k[0], lhp = sc.px[1] * k[1], kz = Math.max(1, 96 / Math.max(1, lhp));
+  const K3 = mode === 'b' ? ck3Of() : null, sb = (H - OY) / 416.5, KI = { bars: 0, map: 1, hull: 2 };
+  /* tuval boyutu: Kaşif = eski katsayılar (değişmedi); dörtgenleri tanımlı 3B gemi (Şahin) = modeldeki ekranın 3B kamera eşlemesindeki gerçek boyutu → oran birebir (RADAR 1,56:1) */
+  const qwh = q => [(Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[3][0], q[2][1] - q[3][1])) / 2 * sb, (Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1])) / 2 * sb];
+  for (const sc of SCR){ if (!sc.px) continue; const k = (K3 && (K3.scrK || {})[sc.kind]) || [1, 1], wh = K3 && K3.q && KI[sc.kind] !== undefined ? qwh(K3.q[KI[sc.kind]]) : null,
+    lwp = wh ? wh[0] : sc.px[0] * k[0], lhp = wh ? wh[1] : sc.px[1] * k[1], kz = Math.max(1, 96 / Math.max(1, lhp));
     sc.cv = document.createElement('canvas'); sc.cv.width = Math.round(lwp * DPR * SCRK); sc.cv.height = Math.round(lhp * DPR * SCRK); sc.g = sc.cv.getContext('2d');
     sc.lw = Math.round(lwp * kz); sc.lh = Math.round(lhp * kz); sc.ps = DPR * SCRK / kz; sc.drawn = false; }
 }
