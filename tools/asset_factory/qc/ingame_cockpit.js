@@ -20,7 +20,8 @@ async function boot(b, dev, block){
   return { ctx, p, log, glb };
 }
 const setShip = (p, id) => p.evaluate(id => window.__ckb.swap(id), id);
-async function waitReady(p, id, ms){ const t0 = Date.now(); while (Date.now() - t0 < ms){ const r = await p.evaluate(id => window.__ckb && window.__ckb.id === id && window.__ckb.ready && !!window.__ck3on, id); if (r) return true; await p.waitForTimeout(500); } return false; }
+async function waitReady(p, id, ms){ const t0 = Date.now(); while (Date.now() - t0 < ms){ const r = await p.evaluate(id => { const g = document.querySelector('#ctrlSel [data-go]'); g && g.click();   /* geç gelen kontrol menüsü (tablet) */
+      return window.__ckb && window.__ckb.id === id && window.__ckb.ready && !!window.__ck3on; }, id); if (r) return true; await p.waitForTimeout(500); } return false; }
 function measure(p, id){
   return p.evaluate(id => { const B = window.__ckb, k = B.k, v = B.view, out = { id: B.id, ready: B.ready, failed: B.failed, ck3on: !!window.__ck3on };
     if (!k) return out; out.scr = k.scr.map(e => ({ kind: e.kind, canvas: e.tx.image ? [e.tx.image.width, e.tx.image.height] : null }));
@@ -37,7 +38,7 @@ function measure(p, id){
 }
 const still = p => p.evaluate(() => { try { window.__ckb.sway.x = 0; window.__ckb.sway.y = 0; } catch (e) {} });
 (async () => { const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] }); const res = {};
-  for (const dev of Object.keys(DEV)){
+  const only = process.argv[3]; for (const dev of Object.keys(DEV).filter(d => !only || d === only)){
     const { ctx, p, log, glb } = await boot(b, dev, null); const R = {};
     R.kasif_ok = await waitReady(p, 'kasif', 60000); await still(p); await p.waitForTimeout(300); R.kasif = await measure(p, 'kasif'); await p.screenshot({ path: OUT + '/kasif_' + dev.replace(/\s+/g, '_') + '.png' });
     await setShip(p, 'sahin'); R.sahin_ok = await waitReady(p, 'sahin', 60000); await p.waitForTimeout(1500); await still(p); await p.waitForTimeout(300); R.sahin = await measure(p, 'sahin'); await p.screenshot({ path: OUT + '/sahin_' + dev.replace(/\s+/g, '_') + '.png' });
@@ -46,7 +47,7 @@ const still = p => p.evaluate(() => { try { window.__ckb.sway.x = 0; window.__ck
     console.log(dev, JSON.stringify({ kasif: R.kasif_ok, sahin: R.sahin_ok, geri: R.back_ok, glb, hizaS: R.sahin.alignErrPx, hizaK: R.kasif.alignErrPx, radar: R.sahin.radarCanvasAspect, calls: R.sahin.calls, tris: R.sahin.tris, tex: [R.kasif.texMem, R.sahin.texMem, R.back.texMem], log: R.log }));
     await ctx.close(); }
   // fallback: Şahin modeli engellenir → çizim kokpiti (ck_sahin.webp)
-  { const { ctx, p, log } = await boot(b, 'iPad Pro 11 landscape', '**/models/cockpit_sahin*.glb*'); await waitReady(p, 'kasif', 60000); await setShip(p, 'sahin'); await p.waitForTimeout(6000);
+  if (!only) { const { ctx, p, log } = await boot(b, 'iPad Pro 11 landscape', '**/models/cockpit_sahin*.glb*'); await waitReady(p, 'kasif', 60000); await setShip(p, 'sahin'); await p.waitForTimeout(6000);
     const r = await p.evaluate(() => ({ failed: window.__ckb.failed, ck3on: !!window.__ck3on, ck3wait: !!window.__ck3wait, off: !!window.__ckb.off.sahin, img2d: /ck_sahin/.test(window.__ckb.img2d), menuOn: !!window.__menuOn })); res.fallback = { ...r, log: log.slice(0, 5) };
     console.log('fallback', JSON.stringify(res.fallback)); await p.screenshot({ path: OUT + '/sahin_fallback.png' }); await ctx.close(); }
   fs.writeFileSync(OUT + '/ingame_result.json', JSON.stringify(res, null, 1)); await b.close(); })();
