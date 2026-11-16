@@ -129,10 +129,10 @@
   },
   "detail": {
    "seams_u": [
-    250,
+    175,
     520,
     1080,
-    1350
+    1425
    ],
    "switch_u_left": [
     218,
@@ -147,8 +147,57 @@
    "stick_top_z": -0.43,
    "rear_hoop_y": -0.62,
    "_note": "uçuş kolu r008'e göre 3 cm alçak (topuz RADAR çerçevesine biniyordu)",
-   "_r009": "anahtar panelleri küçültüldü ve raydan uzaklaştırıldı"
-  }
+   "_r009": "anahtar panelleri küçültüldü ve raydan uzaklaştırıldı",
+   "pass": 2,
+   "lower_plate_v": [
+    612,
+    700
+   ],
+   "lower_plates": [
+    [
+     372,
+     634
+    ],
+    [
+     668,
+     932
+    ],
+    [
+     966,
+     1228
+    ]
+   ],
+   "grilles_u": [
+    [
+     690,
+     776
+    ],
+    [
+     824,
+     910
+    ]
+   ],
+   "grille_v": [
+    616,
+    650
+   ],
+   "cable_u": [
+    430,
+    420,
+    405,
+    392
+   ],
+   "handle_u": [
+    118,
+    176
+   ],
+   "handle_v": [
+    470,
+    452
+   ],
+   "_r012": "Kapı 2 kararı: ayrıntı ve malzeme geçişi; derzler anahtar panellerinin dışına (r011 çentiği), yan çıtalar yerine ızgara (r011 kaması)"
+  },
+  "console_cols": 121
  },
  "_gate1": "Kapı 1: PREVIEW r008 kullanıcı tarafından onaylandı (2026-11-16)",
  "prepare": {

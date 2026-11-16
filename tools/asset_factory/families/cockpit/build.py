@@ -114,7 +114,7 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
     for side, us in (('L', D.get('switch_u_left', [180, 230, 280, 330])), ('R', [W - u for u in D.get('switch_u_left', [180, 230, 280, 330])])):
         u0, u1 = min(us) - 22, max(us) + 22
         v0, v1 = D.get('switch_v', [505, 600])[0] - 36, D.get('switch_v', [505, 600])[1] + 22
-        plate = grid([[P(u, v0, surf(u, v0) - 0.002) for u in lin(u0, u1, 6)], [P(u, v1, surf(u, v1) - 0.002) for u in lin(u0, u1, 6)]])
+        plate = grid([[P(u, v, surf(u, v) - 0.004) for u in lin(u0, u1, 12)] for v in lin(v0, v1, 4)])      # r011 çentiği: yüzeyi sık izle
         add('switch_plate_%s' % side, plate, 'sahin_dark', eye=True)
         for r, v in enumerate(D.get('switch_v', [505, 600])):
             for c, u in enumerate(us):
@@ -138,10 +138,13 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
     add('canopy_hoop_rear', tube(rear, 0.02, 10), 'sahin_dark', smooth=60)
     hx = sl['x'] - 0.06
     add('canopy_release', tube([Vector((hx, 0.22, zr + 0.02)), Vector((hx - 0.05, 0.24, zr + 0.03)), Vector((hx - 0.05, 0.38, zr + 0.03)), Vector((hx, 0.40, zr + 0.02))], 0.008, 8), 'sahin_red', smooth=60)
-    for s in (-1, 1):
-        for k in range(6):
-            z = -0.62 + k * 0.03
-            add('vent_%s%d' % ('L' if s < 0 else 'R', k), geo.bm_box((s * (sl['x'] - 0.035), 0.86, z), (0.012, 0.20, 0.010)), 'gunmetal')
+    if D.get('pass', 1) < 2:      # 2. geçişte yerine çerçeveli ızgara (r011'deki "kama" görüntüsü bu çıtalardı)
+        for s in (-1, 1):
+            for k in range(6):
+                z = -0.62 + k * 0.03
+                add('vent_%s%d' % ('L' if s < 0 else 'R', k), geo.bm_box((s * (sl['x'] - 0.035), 0.86, z), (0.012, 0.20, 0.010)), 'gunmetal')
+    else:
+        detail_pass2(A, add, D, vtop, surf, sl)
     # --- uçuş kolu (alçaltılmış), körük, tetik
     sz = D.get('stick_top_z', -0.40)
     add('stick_boot', geo.bm_cylinder((0, 0.40, -0.83), (0, 0.405, -0.72), 0.06, 16, radius1=0.022), 'seat_textile', smooth=60)
@@ -175,6 +178,59 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
     for s in (-1, 1):
         add('seat_rail_%s' % ('L' if s < 0 else 'R'), geo.bm_box((s * 0.13, -0.05, pz - 0.12), (0.035, 0.62, 0.10)), 'gunmetal')
     add('seat_rail_cross', geo.bm_box((0, -0.05, pz - 0.09), (0.30, 0.05, 0.04)), 'gunmetal')
+
+
+def detail_pass2(A, add, D, vtop, surf, sl):
+    """2. ayrıntı geçişi (Kapı 2 kararı, 2026-11-16): pilotun gördüğü yüzeylerde katman, ızgara, kablo, profil, ışık."""
+    toward = lambda p: (-p).normalized()
+
+    def on(u, v, off):
+        return P(u, v, surf(u, v) - off)
+
+    def screw(name, u, v, off):
+        p = on(u, v, off)
+        add(name, geo.bm_cylinder(tuple(p), tuple(p + toward(p) * 0.002), 0.0032, 8), 'gunmetal', smooth=60)
+
+    # 1) ekranların altında katmanlı plakalar (4 mm kalın, vidalı)
+    v0, v1 = D['lower_plate_v']
+    for k, (u0, u1) in enumerate(D['lower_plates']):
+        rows = [[on(u, v, 0.005) for u in lin(u0, u1, 14)] for v in lin(v0, v1, 5)]
+        add('lower_plate_%d' % k, grid(rows), 'sahin_paint', eye=True, solid=0.004)
+        for j, (u, v) in enumerate(((u0 + 9, v0 + 8), (u1 - 9, v0 + 8), (u0 + 9, v1 - 8), (u1 - 9, v1 - 8))):
+            screw('plate_screw_%d_%d' % (k, j), u, v, 0.0055)
+    # 2) RADAR altında, uçuş kolunun iki yanında ızgaralı havalandırma
+    for k, (u0, u1) in enumerate(D['grilles_u']):
+        g0, g1 = D['grille_v']
+        add('grille_frame_%d' % k, grid([[on(u, v, 0.0062) for u in lin(u0, u1, 8)] for v in lin(g0, g1, 3)]), 'sahin_dark', eye=True)
+        for i, v in enumerate(lin(g0 + 5, g1 - 5, 5)):
+            add('grille_slat_%d_%d' % (k, i), grid([[on(u, v - 1.6, 0.0085) for u in lin(u0 + 4, u1 - 4, 8)], [on(u, v + 1.6, 0.0085) for u in lin(u0 + 4, u1 - 4, 8)]]), 'gunmetal', eye=True)
+    # 3) kablo kanalları (yan ekranların altından aşağı), klipsli
+    for side, us in (('L', D['cable_u']), ('R', [W - u for u in D['cable_u']])):
+        pts = [on(us[0], 606, 0.010), on(us[1], 640, 0.012), on(us[2], 700, 0.014), on(us[3], 780, 0.016)]
+        add('cable_%s' % side, tube(pts, 0.007, 10), 'sahin_dark', smooth=60)
+        for j, (u, v) in enumerate(((us[0] + (us[1] - us[0]) * 0.5, 623), (us[1] + (us[2] - us[1]) * 0.4, 664))):
+            p = on(u, v, 0.012)
+            add('cable_clip_%s%d' % (side, j), geo.bm_box(tuple(p), (0.024, 0.012, 0.012)), 'gunmetal')
+    # 4) konsol üst kenarında metal profil
+    ct = A['console_top']
+    add('top_trim', tube([on(u, vtop(u) + 1.5, 0.004) for u in lin(ct['shoulder_u'] - 120, W - ct['shoulder_u'] + 120, 49)], 0.0045, 8), 'gunmetal', smooth=60)
+    # 5) göz kalkanı önünde gösterge ışıkları
+    gl = A['glare']
+    for i, u in enumerate(lin(744, 856, 7)):
+        v = (gl['top_c'] + gl['bot_c']) / 2 + (gl['top_e'] - gl['top_c']) * ((u - 800) / gl['half']) ** 2 * 0.5
+        p = P(u, v, A['glare_depth'] - 0.003)
+        add('glare_led_%d' % i, geo.bm_box(tuple(p), (0.006, 0.003, 0.0035)), 'emit_red', role='emit_live')
+    # 6) konsol uçlarında tutunma kolları
+    for side, (ua, ub) in (('L', D['handle_u']), ('R', (W - D['handle_u'][0], W - D['handle_u'][1]))):
+        a, b = on(ua, D['handle_v'][0], 0.0), on(ub, D['handle_v'][1], 0.0)
+        na, nb = toward(a) * 0.035, toward(b) * 0.035
+        add('grab_handle_%s' % side, tube([a, a + na * 0.6, a + na + (b - a) * 0.15, b + nb + (a - b) * 0.15, b + nb * 0.6, b], 0.009, 10), 'gunmetal', smooth=60)
+    # 7) yan panellerde çerçeveli ızgara (eski çıtaların yerine)
+    for s in (-1, 1):
+        x = s * (sl['x'] - 0.004)
+        add('side_grille_frame_%s' % ('L' if s < 0 else 'R'), geo.bm_box((x, 0.80, -0.63), (0.008, 0.13, 0.15)), 'sahin_dark')
+        for k in range(6):
+            add('side_grille_slat_%s%d' % ('L' if s < 0 else 'R', k), geo.bm_box((s * (sl['x'] - 0.012), 0.80, -0.69 + k * 0.024), (0.006, 0.11, 0.008)), 'gunmetal')
 
 
 def build(spec, mats):
@@ -221,7 +277,7 @@ def build(spec, mats):
     def dep(u):
         return max(0.36, A['console_depth'] - A['console_wrap'] * ((u - 800) / 800) ** 2)
 
-    U = lin(-700, 2300, 61)
+    U = lin(-700, 2300, A.get('console_cols', 61))
     top = [P(u, vtop(u), dep(u)) for u in U]
     mid = [P(u, vtop(u) + 40, dep(u) - 0.004) for u in U]
     bot = [P(u, 900, dep(u) - A['fascia_lean']) for u in U]

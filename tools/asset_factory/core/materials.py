@@ -13,6 +13,7 @@ DEFAULTS = {
     'scratch': 0.0, 'scratch_color': [0.22, 0.23, 0.25], 'wear': 0.0, 'wear_color': [0.5, 0.52, 0.56], 'wear_radius': 0.01,
     'dirt': 0.0, 'dirt_distance': 0.06, 'bump': 0.04, 'micro_scale': 420.0,
     'emission': None,
+    'chips': 0.0, 'chip_scale': 14.0, 'chip_color': [0.42, 0.43, 0.45], 'grime': 0.0, 'streaks': 0.0,
 }
 
 
@@ -150,6 +151,35 @@ def build(defn):
     dmask = _math(nt, 'MULTIPLY', dmask, d['dirt'], clamp=True)
     if d['kind'] == 'metal':
         rough = _math(nt, 'ADD', rough, _math(nt, 'MULTIPLY', dmask, 0.35), clamp=True)
+    # boya kırıkları (yalnız dielektrik boya): altından metal görünür → metaliklik kanalında gerçekten metal
+    chips = None
+    if d['kind'] == 'dielectric' and d['chips'] > 0:
+        cn = _n(nt, 'ShaderNodeTexNoise')
+        cn.inputs['Scale'].default_value = d['chip_scale']
+        cn.inputs['Detail'].default_value = 8.0
+        cn.inputs['Roughness'].default_value = 0.7
+        nt.links.new(obj, cn.inputs['Vector'])
+        chips = _math(nt, 'MULTIPLY', _range(nt, cn.outputs['Fac'], 0.66, 0.69), d['chips'], clamp=True)
+        chips = _math(nt, 'MAXIMUM', chips, _math(nt, 'MULTIPLY', wear, 0.8), clamp=True)      # kenar aşınması da metali açar
+        rough = _math(nt, 'ADD', _math(nt, 'MULTIPLY', rough, _math(nt, 'SUBTRACT', 1.0, chips)), _math(nt, 'MULTIPLY', chips, 0.32))
+    # geniş ölçekli kir lekelenmesi ve dikey akıntı izleri
+    grime = streak = None
+    if d['grime'] > 0:
+        gn = _n(nt, 'ShaderNodeTexNoise')
+        gn.inputs['Scale'].default_value = 1.4
+        gn.inputs['Detail'].default_value = 5.0
+        nt.links.new(obj, gn.inputs['Vector'])
+        grime = _math(nt, 'MULTIPLY', _range(nt, gn.outputs['Fac'], 0.42, 0.72), d['grime'], clamp=True)
+        rough = _math(nt, 'ADD', rough, _math(nt, 'MULTIPLY', grime, 0.15), clamp=True)
+    if d['streaks'] > 0:
+        sm = _n(nt, 'ShaderNodeMapping')
+        sm.inputs['Scale'].default_value = (7.0, 7.0, 0.35)
+        nt.links.new(obj, sm.inputs['Vector'])
+        sn = _n(nt, 'ShaderNodeTexNoise')
+        sn.inputs['Scale'].default_value = 9.0
+        sn.inputs['Detail'].default_value = 3.0
+        nt.links.new(sm.outputs['Vector'], sn.inputs['Vector'])
+        streak = _math(nt, 'MULTIPLY', _range(nt, sn.outputs['Fac'], 0.52, 0.74), d['streaks'], clamp=True)
     nt.links.new(rough, bsdf.inputs['Roughness'])
 
     # renk
@@ -161,10 +191,18 @@ def build(defn):
         col = _mix(nt, 'MIX', col, d.get('dirt_color', [0.07, 0.065, 0.06]), dmask)      # kir rengi karışır, metal tabanı koyulaşmaz
     else:
         col = _mix(nt, 'MULTIPLY', col, dirt)
+    if grime is not None:
+        col = _mix(nt, 'MULTIPLY', col, _range(nt, grime, 0.0, 1.0, 1.0, 0.70))
+    if streak is not None:
+        col = _mix(nt, 'MULTIPLY', col, _range(nt, streak, 0.0, 1.0, 1.0, 0.78))
+    if chips is not None:
+        col = _mix(nt, 'MIX', col, d['chip_color'], chips)
     nt.links.new(col, bsdf.inputs['Base Color'])
 
     if d['kind'] == 'metal' and d['dirt'] > 0:
         nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', 1.0, dmask), d['metallic'], clamp=True), bsdf.inputs['Metallic'])
+    elif chips is not None:
+        nt.links.new(chips, bsdf.inputs['Metallic'])
     else:
         bsdf.inputs['Metallic'].default_value = d['metallic']
     m['sd_metallic'] = d['metallic']
