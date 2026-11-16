@@ -1,0 +1,9 @@
+{
+ "kind": "emit",
+ "emission": [
+  0.95,
+  0.1,
+  0.06
+ ],
+ "_note": "kırmızı iç şerit ışığı (≤1, bloom)"
+}

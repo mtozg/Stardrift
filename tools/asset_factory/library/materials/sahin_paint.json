@@ -1,0 +1,24 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.47,
+  0.49,
+  0.52
+ ],
+ "rough": [
+  0.34,
+  0.5
+ ],
+ "brush": 0.1,
+ "scratch": 0.4,
+ "wear": 0.7,
+ "wear_color": [
+  0.62,
+  0.63,
+  0.66
+ ],
+ "dirt": 0.35,
+ "bump": 0.025,
+ "_note": "Şahin gövde boyası #b8bcc4 (js/game.js mkShip sahin hull)"
+}

@@ -152,6 +152,98 @@
     "Pixel 7 landscape|12": 50.2,
     "Pixel 7 landscape|40": 116
    }
+  },
+  "sahin_cockpit": {
+   "state": "modeled",
+   "rev": 7,
+   "history": [
+    {
+     "t": "2026-11-16T03:31:01+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:31:36+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r002: PREVIEW ölçüm düzeltmeleri: kamera kaydırma birimi, solidify yönü (ekran örtülmesi)"
+    },
+    {
+     "t": "2026-11-16T03:35:24+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:36:02+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r003: PREVIEW: çerçeve çıkıntısı, yan duvar konumu, konsol üst eğimi (ölçüm bulguları)"
+    },
+    {
+     "t": "2026-11-16T03:40:00+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:40:20+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r004: PREVIEW: ekranlar konsol yüzeyini izler (alt köşe örtülmesi)"
+    },
+    {
+     "t": "2026-11-16T03:44:18+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:46:08+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r005: PREVIEW: geriye yatık kemer (şemaya sayısal uyum), eğimli yan eşik, gaz kolu ölçüsü"
+    },
+    {
+     "t": "2026-11-16T03:49:59+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:50:29+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r006: PREVIEW: boru burulması (paralel taşıma), konsol alt yüzü orta gri, iç dolgu ışığı"
+    },
+    {
+     "t": "2026-11-16T03:54:27+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:54:52+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r007: PREVIEW: koltuk görünüş kamerası, baş desteği konumu"
+    },
+    {
+     "t": "2026-11-16T03:59:01+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    }
+   ],
+   "timings": {
+    "model": 249.4
+   },
+   "approvals": [],
+   "geometry_hash": "74fcb792f536f291fa2ba006cf1f16ae5328692c3e0da987c8b928f134d2c4da",
+   "spec_hash": "ba03a6574a6a0976edb3d67445eb61cff3929f9f113900ee88b9d67f6ec303f7",
+   "fast": true,
+   "perf_baseline": null
   }
  }
 }

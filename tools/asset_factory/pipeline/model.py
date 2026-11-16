@@ -48,6 +48,21 @@ tris = geo.tri_count(obs)
 emit_area = sum(p.area for o in obs for p in o.data.polygons if o.data.materials[0].get('sd_def', '').startswith('emit'))
 total_area = sum(p.area for o in obs for p in o.data.polygons)
 
+# ---- aileye özel PREVIEW (ör. kokpit: pilot kamerası, cam/ekran ölçümleri). Aile kendi render ve ölçümlerini yapar.
+if hasattr(fam, 'preview'):
+    T['build_extra'] = 0
+    t0 = time.time()
+    extra = fam.preview(spec, out, fast, obs)
+    T['preview'] = round(time.time() - t0, 2)
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, 'model.blend'), compress=True)
+    meta = {'asset_id': asset_id, 'rev': rev, 'fast': fast, 'profile': 'PREVIEW', 'geometry_hash': ghash, 'spec_hash': json_hash(spec),
+            'objects': len(obs), 'tris_source': tris, 'radius': round(radius, 4),
+            'emit_area_ratio': round(emit_area / total_area, 4), 'timings': T, 'seconds': round(time.time() - t_start, 1),
+            'blender': bpy.app.version_string, **extra}
+    save_json(os.path.join(out, 'meta.json'), meta)
+    print('RESULT', json.dumps(meta, ensure_ascii=False))
+    sys.exit(0)
+
 # ---- lookdev (Kapı 1)
 samples = 24 if fast else 96
 scale = 0.5 if fast else 1.0

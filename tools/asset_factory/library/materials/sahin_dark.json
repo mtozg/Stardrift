@@ -1,0 +1,18 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.055,
+  0.06,
+  0.07
+ ],
+ "rough": [
+  0.45,
+  0.62
+ ],
+ "scratch": 0.5,
+ "wear": 0.6,
+ "dirt": 0.3,
+ "bump": 0.03,
+ "_note": "Şahin koyu #23262d bölgesine yakın, PBR alt sınırına çekildi (dielektrik ≥ 30 sRGB)"
+}

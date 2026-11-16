@@ -48,7 +48,8 @@ def check_forbidden_refs(spec):
     if spec.get('family') not in fr.get('families', []):
         return
     txt = json.dumps(spec.get('reference') or {}, ensure_ascii=False) + json.dumps(spec.get('params', {}), ensure_ascii=False)
-    bad = [p for p in fr.get('patterns', []) if p in txt]
+    import re
+    bad = [p for p in fr.get('patterns', []) if re.search(p, txt)]
     if bad:
         raise SystemExit('RED: tarif eski kokpit kaynaklarına referans veriyor %s (STANDARDS.md §0.1)' % bad)
 
@@ -74,7 +75,8 @@ def cmd_review(a):
     reg = registry.require(a.id, 'modeled', 'visual_approved')
     d = work_dir(a.id, reg['rev'], 'model')
     spec = load_spec(a.id)
-    imgs = ['hero.png', 'hero_rear.png', 'closeup.png', 'ortho_6.png', 'thumb_128.png']
+    imgs = [i for i in ['hero.png', 'hero_rear.png', 'closeup.png', 'ortho_6.png', 'thumb_128.png'] if os.path.exists(os.path.join(d, i))] or \
+        sorted(f for f in os.listdir(d) if f.endswith('.png'))
     ref = spec.get('reference') or {}
     body = ''.join('<figure><img src="%s"><figcaption>%s</figcaption></figure>' % (i, i) for i in imgs)
     refs = ''.join('<figure><img src="%s"><figcaption>referans: %s</figcaption></figure>' % (os.path.relpath(os.path.join(GAME_ROOT, v), d), v) for v in ref.values() if isinstance(v, str))

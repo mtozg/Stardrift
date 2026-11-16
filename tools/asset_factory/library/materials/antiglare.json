@@ -1,0 +1,16 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.03,
+  0.032,
+  0.035
+ ],
+ "rough": [
+  0.75,
+  0.88
+ ],
+ "dirt": 0.1,
+ "bump": 0.02,
+ "_note": "mat siyah göz kalkanı"
+}

@@ -1,0 +1,23 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.22,
+  0.23,
+  0.25
+ ],
+ "rough": [
+  0.42,
+  0.58
+ ],
+ "scratch": 0.4,
+ "wear": 0.5,
+ "wear_color": [
+  0.4,
+  0.41,
+  0.44
+ ],
+ "dirt": 0.35,
+ "bump": 0.03,
+ "_note": "Şahin konsol alt yüzü (konsept A: #8a8f98)"
+}
