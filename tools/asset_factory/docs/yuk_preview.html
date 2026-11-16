@@ -1,0 +1,116 @@
+<title>Yük Devi Kokpit PREVIEW</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: tek sütun; konsept ⟷ blokaj, çene camı yakın planı, görünüşler, ölçümler, kıskaç hiyerarşisi, yineleme kaydı, PRODUCTION planı, Kapı 1. */
+:root {
+  --bg: #f2f2ec; --surface: #ffffff; --ink: #1e1f19; --muted: #5d5f52; --line: #dcdcd0;
+  --accent: #a8561c; --good: #2f7a45; --good-soft: #e2f1e6; --warn: #946200; --warn-soft: #f8eed4; --code-bg: #ebebe2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 80px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 46px/1.05 var(--f-display); margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 28px/1.15 var(--f-display); margin: 48px 0 10px; text-wrap: balance }
+p, li { max-width: 76ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font: .86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px }
+figure { margin: 12px 0 18px } figure img { display: block; width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0a0d14 }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 5px }
+.lbl { font: 600 13px var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 10px 0 }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: nowrap }
+.pill { display: inline-block; font: 600 12px var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.p-ok { background: var(--good-soft); color: var(--good) } .p-warn { background: var(--warn-soft); color: var(--warn) }
+pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; font: 13.5px/1.55 var(--f-mono); overflow-x: auto }
+.gate { margin-top: 40px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 18px 20px }
+.gate h2 { margin-top: 0 } .gate ol { padding-left: 20px } .gate li { margin: 5px 0 }
+@media (max-width: 760px) { h1 { font-size: 36px } }
+</style>
+
+<main>
+<div class="eyebrow">Asset Factory · Yük Devi · Kapı 1 görsel onay</div>
+<h1>Yük Devi Kokpit PREVIEW</h1>
+<p class="lede">Konsept B "Kıskaç Gözü" blokajı, senin değişikliğinle: ekranlar C'deki gibi braketli kasalarda, panelin bir tık üstüne kaldırıldı. Kaba kütleler, Blender pilot kamerası, kütüphane malzemeleri. Ayrıntı, UV, bake ve GLB yok; onlar PRODUCTION'da.</p>
+
+<h2>Konsept ⟷ blokaj, aynı pilot çerçevesi</h2>
+<div class="lbl">Konsept B şeması</div>
+<figure><img src="img/yuk_preview/konsept_b.webp" alt="Konsept B şeması, pilot görüşü"><figcaption>Şemada ekranlar konsolun içindeydi.</figcaption></figure>
+<div class="lbl">Blokaj r__REV__</div>
+<figure><img src="img/yuk_preview/01_pilot.webp" alt="Yük Devi kokpit blokajı, pilot görüşü"><figcaption>Konsol üst çizgisi ~454 px'e indi, ekran üstleri 378–404 px: ekranlar panelin 50–75 px üstüne çıkıyor. Ekranlardaki camgöbeği düz renk yer tutucudur; oyunda canlı Sistem, Radar ve Gövde ekranları bağlanır.</figcaption></figure>
+
+<h2>Çene camı ve kıskaç</h2>
+<figure><img src="img/yuk_preview/cene_yakin.webp" alt="Çene camından görünen kıskaç, yakın plan"><figcaption>Pilot görüşünden kırpılmış (2×). Kıskacın iki çenesi yana açılır; kök ve dirsek çerçevenin altında kalır. İki yanda sarı tutamaklı kıskaç kumanda kolları.</figcaption></figure>
+
+<h2>Diğer görünüşler</h2>
+<div class="grid2">
+  <figure><img src="img/yuk_preview/02_capraz.webp" alt="Çapraz görünüş"><figcaption>Çapraz: braketli ekran kasaları, çene camı tüneli, kumanda kolları.</figcaption></figure>
+  <figure><img src="img/yuk_preview/03_konsol.webp" alt="Konsol yakın plan"><figcaption>Konsol: güverte dudağında uyarı şeridi, ekran braketleri.</figcaption></figure>
+  <figure><img src="img/yuk_preview/04_koltuk.webp" alt="Koltuk"><figcaption>Geniş, kolçaklı sürücü koltuğu. Blokaj düzeyinde, kutu biçimli.</figcaption></figure>
+  <figure><img src="img/yuk_preview/05_dis.webp" alt="Dıştan"><figcaption>Dıştan: köprü kabini, dikmeler, burun altında kıskaç.</figcaption></figure>
+  <figure><img src="img/yuk_preview/06_plan.webp" alt="Plan"><figcaption>Üstten plan: kabin, konsol, koltuk ve öndeki kıskaç.</figcaption></figure>
+</div>
+
+<h2>Ölçümler</h2>
+<div class="tbl"><table>
+<tr><th>Test</th><th>Sonuç</th><th>Ölçüt</th><th></th></tr>
+__ROWS__
+</table></div>
+
+<h2>Kıskaç hiyerarşisi (statik, animasyona hazır)</h2>
+<pre class="tree">ART_claw_root        gövde bağlantısı        sabit
+└─ ART_claw_shoulder  omuz                    dönüş: yan eksen (X)
+   └─ ART_claw_elbow  dirsek                  dönüş: yan eksen (X)
+      └─ ART_claw_wrist   bilek göbeği        dönüş: kol ekseni
+         ├─ ART_claw_jaw_L   sol çene         dönüş: çene düzlemi normali
+         └─ ART_claw_jaw_R   sağ çene         dönüş: çene düzlemi normali
+SOCK_claw_grip       kavrama noktası (soket)</pre>
+<p>Her parça kendi eklem düğümüne bağlı, pivot eklem merkezinde, eksen bilgisi düğümde (<code>sd_joint</code>). Oranlar oyunun dış model tanımından (<code>SPECS3D.yuk.claw</code>). Çeneler konsept sayfasındaki gibi yana açılıyor: kokpitten yukarıdan bakınca kerpeten biçimi ancak böyle okunuyor.</p>
+
+<h2>Ölçümlerin yakaladığı sorunlar (r001 → r__REV__)</h2>
+<div class="tbl"><table>
+<tr><th>Rev</th><th>Bulgu</th><th>Düzeltme</th></tr>
+<tr><td>r001</td><td>Orta HUD bölgesi engeli %11,8 (sınır %10)</td><td>RADAR üstü 372 → 378 px, çerçevesi inceltildi, orta dikme 58 → 36 mm: %7,8</td></tr>
+<tr><td>r001</td><td>Konsol ön yüzü kabin duvarlarının dışına taşıyordu</td><td>Her satır yan duvarda kesiliyor</td></tr>
+<tr><td>r001–r002</td><td>Kıskaç çene camından görünmüyordu: önünde bağlantı kutusu, sonra burun plakası</td><td>Burun plakası kaldırıldı; kök ve bağlantı kutusu göz ışınlarının dışına alındı</td></tr>
+<tr><td>r003</td><td>Çeneler çok küçük (~6 px) ve uzaktı</td><td>Çene yarıçapı 0,17 → 0,22 m, kalınlık 22 → 35 mm</td></tr>
+<tr><td>r004</td><td>Çeneler dikey düzlemde açılıyordu; yukarıdan bakınca yalnız kenarları görünüyordu</td><td>Konseptteki gibi yana açılan çeneler (sol/sağ)</td></tr>
+<tr><td>r005–r006</td><td>Çeneler çerçevenin alt kenarındaydı, kol boyunca kısalıyordu; bağlantı kutusu hâlâ görünüyordu</td><td>Ön kol yatay, kök ve dirsek çerçevenin altında</td></tr>
+</table></div>
+
+<h2>Blokajda bilinçli olarak eksik olanlar (PRODUCTION'da yapılacak)</h2>
+<ul>
+  <li><b>Cam bandı:</b> dikmeler ve kirişler düz kutu. PRODUCTION'da perçinli levhalar, kaynak dikişleri, kirişlerde bulon sıraları, tavanda amber lamba yuvaları.</li>
+  <li><b>Konsol:</b> güverte ve ön yüz düz. Anahtar sıraları, panel derzleri, havalandırma, kablo kanalları, yan duvarlarda boru ve bağlantı kutuları eklenecek.</li>
+  <li><b>Ekran kasaları ve braketler:</b> kutu ve silindir. Cıvatalı kasa, mafsallı braket, kablo çıkışı.</li>
+  <li><b>Kıskaç:</b> boru ve silindir. Hidrolik pistonlar, çene dişleri, plaka kalınlığı; hiyerarşi ve pivotlar korunur. Dış Yük Devi modeli yapılınca aynı adlar kullanılır.</li>
+  <li><b>Koltuk:</b> kutu biçimli. Dolgulu minderler, kemer, kolçak kumandaları.</li>
+  <li><b>Malzeme:</b> haki boya, koyu haki çerçeve, pas turuncu, uyarı sarısı ve amber yalnız taban renkleri. Kullanılmış ağır iş makinesi aşınması, kir ve boya kırıkları PRODUCTION malzeme geçişinde; Şahin'in temiz grisinden ve Kaşif'in koyu metalinden farklı.</li>
+  <li><b>Teknik kurallar</b> (Şahin teslimindeki gibi): tek gövde malzemesi ve doku seti, 2 statik + 3 ekran draw call, GPU ≤ 40 MB, emisyon ≤ 1, WebP. Kıskaç düğümleri hazırlık aşamasında birleştirilmeden korunacak (yeni hazırlık kuralı gerekiyor).</li>
+</ul>
+
+<div class="gate">
+  <h2>Kapı 1: senin kararın</h2>
+  <ol>
+    <li><b>Onay:</b> Bu blokaj PRODUCTION'a geçer: ayrıntılı modelleme, UV, bake, GLB ve QC. Sonuç Kapı 2'de teknik onayına gelir.</li>
+    <li><b>Düzeltme:</b> Değiştirilecek noktaları yaz (ekran yüksekliği ve boyutu, çene camı boyu, kıskaç büyüklüğü, cam bandı, renk dağılımı). Yeni bir PREVIEW revizyonu üretirim.</li>
+    <li><b>Ret:</b> Konsept A ya da C'ye döneriz.</li>
+  </ol>
+  <p style="color:var(--muted);font-size:14px">Oyuna entegrasyon her durumda ayrı bir onay ve ayrı bir aşama; bu sayfa onu kapsamıyor.</p>
+</div>
+</main>

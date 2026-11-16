@@ -1,0 +1,16 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.09,
+  0.035,
+  0.12
+ ],
+ "rough": [
+  0.2,
+  0.35
+ ],
+ "dirt": 0.1,
+ "bump": 0.0,
+ "_note": "cam kenarı mor tonu: yalnız ince şerit (Hayalet moru ile çakışmasın)"
+}

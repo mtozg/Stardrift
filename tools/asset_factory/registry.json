@@ -372,6 +372,90 @@
     "kaynak": "kullanıcı (sohbet)",
     "not": "r012 görsel olarak onaylandı ve donduruldu (kullanıcı, sohbet 2026-11-16). Daha fazla aşınma/koyulaştırma yok; açık gri, temiz ama kullanılmış avcı karakteri korunur; Kaşif'in yıpranmış koyu metali kopyalanmaz."
    }
+  },
+  "yuk_cockpit": {
+   "state": "draft",
+   "rev": 7,
+   "history": [
+    {
+     "t": "2026-11-16T10:45:12+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T10:46:05+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r002: r001 ölçümleri: HUD %11,8, kıskaç görünmüyor, konsol kabin dışına taşıyor"
+    },
+    {
+     "t": "2026-11-16T10:52:12+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T10:52:30+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r003: r002: burun plakası kıskaç görüşünü kesiyordu"
+    },
+    {
+     "t": "2026-11-16T10:58:22+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T10:58:48+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r004: r003: kıskaç çene camında okunmuyor"
+    },
+    {
+     "t": "2026-11-16T11:04:45+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T11:05:23+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r005: r004: çeneler yukarıdan kenardan görünüyor; yana açılan kerpeten"
+    },
+    {
+     "t": "2026-11-16T11:11:32+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T11:12:06+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r006: r005: çeneler çerçeve altında, kol boyunca kısalıyor"
+    },
+    {
+     "t": "2026-11-16T11:18:01+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T11:18:10+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r007: r006: bağlantı kutusu görünüyor"
+    }
+   ],
+   "timings": {},
+   "approvals": [],
+   "geometry_hash": "2675e3fff5ebc5b98da19f11329e95effbd3d0d87dfe67aaf4d89875f1d0e3fc",
+   "spec_hash": "5197ad4f6512c587fd684e536b4b3a2e15c0e36e6299669551a3461dabae541d",
+   "fast": true,
+   "perf_baseline": null
   }
  }
 }

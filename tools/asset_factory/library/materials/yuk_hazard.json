@@ -1,0 +1,18 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.745,
+  0.434,
+  0.014
+ ],
+ "rough": [
+  0.4,
+  0.62
+ ],
+ "scratch": 0.5,
+ "wear": 0.8,
+ "dirt": 0.3,
+ "bump": 0.02,
+ "_note": "uyarı sarısı (#e0b020)"
+}

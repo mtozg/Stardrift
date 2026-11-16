@@ -234,6 +234,9 @@ def detail_pass2(A, add, D, vtop, surf, sl):
 
 
 def build(spec, mats):
+    if spec['params'].get('layout') == 'yuk_b':      # Yük Devi (konsept B): ayrı tarif; Şahin tarifi değişmez
+        from families.cockpit import yuk_b
+        return yuk_b.build(spec, mats)
     A = spec['params']
     obs = []
 
