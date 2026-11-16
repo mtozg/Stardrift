@@ -96,7 +96,7 @@ cams = []
 for name, dv in (('N1_on34', (-0.55, 0.75, 0.40)), ('N2_arka34', (0.60, -0.70, 0.35)), ('N3_yan', (1.0, 0.05, -0.12))):
     dd = Vector(dv).normalized()
     c = R.camera(name, tuple(center + dd * radius * 4.0), tuple(center), 30)
-    R.render(os.path.join(out, 'golden_%s.png' % name), c, (800, 500), 32 if fast else 128, view='Standard', transparent=True)
+    R.render(os.path.join(out, 'golden_%s.png' % name), c, (800, 500), 32 if fast else 128, view='Standard', transparent=True, bounces=0)
     cams.append(R.camera_json(c, (800, 500)))
 save_json(os.path.join(out, 'cameras.json'), {'cameras': cams, 'neutral': R.NEUTRAL})
 t0 = tick('render_golden', t0)

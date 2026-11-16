@@ -147,14 +147,14 @@ def camera_json(ob, res):
     return j
 
 
-def render(path, cam, res, samples=64, view='AgX', transparent=False, denoise=True):
+def render(path, cam, res, samples=64, view='AgX', transparent=False, denoise=True, bounces=4):
     sc = bpy.context.scene
     sc.camera = cam
     sc.render.engine = 'CYCLES'
     sc.cycles.device = 'CPU'
     sc.cycles.samples = samples
     sc.cycles.use_denoising = denoise
-    sc.cycles.max_bounces = 4
+    sc.cycles.max_bounces = bounces      # altın referans: 0 (yalnız doğrudan ışık; r128'de dolaylı ışık yok — Şahin kokpiti r011 bulgusu)
     sc.render.resolution_x, sc.render.resolution_y = res
     sc.render.resolution_percentage = 100
     sc.render.film_transparent = transparent

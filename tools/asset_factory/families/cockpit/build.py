@@ -424,7 +424,7 @@ def preview(spec, out, fast, obs):
             c.location = (dx, 0, dz)
             return c
         for name, cam, rs in (('N1_pilot', pilot, (800, 328)), ('N2_goz_sol', eye_cam('N2_goz_sol', -0.07, 0.0), (800, 328)), ('N3_goz_sag_alt', eye_cam('N3_goz_sag_alt', 0.07, -0.04), (800, 328))):
-            R.render(os.path.join(out, 'golden_%s.png' % name), cam, rs, 128, view='Standard', transparent=True)
+            R.render(os.path.join(out, 'golden_%s.png' % name), cam, rs, 128, view='Standard', transparent=True, bounces=0)
             j = R.camera_json(cam, rs)
             j['name'] = name
             cams.append(j)
