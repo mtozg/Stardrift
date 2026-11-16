@@ -1711,8 +1711,7 @@ var CK3 = {
     ridge: [[-400, 300], [0, 300], [50, 304], [100, 326], [150, 388], [200, 412], [250, 414], [300, 410], [350, 404], [400, 400], [450, 394], [500, 390], [550, 386], [600, 382], [650, 380], [700, 378], [750, 370], [800, 366],
       [850, 370], [900, 378], [950, 380], [1000, 382], [1050, 386], [1100, 390], [1150, 394], [1200, 400], [1250, 406], [1300, 412], [1350, 414], [1400, 412], [1450, 388], [1500, 326], [1550, 304], [1600, 300], [2000, 300]] }
 };
-var ck3Off = {};   /* modeli yüklenemeyen gemi: çizim kokpitine döner (Kaşif'in çizimi yok) */
-function ck3Of(id){ const d = CK3[id || save.ship]; return d && !ck3Off[id || save.ship] ? d : null; }
+function ck3Of(id){ return CK3[id || save.ship] || null; }   /* 3B kokpitli gemi çizim kokpitine hiç dönmez: model gelene kadar yükleme yeniden denenir */
 function ck3dSet(){ return !!ck3Of(); }
 function hudRidgePath(c, keep, lo, still){   /* dashboard bölgesi (sırtın altı); sallanmayla birlikte kayar (sırt derinliği ≈ ağın %9'u). keep: mevcut yola ekle */
   const B = !!window.__ckMapB, sb = (H - OY) / 416.5, k = B ? 1.1 : 0.93, sx = still ? 0 : sway.x * k, sy = (still ? 0 : sway.y * k) + (lo || 0); if (!keep) c.beginPath();   /* ?ck=b: 3B kamera eşlemesi (ana nokta 239.5, ölçek (H-OY)/416.5); q: görüntü eşlemesi */
@@ -10375,32 +10374,30 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // =====  3B kokpitler: Blender modelleri (GLB). Kaşif = tools/cockpit çıktısı, Şahin = Asset Factory teslimi. Gemi listesi ve ayarları CK3'te; diğer gemiler eski çizim kokpitiyle devam eder.
   (function(){
     // ---- Ekranlar SCR_SYS / SCR_RADAR / SCR_HULL adlı ayrı mesh'ler; içerik mevcut SCR tuvallerinden canlı gelir. Aynı anda yalnızca seçili geminin modeli bellekte durur.
-    let BM = null, BP = null, BF = false, BK = null, bT0 = 0, BID = '';
+    let BM = null, BP = null, BF = false, BK = null, bT0 = 0, BID = '', bTry = 0, bNext = 0;   /* BF: hazırlık ekranı beklemeyi bıraktı (oyun HUD ile sürer), yükleme denemeleri sürer */
     const bStat = { calls: 0, tris: 0, ms: 0 };   /* test için: son kokpit çiziminin çizim çağrısı / üçgen / süre */
     window.__ckb = { get ready(){ return !!BM; }, get failed(){ return BF; }, get k(){ return BK; }, get stat(){ return bStat; }, get view(){ return { OX, OY, W, H }; }, get id(){ return BID; },
       /* test kancaları (salt okunur bilgi + hangardaki gemi seçimiyle aynı geçiş): tools/asset_factory/qc/ingame_cockpit.js */
       get scr(){ return SCR; }, get quads(){ const d = ck3Of(); return d ? (d.q || CKP[save.ship].q) : null; }, get mem(){ return renderer.info.memory; }, get sway(){ return sway; },
-      get off(){ return Object.assign({}, ck3Off); }, get img2d(){ return IMG.img ? IMG.img.src : ''; }, get ship(){ return save.ship; },
+      get tries(){ return bTry; }, get img2d(){ return IMG.img ? IMG.img.src : ''; }, get ship(){ return save.ship; },
       swap(id){ if (!PSHIPS.some(s => s.id === id)) return false; if (!save.ships.includes(id)) save.ships.push(id); save.ship = id; SHP = PSHIPS.find(s => s.id === id); applyShip(true); setCockpit(id); return true; } };
     /* gemi değişince önceki modelin GPU kaynakları bırakılır (telefon belleği): geometri, malzeme, doku ve ortam haritası */
     function dropB(){
       const seen = new Set(), free = o => { if (o && o.dispose && !seen.has(o)){ seen.add(o); o.dispose(); } };
       const walk = r => r && r.traverse(o => { if (!o.isMesh) return; free(o.geometry); for (const m of [].concat(o.material || [])){ for (const k in m) if (m[k] && m[k].isTexture) free(m[k]); free(m); } });
       try { walk(BM); if (BK){ walk(BK.S); free(BK.S.environment); } } catch (e) { console.warn(e); }
-      BM = null; BP = null; BF = false; BK = null; bT0 = 0; window.__ck3bad = false;
+      BM = null; BP = null; BF = false; BK = null; bT0 = 0; bTry = 0; bNext = 0; window.__ck3bad = false;
     }
     function syncB(){ if (BID !== save.ship){ if (BID) dropB(); BID = save.ship; } }
     function loadB(){
       syncB(); if (BP) return BP; const K3 = ck3Of(); if (!K3) return Promise.reject(new Error('3B kokpit yok')); const id = BID;
       BP = new Promise((res, rej) => {
         const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? K3.glbM : K3.glb) + v,   /* telefon: 1024 dokulu hafif model, tablet/masaüstü: 2048 */
-          g => { if (id !== BID) return rej(new Error('gemi değişti')); BM = g.scene; res(); }, x => { if (x && x.total) prepPct = Math.min(0.95, x.loaded / x.total); }, e => { if (id === BID) BF = true; rej(e); });
-        if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { BF = true; rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
-      BP.catch(e => { if (id !== BID) return; console.warn('kokpit yüklenemedi', e); bFail(id); }); return BP;
+          g => { if (id !== BID) return rej(new Error('gemi değişti')); BM = g.scene; res(); }, x => { if (x && x.total) prepPct = Math.min(0.95, x.loaded / x.total); }, e => rej(e));
+        if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { sc.remove(); rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
+      /* yüklenemezse vazgeçilmez: 1,5 → 3 → 6 → 12 → 15 sn aralıkla sessizce yeniden denenir (geçici ağ kesintisi, çevrimdışı ilk açılış) */
+      BP.catch(e => { if (id !== BID) return; console.warn('kokpit yüklenemedi, yeniden denenecek', e); BP = null; bNext = performance.now() + Math.min(15000, 1500 * Math.pow(2, bTry)); bTry++; }); return BP;
     }
-    /* model gelmezse: çizim kokpiti olan gemi (Şahin) ona döner; Kaşif'in çizimi yok, yalnızca HUD kalır */
-    function bFail(id){ if (CK[id]){ ck3Off[id] = true; try { toast('3B kokpit yüklenemedi; çizim kokpiti kullanılıyor.', 5000); } catch (e) {} if (save.ship === id) setCockpit(id); }
-      else { try { toast('Kokpit modeli yüklenemedi. Sayfayı yenile.', 5000); } catch (e) {} } }
     function buildB(){
       const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.02, 30), G = new THREE.Group(); S.add(G); const mdl = BM.clone(true); G.add(mdl);
       const bind = { SCR_SYS: 'bars', SCR_RADAR: 'map', SCR_HULL: 'hull' }, scr = [];
@@ -10451,11 +10448,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     setInterval(() => { const now = performance.now(), dt = (now - prepLast) / 1000; prepLast = now; const tt = document.getElementById('title'), inGame = (!tt || tt.classList.contains('off')) && !document.getElementById('intro') && !document.getElementById('sideSel') && !document.getElementById('ctrlSel');
       syncB();
       if (ck3dSet() && inGame && !paused && !docked && !BM && !BF){ if (!prepEl && !window.__menuOn) prepShow(); prepTick(dt);
-        if (prepEl && !BP && now - prepAt > 400) loadB().catch(() => {});   /* oyun beklerken render döngüsü seyrekleşir: yüklemeyi burası başlatır */
-        if (prepEl && now - prepAt > 30000){ BF = true; bFail(BID); } }
+        if (prepEl && !BP && now - prepAt > 400 && now >= bNext) loadB().catch(() => {});   /* oyun beklerken render döngüsü seyrekleşir: yüklemeyi burası başlatır */
+        if (prepEl && now - prepAt > 30000) BF = true; }   /* 30 sn: hazırlık ekranı kalkar, oyun HUD ile sürer; yükleme arkada denenmeye devam eder */
       else if (prepEl) prepHide(!!BM); }, 120);
     const _rm = renderMain; renderMain = function(){ _rm();
-      syncB(); const kas = ck3dSet(); if (kas && !BM && !BP && !BF){ const tt = document.getElementById('title'); if (!tt || tt.classList.contains('off')){ bT0 = bT0 || performance.now(); if (performance.now() - bT0 > 1200) loadB().catch(() => {}); } }   /* model, başlık ekranı kapanıp oyun 1,2 sn oturduktan sonra yüklenir: açılıştaki bellek tepesiyle çakışmaz (telefon) */
+      syncB(); const kas = ck3dSet(); if (kas && !BM && !BP && performance.now() >= bNext){ const tt = document.getElementById('title'); if (!tt || tt.classList.contains('off')){ bT0 = bT0 || performance.now(); if (performance.now() - bT0 > 1200) loadB().catch(() => {}); } }   /* model, başlık ekranı kapanıp oyun 1,2 sn oturduktan sonra yüklenir: açılıştaki bellek tepesiyle çakışmaz (telefon) */
       window.__ck3on = kas && !!BM && IMGMODE && !docked && !window.__ck3bad;
       window.__ck3wait = kas && IMGMODE && !window.__ck3on;   /* 3B kokpitli geminin çizim (2B) kokpiti kullanılmaz: model gelene kadar ve kenetliyken yalnızca HUD */
       if (window.__ck3on) try { render(); } catch (e) { console.warn(e); window.__ck3bad = true; window.__ck3on = false; } };

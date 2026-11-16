@@ -52,7 +52,6 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
   <figure><img src="img/sahin_entegrasyon/sahin_iphone.webp" alt="iPhone 13 yatay"><figcaption>iPhone 13 yatay: telefon modeli (<code>cockpit_sahin_m.glb</code>).</figcaption></figure>
   <figure><img src="img/sahin_entegrasyon/sahin_pixel.webp" alt="Pixel 7 yatay"><figcaption>Pixel 7 yatay: telefon modeli.</figcaption></figure>
   <figure><img src="img/sahin_entegrasyon/sahin_ipad.webp" alt="iPad Pro 11 yatay"><figcaption>iPad Pro 11 yatay: masaüstü modeli.</figcaption></figure>
-  <figure><img src="img/sahin_entegrasyon/sahin_yedek.webp" alt="Model yüklenemezse"><figcaption>Model engellendiğinde: oyun mevcut Şahin çizim kokpitine döner ve bunu bildirir.</figcaption></figure>
 </div>
 
 <h2>Oyun içi test</h2>
@@ -65,7 +64,7 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 <tr><td>Draw call · üçgen</td><td colspan="4">5 · 9.384 (Kaşif 15 · 56.362)</td><td><span class="pill p-ok">bilgi</span></td></tr>
 <tr><td>Gemi değişiminde bellek (GPU doku sayısı: Kaşif → Şahin → Kaşif)</td><td>71 → 52 → 75</td><td>61 → 42 → 65</td><td>53 → 34 → 57</td><td>65 → 46 → 69</td><td><span class="pill p-ok">eski model bırakılıyor</span></td></tr>
 <tr><td>Şahin'den Kaşif'e dönüş</td><td colspan="4">model yeniden yüklenir, hiza ve görünüm aynı</td><td><span class="pill p-ok">geçti</span></td></tr>
-<tr><td>Model engellenince yedek</td><td colspan="4">çizim kokpiti (<code>ck_sahin.webp</code>) + bildirim, oyun takılmaz</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Model ilk denemelerde gelmezse</td><td colspan="4">__RETRY__</td><td><span class="pill p-ok">geçti</span></td></tr>
 <tr><td>Sayfa hatası</td><td colspan="4">yok</td><td><span class="pill p-ok">geçti</span></td></tr>
 </table></div>
 
@@ -81,7 +80,7 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 <tr><th>Dosya</th><th>Değişiklik</th></tr>
 <tr><td><code>models/cockpit_sahin.glb</code></td><td>Asset Factory r012 teslim GLB'si, birebir (SHA256 manifestle aynı). 717 KB, GPU ~32 MB</td></tr>
 <tr><td><code>models/cockpit_sahin_m.glb</code></td><td>Telefon varyantı: yalnızca base doku 2048 → 1024; geometri ve malzemeler aynı. 611 KB, GPU ~16 MB (Kaşif telefon modeli: 2,4 MB). Kaşif'in iki dosyalı düzeninin karşılığı</td></tr>
-<tr><td><code>js/game.js</code></td><td><code>CK3</code>: gemi başına 3B kokpit tablosu (model, telefon modeli, ekran köşeleri, HUD maskesi sırtı). Yükleyici, hazırlık ekranı ve HUD maskesi bu tablodan okuyor. Gemi değişince eski model GPU'dan bırakılıyor. Şahin'in RADAR tuvali modeldeki ekran geometrisinden kuruluyor (1,56:1). Model gelmezse çizim kokpitine dönüş. <code>__ckb</code>'ye salt okunur test kancaları</td></tr>
+<tr><td><code>js/game.js</code></td><td><code>CK3</code>: gemi başına 3B kokpit tablosu (model, telefon modeli, ekran köşeleri, HUD maskesi sırtı). Yükleyici, hazırlık ekranı ve HUD maskesi bu tablodan okuyor. Gemi değişince eski model GPU'dan bırakılıyor. Şahin'in RADAR tuvali modeldeki ekran geometrisinden kuruluyor (1,56:1). Model gelmezse çizim kokpitine dönülmez, bildirim gösterilmez: yükleme 1,5 → 15 sn aralıkla sessizce yeniden denenir, bu sırada oyun HUD ile sürer (senin kararın, 2026-11-16). <code>__ckb</code>'ye salt okunur test kancaları</td></tr>
 <tr><td><code>index.html</code></td><td>Sürüm 1.53.1 → 1.54.0 (önbellek tazelenir)</td></tr>
 </table></div>
 <p>Yük Devi ve Hayalet eskisi gibi çizim kokpitiyle devam ediyor; kendi 3B kokpitleri hazır olunca <code>CK3</code>'e birer satır eklenecek.</p>

@@ -2,7 +2,7 @@
 //   node tools/asset_factory/qc/ingame_cockpit.js <çıktı_klasörü>
 // Kontroller (gemi başına): model yüklendi mi (masaüstü/telefon dosyası), ekran mesh'leri canlı tuvallere bağlı mı, kamera hizası
 // (GLB ekran köşeleri ↔ CK3 dörtgenleri, px), RADAR tuval oranı, çizim çağrısı/üçgen/süre, gemi değişiminde eski modelin bırakılması,
-// Şahin modeli engellenince çizim kokpitine dönüş. Kaşif davranışı aynı kalmalı.
+// Şahin modeli ilk denemelerde gelmezse çizim kokpitine dönmeden yeniden deneme. Kaşif davranışı aynı kalmalı.
 const { chromium, devices } = require('playwright'); const fs = require('fs');
 const OUT = process.argv[2] || '/tmp'; fs.mkdirSync(OUT, { recursive: true });
 const DEV = { 'masaüstü': { viewport: { width: 1600, height: 800 } }, 'iPad Pro 11 landscape': devices['iPad Pro 11 landscape'], 'iPhone 13 landscape': devices['iPhone 13 landscape'], 'Pixel 7 landscape': devices['Pixel 7 landscape'] };
@@ -46,8 +46,10 @@ const still = p => p.evaluate(() => { try { window.__ckb.sway.x = 0; window.__ck
     R.glbRequests = glb; R.log = log.slice(0, 8); res[dev] = R;
     console.log(dev, JSON.stringify({ kasif: R.kasif_ok, sahin: R.sahin_ok, geri: R.back_ok, glb, hizaS: R.sahin.alignErrPx, hizaK: R.kasif.alignErrPx, radar: R.sahin.radarCanvasAspect, calls: R.sahin.calls, tris: R.sahin.tris, tex: [R.kasif.texMem, R.sahin.texMem, R.back.texMem], log: R.log }));
     await ctx.close(); }
-  // fallback: Şahin modeli engellenir → çizim kokpiti (ck_sahin.webp)
-  if (!only) { const { ctx, p, log } = await boot(b, 'iPad Pro 11 landscape', '**/models/cockpit_sahin*.glb*'); await waitReady(p, 'kasif', 60000); await setShip(p, 'sahin'); await p.waitForTimeout(6000);
-    const r = await p.evaluate(() => ({ failed: window.__ckb.failed, ck3on: !!window.__ck3on, ck3wait: !!window.__ck3wait, off: !!window.__ckb.off.sahin, img2d: /ck_sahin/.test(window.__ckb.img2d), menuOn: !!window.__menuOn })); res.fallback = { ...r, log: log.slice(0, 5) };
-    console.log('fallback', JSON.stringify(res.fallback)); await p.screenshot({ path: OUT + '/sahin_fallback.png' }); await ctx.close(); }
+  // yeniden deneme: Şahin modelinin ilk 2 isteği reddedilir → çizim kokpitine dönülmez, oyun yeniden dener ve modeli yükler
+  if (!only) { let n = 0; const { ctx, p, log } = await boot(b, 'iPad Pro 11 landscape', null);
+    await p.route('**/models/cockpit_sahin*.glb*', r => (n++ < 2 ? r.abort() : r.continue()));
+    await waitReady(p, 'kasif', 60000); await setShip(p, 'sahin'); const ok = await waitReady(p, 'sahin', 90000);
+    const r = await p.evaluate(() => ({ ready: window.__ckb.ready, tries: window.__ckb.tries, ck3on: !!window.__ck3on, img2d: /ck_sahin/.test(window.__ckb.img2d), menuOn: !!window.__menuOn }));
+    res.retry = { ok, requests: n, ...r, log: log.slice(0, 5) }; console.log('yeniden_deneme', JSON.stringify(res.retry)); await p.screenshot({ path: OUT + '/sahin_retry.png' }); await ctx.close(); }
   fs.writeFileSync(OUT + '/ingame_result.json', JSON.stringify(res, null, 1)); await b.close(); })();
