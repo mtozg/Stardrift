@@ -50,21 +50,24 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 <main>
 <div class="eyebrow">Asset Factory · Şahin · Kapı 1 görsel onay</div>
 <h1>Şahin Kokpit PREVIEW</h1>
-<p class="lede">Konsept A "Damla Fanus" blokajı (revizyon r007). Kaba kütleler, Blender pilot kamerası, hızlı render. UV, doku, bake ve GLB yok; bunlar PRODUCTION'da ve bu sayfadaki onaya bağlı.</p>
+<p class="lede">Konsept A "Damla Fanus" blokajı (revizyon r008: ekranlar senin geri bildirimine göre yaklaştırıldı, büyütüldü ve yükseltildi). Kaba kütleler, Blender pilot kamerası, hızlı render. UV, doku, bake ve GLB yok; bunlar PRODUCTION'da ve bu sayfadaki onaya bağlı.</p>
 
 <div class="kpis">
   <div class="kpi"><b>0,0 px</b><span>kamera sözleşmesi hatası</span></div>
   <div class="kpi"><b>3 × 5/5</b><span>ekranlar gözden görünür</span></div>
-  <div class="kpi"><b>54,8 %</b><span>cam oranı (şema 57,6 · Kaşif 50,7)</span></div>
-  <div class="kpi"><b>0,8 %</b><span>HUD bölgesi engeli (Kaşif 9,3)</span></div>
+  <div class="kpi"><b>53,9 %</b><span>cam oranı (şema 57,6 · Kaşif 50,7)</span></div>
+  <div class="kpi"><b>1,2 %</b><span>HUD bölgesi engeli (Kaşif 9,3)</span></div>
   <div class="kpi"><b>4 902</b><span>blokaj üçgeni</span></div>
 </div>
+
+<h2>r008: ekran düzeni değişikliği</h2>
+<figure><img src="img/once_sonra_r007_r008.webp" alt="r007 ve r008 pilot görüşü karşılaştırması"><figcaption>Üstte r007, altta r008. Ekranlar arası boşluk 214 → 34 px. RADAR 220×150 → 280×180 px, yan ekranlar ~160×110 → ~235×150 px. Ekran merkezleri yaklaşık 30–55 px yukarıda. Konsol üst kenarı ve göz kalkanı da birlikte yükseldi.</figcaption></figure>
 
 <h2>Konsept ⟷ blokaj, aynı pilot çerçevesi</h2>
 <div class="pair">
   <div class="lbl">Onaylanan konsept A (şema)</div>
   <figure><img src="img/konsept_a.webp" alt="Konsept A şeması, pilot görüşü"></figure>
-  <div class="lbl">PREVIEW r007: Blender, pilot kamerası (FOV 74°, göz orijinde)</div>
+  <div class="lbl">PREVIEW r008: Blender, pilot kamerası (FOV 74°, göz orijinde)</div>
   <figure><img src="img/01_pilot.webp" alt="Şahin kokpit blokajı, pilot görüşü"><figcaption>Ekranlardaki camgöbeği düz renk yer tutucudur; oyunda canlı Sistem, Radar ve Gövde ekranları bağlanır. Arka plan karanlık uzay; oyunda gökyüzü, istasyon ve HUD bu camın ardında görünür.</figcaption></figure>
 </div>
 <p>Blokaj şemadan türetildi: şemadaki her piksel noktası oyunun kamera sözleşmesiyle 3B'ye taşındı. Ekran köşeleri şemadaki piksellere birebir düşüyor. Ön kemer geriye yatık kuruldu (tepe önde, ayaklar pilotun yanında); böylece şemadaki gibi uçları görüş alanının dışında kalıyor. Kemerin kenar yüksekliği şemaya sayısal olarak uyduruldu: v = 104,6 px, şemada ≈ 105.</p>
@@ -83,10 +86,10 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 <tr><th>Test</th><th>Sonuç</th><th>Ölçüt</th><th></th></tr>
 <tr><td>Kamera sözleşmesi (4 nokta, Blender izdüşümü)</td><td class="num">0,0 px</td><td>Kaşif ile aynı pilot kamerası</td><td><span class="pill p-ok">geçti</span></td></tr>
 <tr><td><code>SCR_SYS</code> · <code>SCR_RADAR</code> · <code>SCR_HULL</code> görünürlüğü (merkez + 4 köşe ışını)</td><td class="num">5/5 · 5/5 · 5/5</td><td>göz → ekran önünde engel yok</td><td><span class="pill p-ok">geçti</span></td></tr>
-<tr><td>Ekran köşeleri (px)</td><td>SYS (320,506)…(336,624) · RADAR (690,452)…(690,602) · HULL (1124,484)…(1112,594)</td><td>şemadaki konumlar</td><td><span class="pill p-ok">birebir</span></td></tr>
+<tr><td>Ekran köşeleri (px)</td><td>SYS (390,432)…(400,582) · RADAR (660,404)…(660,584) · HULL (980,420)…(974,560)</td><td>r008 tarifindeki konumlar</td><td><span class="pill p-ok">birebir</span></td></tr>
 <tr><td>Ekran UV düzeni</td><td>TL (0,1) · TR (1,1) · BR (1,0) · BL (0,0)</td><td>Kaşif ekran sözleşmesi</td><td><span class="pill p-ok">geçti</span></td></tr>
-<tr><td>Cam oranı</td><td class="num">54,8 %</td><td>şema 57,6 % · Kaşif 50,7 %</td><td><span class="pill p-ok">uyumlu</span></td></tr>
-<tr><td>Orta (HUD) bölge engeli</td><td class="num">0,8 %</td><td>şema 0 % · Kaşif 9,3 %</td><td><span class="pill p-ok">uyumlu</span></td></tr>
+<tr><td>Cam oranı</td><td class="num">53,9 %</td><td>şema 57,6 % · Kaşif 50,7 %</td><td><span class="pill p-ok">uyumlu</span></td></tr>
+<tr><td>Orta (HUD) bölge engeli</td><td class="num">1,2 %</td><td>şema 0 % · Kaşif 9,3 %</td><td><span class="pill p-ok">uyumlu</span></td></tr>
 <tr><td>Blokaj üçgeni</td><td class="num">4 902</td><td>PRODUCTION bütçesi ≤ 60 000</td><td><span class="pill p-ok">bilgi</span></td></tr>
 <tr><td>Süre (PREVIEW, hızlı mod)</td><td class="num">~4 dk</td><td>6 render + ölçümler</td><td><span class="pill p-ok">bilgi</span></td></tr>
 </table></div>
@@ -101,6 +104,7 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 <tr><td>r003</td><td>Yan ekranların alt köşelerini konsol alt yüzü örtüyordu</td><td>Ekranlar konsol yüzeyini her noktada 12 mm önden izliyor</td></tr>
 <tr><td>r004</td><td>Görsel: kemer görüşün ortasına iniyordu, eşikler büyük ve açık renkteydi</td><td>Geriye yatık kemer (şemaya sayısal uyum), eğimli koyu yan eşik</td></tr>
 <tr><td>r005–r007</td><td>Ray borularında burulma; konsol alt yüzü fazla koyu; koltuk kamerası ve baş desteği</td><td>Paralel taşımalı boru kesiti, orta gri malzeme, yeni kamera ve konum</td></tr>
+<tr><td>r008</td><td>Senin geri bildirimin: ekranlar birbirinden uzak, küçük ve aşağıda</td><td>Ekranlar tek küme hâline getirildi (boşluk 34 px), büyütüldü, yükseltildi; konsol üst kenarı ve göz kalkanı birlikte ayarlandı. Değerler artık tarifte</td></tr>
 </table></div>
 
 <h2>Blokajda bilinçli olarak eksik olanlar (PRODUCTION'da yapılacak)</h2>
@@ -109,6 +113,7 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
   <li><b>Konsol ayrıntısı:</b> yan konsollarda anahtar sıraları, panel derzleri, perçinler, havalandırma, kablo kanalları. Kaşif'in ayrıntı yoğunluğu hedefleniyor, ama tasarım Şahin'e özgü.</li>
   <li><b>Kanopi arkası:</b> omurganın arka ucu ve arka kemer dıştan görünüşte açık. Pilot görüşünü etkilemiyor.</li>
   <li><b>Gaz kolu:</b> konumu şemadaki gibi, ama göze yakın olduğu için iri görünüyor; PRODUCTION'da biçimi inceltilecek.</li>
+  <li><b>Uçuş kolu:</b> r008'de topuzu RADAR çerçevesinin alt kenarına biraz biniyor; PRODUCTION'da kol birkaç santim alçaltılacak.</li>
   <li><b>Malzeme:</b> yalnızca kütüphane malzemeleri. Aşınma, kir, boya kenar aşınması ve kırmızı şerit emisyon ayarı PRODUCTION'da.</li>
   <li><b>Teknik kurallar</b> (Kaşif analizinden): tek gövde malzemesi ve tek doku seti, ≤ 6 draw call, GPU ≤ 40 MB, emisyon ≤ 1, WebP, tek yüz.</li>
 </ul>

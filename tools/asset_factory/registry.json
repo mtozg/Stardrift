@@ -155,7 +155,7 @@
   },
   "sahin_cockpit": {
    "state": "modeled",
-   "rev": 7,
+   "rev": 8,
    "history": [
     {
      "t": "2026-11-16T03:31:01+00:00",
@@ -234,14 +234,26 @@
      "from": "draft",
      "to": "modeled",
      "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T04:40:46+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r008: Kullanıcı geri bildirimi: ekranlar daha yakın, büyük ve yüksek; konsol üst kenarı ve göz kalkanı birlikte"
+    },
+    {
+     "t": "2026-11-16T04:44:42+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
     }
    ],
    "timings": {
-    "model": 249.4
+    "model": 236.9
    },
    "approvals": [],
-   "geometry_hash": "74fcb792f536f291fa2ba006cf1f16ae5328692c3e0da987c8b928f134d2c4da",
-   "spec_hash": "ba03a6574a6a0976edb3d67445eb61cff3929f9f113900ee88b9d67f6ec303f7",
+   "geometry_hash": "9d0d41b0c8a4918604f9fa6a1aff5f0811d122d06d9d076db22b888b3fce7b6b",
+   "spec_hash": "e57131cc3e446de6dc30dd2f61c4fe0ecf178886fbf3b7350594d1ce876896a4",
    "fast": true,
    "perf_baseline": null
   }

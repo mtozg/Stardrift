@@ -79,12 +79,15 @@ def build(spec, mats):
         return ob
 
     # ---- konsol "küvet": şemadaki üst kenar eğrisi (0,520)–(250,436)–Q(800,396)–(1350,436)–(1600,520)
+    ct = A['console_top']      # konsol üst kenarı (px): omuz, orta çukur, kenar
+
     def vtop(u):
-        if u < 250:
-            return 436 + (250 - u) / 250 * 84
-        if u > 1350:
-            return 436 + (u - 1350) / 250 * 84
-        return 436 - 40 * (1 - ((u - 800) / 550) ** 2)
+        su, sv = ct['shoulder_u'], ct['shoulder']
+        if u < su:
+            return sv + (su - u) / su * (ct['edge'] - sv)
+        if u > W - su:
+            return sv + (u - (W - su)) / su * (ct['edge'] - sv)
+        return sv - (sv - ct['center']) * (1 - ((u - 800) / (800 - su)) ** 2)
 
     def dep(u):
         return max(0.36, A['console_depth'] - A['console_wrap'] * ((u - 800) / 800) ** 2)
@@ -104,13 +107,14 @@ def build(spec, mats):
     add('console_fascia', grid([mid, bot]), 'sahin_mid', eye=True, solid=0.02)
     deck = [p + Vector((0, A['deck_depth'], -A['deck_drop'])) for p in top]      # üst yüzey ileriye doğru alçalır: gözden ufka yükselmez (HUD bölgesi açık)
     add('console_deck', grid([deck, top]), 'sahin_paint', eye=True, solid=0.015)
-    U2 = lin(262, 1338, 33)
+    U2 = lin(ct['shoulder_u'] + 12, W - ct['shoulder_u'] - 12, 33)
     add('console_stripe', grid([[P(u, vtop(u) + 6, dep(u) - 0.006) for u in U2], [P(u, vtop(u) + 13, dep(u) - 0.006) for u in U2]]), 'emit_red', role='emit_live', eye=True)
 
     # ---- göz kalkanı (anti-glare): üst eğri 436→376→436, alt kenar 452→398→452
-    UG = lin(560, 1040, 25)
-    gt = [P(u, 436 - 60 * (1 - ((u - 800) / 240) ** 2), A['glare_depth']) for u in UG]
-    gb = [P(u, max(452 - 54 * (1 - ((u - 800) / 222) ** 2), 398), A['glare_depth']) for u in UG]
+    gl = A['glare']      # göz kalkanı (px): yarı genişlik, üst ve alt eğri (orta, uç)
+    UG = lin(800 - gl['half'], 800 + gl['half'], 25)
+    gt = [P(u, gl['top_c'] + (gl['top_e'] - gl['top_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth']) for u in UG]
+    gb = [P(u, gl['bot_c'] + (gl['bot_e'] - gl['bot_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth']) for u in UG]
     add('glare_front', grid([gt, gb]), 'antiglare', eye=True, solid=0.012)
     add('glare_top', grid([[p + Vector((0, 0.16, -0.035)) for p in gt], gt]), 'antiglare', eye=True, solid=0.012)
 
