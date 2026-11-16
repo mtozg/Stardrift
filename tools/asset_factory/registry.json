@@ -374,7 +374,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "draft",
+   "state": "modeled",
    "rev": 7,
    "history": [
     {
@@ -448,13 +448,21 @@
      "from": "modeled",
      "to": "draft",
      "reason": "yeni revizyon r007: r006: bağlantı kutusu görünüyor"
+    },
+    {
+     "t": "2026-11-16T11:44:15+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
     }
    ],
-   "timings": {},
+   "timings": {
+    "model": 1564.8
+   },
    "approvals": [],
-   "geometry_hash": "2675e3fff5ebc5b98da19f11329e95effbd3d0d87dfe67aaf4d89875f1d0e3fc",
-   "spec_hash": "5197ad4f6512c587fd684e536b4b3a2e15c0e36e6299669551a3461dabae541d",
-   "fast": true,
+   "geometry_hash": "f5032de428ae3d351b6ad2c744e37eb2f8771124b2d7c125da07eabceb6ee1ca",
+   "spec_hash": "47d6ac74b5f2250085ec6cf666bd6f8a562ca59b7402d01b313dee815e3adba7",
+   "fast": false,
    "perf_baseline": null
   }
  }

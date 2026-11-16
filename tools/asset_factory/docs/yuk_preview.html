@@ -51,7 +51,7 @@ pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; f
 <h2>Konsept ⟷ blokaj, aynı pilot çerçevesi</h2>
 <div class="lbl">Konsept B şeması</div>
 <figure><img src="img/yuk_preview/konsept_b.webp" alt="Konsept B şeması, pilot görüşü"><figcaption>Şemada ekranlar konsolun içindeydi.</figcaption></figure>
-<div class="lbl">Blokaj r__REV__</div>
+<div class="lbl">Blokaj r007</div>
 <figure><img src="img/yuk_preview/01_pilot.webp" alt="Yük Devi kokpit blokajı, pilot görüşü"><figcaption>Konsol üst çizgisi ~454 px'e indi, ekran üstleri 378–404 px: ekranlar panelin 50–75 px üstüne çıkıyor. Ekranlardaki camgöbeği düz renk yer tutucudur; oyunda canlı Sistem, Radar ve Gövde ekranları bağlanır.</figcaption></figure>
 
 <h2>Çene camı ve kıskaç</h2>
@@ -69,7 +69,16 @@ pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; f
 <h2>Ölçümler</h2>
 <div class="tbl"><table>
 <tr><th>Test</th><th>Sonuç</th><th>Ölçüt</th><th></th></tr>
-__ROWS__
+<tr><td>Kamera sözleşmesi (4 nokta, Blender izdüşümü)</td><td class="num">0.0 px</td><td>Kaşif ve Şahin ile aynı pilot kamerası</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td><code>SCR_SYS</code> · <code>SCR_RADAR</code> · <code>SCR_HULL</code> görünürlüğü (merkez + 4 köşe ışını)</td><td class="num">5/5 · 5/5 · 5/5</td><td>göz → ekran önünde engel yok</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Ekran köşeleri (sol üst … sağ alt, px)</td><td>SYS (316, 404) · (594, 540)<br>RADAR (662, 378) · (938, 538)<br>HULL (1014, 388) · (1268, 566)</td><td>tarifteki konumlar; ekran üstleri konsol çizgisinin 50–75 px üstünde</td><td><span class="pill p-ok">birebir</span></td></tr>
+<tr><td>RADAR oranı</td><td class="num">276×160 px (1,73:1)</td><td>oyun tuvali bu orana göre kurulur (Şahin 1,56:1, Kaşif 3:1)</td><td><span class="pill p-ok">bilgi</span></td></tr>
+<tr><td>Ekran UV düzeni</td><td class="num">TL (0,1) · TR (1,1) · BR (1,0) · BL (0,0)</td><td>Kaşif/Şahin ekran sözleşmesi</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Cam oranı</td><td class="num">47.4 %</td><td>şema %35–40 · Şahin 54,5 % · Kaşif 50,7 %</td><td><span class="pill p-ok">uyumlu</span></td></tr>
+<tr><td>Orta (HUD) bölge engeli</td><td class="num">7.8 %</td><td>≤ 10 % (Kaşif 9,3 %, Şahin 0,6 %)</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Kıskaç çene camından görünüyor mu</td><td class="num">evet: iki çene + göbek</td><td>kök ve dirsek çerçevenin altında, gizli</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Blokaj üçgeni</td><td class="num">4.364</td><td>PRODUCTION bütçesi ≤ 60.000</td><td><span class="pill p-ok">bilgi</span></td></tr>
+<tr><td>Süre (PREVIEW, tam kalite)</td><td class="num">~26 dk</td><td>6 render + ölçümler + nötr altın referans</td><td><span class="pill p-ok">bilgi</span></td></tr>
 </table></div>
 
 <h2>Kıskaç hiyerarşisi (statik, animasyona hazır)</h2>
@@ -82,7 +91,7 @@ __ROWS__
 SOCK_claw_grip       kavrama noktası (soket)</pre>
 <p>Her parça kendi eklem düğümüne bağlı, pivot eklem merkezinde, eksen bilgisi düğümde (<code>sd_joint</code>). Oranlar oyunun dış model tanımından (<code>SPECS3D.yuk.claw</code>). Çeneler konsept sayfasındaki gibi yana açılıyor: kokpitten yukarıdan bakınca kerpeten biçimi ancak böyle okunuyor.</p>
 
-<h2>Ölçümlerin yakaladığı sorunlar (r001 → r__REV__)</h2>
+<h2>Ölçümlerin yakaladığı sorunlar (r001 → r007)</h2>
 <div class="tbl"><table>
 <tr><th>Rev</th><th>Bulgu</th><th>Düzeltme</th></tr>
 <tr><td>r001</td><td>Orta HUD bölgesi engeli %11,8 (sınır %10)</td><td>RADAR üstü 372 → 378 px, çerçevesi inceltildi, orta dikme 58 → 36 mm: %7,8</td></tr>
@@ -107,7 +116,7 @@ SOCK_claw_grip       kavrama noktası (soket)</pre>
 <div class="gate">
   <h2>Kapı 1: senin kararın</h2>
   <ol>
-    <li><b>Onay:</b> Bu blokaj PRODUCTION'a geçer: ayrıntılı modelleme, UV, bake, GLB ve QC. Sonuç Kapı 2'de teknik onayına gelir.</li>
+    <li><b>Onay:</b> Blokaj görsel olarak onaylanmış olarak kaydedilir. PRODUCTION (ayrıntılı modelleme, UV, bake, GLB, QC) senin kararınla Şahin r012'nin oyun entegrasyonu onaylandıktan sonra başlar.</li>
     <li><b>Düzeltme:</b> Değiştirilecek noktaları yaz (ekran yüksekliği ve boyutu, çene camı boyu, kıskaç büyüklüğü, cam bandı, renk dağılımı). Yeni bir PREVIEW revizyonu üretirim.</li>
     <li><b>Ret:</b> Konsept A ya da C'ye döneriz.</li>
   </ol>
