@@ -33,7 +33,9 @@ SDV.lod = function (root, i) { root.traverse(o => { if (/^LOD\d$/.test(o.name)) 
 
 SDV.camera = function (c) {
   const cam = new THREE.PerspectiveCamera(c.fovy, c.width / c.height, 0.01, 1000);
-  cam.position.set(...c.position); cam.up.set(...c.up); cam.lookAt(new THREE.Vector3(...c.target)); cam.updateMatrixWorld();
+  cam.position.set(...c.position); cam.up.set(...c.up); cam.lookAt(new THREE.Vector3(...c.target));
+  if (c.shift_y) cam.setViewOffset(c.width, c.height, 0, -c.shift_y * c.height, c.width, c.height);   // pilot kamerası asal noktası
+  cam.updateMatrixWorld();
   return cam;
 };
 
@@ -113,7 +115,8 @@ SDV.check = async function (cfg) {
       // LOD silueti: LODi'nin tasarlandığı uzaklıkta (nesne yüksekliği ~ 96 / 40 px) LOD0 ile maske farkı
       R.lod = [];
       const lw = 256, lh = 256; r.setSize(lw, lh, false);
-      for (const [i, px_h] of [[1, 96], [2, 40]]) {
+      const hasLod = i => { let f = false; root.traverse(o => { if (o.name === 'LOD' + i) f = true; }); return f; };
+      for (const [i, px_h] of [[1, 96], [2, 40]].filter(x => hasLod(x[0]))) {
         const lc = Object.assign({}, c, { width: lw, height: lh }); const cm = SDV.camera(lc);
         const dir = new THREE.Vector3().subVectors(cm.position, new THREE.Vector3(...c.target)).normalize();
         const dist = root.userData.radius * 2 / (2 * Math.tan(c.fovy * Math.PI / 360)) * (lh / px_h);

@@ -71,7 +71,12 @@ def _unroute(undo):
         nt.nodes.remove(em)
 
 
+SIZE_GROUP = {'base': 'base', 'emit': 'base', 'normal': 'normal', 'ao': 'orm', 'rough': 'orm', 'metal': 'orm'}
+
+
 def bake(ob, size, samples=32, ao_samples=96, margin=12, log=print):
+    """size: tek sayı ya da {'base','orm','normal'} sözlüğü (ORM kanalları aynı boyutta pişer)."""
+    sizes = size if isinstance(size, dict) else {'base': size, 'orm': size, 'normal': size}
     sc = bpy.context.scene
     sc.render.engine = 'CYCLES'
     sc.cycles.device = 'CPU'
@@ -84,7 +89,8 @@ def bake(ob, size, samples=32, ao_samples=96, margin=12, log=print):
     mats = [s.material for s in ob.material_slots if s.material]
     imgs = {}
     for key, (sock, cs) in CHANNELS.items():
-        img = bpy.data.images.new('bake_' + key, size, size, alpha=False, float_buffer=(key == 'normal'))
+        sz = sizes[SIZE_GROUP[key]]
+        img = bpy.data.images.new('bake_' + key, sz, sz, alpha=False, float_buffer=(key == 'normal'))
         img.colorspace_settings.name = cs
         imgs[key] = img
         _target(mats, img)

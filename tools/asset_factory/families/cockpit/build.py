@@ -61,6 +61,119 @@ def lin(a, b, n):
     return [a + (b - a) * i / (n - 1) for i in range(n)]
 
 
+def _rot(bm, pivot, deg):
+    bmesh.ops.rotate(bm, cent=Vector(pivot), matrix=Matrix.Rotation(math.radians(-deg), 3, 'X'), verts=bm.verts)
+    return bm
+
+
+def soft_box(center, size, bev=0.02, level=2):
+    """Yumuşak minder: pah + Catmull-Clark (bmesh üzerinde; nesneye uygulanmadan önce)."""
+    bm = geo.bm_box(center, size)
+    bmesh.ops.bevel(bm, geom=list(bm.edges), offset=bev, segments=2, profile=0.5, affect='EDGES')
+    for _ in range(level):
+        bmesh.ops.subdivide_edges(bm, edges=list(bm.edges), cuts=1, use_grid_fill=True, smooth=1.0)
+    return bm
+
+
+def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, sl, rail):
+    """PRODUCTION ayrıntıları (Kapı 1 onaylı r008 düzeni korunur). Kaşif'in ayrıntı yoğunluğu hedeflenir; tasarım Şahin'e özgü."""
+    D = A.get('detail', {})
+    toward = lambda p: (-p).normalized()      # göze doğru
+    # --- panel derzleri: konsol yüzünde ince koyu çizgiler
+    for k, u in enumerate(D.get('seams_u', [])):
+        rows = []
+        for v in lin(vtop(u) + 1, 760, 14):
+            d = surf(u, v) - 0.0015
+            w = 0.0025 / d * F
+            rows.append([P(u - w, v, d), P(u + w, v, d)])
+        add('seam_%d' % k, grid([[r[0] for r in rows], [r[1] for r in rows]]), 'sahin_dark', eye=True)
+    # --- perçinler: üst panel bandında, ekranların dışında
+    boxes = [(min(x for x, y in q) - 25, max(x for x, y in q) + 25) for q in (sc['radar'], sc['sys'], sc['hull'])]
+    rv = 0
+    for u in lin(230, W - 230, 27):
+        if any(a <= u <= b for a, b in boxes):
+            continue
+        p = P(u, vtop(u) + 20, surf(u, vtop(u) + 20) - 0.001)
+        add('rivet_%d' % rv, geo.bm_cylinder(tuple(p), tuple(p + toward(p) * 0.003), 0.0045, 8), 'gunmetal', smooth=60)
+        rv += 1
+    # --- ekran çerçevesi vidaları (dış köşeler)
+    for nm, q in (('radar', sc['radar']), ('sys', sc['sys']), ('hull', sc['hull'])):
+        cu = sum(x for x, y in q) / 4
+        cv = sum(y for x, y in q) / 4
+        for k, (u, v) in enumerate(q):
+            du, dv = u - cu, v - cv
+            l = math.hypot(du, dv)
+            uu, vv = u + du / l * 9, v + dv / l * 9
+            d = (min(A['radar_depth'], surf(uu, vv)) if nm == 'radar' else surf(uu, vv)) - 0.010 - A['bezel_protrude']
+            p = P(uu, vv, d)
+            add('screw_%s_%d' % (nm, k), geo.bm_cylinder(tuple(p), tuple(p + toward(p) * 0.002), 0.0035, 8), 'gunmetal', smooth=60)
+    # --- yan anahtar panelleri (sol ve sağ, simetrik)
+    for side, us in (('L', D.get('switch_u_left', [180, 230, 280, 330])), ('R', [W - u for u in D.get('switch_u_left', [180, 230, 280, 330])])):
+        u0, u1 = min(us) - 32, max(us) + 32
+        v0, v1 = D.get('switch_v', [505, 600])[0] - 38, D.get('switch_v', [505, 600])[1] + 34
+        plate = grid([[P(u, v0, surf(u, v0) - 0.002) for u in lin(u0, u1, 6)], [P(u, v1, surf(u, v1) - 0.002) for u in lin(u0, u1, 6)]])
+        add('switch_plate_%s' % side, plate, 'sahin_dark', eye=True)
+        for r, v in enumerate(D.get('switch_v', [505, 600])):
+            for c, u in enumerate(us):
+                p = P(u, v, surf(u, v) - 0.003)
+                n = toward(p)
+                add('toggle_base_%s%d%d' % (side, r, c), geo.bm_cylinder(tuple(p), tuple(p + n * 0.006), 0.007, 10), 'gunmetal', smooth=60)
+                tip = p + n * 0.006 + Vector((0, -0.004, 0.018))
+                add('toggle_lever_%s%d%d' % (side, r, c), geo.bm_cylinder(tuple(p + n * 0.006), tuple(tip), 0.0024, 6, radius1=0.0018), 'gunmetal', smooth=60)
+                lp = P(u, v - 26, surf(u, v - 26) - 0.003)
+                add('indicator_%s%d%d' % (side, r, c), geo.bm_box(tuple(lp + toward(lp) * 0.001), (0.006, 0.003, 0.004)), 'emit_red', role='emit_live')
+    # --- göz kalkanı dudağı (yuvarlatılmış alt kenar)
+    gl = A['glare']
+    UG = lin(800 - gl['half'], 800 + gl['half'], 25)
+    lip = [P(u, gl['bot_c'] + (gl['bot_e'] - gl['bot_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth'] - 0.004) for u in UG]
+    add('glare_lip', tube(lip, 0.006, 8), 'antiglare', smooth=60)
+    # --- kemer ayak braketleri, arka kemer, kanopi açma kolu, yan havalandırmalar
+    for p in (hoop[0], hoop[-1]):
+        add('hoop_bracket_%s' % ('R' if p.x > 0 else 'L'), geo.bm_box((p.x, p.y, p.z - 0.01), (0.09, 0.11, 0.07)), 'gunmetal')
+    zr = sl['z_mid']
+    rear = [Vector((hc['a'] * math.cos(t), D.get('rear_hoop_y', -0.62), zr + (ztop - 0.08 - zr) * math.sin(t))) for t in lin(0.0, math.pi, 33)]
+    add('canopy_hoop_rear', tube(rear, 0.02, 10), 'sahin_dark', smooth=60)
+    hx = sl['x'] - 0.06
+    add('canopy_release', tube([Vector((hx, 0.22, zr + 0.02)), Vector((hx - 0.05, 0.24, zr + 0.03)), Vector((hx - 0.05, 0.38, zr + 0.03)), Vector((hx, 0.40, zr + 0.02))], 0.008, 8), 'sahin_red', smooth=60)
+    for s in (-1, 1):
+        for k in range(6):
+            z = -0.62 + k * 0.03
+            add('vent_%s%d' % ('L' if s < 0 else 'R', k), geo.bm_box((s * (sl['x'] - 0.035), 0.86, z), (0.012, 0.20, 0.010)), 'gunmetal')
+    # --- uçuş kolu (alçaltılmış), körük, tetik
+    sz = D.get('stick_top_z', -0.40)
+    add('stick_boot', geo.bm_cylinder((0, 0.40, -0.83), (0, 0.405, -0.72), 0.06, 16, radius1=0.022), 'seat_textile', smooth=60)
+    add('stick_shaft', geo.bm_cylinder((0, 0.40, -0.75), (0, 0.44, sz - 0.08), 0.014, 12), 'gunmetal', smooth=60)
+    add('stick_grip', soft_box((0, 0.443, sz - 0.04), (0.042, 0.040, 0.085), bev=0.012, level=1), 'sahin_dark', smooth=60)
+    add('stick_trigger', geo.bm_box((0, 0.468, sz - 0.03), (0.012, 0.012, 0.022)), 'gunmetal')
+    add('stick_button', geo.bm_cylinder((0, 0.446, sz + 0.002), (0, 0.447, sz + 0.010), 0.008, 10), 'sahin_red', smooth=60)
+    # --- gaz kolu: yuvalı taban, ince kol, kırmızı başlıklı tutamak
+    tx, ty = -0.30, 0.52
+    add('throttle_plate_a', geo.bm_box((tx - 0.028, ty, -0.505), (0.03, 0.14, 0.012)), 'gunmetal')
+    add('throttle_plate_b', geo.bm_box((tx + 0.028, ty, -0.505), (0.03, 0.14, 0.012)), 'gunmetal')
+    add('throttle_lever', geo.bm_cylinder((tx, ty - 0.01, -0.50), (tx, ty + 0.01, -0.45), 0.007, 10), 'gunmetal', smooth=60)
+    add('throttle_grip', soft_box((tx, ty + 0.012, -0.44), (0.034, 0.030, 0.034), bev=0.008, level=1), 'sahin_dark', smooth=60)
+    add('throttle_cap', geo.bm_box((tx, ty + 0.012, -0.421), (0.026, 0.022, 0.006)), 'sahin_red')
+    # --- koltuk: kabuk + yumuşak minderler + kemerler + fırlatma tutamağı + ray
+    st = A['seat']
+    pz, piv = st['pan_z'], (0, -0.27, st['pan_z'] + 0.02)
+    add('seat_shell_pan', geo.bm_box((0, 0.02, pz - 0.035), (0.50, 0.48, 0.05)), 'sahin_dark')
+    add('seat_shell_back', _rot(geo.bm_box((0, -0.335, pz + 0.42), (0.50, 0.04, 0.86)), piv, st['recline_deg']), 'sahin_dark')
+    add('seat_cushion_pan', soft_box((0, 0.03, pz + 0.025), (0.42, 0.42, 0.07), bev=0.025), 'seat_textile', smooth=60)
+    add('seat_cushion_back', _rot(soft_box((0, -0.29, pz + 0.38), (0.38, 0.07, 0.62), bev=0.025), piv, st['recline_deg']), 'seat_textile', smooth=60)
+    add('seat_headrest', _rot(soft_box((0, -0.30, pz + 0.83), (0.24, 0.08, 0.15), bev=0.03), piv, st['recline_deg']), 'seat_textile', smooth=60)
+    for s in (-1, 1):
+        add('seat_bolster_%s' % ('L' if s < 0 else 'R'), _rot(soft_box((s * 0.225, -0.27, pz + 0.30), (0.07, 0.12, 0.50), bev=0.025), piv, st['recline_deg']), 'seat_textile', smooth=60)
+        add('seat_thigh_%s' % ('L' if s < 0 else 'R'), soft_box((s * 0.215, 0.04, pz + 0.05), (0.07, 0.40, 0.07), bev=0.02), 'seat_textile', smooth=60)
+        add('harness_%s' % ('L' if s < 0 else 'R'), _rot(geo.bm_box((s * 0.09, -0.245, pz + 0.42), (0.045, 0.006, 0.58)), piv, st['recline_deg']), 'sahin_red')
+    add('harness_lap', geo.bm_box((0, 0.10, pz + 0.07), (0.40, 0.04, 0.006)), 'sahin_red')
+    add('harness_buckle', geo.bm_box((0, 0.10, pz + 0.075), (0.05, 0.045, 0.012)), 'gunmetal')
+    hz = pz + 0.98
+    add('seat_eject_handle', _rot(tube([Vector((-0.07, -0.30, hz - 0.03)), Vector((-0.07, -0.25, hz + 0.02)), Vector((0.07, -0.25, hz + 0.02)), Vector((0.07, -0.30, hz - 0.03))], 0.009, 8), piv, st['recline_deg']), 'sahin_red', smooth=60)
+    for s in (-1, 1):
+        add('seat_rail_%s' % ('L' if s < 0 else 'R'), geo.bm_box((s * 0.13, -0.05, pz - 0.12), (0.035, 0.62, 0.10)), 'gunmetal')
+    add('seat_rail_cross', geo.bm_box((0, -0.05, pz - 0.09), (0.30, 0.05, 0.04)), 'gunmetal')
+
+
 def build(spec, mats):
     A = spec['params']
     obs = []
@@ -174,30 +287,34 @@ def build(spec, mats):
         add('sill_rail_%s' % ('L' if s < 0 else 'R'), tube([Vector((sx - s * 0.02, p.y, p.z + 0.015)) for p in rail], 0.03, 10), 'sahin_paint', smooth=60)
     add('floor', geo.bm_box((0, 0.2, -0.87), (2.0 * sl['x'], 1.6, 0.04)), 'sahin_dark')
 
-    # ---- uçuş kolu (orta) + gaz kolu (sol)
-    add('stick_shaft', geo.bm_cylinder((0, 0.40, -0.85), (0, 0.44, -0.44), 0.016, 12), 'sahin_dark', smooth=60)
-    add('stick_grip', geo.bm_cylinder((0, 0.44, -0.46), (0, 0.455, -0.37), 0.028, 14), 'sahin_dark', smooth=60)
-    add('stick_button', geo.bm_cylinder((0, 0.452, -0.375), (0, 0.456, -0.36), 0.009, 10), 'sahin_red', smooth=60)
-    add('throttle_base', geo.bm_box((-0.30, 0.52, -0.50), (0.09, 0.12, 0.04)), 'sahin_dark')
-    add('throttle_handle', geo.bm_box((-0.30, 0.52, -0.455), (0.035, 0.035, 0.05)), 'sahin_red')
+    prod = spec.get('profile') == 'PRODUCTION'
+    if not prod:      # ---- PREVIEW blokajı (onaylı r008 ile aynı, yeniden üretilebilir)
+        # ---- uçuş kolu (orta) + gaz kolu (sol)
+        add('stick_shaft', geo.bm_cylinder((0, 0.40, -0.85), (0, 0.44, -0.44), 0.016, 12), 'sahin_dark', smooth=60)
+        add('stick_grip', geo.bm_cylinder((0, 0.44, -0.46), (0, 0.455, -0.37), 0.028, 14), 'sahin_dark', smooth=60)
+        add('stick_button', geo.bm_cylinder((0, 0.452, -0.375), (0, 0.456, -0.36), 0.009, 10), 'sahin_red', smooth=60)
+        add('throttle_base', geo.bm_box((-0.30, 0.52, -0.50), (0.09, 0.12, 0.04)), 'sahin_dark')
+        add('throttle_handle', geo.bm_box((-0.30, 0.52, -0.455), (0.035, 0.035, 0.05)), 'sahin_red')
 
-    # ---- yatık fırlatma koltuğu (pilot görüşünde görünmez; plan ve çapraz görünüşler için)
-    st = A['seat']
-    add('seat_pan', geo.bm_box((0, 0.02, st['pan_z']), (0.46, 0.46, 0.10)), 'seat_textile')
-    back = geo.bm_box((0, -0.27, st['pan_z'] + 0.40), (0.44, 0.10, 0.78))
-    bmesh.ops.rotate(back, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=back.verts)
-    add('seat_back', back, 'seat_textile')
-    for s in (-1, 1):
-        wing = geo.bm_box((s * 0.25, -0.24, st['pan_z'] + 0.32), (0.06, 0.16, 0.55))
-        bmesh.ops.rotate(wing, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=wing.verts)
-        add('seat_wing_%s' % ('L' if s < 0 else 'R'), wing, 'sahin_dark')
-    hr = geo.bm_box((0, -0.32, st['pan_z'] + 0.86), (0.26, 0.09, 0.18))      # sırtın üstüne oturur (r006'da ayrıktı)
-    bmesh.ops.rotate(hr, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=hr.verts)
-    add('seat_headrest', hr, 'seat_textile')
-    hd = geo.bm_box((0, -0.28, st['pan_z'] + 0.97), (0.16, 0.03, 0.05))
-    bmesh.ops.rotate(hd, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=hd.verts)
-    add('seat_eject_handle', hd, 'sahin_red')
-    add('seat_rail', geo.bm_box((0, -0.05, st['pan_z'] - 0.12), (0.30, 0.6, 0.12)), 'sahin_dark')
+        # ---- yatık fırlatma koltuğu (pilot görüşünde görünmez; plan ve çapraz görünüşler için)
+        st = A['seat']
+        add('seat_pan', geo.bm_box((0, 0.02, st['pan_z']), (0.46, 0.46, 0.10)), 'seat_textile')
+        back = geo.bm_box((0, -0.27, st['pan_z'] + 0.40), (0.44, 0.10, 0.78))
+        bmesh.ops.rotate(back, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=back.verts)
+        add('seat_back', back, 'seat_textile')
+        for s in (-1, 1):
+            wing = geo.bm_box((s * 0.25, -0.24, st['pan_z'] + 0.32), (0.06, 0.16, 0.55))
+            bmesh.ops.rotate(wing, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=wing.verts)
+            add('seat_wing_%s' % ('L' if s < 0 else 'R'), wing, 'sahin_dark')
+        hr = geo.bm_box((0, -0.32, st['pan_z'] + 0.86), (0.26, 0.09, 0.18))      # sırtın üstüne oturur (r006'da ayrıktı)
+        bmesh.ops.rotate(hr, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=hr.verts)
+        add('seat_headrest', hr, 'seat_textile')
+        hd = geo.bm_box((0, -0.28, st['pan_z'] + 0.97), (0.16, 0.03, 0.05))
+        bmesh.ops.rotate(hd, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=hd.verts)
+        add('seat_eject_handle', hd, 'sahin_red')
+        add('seat_rail', geo.bm_box((0, -0.05, st['pan_z'] - 0.12), (0.30, 0.6, 0.12)), 'sahin_dark')
+    else:
+        production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, sl, rail)
 
     return {'objects': obs, 'sockets': [{'name': 'SOCK_cam_0', 'loc': (0, 0, 0), 'dir': (0, 1, 0), 'extras': {'purpose': 'pilot gözü (kamera sözleşmesi)', 'fovy': 74}}]}
 
@@ -282,5 +399,15 @@ def preview(spec, out, fast, obs):
         q = world_to_camera_view(sc, pilot, P(u, v, 0.9))
         errs.append(math.hypot(q.x * W - u, (1 - q.y) * H - v))
     res['camera_contract_err_px'] = round(max(errs), 3)
+    if not fast:      # PRODUCTION: nötr ışıklı altın referans (L3: Three r128 ile aynı kamera ve eşdeğer ışık)
+        R.rig_neutral()
+        cams = []
+        for name, cam, rs in (('N1_pilot', pilot, (800, 328)), ('N2_capraz', R.camera('N2_capraz', (0.62, -0.30, 0.28), (-0.15, 0.85, -0.45), 70), (800, 500))):
+            R.render(os.path.join(out, 'golden_%s.png' % name), cam, rs, 128, view='Standard', transparent=True)
+            j = R.camera_json(cam, rs)
+            j['name'] = name
+            cams.append(j)
+        from core.paths import save_json
+        save_json(os.path.join(out, 'cameras.json'), {'cameras': cams, 'neutral': R.NEUTRAL})
     res['tris_by_object'] = {o.name: geo.tri_count([o]) for o in obs}
     return res

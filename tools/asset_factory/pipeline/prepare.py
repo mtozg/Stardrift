@@ -36,30 +36,41 @@ objs = [o for o in bpy.data.objects if o.type == 'MESH']
 roles = {}
 for o in objs:
     roles.setdefault(o.get('sd_role', 'body'), []).append(o)
+PC = spec.get('prepare', {})      # aileye özel hazırlık ayarları (kokpit: iç mekân temizliği, ekranlar, kanal boyutları)
+screens = roles.get('screen', [])      # SCR_* düğümleri ayrı kalır (oyun canlı ekranları ada göre bağlar)
 body = cleanup.join_role(roles.get('body', []), 'LOD0_body')
 live = cleanup.join_role(roles.get('emit_live', []), 'LOD0_emit')
 info['welded_verts'] = cleanup.weld(body) + (cleanup.weld(live) if live else 0)
 t0 = tick('join_weld', t0)
 
-occ = [o for o in (body, live) if o]
+occ = [o for o in (body, live) if o] + screens
 info['tris_before_cull'] = geo.tri_count(occ)
-info['culled_faces'] = {'body': cleanup.cull_hidden_exterior(body, occ)}
-if live:
-    info['culled_faces']['emit'] = cleanup.cull_hidden_exterior(live, occ)
+if PC.get('cull') == 'interior':
+    eyes = [tuple(e) for e in PC['eyes']]
+    info['culled_faces'] = {'body': cleanup.cull_hidden_interior(body, occ, eyes)}
+    if live:
+        info['culled_faces']['emit'] = cleanup.cull_hidden_interior(live, occ, eyes)
+else:
+    info['culled_faces'] = {'body': cleanup.cull_hidden_exterior(body, occ)}
+    if live:
+        info['culled_faces']['emit'] = cleanup.cull_hidden_exterior(live, occ)
 info['tris_after_cull'] = geo.tri_count(occ)
 t0 = tick('cull_hidden', t0)
 
 size = 512 if fast else spec['texture_size']
-uv.unwrap_unique(body, size)
+tex = {k: (max(256, v // 4) if fast else v) for k, v in PC.get('tex', {'base': size, 'orm': size, 'normal': size}).items()}
+size = tex['base']
+uv.unwrap_unique(body, size, shape=PC.get('uv_pack', 'CONCAVE'))
 info['uv'] = uv.stats(body, size)
+info['tex_sizes'] = tex
 t0 = tick('uv', t0)
 
-imgs = bake.bake(body, size, samples=8 if fast else 24, ao_samples=24 if fast else 128)
+imgs = bake.bake(body, tex, samples=8 if fast else 24, ao_samples=24 if fast else 128)
 t0 = tick('bake', t0)
 
-orm = bake.compose_orm(imgs, size)
+orm = bake.compose_orm(imgs, tex['orm'])
 # normal: float → 8 bit doğrusal görüntü (glTF/WebP)
-nrm = bpy.data.images.new('sd_normal', size, size, alpha=False)
+nrm = bpy.data.images.new('sd_normal', tex['normal'], tex['normal'], alpha=False)
 nrm.colorspace_settings.name = 'Non-Color'
 nrm.pixels = imgs['normal'].pixels[:]
 emit_px = bake.pixels(imgs['emit'])
@@ -86,6 +97,17 @@ if live:   # canlı emisyon: tek düz renk (oyunda animasyonla sürülebilir), �
     for p in live.data.polygons:
         p.use_smooth = False
 info['has_static_emit'] = has_emit
+if screens:   # ekran yer tutucusu: tek düz emisyon (≤ 1); oyunda canlı ekran dokusuyla değiştirilir
+    ms = bpy.data.materials.new('MAT_screen')
+    ms.use_nodes = True
+    ps = [n for n in ms.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'][0]
+    ps.inputs['Base Color'].default_value = (0.0, 0.0, 0.0, 1)
+    ps.inputs['Emission Color'].default_value = (0.03, 0.22, 0.30, 1)
+    ps.inputs['Emission Strength'].default_value = 1.0
+    ms.use_backface_culling = True
+    for o in screens:
+        o.data.materials.clear()
+        o.data.materials.append(ms)
 t0 = tick('materials', t0)
 
 # LOD
@@ -121,6 +143,8 @@ for i, group in lods.items():
     le = export.empty('LOD%d' % i, root)
     for o in group:
         o.parent = le
+for o in screens:
+    o.parent = root
 sock_objs = []
 for e in [o for o in bpy.data.objects if o.type == 'EMPTY' and o.name.startswith('SOCK_')]:
     sd = json.loads(e['sd_socket'])

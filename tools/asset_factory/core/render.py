@@ -138,6 +138,8 @@ def camera_json(ob, res):
     up = (M.to_3x3() @ Vector((0, 1, 0))).normalized()
     cd = ob.data
     j = {'name': ob.name, 'position': b2g(pos), 'target': b2g(pos + fwd), 'up': b2g(up), 'width': res[0], 'height': res[1]}
+    if abs(cd.shift_y) > 1e-6:
+        j['shift_y'] = cd.shift_y      # Three: setViewOffset(w, h, 0, −shift_y·h, w, h) (dikey sensör uyumu)
     if cd.type == 'ORTHO':
         j['ortho_height'] = cd.ortho_scale if res[1] >= res[0] else cd.ortho_scale * res[1] / res[0]
     else:

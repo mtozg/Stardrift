@@ -154,8 +154,8 @@
    }
   },
   "sahin_cockpit": {
-   "state": "modeled",
-   "rev": 8,
+   "state": "visual_approved",
+   "rev": 9,
    "history": [
     {
      "t": "2026-11-16T03:31:01+00:00",
@@ -246,12 +246,31 @@
      "from": "draft",
      "to": "modeled",
      "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T04:55:05+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: PREVIEW r008 onaylandı (konsept A, ekranlar yakın/büyük/yüksek)",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Onaylıyorum')"
+    },
+    {
+     "t": "2026-11-16T04:58:51+00:00",
+     "from": "visual_approved",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r009 (Kapı 1 onaylı r008 tasarımına dayanır)"
     }
    ],
-   "timings": {
-    "model": 236.9
-   },
-   "approvals": [],
+   "timings": {},
+   "approvals": [
+    {
+     "t": "2026-11-16T04:55:05+00:00",
+     "gate": "visual",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Onaylıyorum')",
+     "note": "PREVIEW r008 onaylandı (konsept A, ekranlar yakın/büyük/yüksek)",
+     "accept_warn": []
+    }
+   ],
    "geometry_hash": "9d0d41b0c8a4918604f9fa6a1aff5f0811d122d06d9d076db22b888b3fce7b6b",
    "spec_hash": "e57131cc3e446de6dc30dd2f61c4fe0ecf178886fbf3b7350594d1ce876896a4",
    "fast": true,

@@ -79,7 +79,7 @@ def run(path, spec, budgets, rules, extra=None):
     bad_mesh = [names[c] for ln in lod_nodes.values() for c in ln.get('children', []) if not re.fullmatch(r'LOD\d_(body|emit|glass)', names[c])]
     o.add('contract.mesh_roles', 'L2', not bad_mesh, bad_mesh or None, 'LODn_body|emit|glass')
     socks = [n for n in names if n.startswith('SOCK_')]
-    need = {'test': ['SOCK_engine_'], 'npc_ship': ['SOCK_engine_'], 'player_ship': ['SOCK_engine_'], 'station': ['SOCK_dock_']}.get(spec['family'], [])
+    need = {'test': ['SOCK_engine_'], 'npc_ship': ['SOCK_engine_'], 'player_ship': ['SOCK_engine_'], 'station': ['SOCK_dock_'], 'cockpit': ['SOCK_cam_']}.get(spec['family'], [])
     o.add('contract.sockets', 'L2', all(any(s.startswith(p) for s in socks) for p in need), socks, need)
     nonid = [n.get('name') for n in nodes if not n.get('name', '').startswith('SOCK_') and any(k in n for k in ('translation', 'rotation', 'scale', 'matrix'))]
     o.add('contract.transforms', 'L2', not nonid, nonid, 'mesh/LOD/kök düğümleri birim dönüşümlü')
@@ -133,6 +133,30 @@ def run(path, spec, budgets, rules, extra=None):
         gpu += w * h * 4 * 4 / 3
         o.add('tex.pow2.%s' % im.get('name'), 'L2', (w & (w - 1)) == 0 and (h & (h - 1)) == 0 and w == h, [w, h], '2^n kare')
         o.add('tex.format.%s' % im.get('name'), 'L2', im.get('mimeType') == 'image/webp', im.get('mimeType'), 'image/webp')
+    import hashlib
+    nimg, ntex = len(j.get('images', [])), len(j.get('textures', []))
+    o.add('tex.entries_le_images', 'L2', ntex <= nimg, ntex, nimg, 'r128 her doku girdisini ayrı GPU dokusu olarak yükler (Kaşif: 24 girdi / 4 görsel)')
+    hs = {}
+    for i, im in enumerate(j.get('images', [])):
+        bv = j['bufferViews'][im['bufferView']]
+        h = hashlib.sha1(bin_[bv.get('byteOffset', 0): bv.get('byteOffset', 0) + bv['byteLength']]).hexdigest()
+        hs.setdefault(h, []).append(im.get('name', str(i)))
+    dups = [v for v in hs.values() if len(v) > 1]
+    o.add('tex.no_duplicate_images', 'L2', not dups, dups or None, 'her görsel bir kez', 'Kaşif: ORM iki kez gömülüydü')
+    gb = rules.get('gpu_budget_mb', {}).get(spec['class'])
+    if gb:
+        o.add('budget.gpu_tex_mb', 'L2', gpu / 1048576 <= gb, round(gpu / 1048576, 1), gb, 'RGBA8 + mipmap tahmini')
+    if spec['family'] == 'cockpit':
+        for nm in ('SCR_SYS', 'SCR_RADAR', 'SCR_HULL'):
+            if nm not in names:
+                o.add('cockpit.screen.%s' % nm, 'L2', False, 'yok', 'var')
+                continue
+            nd = nodes[names.index(nm)]
+            pr = j['meshes'][nd['mesh']]['primitives'][0]
+            P_ = accessor(j, bin_, pr['attributes']['POSITION'])
+            uvs = sorted(tuple(round(float(x), 3) for x in r) for r in accessor(j, bin_, pr['attributes']['TEXCOORD_0'])) if 'TEXCOORD_0' in pr['attributes'] else []
+            ok = len(P_) == 4 and uvs == [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
+            o.add('cockpit.screen.%s' % nm, 'L2', ok, {'köşe': len(P_), 'uv': uvs}, '4 köşe, UV köşeleri 0..1', 'oyun canlı ekranı ada göre bağlar')
     exp = cls.get('tex_size')
     body = next((m for m in mats if m.get('name') == 'MAT_body'), None)
 
@@ -147,9 +171,22 @@ def run(path, spec, budgets, rules, extra=None):
         nrm = tex_of(body['normalTexture'])
         if exp and not spec.get('_fast'):
             o.add('tex.size', 'L2', base.shape[0] == exp, base.shape[0], exp)
-        cov = uv_mask(j, bin_, lod_meshes(0), base.shape[0])
+        _cov = {}
+
+        def covm(n):
+            if n not in _cov:
+                _cov[n] = uv_mask(j, bin_, lod_meshes(0), n)
+            return _cov[n]
+        cov = covm(base.shape[0])
         o.add('tex.uv_coverage', 'L2', True, round(float(cov.mean()), 4), None, 'PBR istatistikleri yalnızca bu kapsamdaki tekseller üzerinden')
-        metal = (orm[..., 2] / 255.0)[cov]
+        co = covm(orm.shape[0])
+        metal_o = (orm[..., 2] / 255.0)
+        if orm.shape[0] != base.shape[0]:      # metal maskesini taban renk çözünürlüğüne taşı (en yakın komşu)
+            k = base.shape[0] // orm.shape[0]
+            metal_b = np.repeat(np.repeat(metal_o, k, 0), k, 1)
+        else:
+            metal_b = metal_o
+        metal = metal_b[cov]
         lum = base.mean(-1)[cov]
         lo_p, hi_p = rules['base_percentiles']
         for kind, mask, rng_ in (('dielectric', metal < 0.5, rules['base_srgb_dielectric']), ('metal', metal >= 0.5, rules['base_srgb_metal'])):
@@ -160,12 +197,12 @@ def run(path, spec, budgets, rules, extra=None):
             a, b_ = float(np.percentile(v, lo_p)), float(np.percentile(v, hi_p))
             o.add('pbr.base_%s' % kind, 'L2', a >= rng_[0] - 1e-6 and b_ <= rng_[1], [round(a), round(b_)], rng_, warn=True,
                   note='p%d–p%d sRGB; kir/aşınma ve sabit emisyon bölgeleri sınır dışına düşebilir (WARN)' % (lo_p, hi_p))
-        mid = float(((metal > 0.2) & (metal < 0.8)).mean())
+        mid = float(((metal_o[co] > 0.2) & (metal_o[co] < 0.8)).mean())
         o.add('pbr.metal_binary', 'L2', mid <= rules['metal_mid_warn'], round(mid, 4), rules['metal_mid_warn'], warn=True)
-        r = (orm[..., 1] / 255.0)[cov]
+        r = (orm[..., 1] / 255.0)[co]
         rp = float(np.percentile(r, 0.5))
         o.add('pbr.rough_range', 'L2', rp >= 0.03, [round(rp, 3), round(float(r.max()), 3)], 'p0.5 ≥ 0.04', note='alt %%0,5 yüzdelik (tek teksellik sıkıştırma artığına duyarsız); min %.3f' % float(r.min()))
-        n = (nrm / 127.5 - 1.0)[cov]
+        n = (nrm / 127.5 - 1.0)[covm(nrm.shape[0])]
         ln = np.linalg.norm(n, axis=-1)
         o.add('pbr.normal_unit', 'L2', abs(float(np.median(ln)) - 1) <= rules['normal_len_tol'] and float(np.median(n[..., 2])) > 0.5,
               [round(float(np.median(ln)), 3), round(float(np.median(n[..., 2])), 3)], '|n|≈1, z>0 (tangent, +Y)')

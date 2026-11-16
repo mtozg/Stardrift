@@ -58,7 +58,14 @@ def cmd_model(a):
     spec = load_spec(a.id)
     check_forbidden_refs(spec)
     reg = registry.get(a.id, create=True)
-    if reg['state'] not in ('draft', 'modeled'):
+    production = spec.get('profile') == 'PRODUCTION' and reg['state'] in ('visual_approved', 'prepared', 'qc_fail', 'qc_pass')
+    if production:
+        # PRODUCTION ayrıntı modeli: Kapı 1 onayına dayanır; onaylı PREVIEW revizyonu korunur, yeni revizyon açılır, onay durumu kalır
+        base_rev = reg['rev']
+        registry.update(a.id, rev=base_rev + 1, timings={})
+        registry.transition(a.id, 'visual_approved', 'PRODUCTION modeli r%03d (Kapı 1 onaylı r%03d tasarımına dayanır)' % (base_rev + 1, base_rev))
+        reg = registry.get(a.id)
+    elif reg['state'] not in ('draft', 'modeled'):
         raise SystemExit('model yalnızca draft/modeled durumunda yeniden çalışır (şu an %s); yeni revizyon gerekir' % reg['state'])
     rev = reg['rev']
     log = os.path.join(work_dir(a.id, rev), 'factory.log')
@@ -148,11 +155,17 @@ def cmd_qc(a):
     add('gltf.validator_warnings', 'L2', 'WARN' if vres['warnings'] else 'PASS', vres['warnings'], 0, ', '.join(codes))
 
     # L2-b: Blender geometri testleri (GLB yeniden içe aktarılarak)
-    bres, T['qc_blender'] = sh([PY, 'qc/blender_checks.py', glb, str(pmeta['texture_size']), os.path.join(qdir, 'blender_checks.json')], log)
+    interior = spec.get('prepare', {}).get('cull') == 'interior'
+    bres, T['qc_blender'] = sh([PY, 'qc/blender_checks.py', glb, str(pmeta['texture_size']), os.path.join(qdir, 'blender_checks.json'), 'interior' if interior else 'exterior'], log)
+    if interior:
+        for nm, k in bres.get('screens_visible', {}).items():
+            add('cockpit.screen_visible.%s' % nm, 'L2', 'PASS' if k == 5 else 'FAIL', '%d/5' % k, '5/5', 'pilot gözünden merkez + 4 köşe ışını, ekrandan önce engel yok')
+        add('cockpit.glass_ratio', 'L2', 'PASS', bres['glass_ratio'], None, 'pilot çerçevesinde dışarının görünen oranı (%%); Kaşif 50,7')
+        add('cockpit.hud_zone_block', 'L2', 'PASS' if bres['hud_zone_block'] <= rules.get('hud_zone_block_warn', 10) else 'WARN', bres['hud_zone_block'], rules.get('hud_zone_block_warn', 10), 'orta HUD bölgesi engeli (%%); Kaşif 9,3')
     add('geom.zero_area_faces', 'L2', 'PASS' if bres['zero_area_faces'] == 0 else 'FAIL', bres['zero_area_faces'], 0)
     add('geom.loose_verts', 'L2', 'PASS' if bres['loose_verts'] == 0 else 'FAIL', bres['loose_verts'], 0)
     add('geom.backface_visible', 'L2', 'PASS' if bres['backface_visible'] <= rules['backface_visible_fail'] else 'FAIL', bres['backface_visible'], rules['backface_visible_fail'],
-        '%d dış ışın; delik + ters normal' % bres['backface_samples'])
+        '%d %s ışın; delik + ters normal' % (bres['backface_samples'], 'pilot gözünden' if interior else 'dış'))
     add('uv.overlap', 'L2', 'PASS' if bres['uv_overlap'] <= rules['uv_overlap_fail'] else 'FAIL', bres['uv_overlap'], rules['uv_overlap_fail'], 'unique modda ada çakışması')
     add('uv.out_of_bounds', 'L2', 'PASS' if bres['faces_out_of_bounds'] == 0 else 'FAIL', bres['faces_out_of_bounds'], 0)
     full = budgets['classes'][spec['class']].get('tex_size', pmeta['texture_size'])
@@ -176,7 +189,8 @@ def cmd_qc(a):
     # L3 + L4: Three r128
     cams = load_json(os.path.join(mdir, 'cameras.json'))
     rel = '/' + os.path.relpath(glb, GAME_ROOT).replace(os.sep, '/')
-    cfg = {'name': a.id, 'glb': rel, 'cameras': cams['cameras'], 'neutral': cams['neutral'], 'perf': {'width': 1200, 'height': 750, 'counts': [1, 12, 40], 'frames': 60}}
+    counts = [1] if spec['family'] == 'cockpit' else [1, 12, 40]      # kokpit tek örnek (oyuncunun kendi kokpiti)
+    cfg = {'name': a.id, 'glb': rel, 'cameras': cams['cameras'], 'neutral': cams['neutral'], 'perf': {'width': 1200, 'height': 750, 'counts': counts, 'frames': 60}}
     save_json(os.path.join(qdir, 'cfg.json'), cfg)
     save_json(os.path.join(qdir, 'cfg_perf.json'), dict(cfg, only_perf=True, perf=dict(cfg['perf'], frames=40)))
     devices = 'iPad Pro 11 landscape,iPhone 13 landscape,Pixel 7 landscape'

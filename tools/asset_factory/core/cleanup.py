@@ -81,3 +81,42 @@ def cull_hidden_exterior(target, occluders, far=1e3, eps=2e-4):
     bm.free()
     target.data.update()
     return len(kill)
+
+
+def cull_hidden_interior(target, occluders, eyes, eps=2e-4):
+    """İç mekân (kokpit): yüz, verilen göz noktalarından (pilotun baş hareket aralığı) hiçbirinden görünmüyorsa silinir.
+    Görünür = yüz göze dönük VE yüz noktasından göze giden ışın engelsiz (merkez + 4 iç nokta)."""
+    tree = _bvh(occluders)
+    M = target.matrix_world
+    bm = bmesh.new()
+    bm.from_mesh(target.data)
+    bm.normal_update()
+    E = [Vector(e) for e in eyes]
+    kill = []
+    for f in bm.faces:
+        cl = f.calc_center_median()
+        n = (M.to_3x3() @ f.normal).normalized()
+        pts = [M @ cl] + [M @ (v.co * 0.8 + cl * 0.2) for v in f.verts]
+        vis = False
+        for p in pts:
+            o = p + n * eps
+            for e in E:
+                d = e - o
+                L = d.length
+                if L < 1e-6 or d.dot(n) <= 0:
+                    continue
+                hit = tree.ray_cast(o, d / L, L - 1e-3)
+                if hit[0] is None:
+                    vis = True
+                    break
+            if vis:
+                break
+        if not vis:
+            kill.append(f)
+    bmesh.ops.delete(bm, geom=kill, context='FACES')
+    loose = [v for v in bm.verts if not v.link_faces]
+    bmesh.ops.delete(bm, geom=loose, context='VERTS')
+    bm.to_mesh(target.data)
+    bm.free()
+    target.data.update()
+    return len(kill)

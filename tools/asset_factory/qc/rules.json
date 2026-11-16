@@ -24,7 +24,7 @@
   "npc_ship_large": 256,
   "station": 256,
   "structure_gate": 256,
-  "cockpit": 1024,
+  "cockpit": 240,
   "env_rock": 128,
   "interior": 512,
   "item": 256
@@ -82,5 +82,9 @@
   ]
  },
  "perf_gate_min_n": 12,
- "_perf_note": "n<12 ölçümleri kare başına sabit giderle baskın; swiftshader gürültüsü %30u aşabiliyor (Faz 0 r002 bulgusu) → yalnız bilgi"
+ "_perf_note": "n<12 ölçümleri kare başına sabit giderle baskın; swiftshader gürültüsü %30u aşabiliyor (Faz 0 r002 bulgusu) → yalnız bilgi",
+ "_texel_note": "kokpit hedefi onaylı Kaşif GLB ölçümünden (medyan 239 px/m, 2048²) kalibre edildi, 2026-11-16",
+ "gpu_budget_mb": {
+  "cockpit": 40
+ }
 }

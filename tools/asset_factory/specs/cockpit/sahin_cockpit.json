@@ -3,7 +3,7 @@
  "family": "cockpit",
  "class": "cockpit",
  "seed": 4500,
- "profile": "PREVIEW",
+ "profile": "PRODUCTION",
  "concept": "A · Damla Fanus (kullanıcı seçimi 2026-11-16)",
  "_note": "Şahin kokpiti. Kaynak: onaylı konsept A şeması (docs/sahin_kokpit.html#a). Eski 2B kokpit çizimleri kullanılmaz (STANDARDS §0.1).",
  "materials": [
@@ -14,7 +14,8 @@
   "seat_textile",
   "screen_placeholder",
   "emit_red",
-  "sahin_mid"
+  "sahin_mid",
+  "gunmetal"
  ],
  "texture_mode": "unique",
  "texture_size": 2048,
@@ -125,6 +126,75 @@
    "bot_c": 402,
    "bot_e": 418,
    "_r007": "half 240, top 376→436, bottom 398→452"
+  },
+  "detail": {
+   "seams_u": [
+    250,
+    520,
+    1080,
+    1350
+   ],
+   "switch_u_left": [
+    175,
+    225,
+    275,
+    325
+   ],
+   "switch_v": [
+    505,
+    600
+   ],
+   "stick_top_z": -0.43,
+   "rear_hoop_y": -0.62,
+   "_note": "uçuş kolu r008'e göre 3 cm alçak (topuz RADAR çerçevesine biniyordu)"
   }
+ },
+ "_gate1": "Kapı 1: PREVIEW r008 kullanıcı tarafından onaylandı (2026-11-16)",
+ "prepare": {
+  "cull": "interior",
+  "eyes": [
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    0.07,
+    0,
+    0
+   ],
+   [
+    -0.07,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0.05
+   ],
+   [
+    0,
+    0,
+    -0.04
+   ],
+   [
+    0,
+    0.05,
+    0
+   ],
+   [
+    0,
+    -0.05,
+    0
+   ]
+  ],
+  "tex": {
+   "base": 2048,
+   "orm": 1024,
+   "normal": 1024
+  },
+  "uv_pack": "CONVEX",
+  "_note": "Kaşif dersleri: GPU ≤ 40 MB → base 2048², ORM ve normal 1024² (~33,6 MB); göz noktaları pilotun baş hareket aralığı"
  }
 }

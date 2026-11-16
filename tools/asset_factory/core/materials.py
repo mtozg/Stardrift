@@ -145,6 +145,11 @@ def build(defn):
     rough = _math(nt, 'ADD', rough, _math(nt, 'MULTIPLY', brush.outputs['Fac'], 0.2 * d['brush']), clamp=True)
     rough = _math(nt, 'SUBTRACT', rough, _math(nt, 'MULTIPLY', scratch, 0.35), clamp=True)
     rough = _math(nt, 'SUBTRACT', rough, _math(nt, 'MULTIPLY', wear, 0.35), clamp=True)
+    # kir maskesi (0 = temiz, 1 = tam kir): metalde kir dielektrik bir katmandır → metalikliği düşürür, pürüzlülüğü artırır
+    dmask = _math(nt, 'SUBTRACT', 1.0, _range(nt, ao.outputs['AO'], 0.0, 1.0, 0.0, 1.0), clamp=True)
+    dmask = _math(nt, 'MULTIPLY', dmask, d['dirt'], clamp=True)
+    if d['kind'] == 'metal':
+        rough = _math(nt, 'ADD', rough, _math(nt, 'MULTIPLY', dmask, 0.35), clamp=True)
     nt.links.new(rough, bsdf.inputs['Roughness'])
 
     # renk
@@ -152,10 +157,16 @@ def build(defn):
     col = _mix(nt, 'MULTIPLY', d['base'], tone)
     col = _mix(nt, 'MIX', col, d['scratch_color'], scratch)
     col = _mix(nt, 'MIX', col, d['wear_color'], wear)
-    col = _mix(nt, 'MULTIPLY', col, dirt)
+    if d['kind'] == 'metal':
+        col = _mix(nt, 'MIX', col, d.get('dirt_color', [0.07, 0.065, 0.06]), dmask)      # kir rengi karışır, metal tabanı koyulaşmaz
+    else:
+        col = _mix(nt, 'MULTIPLY', col, dirt)
     nt.links.new(col, bsdf.inputs['Base Color'])
 
-    bsdf.inputs['Metallic'].default_value = d['metallic']
+    if d['kind'] == 'metal' and d['dirt'] > 0:
+        nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'SUBTRACT', 1.0, dmask), d['metallic'], clamp=True), bsdf.inputs['Metallic'])
+    else:
+        bsdf.inputs['Metallic'].default_value = d['metallic']
     m['sd_metallic'] = d['metallic']
     if d['kind'] == 'dielectric':
         try:
