@@ -154,7 +154,7 @@
    }
   },
   "sahin_cockpit": {
-   "state": "delivered",
+   "state": "integrated",
    "rev": 12,
    "history": [
     {
@@ -332,6 +332,12 @@
      "from": "tech_approved",
      "to": "delivered",
      "reason": "teslim paketi: deliveries/sahin_cockpit/r012"
+    },
+    {
+     "t": "2026-11-16T12:16:03+00:00",
+     "from": "delivered",
+     "to": "integrated",
+     "reason": "Kapı 3: kullanıcı onayı (sohbet 2026-11-16: 'Onaylıyorum ama ... model engellenme gibi bir durum olmasın'); çizim kokpitine dönüş kaldırıldı, sessiz yeniden deneme; oyun 1.54.0, dal claude/awesome-cannon-qb1ro2 (main'e aktarım ayrı karar)"
     }
    ],
    "timings": {
