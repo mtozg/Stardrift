@@ -155,7 +155,7 @@
   },
   "sahin_cockpit": {
    "state": "visual_approved",
-   "rev": 9,
+   "rev": 10,
    "history": [
     {
      "t": "2026-11-16T03:31:01+00:00",
@@ -259,6 +259,12 @@
      "from": "visual_approved",
      "to": "visual_approved",
      "reason": "PRODUCTION modeli r009 (Kapı 1 onaylı r008 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-16T05:15:08+00:00",
+     "from": "visual_approved",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r010 (Kapı 1 onaylı r009 tasarımına dayanır)"
     }
    ],
    "timings": {},
@@ -271,9 +277,9 @@
      "accept_warn": []
     }
    ],
-   "geometry_hash": "9d0d41b0c8a4918604f9fa6a1aff5f0811d122d06d9d076db22b888b3fce7b6b",
-   "spec_hash": "e57131cc3e446de6dc30dd2f61c4fe0ecf178886fbf3b7350594d1ce876896a4",
-   "fast": true,
+   "geometry_hash": "8fa8d4a5e7782a92dd49b9bed0d983c4b34797c49e0aff8be47710b3667159a7",
+   "spec_hash": "37bb64c7207196d1aa56f9503bffab480aec3fcaecb363dcc1bb6bb5d65837ce",
+   "fast": false,
    "perf_baseline": null
   }
  }

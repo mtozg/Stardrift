@@ -135,18 +135,19 @@
     1350
    ],
    "switch_u_left": [
-    175,
-    225,
-    275,
-    325
+    218,
+    256,
+    294,
+    332
    ],
    "switch_v": [
-    505,
-    600
+    532,
+    584
    ],
    "stick_top_z": -0.43,
    "rear_hoop_y": -0.62,
-   "_note": "uçuş kolu r008'e göre 3 cm alçak (topuz RADAR çerçevesine biniyordu)"
+   "_note": "uçuş kolu r008'e göre 3 cm alçak (topuz RADAR çerçevesine biniyordu)",
+   "_r009": "anahtar panelleri küçültüldü ve raydan uzaklaştırıldı"
   }
  },
  "_gate1": "Kapı 1: PREVIEW r008 kullanıcı tarafından onaylandı (2026-11-16)",

@@ -109,8 +109,8 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
             add('screw_%s_%d' % (nm, k), geo.bm_cylinder(tuple(p), tuple(p + toward(p) * 0.002), 0.0035, 8), 'gunmetal', smooth=60)
     # --- yan anahtar panelleri (sol ve sağ, simetrik)
     for side, us in (('L', D.get('switch_u_left', [180, 230, 280, 330])), ('R', [W - u for u in D.get('switch_u_left', [180, 230, 280, 330])])):
-        u0, u1 = min(us) - 32, max(us) + 32
-        v0, v1 = D.get('switch_v', [505, 600])[0] - 38, D.get('switch_v', [505, 600])[1] + 34
+        u0, u1 = min(us) - 22, max(us) + 22
+        v0, v1 = D.get('switch_v', [505, 600])[0] - 36, D.get('switch_v', [505, 600])[1] + 22
         plate = grid([[P(u, v0, surf(u, v0) - 0.002) for u in lin(u0, u1, 6)], [P(u, v1, surf(u, v1) - 0.002) for u in lin(u0, u1, 6)]])
         add('switch_plate_%s' % side, plate, 'sahin_dark', eye=True)
         for r, v in enumerate(D.get('switch_v', [505, 600])):
@@ -125,8 +125,8 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
     # --- göz kalkanı dudağı (yuvarlatılmış alt kenar)
     gl = A['glare']
     UG = lin(800 - gl['half'], 800 + gl['half'], 25)
-    lip = [P(u, gl['bot_c'] + (gl['bot_e'] - gl['bot_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth'] - 0.004) for u in UG]
-    add('glare_lip', tube(lip, 0.006, 8), 'antiglare', smooth=60)
+    lip = [P(u, gl['bot_c'] - 6 + (gl['bot_e'] - gl['bot_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth'] - 0.002) for u in UG]
+    add('glare_lip', tube(lip, 0.004, 8), 'antiglare', smooth=60)      # r009: RADAR üst köşelerini örtüyordu → 6 px yukarı, 4 mm
     # --- kemer ayak braketleri, arka kemer, kanopi açma kolu, yan havalandırmalar
     for p in (hoop[0], hoop[-1]):
         add('hoop_bracket_%s' % ('R' if p.x > 0 else 'L'), geo.bm_box((p.x, p.y, p.z - 0.01), (0.09, 0.11, 0.07)), 'gunmetal')
@@ -284,7 +284,7 @@ def build(spec, mats):
         sx = s * sl['x']
         top_r = [Vector((sx, p.y, p.z)) for p in rail]
         add('sill_panel_%s' % ('L' if s < 0 else 'R'), grid([top_r, [Vector((sx, p.y, -0.85)) for p in rail]]), 'sahin_dark', eye=True, solid=0.03)
-        add('sill_rail_%s' % ('L' if s < 0 else 'R'), tube([Vector((sx - s * 0.02, p.y, p.z + 0.015)) for p in rail], 0.03, 10), 'sahin_paint', smooth=60)
+        add('sill_rail_%s' % ('L' if s < 0 else 'R'), tube([Vector((sx - s * 0.02, p.y, p.z + 0.015)) for p in rail[2:]], 0.03, 10), 'sahin_paint', smooth=60)      # ön uç 13 cm kısa (r009: anahtar paneliyle çakışıyordu)
     add('floor', geo.bm_box((0, 0.2, -0.87), (2.0 * sl['x'], 1.6, 0.04)), 'sahin_dark')
 
     prod = spec.get('profile') == 'PRODUCTION'
