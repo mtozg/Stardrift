@@ -80,7 +80,7 @@ function resize(){
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
-  paused = vh > vw && deviceLandscape() !== true; /* oyun yalnızca yatay oynanır */ $('rotate').classList.toggle('hidden', !paused);
+  paused = vh > vw && deviceLandscape() !== true; /* oyun yalnızca yatay oynanır */ { const tt = $('title'); const onTitle = !!tt && !tt.classList.contains('off'); $('rotate').classList.toggle('hidden', !paused || onTitle); }   /* ana ekran dik de açılır; 'yan çevir' uyarısı Başla'dan sonra */
   camera.aspect = W / H; baseFov = W / H < 0.8 ? 80 : (LAND && IMG.ok ? 86 : 66);
   applyCam(0);
 }
@@ -5277,7 +5277,7 @@ const A8 = {"i_coin": "assets/img/a8_i_coin.webp", "i_crate": "assets/img/a8_i_c
     const t = document.createElement('div'); t.id = 'title';
     t.innerHTML = '<img alt="" src="' + du('i_logo') + '"><h1>STARDRIFT</h1><p>YILDIZLAR ARASINDA YALNIZ BİR PİLOT</p><button class="act" id="titleGo" style="padding:10px 38px !important;font:700 19px var(--font) !important;letter-spacing:.3em;color:#2b1300 !important;border-image-source:url(' + A7.k_or + ') !important">BAŞLA</button>';
     document.body.appendChild(t);
-    $('titleGo').addEventListener('click', () => { t.classList.add('off'); try { blip(520, 0.12); setTimeout(() => blip(780, 0.12), 110); } catch (e) {} setTimeout(() => t.remove(), 700); });
+    $('titleGo').addEventListener('click', () => { t.classList.add('off'); try { resize(); } catch (e) {} try { blip(520, 0.12); setTimeout(() => blip(780, 0.12), 110); } catch (e) {} setTimeout(() => t.remove(), 700); });
   }
 }
 
@@ -10363,7 +10363,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     function loadB(){
       if (BP) return BP;
       BP = new Promise((res, rej) => {
-        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? 'models/cockpit_kasif_m.glb' : 'models/cockpit_kasif.glb') + v,   /* telefon: 1024 dokulu hafif model (GPU ~22 MB), tablet/masaüstü: 2048 */ g => { BM = g.scene; res(); }, undefined, e => { BF = true; rej(e); });
+        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? 'models/cockpit_kasif_m.glb' : 'models/cockpit_kasif.glb') + v,   /* telefon: 1024 dokulu hafif model (GPU ~22 MB), tablet/masaüstü: 2048 */ g => { BM = g.scene; res(); }, x => { if (x && x.total) prepPct = Math.min(0.95, x.loaded / x.total); }, e => { BF = true; rej(e); });
         if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { BF = true; rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
       BP.catch(e => { console.warn('kokpit yüklenemedi', e); try { toast('Kokpit modeli yüklenemedi. Sayfayı yenile.', 5000); } catch (er) {} }); return BP;
     }
@@ -10401,6 +10401,24 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       renderB();
     }
     { const _dhm = drawHud; drawHud = function(){ _dhm(); if (window.__ck3on && !window.__noHudMask) try { hudMask(hctx); } catch (e) {} }; }   /* en son sarmalayıcı: tüm işaretler çizildikten sonra dashboard bölgesini siler */
+    /* kokpit hazırlık ekranı: model gelene kadar boş ekran yerine gemi hazırlığı anlatılır; oyun bu sırada bekler (menü bayrağı) */
+    const PREP = ['Gemiye cephane yükleniyor', 'Motor yağı yenileniyor', 'Kalkan jeneratörü ısınıyor', 'Navigasyon kalibre ediliyor', 'Yakıt hatları basınçlandırılıyor', 'Kokpit ekranları açılıyor'];
+    let prepEl = null, prepI = 0, prepT = 0, prepPct = 0, prepAt = 0;
+    function prepShow(){ if (prepEl) return; prepAt = performance.now();
+      prepEl = document.createElement('div'); prepEl.id = 'ckPrep';
+      prepEl.innerHTML = '<div class="in"><div class="t">KALKIŞ HAZIRLIĞI</div><div class="m"></div><div class="b"><i></i></div><div class="s">KAŞİF</div></div>';
+      const st = document.createElement('style'); st.textContent = '#ckPrep{position:fixed;inset:0;z-index:96;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0b1626 0%,#03060c 70%);font-family:var(--font,sans-serif);color:#cfe9f5;transition:opacity .45s}#ckPrep.go{opacity:0}#ckPrep .in{width:min(420px,78vw);text-align:center}#ckPrep .t{font:600 13px/1 var(--font,sans-serif);letter-spacing:.42em;color:#8fe9ff;margin-bottom:22px}#ckPrep .m{font:500 16px/1.3 var(--font,sans-serif);min-height:22px;letter-spacing:.04em}#ckPrep .m:after{content:"…"}#ckPrep .b{height:3px;background:rgba(143,233,255,.15);margin:18px 0 12px;border-radius:2px;overflow:hidden}#ckPrep .b i{display:block;height:100%;width:0;background:#8fe9ff;box-shadow:0 0 10px #8fe9ff;transition:width .3s}#ckPrep .s{font:600 10px/1 var(--font,sans-serif);letter-spacing:.5em;color:rgba(143,233,255,.5)}';
+      prepEl.appendChild(st); document.body.appendChild(prepEl); window.__menuOn = true; prepI = 0; prepT = 0; prepTick(0); }
+    function prepTick(dt){ if (!prepEl) return; window.__menuOn = true; prepT -= dt; if (prepT <= 0){ prepT = 1.1; prepEl.querySelector('.m').textContent = PREP[prepI % PREP.length]; prepI++; }
+      const fake = Math.min(0.9, (performance.now() - prepAt) / 9000); prepEl.querySelector('.b i').style.width = Math.round(Math.max(fake, prepPct) * 100) + '%'; }
+    function prepHide(ok){ if (!prepEl) return; const el = prepEl; prepEl = null; el.querySelector('.b i').style.width = '100%'; if (ok) el.querySelector('.m').textContent = 'Kokpit hazır';
+      setTimeout(() => { el.classList.add('go'); window.__menuOn = false; setTimeout(() => el.remove(), 500); }, ok ? 350 : 0); }
+    let prepLast = performance.now();
+    setInterval(() => { const now = performance.now(), dt = (now - prepLast) / 1000; prepLast = now; const tt = document.getElementById('title'), inGame = (!tt || tt.classList.contains('off')) && !document.getElementById('intro') && !document.getElementById('sideSel') && !document.getElementById('ctrlSel');
+      if (save.ship === 'kasif' && inGame && !paused && !docked && !BM && !BF){ if (!prepEl && !window.__menuOn) prepShow(); prepTick(dt);
+        if (prepEl && !BP && now - prepAt > 400) loadB().catch(() => {});   /* oyun beklerken render döngüsü seyrekleşir: yüklemeyi burası başlatır */
+        if (prepEl && now - prepAt > 30000){ BF = true; try { toast('Kokpit modeli yüklenemedi. Sayfayı yenile.', 5000); } catch (e) {} } }
+      else if (prepEl) prepHide(!!BM); }, 120);
     const _rm = renderMain; renderMain = function(){ _rm();
       const kas = save.ship === 'kasif'; if (kas && !BM && !BP && !BF){ const tt = document.getElementById('title'); if (!tt || tt.classList.contains('off')){ bT0 = bT0 || performance.now(); if (performance.now() - bT0 > 1200) loadB().catch(() => {}); } }   /* model, başlık ekranı kapanıp oyun 1,2 sn oturduktan sonra yüklenir: açılıştaki bellek tepesiyle çakışmaz (telefon) */
       window.__ck3on = kas && !!BM && IMGMODE && !docked && !window.__ck3bad;
