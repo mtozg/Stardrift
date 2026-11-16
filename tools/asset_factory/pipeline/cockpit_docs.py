@@ -14,6 +14,15 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
     b = (compat or {}).get('butce', {})
     yn, ks = b.get('yeni', {}), b.get('kasif', {})
     frozen = reg.get('frozen') or {}
+    tech = [x for x in reg.get('approvals', []) if x['gate'] == 'tech']
+    tech = tech[-1] if tech else None
+    gate2 = ('''
+## Kapı 2 kayıtları
+- Onaylayan: %s — %s
+- Not: %s
+- Kabul edilen uyarılar: %s
+- Kapsam: yalnız Asset Factory teslim paketi. Ana oyun koduna entegrasyon, main dalına aktarım ve Kaşif dosyalarında değişiklik **ayrı onay** gerektirir.
+''' % (tech['by'], tech['t'], tech['note'], ', '.join(tech['accept_warn']) or '—')) if tech and not candidate else ''
 
     # ---------- integration.md ----------
     scr = {i['id'].split('.')[1]: i for i in (compat or {}).get('items', []) if i['id'].endswith('boyut_px')}
@@ -37,7 +46,7 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 - Her biri tek dörtgen, 4 köşe; UV sol-üst (0,0), sağ-alt (1,1) → CanvasTexture `flipY=false`.
 - Dosyadaki `MAT_screen` yer tutucudur (koyu camgöbeği emisyon); oyun MeshBasicMaterial + canvas ile değiştirir.
 - **Dikkat — RADAR oranı:** Şahin RADAR %(rw)s×%(rh)s px (≈ %(ra)s:1), Kaşif %(kw)s×%(kh)s px (≈ %(ka)s:1). Kaşif'e göre çizilmiş canvas
-  içeriği gerilebilir; entegrasyonda canvas boyutu ekran oranına göre seçilmeli (r008 tasarım kararı: daha büyük, yakın, yüksek ekranlar).
+  içeriği gerilebilir. **Kapı 2 kararı:** 1,56:1 oranı korunur; radar canvas içeriği bu orana göre hazırlanmalı (model değiştirilmez).
 
 ## Gemiye göre seçim
 - Daldaki kod Kaşif'e bağlı (`save.ship === 'kasif'`, `models/cockpit_kasif.glb`). Şahin için gemi → GLB eşlemesi gerekir (ör. `models/cockpit_sahin.glb`).
@@ -46,7 +55,8 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 ## Malzeme ve ışık
 - `MAT_body` (base 2048 + ORM 1024 + normal 1024), `MAT_emit` (düz emisyon ≤ 1; parlaklık bloom'dan — r128'de emissive_strength yok), `MAT_screen`.
 - Oyun Kaşif'te envMapIntensity 0,9 atıyor; Şahin aynı ayarla QC'deki nötr ışıkta Blender'a ΔE ≈ 3 içinde.
-- Tangent dosyada yok; three çalışma anında üretir (validator uyarısı; Kaşif'te de var).
+- Tangent dosyada yok; three çalışma anında üretir (validator uyarısı; Kaşif'te de var). **Kapı 2 kararı:** uyarı kabul edildi; entegrasyon sonrası
+  oyun içinde runtime tangent üretimi ve normal map görünümü (dikiş, ters aydınlanma, parlama) ayrıca kontrol edilecek.
 - Model gözün arkasına uzanır (koltuk, z en çok +0,64 m): kamera önünde görünmez, zararsız.
 
 ## Fallback ve çevrimdışı
@@ -55,6 +65,14 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 
 ## Test
 - `qc/viewer/check.html` (otomatik, Three r128) ve `qc/viewer/bench.html?glb=…` (gerçek cihaz ölçümü — henüz yapılmadı).
+- **Kapı 2 kararı:** emülatör 19–21 ms yalnız referanstır; gerçek cihaz performans testi daha sonra yapılacak.
+
+## Entegrasyon sonrası kontrol listesi
+- [ ] Runtime tangent + normal map görünümü (pilot ve iki göz noktası)
+- [ ] RADAR canvas 1,56:1, gerilme yok; SYS/HULL içerik hizası
+- [ ] Gerçek cihaz kare süresi (iPhone/Android, yatay)
+- [ ] Bloom altında `MAT_emit` ve ekran parlaklığı
+
 """ % dict(id=asset_id, rev=rev, glb=glb_name, rw=radar.get('value', ['?', '?'])[0], rh=radar.get('value', ['?', '?'])[1],
            ra=_p(radar['value'][0] / radar['value'][1], 2) if radar else '?', kw=radar.get('kasif', ['?', '?'])[0], kh=radar.get('kasif', ['?', '?'])[1],
            ka=_p(radar['kasif'][0] / radar['kasif'][1], 2) if radar else '?'))
@@ -86,7 +104,7 @@ GPU tahmini three r128 davranışına göredir: her doku girişi ayrı yüklenir
 
 ## QC
 - Karar: **%(verdict)s** — PASS %(p)d · WARN %(w)d · FAIL %(f)d · SKIP %(sk)d.
-- WARN: `gltf.validator_warnings` (tangent yok; Kaşif'te de var) — Kapı 2'de kabul kararı kullanıcınındır.
+- WARN: `gltf.validator_warnings` (tangent yok; Kaşif'te de var) — %(warnstate)s
 - Kokpit: cam oranı %%%(glass)s · HUD bölgesi kapanma %%%(hud)s · ekran görünürlüğü SYS %(v1)s, RADAR %(v2)s, HULL %(v3)s · kamera sapması 0 px.
 - Doku yoğunluğu (texel) hedef 240 px/m (Kaşif 239 px/m'den kalibre) üzerinde.
 
@@ -100,7 +118,8 @@ GPU tahmini three r128 davranışına göredir: her doku girişi ayrı yüklenir
 |---|---|
 %(perf)s
 
-Gerçek cihaz ölçümü yapılmadı (`bench.html` ile entegrasyon öncesi önerilir).
+Gerçek cihaz ölçümü yapılmadı. Kapı 2 kararı: emülatör değerleri yalnız referans; gerçek cihaz testi sonra.
+%(gate2)s
 
 ## Dokular
 | Doku | Boyut | WebP |
@@ -116,7 +135,7 @@ Gerçek cihaz ölçümü yapılmadı (`bench.html` ile entegrasyon öncesi öner
   Three r128: `three_r128_*`; yan yana `three_vs_blender_*`
 - `qc_report.json/html`, `kasif_uyumluluk.json/md`, `manifest.json`, `source.json`, `spec_sheet.md`, `integration.md`
 - Süreler: model %(tm)s s · hazırlık %(tp)s s · QC %(tq)s s
-""" % dict(id=asset_id, rev=rev, state=('Görsel: %s **TESLİM ADAYI** — Kapı 2 teknik onayı kullanıcıdan bekleniyor; bu paket onay yerine geçmez.' if candidate
+""" % dict(gate2=gate2, warnstate='Kapı 2\'de kullanıcı tarafından kabul edildi; runtime tangent entegrasyonda kontrol edilecek.' if tech and not candidate else 'Kapı 2\'de kabul kararı kullanıcınındır.', id=asset_id, rev=rev, state=('Görsel: %s **TESLİM ADAYI** — Kapı 2 teknik onayı kullanıcıdan bekleniyor; bu paket onay yerine geçmez.' if candidate
                                   else 'Görsel: %s Teknik onaylı teslim paketi.') % frozen.get('not', 'dondurma kaydı yok'), kb=_p(st['glb_bytes'] / 1024), bytes='{:,}'.format(st['glb_bytes']).replace(',', '.'),
            kkb=_p(ks.get('bayt', 0) / 1024, 0), tris='{:,}'.format(info['triangles']).replace(',', '.'), ktris='{:,}'.format(ks.get('ucgen', 0)).replace(',', '.'),
            calls=info['calls'], kcalls='%s primitive' % ks.get('primitive', '?'), calls0=st['calls_lod0'], tex=yn.get('doku_girisi'), img=yn.get('gorsel'),

@@ -258,7 +258,7 @@
  "seed": 4500,
  "spec_hash": "4d3a7ad6c6272ad73d14cdfcf6a5e8a4a0cbbfd6309fa98d19e78707b0a4a941",
  "geometry_hash": "1bd5cd58dcb9e0626c4cf1d7b5d40dc3ea39ebf12621518671b29659b99d7323",
- "factory_commit": "c6080a2",
+ "factory_commit": "7a9367d",
  "blender": "5.3.0",
  "library_materials": [
   "sahin_paint",

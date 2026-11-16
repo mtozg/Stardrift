@@ -154,7 +154,7 @@
    }
   },
   "sahin_cockpit": {
-   "state": "qc_pass",
+   "state": "delivered",
    "rev": 12,
    "history": [
     {
@@ -319,6 +319,19 @@
      "from": "prepared",
      "to": "qc_pass",
      "reason": "QC WARN (61 PASS, 1 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-16T10:17:52+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: Yalnız Asset Factory teslim paketi için teknik onay; entegrasyon/main/Kaşif değişikliği değil. Tangent uyarısı kabul (runtime tangent + normal map entegrasyonda kontrol). RADAR 1,56:1 korunur. Emülatör 19-21 ms yalnız referans; gerçek cihaz testi sonra.",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Şahin r012 için Kapı 2 teknik onayını veriyorum')"
+    },
+    {
+     "t": "2026-11-16T10:18:09+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/sahin_cockpit/r012"
     }
    ],
    "timings": {
@@ -333,6 +346,15 @@
      "by": "kullanıcı (sohbet, 2026-11-16: 'Onaylıyorum')",
      "note": "PREVIEW r008 onaylandı (konsept A, ekranlar yakın/büyük/yüksek)",
      "accept_warn": []
+    },
+    {
+     "t": "2026-11-16T10:17:52+00:00",
+     "gate": "tech",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Şahin r012 için Kapı 2 teknik onayını veriyorum')",
+     "note": "Yalnız Asset Factory teslim paketi için teknik onay; entegrasyon/main/Kaşif değişikliği değil. Tangent uyarısı kabul (runtime tangent + normal map entegrasyonda kontrol). RADAR 1,56:1 korunur. Emülatör 19-21 ms yalnız referans; gerçek cihaz testi sonra.",
+     "accept_warn": [
+      "gltf.validator_warnings"
+     ]
     }
    ],
    "geometry_hash": "1bd5cd58dcb9e0626c4cf1d7b5d40dc3ea39ebf12621518671b29659b99d7323",

@@ -17,7 +17,7 @@
 - Her biri tek dörtgen, 4 köşe; UV sol-üst (0,0), sağ-alt (1,1) → CanvasTexture `flipY=false`.
 - Dosyadaki `MAT_screen` yer tutucudur (koyu camgöbeği emisyon); oyun MeshBasicMaterial + canvas ile değiştirir.
 - **Dikkat — RADAR oranı:** Şahin RADAR 280×180 px (≈ 1,56:1), Kaşif 350×116 px (≈ 3,02:1). Kaşif'e göre çizilmiş canvas
-  içeriği gerilebilir; entegrasyonda canvas boyutu ekran oranına göre seçilmeli (r008 tasarım kararı: daha büyük, yakın, yüksek ekranlar).
+  içeriği gerilebilir. **Kapı 2 kararı:** 1,56:1 oranı korunur; radar canvas içeriği bu orana göre hazırlanmalı (model değiştirilmez).
 
 ## Gemiye göre seçim
 - Daldaki kod Kaşif'e bağlı (`save.ship === 'kasif'`, `models/cockpit_kasif.glb`). Şahin için gemi → GLB eşlemesi gerekir (ör. `models/cockpit_sahin.glb`).
@@ -26,7 +26,8 @@
 ## Malzeme ve ışık
 - `MAT_body` (base 2048 + ORM 1024 + normal 1024), `MAT_emit` (düz emisyon ≤ 1; parlaklık bloom'dan — r128'de emissive_strength yok), `MAT_screen`.
 - Oyun Kaşif'te envMapIntensity 0,9 atıyor; Şahin aynı ayarla QC'deki nötr ışıkta Blender'a ΔE ≈ 3 içinde.
-- Tangent dosyada yok; three çalışma anında üretir (validator uyarısı; Kaşif'te de var).
+- Tangent dosyada yok; three çalışma anında üretir (validator uyarısı; Kaşif'te de var). **Kapı 2 kararı:** uyarı kabul edildi; entegrasyon sonrası
+  oyun içinde runtime tangent üretimi ve normal map görünümü (dikiş, ters aydınlanma, parlama) ayrıca kontrol edilecek.
 - Model gözün arkasına uzanır (koltuk, z en çok +0,64 m): kamera önünde görünmez, zararsız.
 
 ## Fallback ve çevrimdışı
@@ -35,3 +36,11 @@
 
 ## Test
 - `qc/viewer/check.html` (otomatik, Three r128) ve `qc/viewer/bench.html?glb=…` (gerçek cihaz ölçümü — henüz yapılmadı).
+- **Kapı 2 kararı:** emülatör 19–21 ms yalnız referanstır; gerçek cihaz performans testi daha sonra yapılacak.
+
+## Entegrasyon sonrası kontrol listesi
+- [ ] Runtime tangent + normal map görünümü (pilot ve iki göz noktası)
+- [ ] RADAR canvas 1,56:1, gerilme yok; SYS/HULL içerik hizası
+- [ ] Gerçek cihaz kare süresi (iPhone/Android, yatay)
+- [ ] Bloom altında `MAT_emit` ve ekran parlaklığı
+

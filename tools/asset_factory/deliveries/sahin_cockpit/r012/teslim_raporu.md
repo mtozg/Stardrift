@@ -1,6 +1,6 @@
 # sahin_cockpit r012 — teknik teslim raporu
 
-**Durum:** Görsel: r012 görsel olarak onaylandı ve donduruldu (kullanıcı, sohbet 2026-11-16). Daha fazla aşınma/koyulaştırma yok; açık gri, temiz ama kullanılmış avcı karakteri korunur; Kaşif'in yıpranmış koyu metali kopyalanmaz. **TESLİM ADAYI** — Kapı 2 teknik onayı kullanıcıdan bekleniyor; bu paket onay yerine geçmez. **Oyuna entegre edilmedi** — Kapı 3 ayrı onay bekliyor.
+**Durum:** Görsel: r012 görsel olarak onaylandı ve donduruldu (kullanıcı, sohbet 2026-11-16). Daha fazla aşınma/koyulaştırma yok; açık gri, temiz ama kullanılmış avcı karakteri korunur; Kaşif'in yıpranmış koyu metali kopyalanmaz. Teknik onaylı teslim paketi. **Oyuna entegre edilmedi** — Kapı 3 ayrı onay bekliyor.
 
 ## Ana ölçüler
 | Ölçü | Şahin r012 | Kaşif (referans) | Bütçe (kokpit) |
@@ -18,7 +18,7 @@ GPU tahmini three r128 davranışına göredir: her doku girişi ayrı yüklenir
 
 ## QC
 - Karar: **WARN** — PASS 61 · WARN 1 · FAIL 0 · SKIP 2.
-- WARN: `gltf.validator_warnings` (tangent yok; Kaşif'te de var) — Kapı 2'de kabul kararı kullanıcınındır.
+- WARN: `gltf.validator_warnings` (tangent yok; Kaşif'te de var) — Kapı 2'de kullanıcı tarafından kabul edildi; runtime tangent entegrasyonda kontrol edilecek.
 - Kokpit: cam oranı %54,5 · HUD bölgesi kapanma %0,6 · ekran görünürlüğü SYS 5/5, RADAR 5/5, HULL 5/5 · kamera sapması 0 px.
 - Doku yoğunluğu (texel) hedef 240 px/m (Kaşif 239 px/m'den kalibre) üzerinde.
 
@@ -37,7 +37,14 @@ GPU tahmini three r128 davranışına göredir: her doku girişi ayrı yüklenir
 | iPhone 13 landscape | 20,1 ms |
 | Pixel 7 landscape | 18,7 ms |
 
-Gerçek cihaz ölçümü yapılmadı (`bench.html` ile entegrasyon öncesi önerilir).
+Gerçek cihaz ölçümü yapılmadı. Kapı 2 kararı: emülatör değerleri yalnız referans; gerçek cihaz testi sonra.
+
+## Kapı 2 kayıtları
+- Onaylayan: kullanıcı (sohbet, 2026-11-16: 'Şahin r012 için Kapı 2 teknik onayını veriyorum') — 2026-11-16T10:17:52+00:00
+- Not: Yalnız Asset Factory teslim paketi için teknik onay; entegrasyon/main/Kaşif değişikliği değil. Tangent uyarısı kabul (runtime tangent + normal map entegrasyonda kontrol). RADAR 1,56:1 korunur. Emülatör 19-21 ms yalnız referans; gerçek cihaz testi sonra.
+- Kabul edilen uyarılar: gltf.validator_warnings
+- Kapsam: yalnız Asset Factory teslim paketi. Ana oyun koduna entegrasyon, main dalına aktarım ve Kaşif dosyalarında değişiklik **ayrı onay** gerektirir.
+
 
 ## Dokular
 | Doku | Boyut | WebP |
