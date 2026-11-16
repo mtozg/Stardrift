@@ -5276,7 +5276,7 @@ const A8 = {"i_coin": "assets/img/a8_i_coin.webp", "i_crate": "assets/img/a8_i_c
   if (location.hash !== '#nt'){
     const t = document.createElement('div'); t.id = 'title';
     t.innerHTML = '<img alt="" src="' + du('i_logo') + '"><h1>STARDRIFT</h1><p>YILDIZLAR ARASINDA YALNIZ BİR PİLOT</p><button class="act" id="titleGo" style="padding:10px 38px !important;font:700 19px var(--font) !important;letter-spacing:.3em;color:#2b1300 !important;border-image-source:url(' + A7.k_or + ') !important">BAŞLA</button>';
-    document.body.appendChild(t);
+    document.body.appendChild(t); try { resize(); } catch (e) {}   /* başlık açılıştaki ilk resize'dan sonra eklenir: 'yan çevir' uyarısı dik ekranda hemen gelmesin */
     $('titleGo').addEventListener('click', () => { t.classList.add('off'); try { resize(); } catch (e) {} try { blip(520, 0.12); setTimeout(() => blip(780, 0.12), 110); } catch (e) {} setTimeout(() => t.remove(), 700); });
   }
 }
