@@ -7,14 +7,14 @@
 const CACHE = 'stardrift-v2', META = '__offline_meta';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'offline.json', 'vendor/three.min.js', 'assets/img/app_180.png', 'assets/img/app_192.png'];
 const scopeUrl = p => new URL(p, self.registration.scope).href;
-const isCode = u => /\.js$/.test(u.pathname);
+const isCode = u => /\.(js|glb)$/.test(u.pathname);   /* js ve glb: sürüm adresiyle (tam URL) saklanır */
 const keyOf = u => isCode(u) ? u.href : u.origin + u.pathname;   // görsel/ses: ?v= yok sayılır
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => fetch(scopeUrl(u), { cache: 'reload' }).then(r => r.ok && c.put(keyOf(new URL(scopeUrl(u))), r)).catch(() => {})))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('stardrift-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()).then(() => { sync(); }));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('stardrift-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));   /* paket indirmesi artık otomatik başlamaz: oyun yüklenirken bellek yarışmasın; sayfa 'sync' isteyince başlar */
 });
 
 const sameOrigin = u => u.origin === self.location.origin;
@@ -30,12 +30,30 @@ async function page(req){
   try {
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
     const res = await fetch(req.url, { cache: 'no-store', signal: ctl.signal }); clearTimeout(t);
-    if (res.ok){ await put(c, key, res.clone()); sync(); return res; }
+    if (res.ok){ await put(c, key, res.clone()); refreshList(); return res; }
     throw new Error('HTTP ' + res.status);
   } catch (err){ const hit = await c.match(key) || await c.match(scopeUrl('./')); if (hit) return hit; throw err; }
 }
+/* dosya özetleri: offline.json (sunucudaki güncel özetler) ve META (önbellekteki kopyanın özeti). Özet uyuşmuyorsa dosya istenirken ağdan tazelenir;
+   böylece toplu indirme gecikse ya da kapalı olsa da eski görsel yeni kodla karışmaz. */
+let _st = null;
+const stState = () => _st || (_st = (async () => { const c = await caches.open(CACHE); let list = null, meta = {};
+  try { const o = await c.match(scopeUrl('offline.json')); if (o) list = (await o.json()).files; } catch (e) {}
+  try { const m = await c.match(META); if (m) meta = await m.json(); } catch (e) {}
+  return { list, meta, dirty: false }; })());
+async function refreshList(){   /* sayfa her açılışında küçük offline.json yenilenir (dosyalar değil) */
+  try { const r = await fetch(scopeUrl('offline.json'), { cache: 'no-store' }); if (!r.ok) return; const txt = await r.text(), c = await caches.open(CACHE); await c.put(scopeUrl('offline.json'), new Response(txt)); const st = await stState(); st.list = JSON.parse(txt).files; } catch (e) {}
+}
+const relPath = u => decodeURIComponent(u.pathname.slice(new URL(self.registration.scope).pathname.length));
 async function asset(req){
   const u = new URL(req.url), key = keyOf(u), c = await caches.open(CACHE), hit = await c.match(key);
+  if (hit && !isCode(u)){
+    const st = await stState(), f = relPath(u);
+    if (st.list && st.list[f] && st.meta[f] !== st.list[f]){   /* önbellekteki kopya eski: ağdan taze al */
+      try { const res = await fetch(req, { cache: 'reload' }); if (res.ok){ await put(c, key, res.clone()); st.meta[f] = st.list[f]; c.put(META, new Response(JSON.stringify(st.meta))).catch(() => {}); return res; } } catch (err) {}
+    }
+    return hit;
+  }
   if (hit) return hit;
   try { const res = await fetch(req); put(c, key, res.clone()).catch(() => {}); return res; }
   catch (err){ const any = await c.match(req, { ignoreSearch: true }); if (any) return any; throw err; }
@@ -57,12 +75,13 @@ function sync(){
     try { const r = await fetch(scopeUrl('offline.json'), { cache: 'no-store' }); if (!r.ok) throw 0; list = (await r.json()).files; await c.put(scopeUrl('offline.json'), new Response(JSON.stringify({ files: list }))); }
     catch (err){ const o = await c.match(scopeUrl('offline.json')); list = o ? (await o.json()).files : null; }
     if (!list) return;
-    const mr = await c.match(META), meta = mr ? await mr.json() : {}, files = Object.keys(list);
+    const mr = await c.match(META), meta = mr ? await mr.json() : {}, files = Object.keys(list); const shared = await stState(); shared.list = list; shared.meta = meta;
     state = { done: 0, total: files.length, ready: false };
     for (const f of files){ const key = scopeUrl(f);
       if (meta[f] !== list[f] || !(await c.match(key))){ try { const res = await fetch(key, { cache: 'reload' }); if (res.ok){ await c.put(key, res); meta[f] = list[f]; } } catch (err) {} }
       else meta[f] = list[f];
       state.done++; if (state.done % 12 === 0) { await c.put(META, new Response(JSON.stringify(meta))); tell(); }
+      await new Promise(r => setTimeout(r, 120));   /* tek dosya, sonra kısa mola: bellek tepe yapmaz */
     }
     await c.put(META, new Response(JSON.stringify(meta)));
     state.ready = files.every(f => meta[f] === list[f]); tell();

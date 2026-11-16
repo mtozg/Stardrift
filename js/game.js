@@ -19,12 +19,15 @@ const CKM = 26;   /* kokpit katmanı ekrandan her yönde bu kadar taşar: döner
 for (const cv of [ckc, hud2]){ cv.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;display:block;z-index:1;pointer-events:none'; }
 ckc.style.left = ckc.style.top = -CKM + 'px'; ckc.style.width = ckc.style.height = 'calc(100% + ' + 2 * CKM + 'px)';
 /* dış ışık katmanı: güneş, patlama ve lazer ışığı kokpitin içine vurur. Yarım çözünürlükte bir kez çizilir, her karede yalnızca saydamlığı değişir */
+const CKLS = 0.3;   /* ışık katmanı çok yumuşak: ekranın ~üçte biri çözünürlük yeter, iPad'de tuval belleğini korur */
 const ckl = document.createElement('canvas'); ckl.id = 'ckl'; ckl.style.cssText = 'position:fixed;display:block;z-index:1;pointer-events:none;mix-blend-mode:screen;opacity:0';
 ckl.style.left = ckl.style.top = -CKM + 'px'; ckl.style.width = ckl.style.height = 'calc(100% + ' + 2 * CKM + 'px)';
-hud.after(ckc); ckc.after(ckl); ckl.after(hud2);
+const scb = document.createElement('canvas'); scb.id = 'scb'; scb.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;display:block;z-index:1;pointer-events:none';   /* canlı ekranlar kokpit resminin ARKASINDA çizilir; resimdeki ekran camı oyuk, çerçeve ekranın kenarını örter */
+hud.after(scb); scb.after(ckc); ckc.after(ckl); ckl.after(hud2);
 const ckx = ckc.getContext('2d'), hctx2 = hud2.getContext('2d');
 const renderer = new THREE.WebGLRenderer({ canvas: glc, antialias: true });
 renderer.setClearColor(0x03050c);
+glc.addEventListener('webglcontextlost', e => { e.preventDefault(); try { toast('Grafik bağlamı kayboldu (cihaz belleği). Sayfayı yenile; olmazsa Ayarlar > Görüntü kalitesi > Performans.', 8000); } catch (er) {} });
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, 1, 1, 80000);
 const rig = new THREE.Object3D();   // geminin kendisi
@@ -53,7 +56,7 @@ window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); if (lo
 window.__qCap = () => QCAP[window.__qLevel];
 // kokpit oranı: pencere (üst) büyür, gösterge paneli (alt) küçülür. 0 klasik, 1 dengeli, 2 geniş cam
 const CKB = [1, 0.85, 0.72];
-window.__ckLevel = (() => { try { const v = localStorage.getItem('sd_ck'); return v === null ? 2 : Math.max(0, Math.min(2, +v || 0)); } catch (e) { return 2; } })();
+window.__ckLevel = 2;   /* 'Kokpit görünümü' ayarı kaldırıldı: Geniş cam sabit (eski kayıtlı seçim yok sayılır) */
 window.__ckSet = lv => { window.__ckLevel = lv; try { localStorage.setItem('sd_ck', String(lv)); } catch (e) {} resize(); };
 function ckMapping(){
   const K = IMG.cfg; if (!K || !K.defs) return { R1: 0, a: 1, b: 1 };
@@ -65,17 +68,19 @@ function resize(){
   const vw = window.innerWidth, vh = window.innerHeight, st = $('stage');
   SX = 0; SY = 0; SK = 1; W = vw; H = vh;
   if ((deviceLandscape() === true || vw >= 460) && vw / vh < 1.45){
-    SK = vw < 900 ? vw / 900 : 1; W = Math.round(vw / SK); H = Math.round(vh / SK);   /* eskiden 16:10'a sıkıştırılıp üstte-altta siyah şerit kalıyordu (iPad): artık ekranın tamamı */
+    SK = vw < 900 ? vw / 900 : 1; W = Math.round(vw / SK); H = Math.round(W / 1.6);   /* iPad gibi dar oranlı ekranda kokpit kendi oranında (16:10) kalır, üstte-altta şerit */
+    if (H * SK > vh){ SK = vh / H; }
+    SX = Math.round((vw - W * SK) / 2); SY = Math.round((vh - H * SK) / 2);
   }
   DPR = DPR * SK;
   st.style.transformOrigin = '0 0'; st.style.transform = 'scale(' + SK + ')';
   st.style.left = SX + 'px'; st.style.top = SY + 'px'; st.style.width = W + 'px'; st.style.height = H + 'px';
   renderer.setPixelRatio(DPR); renderer.setSize(W, H, false); if (window.__bloomResize) window.__bloomResize();
-  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; ckc.width = Math.round((W + 2 * CKM) * DPR); ckc.height = Math.round((H + 2 * CKM) * DPR); ckl.width = Math.round((W + 2 * CKM) * DPR * 0.5); ckl.height = Math.round((H + 2 * CKM) * DPR * 0.5); ckDirty = true;
+  hud.width = W * DPR; hud.height = H * DPR; hud2.width = W * DPR; hud2.height = H * DPR; scb.width = W * DPR; scb.height = H * DPR; ckc.width = Math.round((W + 2 * CKM) * DPR); ckc.height = Math.round((H + 2 * CKM) * DPR); ckl.width = Math.round((W + 2 * CKM) * CKLS); ckl.height = Math.round((H + 2 * CKM) * CKLS); ckDirty = true;
   LAND = W >= 700 && W / H >= 1.25;
   DH = Math.round(LAND ? clamp(H * 0.27, 100, 230) : clamp(H * 0.2, 92, 150)); PW = 30; VT = 30;
   layoutCockpit();
-  paused = vh > vw && deviceLandscape() !== true; /* oyun yalnızca yatay oynanır */ $('rotate').classList.toggle('hidden', !paused);
+  paused = vh > vw && deviceLandscape() !== true; /* oyun yalnızca yatay oynanır */ { const tt = $('title'); const onTitle = !!tt && !tt.classList.contains('off'); $('rotate').classList.toggle('hidden', !paused || onTitle); }   /* ana ekran dik de açılır; 'yan çevir' uyarısı Başla'dan sonra */
   camera.aspect = W / H; baseFov = W / H < 0.8 ? 80 : (LAND && IMG.ok ? 86 : 66);
   applyCam(0);
 }
@@ -154,10 +159,17 @@ const EXTRA = [];
 const BOUND = 32000, AST_TARGET = 230;   // 1.40: harita 2,1 kat genişledi
 const SYSC = { kr: 1, ice: 1, danger: 1, px: {}, hull: 1, bounty: 1, dmg: 1, rock: 1, pay: 1 }; let curSys = 0;
 
+/* uzay ortam haritası: istasyon gövdeleri soğuk gökyüzü ve güneş parıltısını yansıtır */
+let _spEnv = null;
+function spaceEnv(){ if (_spEnv !== null) return _spEnv || undefined; _spEnv = false;
+  try { const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#9fb8dc'); g.addColorStop(0.42, '#2c3a52'); g.addColorStop(0.55, '#0a0e18'); g.addColorStop(1, '#04060b'); x.fillStyle = g; x.fillRect(0, 0, 256, 128);
+    const sg = x.createRadialGradient(80, 28, 2, 80, 28, 30); sg.addColorStop(0, 'rgba(255,244,220,1)'); sg.addColorStop(1, 'rgba(255,244,220,0)'); x.fillStyle = sg; x.fillRect(40, 0, 80, 70);
+    const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); _spEnv = pm.fromEquirectangular(t).texture; pm.dispose(); } catch (e) { _spEnv = false; }
+  return _spEnv || undefined; }
 const stationGroup = new THREE.Group(); scene.add(stationGroup);
 const stationLights = [];
 {
-  const hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.6, metalness: 0.5, flatShading: true });
+  const hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.45, metalness: 0.6, flatShading: true, envMap: spaceEnv(), envMapIntensity: 0.9 });
   stationGroup.add(new THREE.Mesh(new THREE.CylinderGeometry(16, 16, 70, 10), hull));
   const ring = new THREE.Mesh(new THREE.TorusGeometry(62, 5, 8, 48), hull); ring.rotation.x = Math.PI / 2; stationGroup.add(ring);
   for (let i = 0; i < 4; i++){
@@ -173,7 +185,7 @@ const stationLights = [];
 }
 STATION.group = stationGroup; STATION.lights = stationLights;
 function buildOutpost(st){
-  const g = new THREE.Group(), hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.6, metalness: 0.5, flatShading: true }), lights = [];
+  const g = new THREE.Group(), hull = new THREE.MeshStandardMaterial({ color: 0x2a3558, roughness: 0.45, metalness: 0.6, flatShading: true, envMap: spaceEnv(), envMapIntensity: 0.9 }), lights = [];
   g.add(new THREE.Mesh(new THREE.CylinderGeometry(16, 16, 70, 10), hull));
   const ring = new THREE.Mesh(new THREE.TorusGeometry(62, 5, 8, 48), hull); ring.rotation.x = Math.PI / 2; g.add(ring);
   for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2, sp = new THREE.Mesh(new THREE.BoxGeometry(46, 3, 3), hull); sp.position.set(Math.cos(a) * 39, 0, -Math.sin(a) * 39); sp.rotation.y = a; g.add(sp); }
@@ -286,7 +298,11 @@ const ruins = [];
 function foe(n){ if (!n) return false; if (n.kind !== 'npc') return !!n.hostile; if (save.side === 'korsan') return n.role === 'patrol' || !!n.hunter || n.rev > time; return !!n.hostile || n.rev > time; }
 // lazer bu gemiye vurur mu? Korsan için: Birlik gemileri hariç her şey. Diğerleri için: korsanlar ve sana saldıran.
 function shootable(n){ if (!n || n.kind !== 'npc') return false; if (save.side === 'korsan') return n.role !== 'pirate' || !!n.hunter; return !!n.hostile || n.rev > time; }
-const aimInfo = a => ORE[a.type] || { css: foe(a) ? '#ff5a6e' : '#6cc4ff', ad: a.name || 'Gemi' };
+/* ilişki (taraf mantığının tek kaynağı): 'foe' = düşman (kırmızı), 'prey' = av (kehribar; yalnızca Korsan'da kargo/madenci), 'ally' = dost ya da tarafsız (mavi).
+   Filo / Lonca: korsanlar düşman; devriye, kargo, madenci dost. Korsan: devriye ve Filo avcıları düşman; korsanlar dost; kargo ve madenciler av. */
+function rel(n){ if (!n) return 'ally'; if (n.kind !== 'npc') return n.hostile ? 'foe' : 'ally'; if (foe(n)) return 'foe'; if (save.side === 'korsan' && shootable(n)) return 'prey'; return 'ally'; }
+const REL_COL = { foe: '#ff5a6e', prey: '#ffb454', ally: '#6cc4ff' };
+const aimInfo = a => ORE[a.type] || { css: REL_COL[rel(a)], ad: a.name || 'Gemi' };
 window.OREI = {"demir": "assets/img/orei_demir.webp", "buz": "assets/img/orei_buz.webp", "kristal": "assets/img/orei_kristal.webp"};
 window.DEVI = ["assets/img/devi_0.webp", "assets/img/devi_1.webp", "assets/img/devi_2.webp", "assets/img/devi_3.webp"];
 const ORE = {
@@ -1608,11 +1624,11 @@ function proj(pos){
 function drawNpcTags(c){
   c.save(); c.textAlign = 'center'; c.font = `600 11px ${FONT}`;
   for (let _q26 = 0; _q26 < npcs.length; _q26++){ const n = npcs[_q26];
-    if (n.hostile) continue;
+    const rl = rel(n); if (rl === 'foe') continue;   /* düşmanlar kırmızı işaretle ayrıca gösterilir */
     const d = rig.position.distanceTo(n.pos); if (d > 650 && n !== lock) continue;
     const p = proj(n.pos); if (p.behind || p.x < VIEW.l + 8 || p.x > VIEW.r - 8 || p.y < VIEW.t + 8 || p.y > VIEW.b - 8) continue;
     const sz = clamp(n.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2, 5, 60), y = p.y - sz - 8;
-    c.fillStyle = '#6cc4ff'; c.strokeStyle = 'rgba(108,196,255,0.7)'; c.lineWidth = 1;
+    c.fillStyle = REL_COL[rl]; c.strokeStyle = rl === 'prey' ? 'rgba(255,180,84,0.7)' : 'rgba(108,196,255,0.7)'; c.lineWidth = 1;
     c.beginPath(); c.moveTo(p.x - 4, y + 5); c.lineTo(p.x + 4, y + 5); c.lineTo(p.x, y + 10); c.closePath(); c.fill();
     c.fillText(n.name + ' · ' + (d > 1000 ? (d / 1000).toFixed(1) + ' km' : Math.round(d) + ' m'), p.x, y);
   }
@@ -1656,7 +1672,9 @@ function drawRadar(c, cx, cy, rr){
   // gemiler: düşman kırmızı üçgen, dost mavi nokta (yakınlarsa)
   for (let _q28 = 0; _q28 < npcs.length; _q28++){ const n = npcs[_q28];
     const q = pt(n.g.position), d = Math.hypot(q.px, q.py); if (d > rr - 3) continue;
-    if (n.hostile){ c.fillStyle = '#ff5a6e'; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 4.5); c.lineTo(cx + q.px - 3.5, cy + q.py + 3); c.lineTo(cx + q.px + 3.5, cy + q.py + 3); c.closePath(); c.fill(); }
+    const rl = rel(n);
+    if (rl === 'foe'){ c.fillStyle = REL_COL.foe; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 4.5); c.lineTo(cx + q.px - 3.5, cy + q.py + 3); c.lineTo(cx + q.px + 3.5, cy + q.py + 3); c.closePath(); c.fill(); }
+    else if (rl === 'prey'){ c.fillStyle = REL_COL.prey; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 3.6); c.lineTo(cx + q.px + 3.6, cy + q.py); c.lineTo(cx + q.px, cy + q.py + 3.6); c.lineTo(cx + q.px - 3.6, cy + q.py); c.closePath(); c.fill(); }
     else if (d < rr * 0.75){ c.fillStyle = '#6cc4ff'; c.beginPath(); c.arc(cx + q.px, cy + q.py, 2.6, 0, TAU); c.fill(); }
   }
   // seçili hedef ve nişandaki hedef: halka
@@ -1678,26 +1696,44 @@ let SCR_DEF = [
   { q: [[720, 445], [878, 445], [878, 560], [722, 561]], kind: 'map' },
   { q: [[1038, 453], [1179, 464], [1173, 574], [1026, 552]], kind: 'hull' }
 ];
+/* HUD maskesi yalnızca 3B kokpit modlarında (Kaşif: varsayılan q ve ?ck=b) geçerli: HUD tuvali WebGL kokpitin üstünde durduğu için dashboard bölgesi HUD'dan kesilir.
+   Çizgi: cam altı sırtı (anchors/kasif.json pencere alt sınırları, 1600x656 çizim uzayı). Eski 2D kokpitlerde kokpit resmi HUD'ın üstünde olduğundan gerekmez. */
+function ck3dSet(){ return save.ship === 'kasif'; }
+var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [250, 422], [300, 417], [350, 405], [400, 384], [450, 379], [500, 374], [550, 368], [600, 360], [650, 357], [950, 357], [1000, 360], [1050, 369], [1100, 374], [1150, 379], [1200, 384], [1250, 405], [1300, 417], [1350, 422], [1400, 427], [1450, 413], [1500, 353], [1550, 278], [2000, 278]];
+function hudRidgePath(c, keep, lo, still){   /* dashboard bölgesi (sırtın altı); sallanmayla birlikte kayar (sırt derinliği ≈ ağın %9'u). keep: mevcut yola ekle */
+  const B = !!window.__ckMapB, sb = (H - OY) / 416.5, k = B ? 1.1 : 0.93, sx = still ? 0 : sway.x * k, sy = (still ? 0 : sway.y * k) + (lo || 0); if (!keep) c.beginPath();   /* ?ck=b: 3B kamera eşlemesi (ana nokta 239.5, ölçek (H-OY)/416.5); q: görüntü eşlemesi */
+  HUD_RIDGE.forEach(([x, y], i) => { const X = (B ? OX + (x - 800) * sb : IM.dx + x * IM.s) + sx, Y = (B ? OY + (y - 239.5) * sb : IM.dy + IM.my(y) * IM.s) + sy; if (i) c.lineTo(X, Y); else c.moveTo(X, Y); });
+  c.lineTo(W + 600, H + 600); c.lineTo(-600, H + 600); c.closePath();
+}
+function hudMask(c){ if (!IMGMODE || !IM.my) return; c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; hudRidgePath(c); c.fill(); c.restore(); }
+/* ?ck=b ekran oranları (Blender ekran geometrisi v2: RADAR +%20 yükseklik, SYS/HULL %12 dar). Canlı tuvaller yalnızca ?ck=b çizilirken yeni oranda yeniden kurulur;
+   paralaks (q) ve eski kokpitlerde oran değişmez. Katsayılar anchors/kasif.json'daki eski ve yeni ekran dörtgenlerinin (CKP) ölçülerinden. */
+var B_SCR_K = { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] };
+var scrShapeMode = 'q';   /* var: layoutCockpit bu satırdan önce de çağrılabilir */
+function scrShape(mode){
+  if (mode === scrShapeMode) return; scrShapeMode = mode;
+  for (const sc of SCR){ if (!sc.px) continue; const k = (mode === 'b' && B_SCR_K[sc.kind]) || [1, 1], lwp = sc.px[0] * k[0], lhp = sc.px[1] * k[1], kz = Math.max(1, 96 / Math.max(1, lhp));
+    sc.cv = document.createElement('canvas'); sc.cv.width = Math.round(lwp * DPR * SCRK); sc.cv.height = Math.round(lhp * DPR * SCRK); sc.g = sc.cv.getContext('2d');
+    sc.lw = Math.round(lwp * kz); sc.lh = Math.round(lhp * kz); sc.ps = DPR * SCRK / kz; sc.drawn = false; }
+}
 function layoutCockpit(){
-  OX = W / 2; IMGMODE = false; $('toast').style.top = ''; { const hs = $('hint').style; hs.top = ''; hs.fontSize = ''; hs.maxWidth = ''; }
+  scrShapeMode = 'q'; OX = W / 2; IMGMODE = false; $('toast').style.top = ''; { const hs = $('hint').style; hs.top = ''; hs.fontSize = ''; hs.maxWidth = ''; }
   if (LAND && IMG.ok){
     const s0 = Math.max(W / IMG.iw, H / IMG.ih) * 1.04, s = IMG.cfg ? s0 : Math.max(s0, H / 582 * 1.02, Math.min(s0 * 1.45, W / 1000)), dx = (W - IMG.iw * s) / 2, dy = H - (IMG.cfg ? IMG.ih : 582) * s;
     const CK = ckMapping(); IM.s = s; IM.dx = dx; IM.dy = dy; IM.R1 = CK.R1; IM.a = CK.a; IM.b = CK.b; IM.T = 0; IMGMODE = true; WINS = [];
-    // iPad gibi dar oranlı ekran: resmi yüksekliğe göre büyütmek yanları kesiyordu. Genişliğe sığdır, üstteki cam bölgesini ekranı dolduracak kadar uzat
-    if (IMG.cfg && CK.R1 && W / H < 1.6){ const sw = W / IMG.iw * 1.04, T = H / sw; if (T > IMG.ih){ IM.s = sw; IM.dx = (W - IMG.iw * sw) / 2; IM.dy = 0; IM.T = T; IM.a = CK.a = (T - (IMG.ih - CK.R1) * CK.b) / CK.R1; } }
     const my = y => CK.R1 ? (y <= CK.R1 ? y * CK.a : CK.R1 * CK.a + (y - CK.R1) * CK.b) : y; IM.my = my;
     const mp = (x, y) => [IM.dx + x * IM.s, IM.dy + my(y) * IM.s], K = IMG.cfg, c0 = mp(800, K ? 215 : 265), a0 = mp(K ? 250 : 340, K ? 30 : 150), b0 = mp(K ? 1350 : 1260, K ? 392 : 385);
     { const hs = $('hint').style; hs.top = '5px'; hs.fontSize = '10.5px'; hs.maxWidth = Math.round(W * 0.5) + 'px'; hs.lineHeight = '1.25'; }
     $('toast').style.top = Math.max(6, Math.round(IM.dy + my(74) * IM.s - 17)) + 'px';
-    OX = c0[0]; OY = c0[1]; VIEW = { l: a0[0], t: a0[1], r: b0[0], b: b0[1] }; Hv = mp(0, 393)[1];
+    OX = c0[0]; OY = c0[1]; VIEW = { l: a0[0], t: a0[1], r: b0[0], b: (K && ck3dSet()) ? Math.min(b0[1], mp(800, 382)[1] - 30) : b0[1], b0: b0[1] }; VIEW.bq = VIEW.b; Hv = mp(0, 393)[1];   /* 3B kokpit (q/b, Kaşif): HUD işaretleri ekranların ~30 px üstünde biter */
     SCR = SCR_DEF.map(d => {
       const cx = d.q.reduce((t, p) => t + p[0], 0) / 4, cy = d.q.reduce((t, p) => t + p[1], 0) / 4;
-      const q = d.q.map(p => { const vx = cx - p[0], vy = cy - p[1], l = Math.hypot(vx, vy) || 1; return mp(p[0] + vx / l * 2.5, p[1] + vy / l * 2.5); });
+      const q = d.q.map(p => { const vx = cx - p[0], vy = cy - p[1], l = Math.hypot(vx, vy) || 1; return mp(p[0] - vx / l * 5, p[1] - vy / l * 5); });
       const lw = Math.round((Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[3][0], q[2][1] - q[3][1])) / 2);
       const lh = Math.round((Math.hypot(q[3][0] - q[0][0], q[3][1] - q[0][1]) + Math.hypot(q[2][0] - q[1][0], q[2][1] - q[1][1])) / 2);
       // küçük ekranlarda içerik üst üste binmesin: ekran içi en az 96 birim yükseklikte çizilir, sonra ekrana küçültülür
       const kz = Math.max(1, 96 / Math.max(1, lh)), cv = document.createElement('canvas'); cv.width = Math.round(lw * DPR * SCRK); cv.height = Math.round(lh * DPR * SCRK);
-      return { q, lw: Math.round(lw * kz), lh: Math.round(lh * kz), ps: DPR * SCRK / kz, cv, g: cv.getContext('2d'), kind: d.kind };
+      return { q, lw: Math.round(lw * kz), lh: Math.round(lh * kz), ps: DPR * SCRK / kz, cv, g: cv.getContext('2d'), kind: d.kind, px: [lw, lh] };
     });
     return;
   }
@@ -1849,7 +1885,7 @@ function quadTri(c, cv, p0, p1, p2, src){
   c.save(); c.beginPath(); c.moveTo(p0[0], p0[1]); c.lineTo(p1[0], p1[1]); c.lineTo(p2[0], p2[1]); c.closePath(); c.clip();
   c.transform(src[0], src[1], src[2], src[3], src[4], src[5]); c.drawImage(cv, 0, 0); c.restore();
 }
-const SCRK = 1.8;   // kokpit ekranlarının iç çözünürlüğü (ekran yoğunluğuna göre)
+const SCRK = 2.4;   // kokpit ekranlarının iç çözünürlüğü (ekran yoğunluğuna göre)
 function drawQuad(c, sc){
   const [TL, TR, BR, BL] = sc.q, w = sc.cv.width, h = sc.cv.height;
   quadTri(c, sc.cv, TL, TR, BL, [(TR[0] - TL[0]) / w, (TR[1] - TL[1]) / w, (BL[0] - TL[0]) / h, (BL[1] - TL[1]) / h, TL[0], TL[1]]);
@@ -1972,7 +2008,7 @@ function mapContent(c, I, opts){
   for (const it of items){
     const p = it.p;
     if (it.t === 0){ c.fillStyle = it.col; c.fillRect(p.x - it.sz / 2, p.y - it.sz / 2, it.sz, it.sz); continue; }
-    const col = it.t === 4 ? (foe(it.obj) ? '#ff5a6e' : '#6cc4ff') : it.t === 3 ? '#5ff0d0' : it.t === 2 ? '#7fb8ff' : it.col;
+    const col = it.t === 4 ? REL_COL[rel(it.obj)] : it.t === 3 ? '#5ff0d0' : it.t === 2 ? '#7fb8ff' : it.col;
     if (it.t !== 4 && Math.abs(p.y - p.gy) > 3){ c.strokeStyle = 'rgba(127,216,255,0.28)'; c.beginPath(); c.moveTo(p.x, p.gy); c.lineTo(p.x, p.y); c.stroke(); c.fillStyle = 'rgba(127,216,255,0.2)'; c.beginPath(); c.ellipse(p.x, p.gy, 3, 1.5, 0, 0, TAU); c.fill(); }
     if (it.t === 1){
       { const mi = window.__MI && window.__MI.i_st; if (mi && mi.complete && mi.naturalWidth){ const z = big ? 22 : 13; c.drawImage(mi, p.x - z / 2, p.y - z / 2, z, z); } else { c.save(); c.shadowColor = it.col; c.shadowBlur = big ? 8 : 4; c.strokeStyle = it.col; c.lineWidth = 1.5; c.strokeRect(p.x - 3.5, p.y - 3.5, 7, 7); c.restore(); c.fillStyle = it.col; c.fillRect(p.x - 1.5, p.y - 1.5, 3, 3); } } label(it.obj.ad.split(' ')[0] + ' · ' + dist(it.obj), p.x, p.y, it.col);
@@ -1991,11 +2027,11 @@ function mapContent(c, I, opts){
       { const mi = window.__MI && (it.obj.i === 9 && window.__MI.i_kadim ? window.__MI.i_kadim : it.obj.gate ? window.__MI.i_gate : window.__MI.i_ruin); if (mi && mi.complete && mi.naturalWidth){ const z = big ? 20 : 12; c.save(); c.globalAlpha = it.found ? 0.6 : (0.55 + 0.45 * Math.sin(time * 3)); c.drawImage(mi, p.x - z / 2, p.y - z / 2, z, z); c.restore(); } else { c.beginPath(); c.moveTo(p.x, p.y - 4); c.lineTo(p.x + 4, p.y); c.lineTo(p.x, p.y + 4); c.lineTo(p.x - 4, p.y); c.closePath(); c.stroke(); } }
       label((it.found ? (it.obj.label || ruinName(it.obj.i)) : 'Sinyal') + ' · ' + dist(it.obj), p.x, p.y, '#5ff0d0');
     } else {
-      const n = it.obj; if (big && n.hostile && window.__ic){ window.__ic(c, 'i_foe', p.x - 8, p.y - 8, 16); } const sp = Math.hypot(n.vel.x, n.vel.z); let ang = -Math.PI / 2;
+      const n = it.obj; if (big && rel(n) === 'foe' && window.__ic){ window.__ic(c, 'i_foe', p.x - 8, p.y - 8, 16); } const sp = Math.hypot(n.vel.x, n.vel.z); let ang = -Math.PI / 2;
       if (sp > 1){ const rx = n.vel.x * -hz + n.vel.z * hx, fw = n.vel.x * hx + n.vel.z * hz; ang = Math.atan2(-fw * es, rx); }
       c.save(); c.translate(p.x, p.y); c.rotate(ang); c.fillStyle = foe(n) ? `rgba(255,90,110,${0.7 + 0.3 * Math.sin(time * 8)})` : col;
       const z = big ? 4 : 3; c.beginPath(); c.moveTo(z, 0); c.lineTo(-z, -z * 0.7); c.lineTo(-z, z * 0.7); c.closePath(); c.fill(); c.restore();
-      if (big && n.hostile) label(n.name, p.x, p.y, col);
+      if (big && rel(n) !== 'ally') label(n.name, p.x, p.y, col);
     }
     if (opts.hits && it.obj) mapHits.push({ x: p.x, y: p.y, obj: it.obj });
   }
@@ -2024,7 +2060,7 @@ function radarContent(c, I){
 let litO = 0, litS = '0';
 // dış ışık katmanı: kokpit silueti, pencereye yakın kenarlar ve üst çerçeve daha parlak
 function litLayer(paint){
-  const k = ckl.getContext('2d'), sc = DPR * 0.5; k.setTransform(sc, 0, 0, sc, CKM * sc, CKM * sc); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
+  const k = ckl.getContext('2d'), sc = CKLS; if (!k) return; k.setTransform(sc, 0, 0, sc, CKM * sc, CKM * sc); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
   k.globalCompositeOperation = 'source-over'; paint(k);
   k.globalCompositeOperation = 'source-in';
   const g = k.createRadialGradient(W / 2, H * 0.32, Math.min(W, H) * 0.12, W / 2, H * 0.32, Math.max(W, H) * 0.7);
@@ -2035,59 +2071,83 @@ function litLayer(paint){
 // ---- kokpit ekranları: tek renk, ince çizgili gösterge dili (camgöbeği). Uyarılarda sarı/kırmızı.
 const SC2 = { a: '#8fe9ff', d: 'rgba(143,233,255,0.42)', f: 'rgba(143,233,255,0.12)', w: '#ffc477', r: '#ff5a6e' };
 function scr2Base(c, w, h, label, right){
-  const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#04161f'); g.addColorStop(1, '#020b12'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-  c.strokeStyle = 'rgba(120,220,255,0.06)'; c.lineWidth = 1; c.beginPath(); for (let x = 10; x < w; x += 12){ c.moveTo(x + 0.5, 16); c.lineTo(x + 0.5, h); } for (let y = 22; y < h; y += 12){ c.moveTo(0, y + 0.5); c.lineTo(w, y + 0.5); } c.stroke();
-  c.font = fnt(600, 7.5); c.textAlign = 'left'; c.fillStyle = SC2.a; c.fillText(label.toLocaleUpperCase('tr-TR').split('').join(String.fromCharCode(8202)), 7, 11);
+  const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#03101a'); g.addColorStop(1, '#010609'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(120,220,255,0.1)'; for (let x = 8; x < w; x += 8) for (let y = 20; y < h; y += 8) c.fillRect(x, y, 1, 1);
+  c.strokeStyle = 'rgba(143,233,255,0.3)'; c.lineWidth = 1; c.beginPath(); for (let x = 7; x < w - 7; x += 4){ const L = (x - 7) % 20 ? 2 : 4; c.moveTo(x + 0.5, h - 3); c.lineTo(x + 0.5, h - 3 - L); } c.stroke();
+  c.font = fnt(700, 9); c.textAlign = 'left'; c.fillStyle = SC2.a; c.fillText(label.toLocaleUpperCase('tr-TR').split('').join(String.fromCharCode(8202)), 7, 11);
   if (right){ c.textAlign = 'right'; c.fillStyle = SC2.d; c.fillText(right, w - 7, 11); }
   c.strokeStyle = SC2.d; c.beginPath(); c.moveTo(6, 14.5); c.lineTo(w - 6, 14.5); c.stroke();
   c.strokeStyle = 'rgba(143,233,255,0.55)'; c.beginPath(); const L = 5; for (const [x, y, sx, sy] of [[3, 3, 1, 1], [w - 3, 3, -1, 1], [3, h - 3, 1, -1], [w - 3, h - 3, -1, -1]]){ c.moveTo(x, y + sy * L); c.lineTo(x, y); c.lineTo(x + sx * L, y); } c.stroke();
-  return { x: 7, y: 19, w: w - 14, h: h - 23 };
+  return { x: 7, y: 19, w: w - 14, h: h - 30 };
 }
 function scr2Glass(c, w, h){   // tarama çizgileri ve ekran camının parlaması
   if (scrBase.pat){ c.fillStyle = scrBase.pat; c.fillRect(0, 0, w, h); }
-  const g = c.createLinearGradient(0, 0, w * 0.6, h); g.addColorStop(0, 'rgba(255,255,255,0.07)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  const g = c.createLinearGradient(0, 0, w * 0.6, h); g.addColorStop(0, 'rgba(255,255,255,0.03)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
 }
 function bar2(c, x, y, w, f, col, h){ h = h || 3; c.fillStyle = SC2.f; c.fillRect(x, y, w, h); c.fillStyle = col; c.fillRect(x, y, w * clamp(f, 0, 1), h);
   c.fillStyle = 'rgba(2,11,18,0.9)'; for (let i = 1; i < 10; i++) c.fillRect(x + w * i / 10 - 0.5, y, 1, h); }
+/* ekran arayüzü v2: ince çerçeveli modül satırları; beyaz değerler, camgöbeği çubuklar, yalnız uyarıda kehribar/kırmızı */
+SC2.t = '#eaf8ff'; SC2.l = 'rgba(200,242,255,0.8)';
+function seg2(c, x, y, w, f, col, h){ h = h || 4; const n = 20, gw = w / n; for (let i = 0; i < n; i++){ c.fillStyle = (i + 0.5) / n <= f ? col : 'rgba(143,233,255,0.14)'; c.fillRect(x + i * gw, y, Math.max(1, gw - 1.2), h); } }
+function row2(c, x, y, w, name, val, f, col, big){
+  c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText(name, x, y);
+  c.font = fnt(700, big ? 14 : 12); c.textAlign = 'right'; c.fillStyle = col === SC2.a ? SC2.t : col; c.fillText(val, x + w, y + (big ? 1 : 0));
+  seg2(c, x, y + 4, w, f, col, big ? 5 : 4); }
 function sys2Screen(c, I){
-  const cs = cargoSum(), cap = cargoCap(), sp = Math.round(vel.length()), heat = laser.heat / 100, rk = (save.ammo || 0) + (save.ammoD || 0);
-  const rows = [['HIZ', sp + ' m/s', Math.min(1, sp / 420), SC2.a], ['ISI', laser.over ? 'AŞIRI' : Math.round(heat * 100) + '%', heat, laser.over || heat > 0.85 ? SC2.r : heat > 0.6 ? SC2.w : SC2.a],
-    ['KARGO', cs + '/' + cap, cs / Math.max(1, cap), cs >= cap ? SC2.w : SC2.a], ['ROKET', String(rk), Math.min(1, rk / (AMMO_MAX + DMAX)), rk ? SC2.a : SC2.r]];
-  const gw = I.w / 2, gh = (I.h - 12) / 2, vf = clamp(Math.min(gh * 0.42, gw * 0.2), 8, 22), lf = clamp(vf * 0.5, 6, 10);
-  rows.forEach(([n, v, f, col], i) => { const x = I.x + (i % 2) * gw + (i % 2 ? 5 : 0), y = I.y + ((i / 2) | 0) * gh, w = gw - 5;
-    c.font = fnt(600, lf); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText(n, x, y + lf);
-    c.font = fnt(700, vf); c.fillStyle = col; c.fillText(v, x, y + lf + vf + 1);
-    bar2(c, x, y + lf + vf + 5, w, f, col, Math.max(2, vf * 0.16)); });
-  c.font = fnt(600, lf); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('KREDİ', I.x, I.y + I.h - 1); c.textAlign = 'right'; c.fillStyle = SC2.w; c.font = fnt(700, lf * 1.25); c.fillText(String(save.kredi), I.x + I.w, I.y + I.h - 1);
+  const cs = cargoSum(), cap = cargoCap(), sp = Math.round(vel.length()), heat = laser.heat / 100, hf = hp.hull / hp.hullMax, en = 1 - heat;
+  const thr = clamp(thrustNow, 0, 1), rows = [
+    ['ENERJİ', Math.round(en * 100) + '%', en, laser.over ? SC2.r : en < 0.35 ? SC2.w : SC2.a],
+    ['MOTOR', boosting ? 'HIZLANDI' : sp + ' m/s', boosting ? 1 : Math.max(thr, Math.min(1, sp / 420)), boosting ? SC2.w : SC2.a],
+    ['SİSTEM', Math.round(hf * 100) + '%', hf, hf > 0.6 ? SC2.a : hf > 0.3 ? SC2.w : SC2.r]];
+  const rh = (I.h - 16) / 3;
+  rows.forEach((r, i) => row2(c, I.x, I.y + 9 + i * rh, I.w, r[0], r[1], r[2], r[3], true));
+  const y = I.y + I.h - 2; c.strokeStyle = SC2.f; c.lineWidth = 1; c.beginPath(); c.moveTo(I.x, y - 10.5); c.lineTo(I.x + I.w, y - 10.5); c.stroke();
+  c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText('KARGO', I.x, y); c.fillStyle = cs >= cap ? SC2.w : SC2.t; c.fillText(cs + '/' + cap, I.x + 40, y);
+  c.textAlign = 'right'; c.fillStyle = SC2.w; c.fillText(String(save.kredi), I.x + I.w, y);
 }
 function hull2Screen(c, I){
   const hf = hp.hull / hp.hullMax, sf = hp.shield / Math.max(1, hp.shieldMax), hc = hf > 0.6 ? SC2.a : hf > 0.3 ? SC2.w : SC2.r;
-  const hh = I.h - 30, cx = I.x + I.w * 0.5, cy = I.y + hh / 2 + 1, sc = Math.min(I.w * 0.24, hh * 0.42);
+  const lw = I.w * 0.5, hh = I.h, cx = I.x + lw * 0.5, cy = I.y + hh * 0.5, sc = Math.min(lw * 0.36, hh * 0.38);
+  c.strokeStyle = SC2.f; c.lineWidth = 1; c.beginPath(); c.arc(cx, cy, sc * 1.45, 0, TAU); c.stroke();
+  c.strokeStyle = 'rgba(143,233,255,0.55)'; c.beginPath(); c.arc(cx, cy, sc * 1.45, -Math.PI / 2, -Math.PI / 2 + TAU * sf); c.stroke();
   c.save(); c.globalAlpha = hf <= 0.3 ? 0.5 + 0.5 * Math.sin(time * 8) : 0.95; drawShipHolo(c, cx, cy, sc, hp.hit > 0 ? SC2.r : hc); c.restore();
-  c.strokeStyle = SC2.f; c.beginPath(); c.arc(cx, cy, sc * 1.35, 0, TAU); c.stroke(); c.strokeStyle = 'rgba(143,233,255,0.3)'; c.beginPath(); c.arc(cx, cy, sc * 1.35, -Math.PI / 2, -Math.PI / 2 + TAU * sf); c.stroke();
-  const y1 = I.y + I.h - 22; c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('GÖVDE', I.x, y1); c.textAlign = 'right'; c.fillStyle = hc; c.font = fnt(700, 8.5); c.fillText(String(Math.round(hp.hull)), I.x + I.w, y1);
-  bar2(c, I.x, y1 + 3, I.w, hf, hc, 3);
-  const y2 = y1 + 15; c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = SC2.d; c.fillText('KALKAN', I.x, y2); c.textAlign = 'right'; c.fillStyle = SC2.a; c.font = fnt(700, 8.5); c.fillText(String(Math.round(hp.shield)), I.x + I.w, y2);
-  bar2(c, I.x, y2 + 3, I.w, sf, '#9fc4ff', 2.5);
+  /* hasar bölgeleri: gövde yüzdesine göre sırayla uyarı verir */
+  const zx = I.x + lw + 8, zw = I.w - lw - 8, zones = [['BURUN', hf > 0.8], ['KANAT', hf > 0.55], ['MOTOR', hf > 0.3], ['KALKAN', sf > 0.25]];
+  zones.forEach(([n, ok], i) => { const y = I.y + 9 + i * ((hh - 22) / 3.4);
+    c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText(n, zx, y);
+    c.fillStyle = ok ? SC2.a : (hf > 0.3 || n === 'KALKAN' ? SC2.w : SC2.r); c.beginPath(); c.arc(zx + zw - 3, y - 2.6, 2.6, 0, TAU); c.fill(); });
+  const y1 = I.y + hh - 2; c.font = fnt(700, 12); c.textAlign = 'left'; c.fillStyle = hc === SC2.a ? SC2.t : hc; c.fillText(Math.round(hf * 100) + '%', I.x, y1);
+  c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('GÖVDE', I.x + 36, y1); c.textAlign = 'right'; c.fillStyle = SC2.t; c.fillText('KALKAN ' + Math.round(sf * 100) + '%', I.x + I.w, y1);
 }
 function radar2Screen(c, I){
-  const rad = Math.max(14, Math.min(I.w, I.h * 0.9) / 2 - 1), cx = I.x + I.w / 2, cy = I.y + I.h * 0.5;
+  const tw = I.w * 0.3, rad = Math.max(14, Math.min(I.w - tw - 4, I.h - 4) / 2), cx = I.x + (I.w - tw) / 2, cy = I.y + I.h * 0.5 - 2;
   drawRadar(c, cx, cy, rad);
-  c.strokeStyle = SC2.d; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, r0 = rad + 1.5, r1 = rad + (i % 6 ? 3.5 : 6); c.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); } c.stroke();
-  c.font = fnt(600, 7); c.textAlign = 'left'; c.fillStyle = lock ? SC2.w : SC2.d; c.fillText(lock ? 'KİLİTLİ' : (boosting ? '2,4' : '1') + ' KM', I.x, I.y + I.h - 1);
+  c.strokeStyle = SC2.d; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, r0 = rad + 1.5, r1 = rad + (i % 6 ? 3 : 5); c.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); } c.stroke();
+  /* tarama ışını */
+  const sa = (time * 1.6) % TAU, sg = c.createLinearGradient(cx, cy, cx + Math.cos(sa) * rad, cy + Math.sin(sa) * rad); sg.addColorStop(0, 'rgba(143,233,255,0)'); sg.addColorStop(1, 'rgba(143,233,255,0.7)');
+  c.strokeStyle = sg; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(sa) * rad, cy + Math.sin(sa) * rad); c.stroke();
+  /* hedef bilgisi */
+  const tx = I.x + I.w - tw, rng = boosting ? 2400 : 1000; let n = 0, near = 1e9;
+  for (const o of npcs){ if (!foe(o)) continue; const d = o.g.position.distanceTo(rig.position); if (d < rng){ n++; near = Math.min(near, d); } }
+  c.font = fnt(600, 9); c.textAlign = 'left'; c.fillStyle = SC2.l; c.fillText('HEDEF', tx, I.y + 9); c.font = fnt(700, 14); c.fillStyle = lock ? SC2.w : SC2.t; c.fillText(lock ? 'KİLİT' : n ? String(n) : '—', tx, I.y + 23);
+  c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('MESAFE', tx, I.y + 37); c.font = fnt(700, 12); c.fillStyle = SC2.t; c.fillText(near < 1e9 ? Math.round(near) + ' m' : '—', tx, I.y + 49);
+  c.font = fnt(600, 9); c.fillStyle = SC2.l; c.fillText('MENZİL', tx, I.y + 63); c.fillStyle = SC2.a; c.fillText((rng / 1000).toLocaleString('tr-TR') + ' KM', tx, I.y + 74);
 }
 // ekran ışığı: her ekran çevresine yumuşak camgöbeği ışık saçar
-const SCRGLOW = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), g = x.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, 'rgba(90,205,255,0.55)'); g.addColorStop(0.5, 'rgba(90,205,255,0.16)'); g.addColorStop(1, 'rgba(90,205,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return cv; })();
+const SCRGLOW = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'), g = x.createRadialGradient(32, 32, 4, 32, 32, 32); g.addColorStop(0, 'rgba(90,205,255,0.5)'); g.addColorStop(0.5, 'rgba(90,205,255,0.13)'); g.addColorStop(1, 'rgba(90,205,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return cv; })();
 function scrGlow(c, sc){ const xs = sc.q.map(p => p[0]), ys = sc.q.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = x1 - x0, h = y1 - y0;
-  c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.5 + 0.04 * Math.sin(time * 3 + x0); c.drawImage(SCRGLOW, x0 - w * 0.28, y0 - h * 0.45, w * 1.56, h * 1.9); c.restore(); }
+  c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.36 + 0.03 * Math.sin(time * 3 + x0); c.drawImage(SCRGLOW, x0 - w * 0.28, y0 - h * 0.45, w * 1.56, h * 1.9); c.restore(); }
+/* ekranın alt kenarından konsola düşen çok soluk yansıma: içerik dikey çevrilip bezelin ve metalin üstüne eklenir */
+function scrRefl(c, sc){ const [TL, TR, BR, BL] = sc.q, k = 0.32, fl = [BL[0] + (BL[0] - TL[0]) * k, BL[1] + (BL[1] - TL[1]) * k], fr = [BR[0] + (BR[0] - TR[0]) * k, BR[1] + (BR[1] - TR[1]) * k];
+  c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.07; drawQuad(c, { cv: sc.cv, q: [fl, fr, BR, BL] }); c.restore(); }
 function cockpitTone(k){
   if (window.__noTone) return;
   k.save(); k.globalCompositeOperation = 'source-atop';
-  let g = k.createLinearGradient(0, -CKM, 0, H + CKM); g.addColorStop(0, 'rgba(1,3,7,0.86)'); g.addColorStop(0.45, 'rgba(1,3,7,0.78)'); g.addColorStop(0.75, 'rgba(1,3,7,0.66)'); g.addColorStop(1, 'rgba(1,3,7,0.8)');
+  let g = k.createLinearGradient(0, -CKM, 0, H + CKM); g.addColorStop(0, 'rgba(1,3,7,0.5)'); g.addColorStop(0.45, 'rgba(1,3,7,0.42)'); g.addColorStop(0.75, 'rgba(1,3,7,0.3)'); g.addColorStop(1, 'rgba(1,3,7,0.42)');
   k.fillStyle = g; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
   // ekranların ışığı panele vurur (ekranın hemen çevresi)
   for (const sc of SCR){ const cx = sc.q.reduce((t, p) => t + p[0], 0) / 4, cy = sc.q.reduce((t, p) => t + p[1], 0) / 4, r = Math.hypot(sc.q[1][0] - sc.q[0][0], sc.q[1][1] - sc.q[0][1]) * 0.8;
-    g = k.createRadialGradient(cx, cy, r * 0.3, cx, cy, r); g.addColorStop(0, 'rgba(80,200,255,0.24)'); g.addColorStop(1, 'rgba(80,200,255,0)'); k.fillStyle = g; k.fillRect(cx - r, cy - r, r * 2, r * 2); }
+    g = k.createRadialGradient(cx, cy, r * 0.3, cx, cy, r); g.addColorStop(0, 'rgba(80,200,255,0.2)'); g.addColorStop(1, 'rgba(80,200,255,0)'); k.fillStyle = g; k.fillRect(cx - r, cy - r, r * 2, r * 2); }
   k.restore();
 }
 function glassLayer(k, paint){
@@ -2117,9 +2177,12 @@ function glassLayer(k, paint){
   k.fillStyle = 'rgba(120,170,210,0.035)'; k.fillRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM);
   k.restore();
 }
+function scrPaint(sc){ sc.drawn = true; sc.ver = (sc.ver || 0) + 1; const g = sc.g; g.setTransform(sc.ps, 0, 0, sc.ps, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
+  const I = scr2Base(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde', sc.kind === 'map' ? SYS[curSys].ad.toLocaleUpperCase('tr-TR') : sc.kind === 'bars' ? (thrustNow > 0.1 ? 'İTİŞ' : braking ? 'FREN' : '') : (hp.hit > 0 ? 'HASAR' : ''));
+  (sc.kind === 'bars' ? sys2Screen : sc.kind === 'map' ? radar2Screen : hull2Screen)(g, I); scr2Glass(g, sc.lw, sc.lh); }
 function drawCockpitImg(c){
   const s = IM.s, my = IM.my || (y => y), mp = (x, y) => [IM.dx + x * s, IM.dy + my(y) * s];
-  if (ckDirty || ckx.__img !== IMG.img){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, CKM * DPR, CKM * DPR); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
+  if (IMG.img && (ckDirty || ckx.__img !== IMG.img)){ ckDirty = false; ckx.__img = IMG.img; const k = ckx; k.setTransform(DPR, 0, 0, DPR, CKM * DPR, CKM * DPR); k.clearRect(-CKM, -CKM, W + 2 * CKM, H + 2 * CKM); k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high';
     const paint = (k = ckx) => { if (IM.R1){   // iki parça: pencere bölgesi uzar, panel bölgesi kısalır
       const im = IMG.img, f = im.naturalHeight / IMG.ih, y1 = IM.R1 * f, h1 = IM.R1 * IM.a * s;
       k.drawImage(im, 0, 0, im.naturalWidth, y1, IM.dx, IM.dy, IMG.iw * s, h1 + 0.6);
@@ -2130,9 +2193,11 @@ function drawCockpitImg(c){
     { const im = IMG.img, nw = im.naturalWidth, nh = im.naturalHeight, x0 = IM.dx, x1 = IM.dx + IMG.iw * s, y1 = IM.dy + (IM.T || IMG.ih) * s, y0 = IM.dy;
       if (y1 < H + CKM) k.drawImage(im, 0, nh - 3, nw, 3, x0, y1 - 0.5, x1 - x0, H + CKM - y1 + 1);
       if (y0 > -CKM) k.drawImage(im, 0, 0, nw, 3, x0, -CKM, x1 - x0, y0 + CKM + 0.5);
-      if (x0 > -CKM) k.drawImage(ckc, Math.round((x0 + CKM) * DPR) + 1, 0, 2, ckc.height, -CKM, -CKM, x0 + CKM + 0.5, H + 2 * CKM);
-      if (x1 < W + CKM) k.drawImage(ckc, Math.round((x1 + CKM) * DPR) - 3, 0, 2, ckc.height, x1 - 0.5, -CKM, W + CKM - x1 + 1, H + 2 * CKM); }
-    cockpitTone(k); glassLayer(k, paint); litLayer(paint); }
+      try { const sxL = clamp(Math.round((x0 + CKM) * DPR) + 1, 0, ckc.width - 2), sxR = clamp(Math.round((x1 + CKM) * DPR) - 3, 0, ckc.width - 2);
+        if (x0 > -CKM) k.drawImage(ckc, sxL, 0, 2, ckc.height, -CKM, -CKM, x0 + CKM + 0.5, H + 2 * CKM);
+        if (x1 < W + CKM) k.drawImage(ckc, sxR, 0, 2, ckc.height, x1 - 0.5, -CKM, W + CKM - x1 + 1, H + 2 * CKM); } catch (e) { console.warn(e); } }
+    try { cockpitTone(k); glassLayer(k, paint); litLayer(paint); } catch (e) { console.warn(e); } }
+  { const v = (window.__ck3on || window.__ck3wait) ? 'hidden' : ''; if (ckc.style.visibility !== v){ ckc.style.visibility = v; ckl.style.visibility = v; scb.style.visibility = v; } }
   { const sw = 'translate(' + sway.x.toFixed(1) + 'px,' + sway.y.toFixed(1) + 'px)'; if (sw !== ckSway){ ckSway = sw; ckc.style.transform = sw; ckl.style.transform = sw; } }
   { // dış ışık: güneşe bakınca, yakın patlamada, lazer ateşlerken kokpit aydınlanır
     const sa = Math.acos(clamp(fwd.dot(sunDir), -1, 1)), sunL = Math.pow(clamp(1 - sa / 1.3, 0, 1), 2);
@@ -2142,13 +2207,16 @@ function drawCockpitImg(c){
   c.save(); c.translate(sway.x, sway.y);
   // ekranlar: içerik önce küçük bir tuvale çizilir, sonra eğik ekran yüzeyine oturtulur
   const ui = scrTick++ % Math.max(1, SCR.length);   // her karede tek ekranın içeriği yenilenir (sırayla, ~20 Hz); hepsi her karede yerine oturtulur
+  if (window.__ck3on || window.__ck3wait){ if (window.__ck3on) SCR.forEach((sc, i) => { if (i === ui || !sc.drawn) scrPaint(sc); }); c.restore(); return; }   /* 3B kokpit: ekranlar 3B panelde, resim ve lambalar çizilmez */
+  const sbx = scb.getContext('2d'); sbx.setTransform(DPR, 0, 0, DPR, 0, 0); sbx.clearRect(0, 0, W, H); sbx.save(); sbx.translate(sway.x, sway.y);
   SCR.forEach((sc, i) => {
     if (i === ui || !sc.drawn){ sc.drawn = true; const g = sc.g; g.setTransform(sc.ps, 0, 0, sc.ps, 0, 0); g.clearRect(0, 0, sc.lw, sc.lh);
       if (window.__oldScr){ const I = scrBase(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde'); (sc.kind === 'bars' ? barsScreen : sc.kind === 'map' ? radarScreen : hullScreen)(g, I); }
       else { const I = scr2Base(g, sc.lw, sc.lh, sc.kind === 'bars' ? 'Sistem' : sc.kind === 'map' ? 'Radar' : 'Gövde', sc.kind === 'map' ? SYS[curSys].ad.toLocaleUpperCase('tr-TR') : sc.kind === 'bars' ? (thrustNow > 0.1 ? 'İTİŞ' : braking ? 'FREN' : '') : (hp.hit > 0 ? 'HASAR' : ''));
         (sc.kind === 'bars' ? sys2Screen : sc.kind === 'map' ? radar2Screen : hull2Screen)(g, I); scr2Glass(g, sc.lw, sc.lh); } }
-    drawQuad(c, sc); scrGlow(c, sc);
+    drawQuad(sbx, sc); scrGlow(c, sc); scrRefl(c, sc);
   });
+  sbx.restore();
   // panel lambaları: tehlikede kırmızı kristaller hızlı yanıp söner, hızlanırken mavi halka yanar
   c.globalCompositeOperation = 'lighter';
   const full = cargoSum() >= cargoCap(), a = (hazard || hp.hull < 30) ? 0.55 + 0.45 * Math.sin(time * 12) : (full ? 0.5 + 0.3 * Math.sin(time * 4) : 0.3 + 0.18 * Math.sin(time * 2.2));
@@ -2213,17 +2281,17 @@ function drawGlass(c, speed){
     gg.addColorStop(0, `rgba(255,100,140,${k})`); gg.addColorStop(1, 'rgba(255,100,140,0)'); c.fillStyle = gg; c.fillRect(0, 0, W * 0.24, H);
     gg = c.createLinearGradient(W, 0, W * 0.76, 0); gg.addColorStop(0, `rgba(255,100,140,${k})`); gg.addColorStop(1, 'rgba(255,100,140,0)'); c.fillStyle = gg; c.fillRect(W * 0.76, 0, W * 0.24, H);
   }
-  if (MONIMG.glass){ c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.95; c.drawImage(MONIMG.glass, 0, 0, W, H); c.restore(); }
+  if (MONIMG.glass && !window.__ck3on){ c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.95; c.drawImage(MONIMG.glass, 0, 0, W, H); c.restore(); }
   // camın yansıması, çizikler, gösterge paneli ışığı
   let g = c.createLinearGradient(0, 0, W, H);
   g.addColorStop(0, 'rgba(255,255,255,0.05)'); g.addColorStop(0.3, 'rgba(255,255,255,0)'); g.addColorStop(0.7, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,0.035)');
   c.fillStyle = g; c.fillRect(0, 0, W, H);
   c.strokeStyle = 'rgba(255,255,255,0.05)'; c.lineWidth = 1;
   scratches.forEach(s => { c.beginPath(); c.moveTo(s.x * W, s.y * Hv); c.lineTo(s.x * W + Math.cos(s.a) * s.l, s.y * Hv + Math.sin(s.a) * s.l); c.stroke(); });
-  g = c.createLinearGradient(0, Hv - 150, 0, Hv + 10);
+  g = c.createLinearGradient(0, Hv - 150, 0, Hv + 90);   /* üst ve altta sıfıra iner: sert kenar (yatay bant) kalmaz */
   const fl = 0.9 + 0.1 * Math.sin(time * 9);
-  g.addColorStop(0, 'rgba(255,170,70,0)'); g.addColorStop(1, `rgba(255,170,70,${0.09 * fl})`);
-  c.fillStyle = g; c.fillRect(0, Hv - 150, W, 160);
+  g.addColorStop(0, 'rgba(255,170,70,0)'); g.addColorStop(0.62, `rgba(255,170,70,${0.08 * fl})`); g.addColorStop(1, 'rgba(255,170,70,0)');
+  c.fillStyle = g; c.fillRect(0, Hv - 150, W, 240);
   const vg = c.createRadialGradient(ox, oy, Math.min(W, H) * 0.4, ox, oy, Math.max(W, H) * 0.8);
   vg.addColorStop(0, 'rgba(0,0,10,0)'); vg.addColorStop(1, 'rgba(0,0,10,0.45)'); c.fillStyle = vg; c.fillRect(0, 0, W, H);
   c.restore();
@@ -2341,7 +2409,7 @@ function mapScreen(c, I){
   mapContent(c, { x: I.x, y: I.y, w: I.w, h: I.h - 13 });
   c.textAlign = 'center'; c.font = fnt(600, 9); const cx = I.x + I.w / 2, yy = I.y + I.h - 2;
   if (lock){ c.fillStyle = '#ffb454'; c.fillText('‹ KİLİTLİ · ' + tName(lock).toLocaleUpperCase('tr-TR') + ' ›', cx, yy); }
-  else if (aim){ c.fillStyle = (aim.kind === 'npc' && !foe(aim)) ? '#6cc4ff' : '#ff6b8a'; c.fillText(tName(aim) + ' ' + Math.max(0, Math.round(rig.position.distanceTo(aim.pos) - aim.r)) + ' m', cx, yy); }
+  else if (aim){ c.fillStyle = aim.kind === 'npc' ? REL_COL[rel(aim)] : '#ff6b8a'; c.fillText(tName(aim) + ' ' + Math.max(0, Math.round(rig.position.distanceTo(aim.pos) - aim.r)) + ' m', cx, yy); }
   else { c.fillStyle = '#5d6a8f'; c.fillText('Hedef yok', cx, yy); }
 }
 function overlayRect(k){
@@ -2458,7 +2526,7 @@ function drawHud(){
 
     if (aim){
       const d = rig.position.distanceTo(aim.pos), p = proj(aim.pos), range = laserRange(), ok = d - aim.r <= range, shootable_ = !!(aim.mesh || shootable(aim));
-      const rad = clamp(aim.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2 * 1.2, 16, 140), col = aim === lock ? '#ffb454' : (ok ? ((aim.kind === 'npc' && !foe(aim)) ? '#6cc4ff' : '#ff6b8a') : 'rgba(255,255,255,0.45)');
+      const rad = clamp(aim.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2 * 1.2, 16, 140), col = aim === lock ? '#ffb454' : (ok ? (aim.kind === 'npc' ? REL_COL[rel(aim)] : '#ff6b8a') : 'rgba(255,255,255,0.45)');
       c.strokeStyle = col; c.lineWidth = 2; const L = Math.min(12, rad * 0.5);
       for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){
         c.beginPath(); c.moveTo(p.x + sx * rad, p.y + sy * (rad - L)); c.lineTo(p.x + sx * rad, p.y + sy * rad); c.lineTo(p.x + sx * (rad - L), p.y + sy * rad); c.stroke();
@@ -2486,9 +2554,9 @@ function drawHud(){
   }
 
   { const c = hctx2; c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, W, H);
-  if (!IMGMODE && ckx.__img !== null){ ckx.__img = null; ckx.setTransform(1, 0, 0, 1, 0, 0); ckx.clearRect(0, 0, ckc.width, ckc.height); }
+  if (!IMGMODE && ckx.__img !== null){ ckx.__img = null; ckx.setTransform(1, 0, 0, 1, 0, 0); ckx.clearRect(0, 0, ckc.width, ckc.height); scb.getContext('2d').clearRect(0, 0, scb.width, scb.height); }
   drawCockpit(c);
-  if (!docked){ drawRing(c, ox, oy, speed); drawOverlay(c); }
+  if (!docked){ if (window.__ck3on && IMGMODE){ c.save(); c.beginPath(); c.rect(-600, -600, W + 1200, H + 1200); hudRidgePath(c, true, 14, true); c.clip('evenodd');   /* halka yazıları sırta oturur (14 px pay) ve sallanmayla gizlenmez: nötr sırta göre kırpılır */ drawRing(c, ox, oy, speed); c.restore(); } else drawRing(c, ox, oy, speed); drawOverlay(c); }
   // hız hissi: kenarlarda kararma ve mavi parıltı
   { const sp = clamp((speed - 100) / 450, 0, 1) + (boosting ? 0.25 : 0);
     if (sp > 0.02){ const R = Math.hypot(W, H) * 0.6, g = c.createRadialGradient(ox, oy, R * 0.35, ox, oy, R); g.addColorStop(0, 'rgba(10,30,70,0)'); g.addColorStop(1, `rgba(20,60,140,${Math.min(0.5, sp * 0.45)})`); c.fillStyle = g; c.fillRect(0, 0, W, H); } }
@@ -3418,11 +3486,16 @@ function exAct(a){
 }
 // =====================  /ÜS + KAÇAK + MÜRETTEBAT + OLAYLAR  =====================
 // =====================  HANGAR + KOKPİT  =====================
-const CK = {"kasif": "assets/img/ck_kasif.webp", "sahin": "assets/img/ck_sahin.webp", "yuk": "assets/img/ck_yuk.webp", "hayalet": "assets/img/ck_hayalet.webp"};
-const CKP = {"kasif": {"q": [[[304, 412], [549, 400], [552, 526], [312, 551]], [[702, 400], [900, 400], [902, 518], [702, 518]], [[1054, 402], [1292, 416], [1290, 546], [1054, 520]]], "lamps": [[205, 545], [1395, 545]], "boost": [1180, 572]}, "sahin": {"q": [[[392, 382], [590, 374], [596, 500], [408, 516]], [[704, 372], [896, 372], [896, 494], [704, 494]], [[1010, 374], [1208, 382], [1192, 516], [1004, 500]]], "lamps": [[332, 522], [1250, 548]], "boost": [1130, 562]}, "yuk": {"q": [[[268, 382], [520, 376], [534, 504], [278, 528]], [[690, 378], [910, 376], [912, 498], [688, 498]], [[1080, 376], [1332, 382], [1322, 528], [1066, 504]]], "lamps": [[610, 430], [640, 430]], "boost": [1120, 572]}, "hayalet": {"q": [[[254, 414], [594, 402], [600, 548], [258, 584]], [[658, 398], [944, 398], [944, 542], [658, 542]], [[1004, 400], [1346, 412], [1344, 582], [1004, 545]]], "lamps": [[300, 610], [1300, 610]], "boost": [1120, 590]}};
+const CK = {"sahin": "assets/img/ck_sahin.webp", "yuk": "assets/img/ck_yuk.webp", "hayalet": "assets/img/ck_hayalet.webp"};
+const CKP = {"kasif": {"q": [[[393, 411], [588, 392], [582, 501], [342, 525]], [[627, 382], [975, 383], [974, 498], [625, 498]], [[1009, 392], [1206, 411], [1257, 525], [1018, 501]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "sahin": {"q": [[[385, 398], [598, 372], [596, 490], [352, 518]], [[637, 377], [961, 377], [969, 485], [632, 485]], [[1000, 376], [1215, 398], [1248, 520], [1004, 495]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "yuk": {"q": [[[387, 397], [590, 379], [593, 481], [325, 526]], [[622, 362], [976, 361], [968, 483], [633, 480]], [[1006, 378], [1224, 405], [1277, 523], [1009, 481]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}, "hayalet": {"q": [[[378, 392], [587, 382], [591, 483], [329, 520]], [[652, 375], [947, 376], [968, 485], [635, 488]], [[1013, 382], [1220, 393], [1268, 518], [1009, 483]]], "lamps": [[250, 560], [1350, 560]], "boost": [800, 520]}};
 
 function setCockpit(id){
-  const d = CK[id], P = CKP[id]; if (!d || !P) return; const im = new Image();
+  const d = CK[id], P = CKP[id]; if (!P) return;
+  if (id === 'kasif'){   /* Kaşif: 3B model; çizim resmi yok, yalnızca yerleşim bilgisi */
+    IMG.img = null; IMG.ok = true; IMG.hi = true; IMG.ih = 656; IMG.iw = 1600;
+    IMG.cfg = { lamps: P.lamps, boost: P.boost, defs: [{ q: P.q[0], kind: 'bars' }, { q: P.q[1], kind: 'map' }, { q: P.q[2], kind: 'hull' }] };
+    SCR_DEF = IMG.cfg.defs; resize(); return; }
+  if (!d) return; const im = new Image();
   im.onload = () => {
     IMG.img = im; IMG.ok = true; IMG.hi = true; IMG.ih = 656; IMG.iw = 1600;
     IMG.cfg = { lamps: P.lamps, boost: P.boost, defs: [{ q: P.q[0], kind: 'bars' }, { q: P.q[1], kind: 'map' }, { q: P.q[2], kind: 'hull' }] };
@@ -3760,18 +3833,20 @@ function hgEnvMap(){
 function buildShip3D(THREE, TEX, S){
   const G=new THREE.Group();
   const rootInv=new THREE.Matrix4();
-  const VS='uniform mat4 uInv; varying vec3 vP; varying vec3 vN; varying vec3 vW; void main(){ vec4 wp=modelMatrix*vec4(position,1.0); vP=(uInv*wp).xyz; vN=normalize(mat3(uInv)*mat3(modelMatrix)*normal); vW=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*wp; }';
-  const FS=DMG_GLSL+'uniform sampler2D tTop; uniform sampler2D tSide; uniform sampler2D tF; uniform sampler2D tR; uniform sampler2D tB; uniform float uTa; uniform float uSa; uniform float uYc; uniform float uZc; uniform float uGain; uniform vec3 uFB; uniform float uMode; uniform float uInfer; uniform float uSx; uniform vec3 uTint; varying vec3 vP; varying vec3 vN; varying vec3 vW;'+
+  const VS='uniform mat4 uInv; varying vec3 vP; varying vec3 vN; varying vec3 vW; varying vec3 vWP; void main(){ vec4 wp=modelMatrix*vec4(position,1.0); vWP=wp.xyz; vP=(uInv*wp).xyz; vN=normalize(mat3(uInv)*mat3(modelMatrix)*normal); vW=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*wp; }';
+  const FS=DMG_GLSL+'uniform sampler2D tTop; uniform sampler2D tSide; uniform sampler2D tF; uniform sampler2D tR; uniform sampler2D tB; uniform float uTa; uniform float uSa; uniform float uYc; uniform float uZc; uniform float uGain; uniform vec3 uFB; uniform float uMode; uniform float uInfer; uniform float uSx; uniform vec3 uTint; varying vec3 vP; varying vec3 vN; varying vec3 vW; varying vec3 vWP;'+
+    /* ortam yansıması: uzay ışığı gökyüzü gradyanı, güneş parlaması ve kenar (fresnel) parıltısı; gri/metal yüzeyler daha çok yansıtır */
+    'vec3 envR(vec3 col, vec3 wn){ vec3 V=normalize(cameraPosition-vWP); vec3 R=reflect(-V,wn); float up=R.y*0.5+0.5; vec3 sky=mix(vec3(0.02,0.03,0.06),vec3(0.5,0.64,0.9),smoothstep(0.25,1.0,up)); float sun=pow(max(dot(R,normalize(vec3(0.35,0.85,0.4))),0.0),22.0); float fr=pow(1.0-max(dot(wn,V),0.0),3.0); float sat=max(col.r,max(col.g,col.b))-min(col.r,min(col.g,col.b)); float met=0.35+0.65*(1.0-smoothstep(0.08,0.45,sat)); return col+(sky*0.2+vec3(1.0,0.94,0.84)*sun*0.45)*met*(0.35+0.65*fr)+vec3(0.35,0.5,0.85)*fr*0.16; }'+
     'void main(){ vec3 n=normalize(vN); vec3 wn=normalize(vW); float l=0.70+0.45*max(dot(wn,normalize(vec3(0.35,0.85,0.4))),0.0)+0.12*max(dot(wn,normalize(vec3(-0.6,0.2,-0.5))),0.0);'+
     'vec2 uvT=vec2(vP.x+0.5,0.5+uZc-vP.z/uTa); vec2 uvS=vec2(0.5+vP.x*uSx,vP.y*uSx/uSa+uYc); vec4 ct=texture2D(tTop,uvT); vec4 cs=texture2D(tSide,uvS); vec3 fb=vec3(0.30,0.33,0.36);'+
     'vec3 c1=mix(fb,cs.rgb,step(0.5,cs.a)); vec3 c2=mix(fb,ct.rgb,step(0.5,ct.a));'+
-    'if(uMode>0.5&&uMode<1.5){ gl_FragColor=vec4(min(c1*l*uGain,vec3(1.0)),1.0); return; }'+
-    'if(uMode>1.5){ gl_FragColor=vec4(min(c2*l*uGain,vec3(1.0)),1.0); return; }'+
+    'if(uMode>0.5&&uMode<1.5){ gl_FragColor=vec4(min(envR(c1*l*uGain,wn),vec3(1.0)),1.0); return; }'+
+    'if(uMode>1.5){ gl_FragColor=vec4(min(envR(c2*l*uGain,wn),vec3(1.0)),1.0); return; }'+
     'float wy=smoothstep(0.3,0.8,abs(n.y)); vec3 col=mix(c1,c2,wy);'+
     'if(n.y<0.0){ vec4 cb=texture2D(tB,vec2(vP.x+0.5,0.5-uZc+vP.z/uTa)); if(cb.a>0.5){ col=mix(col,cb.rgb,wy);} else if(uInfer>0.5){ col=mix(col,c2*0.78,wy);} else { float g=dot(col,vec3(0.3,0.59,0.11)); col=mix(col,vec3(g*0.6),wy*0.7);} }'+
     'float fv=(vP.y-uFB.y)/(uFB.z-uFB.y); vec4 cc=n.x>0.0?texture2D(tF,vec2(0.5-vP.z/(2.0*uFB.x),fv)):texture2D(tR,vec2(0.5+vP.z/(2.0*uFB.x),fv)); float wx=smoothstep(0.45,0.85,abs(n.x));'+
     'if(cc.a>0.5){ col=mix(col,cc.rgb,wx);} else if(uInfer>0.5){ vec4 cn=texture2D(tSide,vec2(n.x>0.0?0.965:0.035,uvS.y)); vec3 c3=mix(c1,cn.rgb,step(0.5,cn.a)); col=mix(col,c3*0.92,wx); }'+
-    'col=dmgFx(col,vP); gl_FragColor=vec4(min(col*l*uGain*uTint,vec3(1.0)),1.0); }';
+    'col=dmgFx(col,vP); gl_FragColor=vec4(min(envR(col*l*uGain*uTint,wn),vec3(1.0)),1.0); }';
   const UNI={tTop:{value:TEX.top},tSide:{value:TEX.side},tF:{value:TEX.f},tR:{value:TEX.r},tB:{value:TEX.b},uTa:{value:TEX.ta},uSa:{value:TEX.sa},uYc:{value:S.yc},uZc:{value:S.zc||0},uGain:{value:S.gain||1.0},uFB:{value:new THREE.Vector3(0.5,-0.1,0.1)},uInfer:{value:S.infer?1:0},uSx:{value:S.sx||1.0},uInv:{value:rootInv},uDmg:{value:new THREE.Vector4(0,0,0,0)},uTint:{value:new THREE.Color(1,1,1)}};
   const mkPM=mode=>new THREE.ShaderMaterial({uniforms:Object.assign({},UNI,{uMode:{value:mode}}),vertexShader:VS,fragmentShader:FS,side:THREE.DoubleSide});
   const PM=mkPM(0), PMside=mkPM(1), PMtop=mkPM(2);
@@ -4494,7 +4569,7 @@ function commOpen(){
   comm.open = true; comm.n = n; comm.t0 = time;
   const dm = new THREE.Object3D(); dm.position.copy(rig.position); dm.lookAt(rig.position.clone().sub(n.pos.clone().sub(rig.position))); comm.q0 = rig.quaternion.clone(); comm.q1 = dm.quaternion.clone();
   const el = $('comm'), civ = n.civ;
-  const chip = el.querySelector('.chip'); chip.textContent = civ ? civ.ab : (n.hostile ? 'KRS' : n.role === 'patrol' ? 'DEV' : 'SİV'); chip.style.color = civ ? civ.col : foe(n) ? '#ff6b8a' : n.hostile ? '#7be0a4' : '#7fd8ff';
+  const chip = el.querySelector('.chip'); chip.textContent = civ ? civ.ab : (n.hostile ? 'KRS' : n.role === 'patrol' ? 'DEV' : 'SİV'); chip.style.color = civ ? civ.col : foe(n) ? '#ff6b8a' : rel(n) === 'prey' ? REL_COL.prey : n.hostile ? '#7be0a4' : '#7fd8ff';
   el.querySelector('.nm').textContent = n.name; el.querySelector('.sub').textContent = (civ ? civ.ad + ' · ' : '') + ROLETXT[n.role] + ' · ' + Math.round(n.pos.distanceTo(rig.position)) + ' m';
   el.classList.add('on'); commShow(commRoot(n)); blip(640, 0.06); setTimeout(() => blip(820, 0.08), 80);
 }
@@ -4710,7 +4785,7 @@ const A5 = {"em0": "assets/img/a5_em0.webp", "em1": "assets/img/a5_em1.webp", "e
     let img = sh.querySelector('.pt'); if (!img){ img = document.createElement('img'); img.className = 'pt'; img.alt = ''; sh.insertBefore(img, sh.firstChild); }
     const k = n.hostile ? 3 : ci >= 0 ? ci : n.role === 'patrol' ? 4 : 5;
     img.src = A5['pt' + k];
-    sh.style.setProperty('--pc', foe(n) ? '#ff6b8a' : ci >= 0 ? n.civ.col : n.role === 'patrol' ? '#8ab4ff' : '#7fd8ff');
+    sh.style.setProperty('--pc', foe(n) ? '#ff6b8a' : rel(n) === 'prey' ? REL_COL.prey : ci >= 0 ? n.civ.col : n.role === 'patrol' ? '#8ab4ff' : '#7fd8ff');
     if (ci >= 0) el.querySelector('.chip').innerHTML = '<img alt="" src="' + A5['em' + ci] + '">' + n.civ.ab;
   };
 }
@@ -5201,8 +5276,8 @@ const A8 = {"i_coin": "assets/img/a8_i_coin.webp", "i_crate": "assets/img/a8_i_c
   if (location.hash !== '#nt'){
     const t = document.createElement('div'); t.id = 'title';
     t.innerHTML = '<img alt="" src="' + du('i_logo') + '"><h1>STARDRIFT</h1><p>YILDIZLAR ARASINDA YALNIZ BİR PİLOT</p><button class="act" id="titleGo" style="padding:10px 38px !important;font:700 19px var(--font) !important;letter-spacing:.3em;color:#2b1300 !important;border-image-source:url(' + A7.k_or + ') !important">BAŞLA</button>';
-    document.body.appendChild(t);
-    $('titleGo').addEventListener('click', () => { t.classList.add('off'); try { blip(520, 0.12); setTimeout(() => blip(780, 0.12), 110); } catch (e) {} setTimeout(() => t.remove(), 700); });
+    document.body.appendChild(t); try { resize(); } catch (e) {}   /* başlık açılıştaki ilk resize'dan sonra eklenir: 'yan çevir' uyarısı dik ekranda hemen gelmesin */
+    $('titleGo').addEventListener('click', () => { t.classList.add('off'); try { resize(); } catch (e) {} try { blip(520, 0.12); setTimeout(() => blip(780, 0.12), 110); } catch (e) {} setTimeout(() => t.remove(), 700); });
   }
 }
 
@@ -5544,7 +5619,9 @@ function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === (
 {
   const _dn = damageNpc;
   damageNpc = function(n, dmg, by){
-    const fr = by === 'player' && !n.hostile && npcs.indexOf(n) >= 0;
+    const KSd = save.side === 'korsan', fr = by === 'player' && !n.hostile && !KSd && npcs.indexOf(n) >= 0;   /* Korsan'da kargo av, devriye düşman: "dost ateşi" uyarısı yok */
+    if (by === 'player' && KSd && n.role === 'patrol' && !n.hostile && npcs.indexOf(n) >= 0 && !(n.rev > time)){   /* Korsan'ın vurduğu devriye ve yakındakiler karşılık verir */
+      n.rev = time + 60; radio(n.name, 'Korsan ateş açtı! Müdahale ediyoruz!', '#ff5a6e'); for (let _qk = 0, qq; _qk < npcs.length && ((qq = npcs[_qk]), true); _qk++) if (qq.role === 'patrol' && !qq.hostile && qq.pos.distanceTo(n.pos) < 3500) qq.rev = time + 60; }
     if (fr){
       if (!n.ffW){ n.ffW = time; if (time - (window.__ffT || -99) > 5){ window.__ffT = time; toast('Dost gemiye ateş ettin! Tekrarlarsan karşılık verirler.', 3400); } radio(n.name, 'Ateş etme, dostuz! Bir daha olursa karşılık veririm.', '#ffb454'); }
       else if (time - n.ffW > 1.3 && !(n.rev > time)){
@@ -5554,7 +5631,7 @@ function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === (
       if (n.rev > time) n.rev = time + 45;
     }
     _dn(n, dmg, by);
-    if (fr && n.rev > time && npcs.indexOf(n) >= 0){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.alertT = 0; }
+    if ((fr || (KSd && by === 'player' && n.role === 'patrol')) && n.rev > time && npcs.indexOf(n) >= 0){ n.state = 'attack'; n.tgt = 'player'; n.atkT = time; n.alertT = 0; }
   };
   const _nt = npcThink;
   npcThink = function(n){
@@ -5788,7 +5865,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     { t: 'Üsse dön', x: () => 'Sarı işaret ' + (STATION && STATION.ad || 'ev istasyonunu') + ' gösteriyor. Yaklaşınca ' + K('F', 'Kenetlen') + ' ile kenetlen.', ok: () => docked },
     { t: 'Sat', x: () => '<span class="k">İstasyon</span> sekmesinde kargonu sat. Her istasyon farklı fiyat verir; yeşil fiyat en iyisi.' + (save.side === 'korsan' ? ' Kaçak malı yalnızca Kara Liman alır.' : ''), enter: () => { k0 = save.kredi; }, ok: () => cargoSum() === 0 && save.kredi > k0 },
     { t: 'Ana görev', x: () => '<span class="k">Görevler</span> sekmesinde <b>Ana görev</b> hikâyeyi anlatır ve seni yönlendirir; bölüm bitirdikçe yeni sistemlerin kapıları açılır. Panodaki <b>yan görevler</b> isteğe bağlıdır. Uçarken sol tarafta sıradaki adım yazar.', ok: () => (document.getElementById('dock') || {}).dataset && document.getElementById('dock').dataset.t === 'ct' || !docked },
-    { t: 'Tarafın', x: () => (save.side === 'korsan' ? 'Korsan Birliği\'ndesin: korsanlar sana dokunmaz, sen de onlara dokunma. Yıldız Filosu devriyeleri ve Filo avcıları seni avlar; aranma yıldızın arttıkça daha çok gelirler. Kaçak malı gizli bölmede taşı, Kara Liman\'da sat.'
+    { t: 'Tarafın', x: () => (save.side === 'korsan' ? 'Korsan Birliği\'ndesin: korsanlar sana dokunmaz, sen de onlara dokunma. Renkler: kırmızı düşman, kehribar av, mavi dost. Yıldız Filosu devriyeleri ve Filo avcıları (kırmızı) seni avlar; aranma yıldızın arttıkça daha çok gelirler. Kargo ve madenciler avındır (kehribar): vurunca aranman artar. Kaçak malı gizli bölmede taşı, Kara Liman\'da sat.'
         : save.side === 'lonca' ? 'Tüccar Loncası\'ndasın: kazancın ticaretten. İstasyon fiyatlarını karşılaştır, acil siparişleri yetiştir, cevherini en iyi fiyata sat. Korsanlar yükünü ister; kaçmak da bir seçenek.'
         : 'Yıldız Filosu\'ndasın: devriyeler yanında, korsanlar karşında. Korsan avladıkça ödül ve itibar kazanırsın; reisleri yenmek Filo\'nun en büyük işidir.')
         + ' ' + K('T', 'Kilit') + ' nişandaki hedefe kilitlenir; kilitliyken lazer kendiliğinden vurur. Haritayı ' + K('M', '') + ' ile aç.', last: true }
@@ -6928,7 +7005,6 @@ window.__xpal = {
       + line('Uzayda çalan müzik', 'Evrene göre ya da hep ana müzik', '<button class="act" data-uz="1">' + (save.uzayAna ? 'Hep ana müzik' : 'Evrene göre') + '</button>')
       + '<div id="ctlSet"></div>'
       + '<div class="sect">Grafik</div>'
-      + line('Kokpit görünümü', 'Geniş cam: pencere büyür, gösterge paneli küçülür', '<button class="act" data-set="ck">' + ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel] + '</button>')
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
@@ -7882,20 +7958,25 @@ function drawBehind(dt, cover){
   bgAcc += dt; if (bgAcc < 0.4) return; bgAcc = 0;
   renderer.setRenderTarget(null); renderer.render(scene, camera); drawHud();
 }
+// oyun döngüsü: bir karede hata olsa bile döngü durmaz (önceden tek bir hata oyunu donduruyordu); hata ekranda kısaca gösterilir
+let frameErrT = 0, frameErrN = 0;
 function frame(now){
+  requestAnimationFrame(frame);
+  try { frame0(now); } catch (e){ frameErrN++; console.error(e); const t = performance.now(); if (t - frameErrT > 8000){ frameErrT = t; try { toast('Hata: ' + ((e && e.message) || e) + ' · ' + (((e && e.stack) || '').split('\n')[1] || '').trim().slice(0, 80), 6000); } catch (er) {} } }
+}
+function frame0(now){
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (paused){
     stick.on = false; sBase.classList.add('hidden'); sKnob.classList.add('hidden'); laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false;
-    audioUpdate(0); requestAnimationFrame(frame); return;
+    audioUpdate(0); return;
   }
-  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); drawBehind(dt, true); requestAnimationFrame(frame); return; }
+  if (window.__menuOn || window.__hcOn){ stick.on = false; laserOn = false; braking = false; boostBtn = false; for (const k in keys) keys[k] = false; audioUpdate(0); drawBehind(dt, true); return; }
   update(dt);
-  if (window.__hjOn && !window.__hjFade){ requestAnimationFrame(frame); return; }   // sıçrama sahnesi ekranı tamamen kapatırken ana sahne çizilmez (akıcılık)
+  if (window.__hjOn && !window.__hjFade){ return; }   // sıçrama sahnesi ekranı tamamen kapatırken ana sahne çizilmez (akıcılık)
   drawBehind(dt, docked && !dockEl.classList.contains('hidden'));
   $('bDock').classList.toggle('hidden', !(nearStation() && !docked));
   $('bLock').classList.toggle('on', !!lock);
   /* roket düğmesi etiketi artık seçili türe göre (roket seçimi bloğu) */
-  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Çok uzaklarda zayıf sinyaller var.', 6000);
@@ -9693,7 +9774,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const report = () => { try { const c = navigator.serviceWorker.controller || (window.__swReg && window.__swReg.active); if (!c) return;
       const urls = [...new Set(performance.getEntriesByType('resource').map(r => r.name).filter(u => u.indexOf(location.origin) === 0 && !/\/sw\.js/.test(u)))]; urls.push(location.href.split('#')[0]);
       c.postMessage({ type: 'cache', urls }); } catch (e) {} };
-    navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(r => { setTimeout(report, 4000); setInterval(report, 60000); try { (navigator.serviceWorker.controller || r.active).postMessage({ type: 'sync' }); } catch (e) {} }); }).catch(() => {});
+    let noSync = false; try { noSync = localStorage.getItem('sd_nosync') === '1'; } catch (e) {}   /* açılış kurtarma çökme saptarsa çevrimdışı paket indirmesi bu cihazda kapanır */
+    navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(r => { if (noSync) return;
+      /* oyun açılırken bellek yarışmasın: paket indirmesi ve dosya kaydı oyun açıldıktan 60 sn sonra, sayfa görünürken başlar */
+      setTimeout(() => { report(); setInterval(report, 120000); }, 60000);
+      setTimeout(() => { try { if (document.visibilityState === 'visible') (navigator.serviceWorker.controller || r.active).postMessage({ type: 'sync' }); } catch (e) {} }, 60000); }); }).catch(() => {});
     // çevrimdışı paket durumu: Ayarlar'ın altında görünür; ilk kez tamamlanınca bir kez haber verilir
     navigator.serviceWorker.addEventListener('message', e => { const d = e.data || {}; if (d.type !== 'offline') return; window.__offline = d;
       const el = document.getElementById('offSt'); if (el) el.textContent = offTxt();
@@ -9709,7 +9794,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   (function(){
     const target = () => { const c = save.cur; if (typeof c === 'number' && SYS[c] && (c === 0 || save.open.includes(c))) return c; return window.__homeSys ? window.__homeSys() : 0; };
     let restored = false;
-    const restore = () => { if (restored) return; restored = true; const k = target(); if (k !== curSys && SYS[k]){ window.__quietJump = true; try { enterSystem(k); } catch (e) { console.warn(e); } window.__quietJump = false; } };
+    const restore = () => { if (restored) return; restored = true; const k = target(); if (k !== curSys && SYS[k]){ window.__quietJump = true; try { enterSystem(k);
+        /* enterSystem istasyona kenetli bırakır ama menüyü açmaz: açılışta gemi uzayda, istasyonun önünde başlar (yeni pilot akışıyla aynı). Eskiden Ankora dışı evi olanlar kenetli ve menüsüz kalıyordu: hareket/ateş yoktu */
+        docked = false; curSt = null; $('dock').classList.add('hidden'); { const away = rig.position.clone().sub(STATION.pos).normalize(); rig.lookAt(rig.position.clone().sub(away)); } vel.set(0, 0, 0); scrFlash = 0;
+      } catch (e) { console.warn(e); } window.__quietJump = false; } };
     const tg = document.getElementById('titleGo'); if (tg && save.side) tg.addEventListener('click', () => setTimeout(restore, 50)); else if (save.side) setTimeout(restore, 300);
     EXTRA.push(() => { if (!restored && save.side && !document.getElementById('titleGo')) restore(); if (restored && save.cur !== curSys){ save.cur = curSys; persist(); } });
   })();
@@ -10264,4 +10352,113 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     // eski kayıttaki korsan avı görevleri de dönüşür
     try { if (KS() && save.ct){ for (const c of save.ct.offers.concat(save.ct.active)) if (c.type === 'av' && !c.ks){ c.ks = 1; c.txt = c.n + ' Filo ya da tüccar gemisi düşür'; } } } catch (e) {}
   })();
+
+  // =====  Kaşif kokpiti: Blender modeli (tools/cockpit çıktısı GLB) tek kokpit. Diğer gemiler eski çizim kokpitiyle devam eder.
+  (function(){
+    // ---- Kaşif kokpiti = tools/cockpit çıktısı GLB. Ekranlar SCR_SYS / SCR_RADAR / SCR_HULL adlı ayrı mesh'ler; içerik mevcut SCR tuvallerinden canlı gelir.
+    let BM = null, BP = null, BF = false, BK = null, bT0 = 0;
+    const bStat = { calls: 0, tris: 0, ms: 0 };   /* test için: son kokpit çiziminin çizim çağrısı / üçgen / süre */
+    window.__ckb = { get ready(){ return !!BM; }, get failed(){ return BF; }, get k(){ return BK; }, get stat(){ return bStat; }, get view(){ return { OX, OY, W, H }; } };
+    const bWant = () => save.ship === 'kasif' && !BF;
+    function loadB(){
+      if (BP) return BP;
+      BP = new Promise((res, rej) => {
+        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? 'models/cockpit_kasif_m.glb' : 'models/cockpit_kasif.glb') + v,   /* telefon: 1024 dokulu hafif model (GPU ~22 MB), tablet/masaüstü: 2048 */ g => { BM = g.scene; res(); }, x => { if (x && x.total) prepPct = Math.min(0.95, x.loaded / x.total); }, e => { BF = true; rej(e); });
+        if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { BF = true; rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
+      BP.catch(e => { console.warn('kokpit yüklenemedi', e); try { toast('Kokpit modeli yüklenemedi. Sayfayı yenile.', 5000); } catch (er) {} }); return BP;
+    }
+    function buildB(){
+      const S = new THREE.Scene(), cam = new THREE.PerspectiveCamera(74, 1, 0.02, 30), G = new THREE.Group(); S.add(G); const mdl = BM.clone(true); G.add(mdl);
+      const bind = { SCR_SYS: 'bars', SCR_RADAR: 'map', SCR_HULL: 'hull' }, scr = [];
+      mdl.traverse(o => { if (!o.isMesh) return;
+        if (bind[o.name]){ const tx = new THREE.CanvasTexture(document.createElement('canvas')); tx.flipY = false; tx.encoding = THREE.sRGBEncoding; tx.minFilter = THREE.LinearFilter; tx.generateMipmaps = false; tx.anisotropy = 4;
+          o.material = new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }); scr.push({ o, tx, kind: bind[o.name], ver: -1 }); }
+        else if (o.material){ o.material.envMapIntensity = 0.9; o.frustumCulled = false; } });
+      try { const gc = document.createElement('canvas'); gc.width = 256; gc.height = 128; const gx = gc.getContext('2d'), gg = gx.createLinearGradient(0, 0, 0, 128); gg.addColorStop(0, '#7f98c8'); gg.addColorStop(0.5, '#2a3a5c'); gg.addColorStop(1, '#17223a'); gx.fillStyle = gg; gx.fillRect(0, 0, 256, 128);
+        const gt = new THREE.CanvasTexture(gc); gt.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); S.environment = pm.fromEquirectangular(gt).texture; pm.dispose(); } catch (e) { console.warn(e); }
+      S.add(new THREE.HemisphereLight(0x7a92c4, 0x1c2840, 0.7));
+      const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 0.5, -0.8); S.add(fl);
+      const sg = new THREE.PointLight(0x4cc8ff, 0.45, 2.2); sg.position.set(0, -0.15, -0.55); S.add(sg); const lz = new THREE.PointLight(0xff6a8c, 0, 3); lz.position.set(0, -0.2, -0.5); S.add(lz);
+      return { S, cam, G, scr, sun, fl, sg, lz, tq: new THREE.Quaternion(), v: new THREE.Vector3(), W: 0, H: 0 };
+    }
+    function renderB(){
+      if (!BK) BK = buildB(); const k = BK;
+      const fpx = 435.3 * Math.max(0.2, (H - OY) / 416.5);                 /* çizimin odak uzaklığı (1600x656 uzayında 435.3 px), alt kenar ekranın altına oturur */
+      k.cam.fov = 2 * Math.atan((H / 2) / fpx) * 180 / Math.PI; k.cam.aspect = W / H; k.cam.setViewOffset(W, H, W / 2 - OX, H / 2 - OY, W, H); k.cam.updateProjectionMatrix();
+      k.cam.position.set(-sway.x * 1.08 / fpx, sway.y * 1.08 / fpx, 0);   /* sallanma: kafa ötelemesi → yakın parçalar daha çok kayar */
+      for (const e of k.scr){ const sc = SCR.find(q => q.kind === e.kind); if (!sc) continue; if (e.tx.image !== sc.cv){ e.tx.image = sc.cv; e.tx.needsUpdate = true; } if (sc.ver !== e.ver){ e.ver = sc.ver; e.tx.needsUpdate = true; } }
+      k.tq.copy(rig.quaternion).multiply(camera.quaternion).invert(); k.v.copy(sunDir).applyQuaternion(k.tq); k.sun.position.copy(k.v).multiplyScalar(5); k.sun.intensity = 1.8 * clamp(-k.v.z + 0.35, 0, 1);
+      let f = 0; if (flashLight.intensity > 0){ const d = flashLight.position.distanceTo(rig.position); f = clamp(flashLight.intensity / 6 * (1 - d / 1600), 0, 1); } k.fl.intensity = 6 * Math.max(f, scrFlash);
+      k.lz.intensity = firing ? 1.5 + Math.random() * 0.7 : 0; k.sg.intensity = 0.45 + (hp.hit > 0 ? 0.5 : 0);
+      const ac = renderer.autoClear, oe = renderer.outputEncoding, tm = renderer.toneMapping, te = renderer.toneMappingExposure;
+      renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+      renderer.autoClear = false; renderer.setRenderTarget(null); renderer.clearDepth(); const t0 = performance.now(); renderer.render(k.S, k.cam); bStat.ms = performance.now() - t0; bStat.calls = renderer.info.render.calls; bStat.tris = renderer.info.render.triangles;
+      renderer.autoClear = ac; renderer.outputEncoding = oe; renderer.toneMapping = tm; renderer.toneMappingExposure = te;
+    }
+    function render(){
+      scrShape('b'); window.__ckMapB = true;   /* ekran tuvalleri Blender ekran oranında; HUD sınırı 3B kamera eşlemesiyle */
+      if (VIEW.b0 !== undefined) VIEW.b = Math.min(VIEW.b0, OY + (382 - 239.5) * (H - OY) / 416.5 - 30) + sway.y * 1.1;   /* HUD işaretleri ekranların ~30 px üstünde biter; sınır sallanan dashboard ile kayar */
+      renderB();
+    }
+    { const _dhm = drawHud; drawHud = function(){ _dhm(); if (window.__ck3on && !window.__noHudMask) try { hudMask(hctx); } catch (e) {} }; }   /* en son sarmalayıcı: tüm işaretler çizildikten sonra dashboard bölgesini siler */
+    /* kokpit hazırlık ekranı: model gelene kadar boş ekran yerine gemi hazırlığı anlatılır; oyun bu sırada bekler (menü bayrağı) */
+    const PREP = ['Gemiye cephane yükleniyor', 'Motor yağı yenileniyor', 'Kalkan jeneratörü ısınıyor', 'Navigasyon kalibre ediliyor', 'Yakıt hatları basınçlandırılıyor', 'Kokpit ekranları açılıyor'];
+    let prepEl = null, prepI = 0, prepT = 0, prepPct = 0, prepAt = 0;
+    function prepShow(){ if (prepEl) return; prepAt = performance.now();
+      prepEl = document.createElement('div'); prepEl.id = 'ckPrep';
+      prepEl.innerHTML = '<div class="in"><div class="t">KALKIŞ HAZIRLIĞI</div><div class="m"></div><div class="b"><i></i></div><div class="s">KAŞİF</div></div>';
+      const st = document.createElement('style'); st.textContent = '#ckPrep{position:fixed;inset:0;z-index:96;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0b1626 0%,#03060c 70%);font-family:var(--font,sans-serif);color:#cfe9f5;transition:opacity .45s}#ckPrep.go{opacity:0}#ckPrep .in{width:min(420px,78vw);text-align:center}#ckPrep .t{font:600 13px/1 var(--font,sans-serif);letter-spacing:.42em;color:#8fe9ff;margin-bottom:22px}#ckPrep .m{font:500 16px/1.3 var(--font,sans-serif);min-height:22px;letter-spacing:.04em}#ckPrep .m:after{content:"…"}#ckPrep .b{height:3px;background:rgba(143,233,255,.15);margin:18px 0 12px;border-radius:2px;overflow:hidden}#ckPrep .b i{display:block;height:100%;width:0;background:#8fe9ff;box-shadow:0 0 10px #8fe9ff;transition:width .3s}#ckPrep .s{font:600 10px/1 var(--font,sans-serif);letter-spacing:.5em;color:rgba(143,233,255,.5)}';
+      prepEl.appendChild(st); document.body.appendChild(prepEl); window.__menuOn = true; prepI = 0; prepT = 0; prepTick(0); }
+    function prepTick(dt){ if (!prepEl) return; window.__menuOn = true; prepT -= dt; if (prepT <= 0){ prepT = 1.1; prepEl.querySelector('.m').textContent = PREP[prepI % PREP.length]; prepI++; }
+      const fake = Math.min(0.9, (performance.now() - prepAt) / 9000); prepEl.querySelector('.b i').style.width = Math.round(Math.max(fake, prepPct) * 100) + '%'; }
+    function prepHide(ok){ if (!prepEl) return; const el = prepEl; prepEl = null; el.querySelector('.b i').style.width = '100%'; if (ok) el.querySelector('.m').textContent = 'Kokpit hazır';
+      setTimeout(() => { el.classList.add('go'); window.__menuOn = false; setTimeout(() => el.remove(), 500); }, ok ? 350 : 0); }
+    let prepLast = performance.now();
+    setInterval(() => { const now = performance.now(), dt = (now - prepLast) / 1000; prepLast = now; const tt = document.getElementById('title'), inGame = (!tt || tt.classList.contains('off')) && !document.getElementById('intro') && !document.getElementById('sideSel') && !document.getElementById('ctrlSel');
+      if (save.ship === 'kasif' && inGame && !paused && !docked && !BM && !BF){ if (!prepEl && !window.__menuOn) prepShow(); prepTick(dt);
+        if (prepEl && !BP && now - prepAt > 400) loadB().catch(() => {});   /* oyun beklerken render döngüsü seyrekleşir: yüklemeyi burası başlatır */
+        if (prepEl && now - prepAt > 30000){ BF = true; try { toast('Kokpit modeli yüklenemedi. Sayfayı yenile.', 5000); } catch (e) {} } }
+      else if (prepEl) prepHide(!!BM); }, 120);
+    const _rm = renderMain; renderMain = function(){ _rm();
+      const kas = save.ship === 'kasif'; if (kas && !BM && !BP && !BF){ const tt = document.getElementById('title'); if (!tt || tt.classList.contains('off')){ bT0 = bT0 || performance.now(); if (performance.now() - bT0 > 1200) loadB().catch(() => {}); } }   /* model, başlık ekranı kapanıp oyun 1,2 sn oturduktan sonra yüklenir: açılıştaki bellek tepesiyle çakışmaz (telefon) */
+      window.__ck3on = kas && !!BM && IMGMODE && !docked && !window.__ck3bad;
+      window.__ck3wait = kas && IMGMODE && !window.__ck3on;   /* Kaşif'in çizim (2B) kokpiti yok: model gelene kadar ve kenetliyken yalnızca HUD */
+      if (window.__ck3on) try { render(); } catch (e) { console.warn(e); window.__ck3bad = true; window.__ck3on = false; } };
+  })();
+  /* ---- bekçi: güncelleme döngüsü (hareket/ateş/fizik) 3,5 sn çalışmazsa nedenini bulur, takılı durumu düzeltir ve ekranda söyler.
+     Nedenler: yanlışlıkla duraklatma (yatay ekranda), görünmez menü bayrağı, takılı kamera sahnesi, menüsü görünmeyen kenetlenme. ---- */
+  (function(){
+    let lastUp = performance.now(), fixedAt = 0, hcSince = 0, dkSince = 0; const _u2 = update; update = function(dt){ lastUp = performance.now(); return _u2(dt); };
+    const overlayUp = () => { for (const e of document.body.children){ if (e.tagName === 'CANVAS' || e.id === 'stage' || e.id === 'rotate' || e.id === 'toast') continue; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < 0.05 || cs.position !== 'fixed' || cs.pointerEvents === 'none') continue;   /* yalnızca dokunmayı yakalayan (gerçek menü) katmanlar */ const r = e.getBoundingClientRect(); if (r.width >= innerWidth * 0.5 && r.height >= innerHeight * 0.5) return true; } const d = $('dock'); return !!(d && !d.classList.contains('hidden')); };
+    setInterval(() => {
+      const tt = document.getElementById('title'); if (document.visibilityState !== 'visible' || (tt && !tt.classList.contains('off'))) return; const now = performance.now(); if (window.__hcOn){ hcSince = hcSince || now; } else hcSince = 0;
+      if (docked && !overlayUp()){ dkSince = dkSince || now; } else dkSince = 0;
+      if (dkSince && now - dkSince > 3500 && now - fixedAt > 6000){ try { renderDock(); $('dock').classList.remove('hidden'); fixedAt = now; dkSince = 0; toast('Oyun durmuştu, düzeltildi (kenetlenme menüsü).', 5200); console.warn('bekçi: kenetlenme menüsü'); } catch (e) {} return; }
+      if (now - lastUp < 3500 || now - fixedAt < 6000) return;
+      const why = [];
+      if (paused && innerWidth > innerHeight){ paused = false; why.push('duraklatma'); }
+      if (window.__menuOn && !overlayUp()){ window.__menuOn = false; why.push('menü bayrağı'); }
+      if (window.__hcOn && hcSince && now - hcSince > 20000){ window.__hcOn = false; why.push('sahne'); }
+      if (why.length){ fixedAt = now; try { toast('Oyun durmuştu, düzeltildi (' + why.join(', ') + ').', 5200); } catch (e) {} console.warn('bekçi:', why.join(',')); }
+    }, 1000);
+  })();
+  /* ---- tanı: yakalanmayan hatalar ekranda kısaca görünür; adrese ?tani=1 eklenirse küçük bir durum paneli açılır (hareket/ateş sorunlarını cihazdan okumak için) ---- */
+  (function(){
+    let lastErr = '', errAt = 0; const evs = [];
+    const note = m => { lastErr = String(m).slice(0, 120); const t = performance.now(); if (t - errAt > 8000){ errAt = t; try { toast('Hata: ' + lastErr, 5000); } catch (e) {} } };
+    window.addEventListener('error', e => note((e && e.message) || 'hata'));
+    window.addEventListener('unhandledrejection', e => note('söz: ' + ((e && e.reason && (e.reason.message || e.reason)) || '')));
+    if (!/[?&]tani=1/.test(location.search)) return;
+    const oe = console.error; console.error = function(){ try { lastErr = [].slice.call(arguments).map(a => (a && a.message) || a).join(' ').slice(0, 120); } catch (e) {} return oe.apply(console, arguments); };
+    let fr = 0, up = 0, fr0 = 0, fps = 0; const _u = update; update = function(dt){ up++; return _u(dt); };
+    (function tick(){ fr++; requestAnimationFrame(tick); })();
+    for (const t of ['pointerdown', 'touchstart', 'click']) document.addEventListener(t, e => { const el = e.target; evs.unshift(t.replace('pointer', 'p').replace('touch', 't') + ':' + ((el && (el.id || String(el.className).slice(0, 12) || el.tagName)) || '?')); evs.length = Math.min(evs.length, 6); }, true);
+    const box = document.createElement('div'); box.style.cssText = 'position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:99999;font:10px/1.3 ui-monospace,Menlo,monospace;color:#9ff;background:rgba(0,10,20,.78);padding:4px 8px;border:1px solid #3aa;border-radius:6px;pointer-events:none;white-space:pre;max-width:92vw'; document.body.appendChild(box);
+    setInterval(() => { fps = (fr - fr0) * 2; fr0 = fr; let ck = ''; try { ck = localStorage.getItem('sd_ck3'); } catch (e) {}
+      box.textContent = 'v' + (window.SD_VERSION || '?') + ' ' + innerWidth + 'x' + innerHeight + ' W' + W + 'x' + H + ' k' + (+SK).toFixed(2) + ' land' + (+LAND) + ' img' + (+IMGMODE) + ' ck3=' + ck + ' on' + (+!!window.__ck3on) + (window.__ck3bad ? ' BAD' : '') + '\n'
+        + 'fps ' + fps + ' kare ' + fr + ' fizik ' + up + ' | paused ' + (+paused) + ' menu ' + (+!!window.__menuOn) + ' hc ' + (+!!window.__hcOn) + ' hj ' + (+!!window.__hjOn) + ' docked ' + (+docked) + '\n'
+        + 'hız ' + Math.round(vel.length()) + ' itiş ' + (+thrustNow).toFixed(1) + ' ateş ' + (+!!firing) + ' lazer ' + (+!!laserOn) + ' | olay ' + evs.join(' ') + '\n'
+        + 'hata: ' + (lastErr || '-'); }, 500);
+  })();
+  requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('sd-ready')));   // açılış perdesi kalkar (index.html)
 })();

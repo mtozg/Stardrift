@@ -86,6 +86,9 @@ body,button{font-size-adjust:.5}
   #rotate .ph{width:62px;height:108px;border:3px solid var(--amber);border-radius:12px;position:relative;animation:rot 2.6s ease-in-out infinite;box-shadow:0 0 24px rgba(255,180,84,.25)}
   #rotate .ph::after{content:"";position:absolute;left:50%;bottom:7px;width:20px;height:3px;margin-left:-10px;border-radius:2px;background:var(--amber)}
   @keyframes rot{0%,15%{transform:rotate(0deg)}55%,100%{transform:rotate(-90deg)}}
+  /* oyun kodu yüklenene kadar ham düğmeler görünmesin: sade bir açılış perdesi (game.js hazır olunca 'sd-ready' ekler) */
+  html:not(.sd-ready) body::before{content:"STARDRIFT";position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;background:#02040a;color:#5d7088;font:600 16px/1 var(--font);letter-spacing:.6em;padding-left:.6em;animation:sdPulse 1.6s ease-in-out infinite}
+  @keyframes sdPulse{50%{color:#a9bdd6}}
   @media (prefers-reduced-motion:reduce){#rotate .ph{animation:none;transform:rotate(-90deg)}}
 </style>
 </head>
@@ -124,12 +127,27 @@ body,button{font-size-adjust:.5}
 
 <div id="rotate" class="hidden"><div class="ph"></div><h2>Cihazı yan çevir</h2><p>Bu oyun yatay ekranda oynanır. Cihazı yan çevirince devam eder.</p></div>
 </div>
+<script>setTimeout(function(){document.documentElement.classList.add('sd-ready')},20000)</script>
+<script>
+/* Kurtarma: sayfa üst üste iki kez yüklenirken çökerse (tarayıcı belleği/bozuk önbellek) ya da adrese ?sifirla=1 eklenirse
+   service worker ve önbellek temizlenir, sayfa yeniden açılır. Kayıt (localStorage) silinmez. */
+(function(){ try {
+  try { localStorage.removeItem('sd_ck3'); } catch (e) {}   /* eski kokpit denemesi ayarı artık yok */
+  var n = +(localStorage.getItem('sd_boot') || 0), force = /[?&]sifirla=1/.test(location.search);
+  if (force || n >= 2){
+    localStorage.setItem('sd_boot', '0'); if (n >= 2) { localStorage.setItem('sd_nosync', '1'); } var P = [];   /* çökme: indirme ve kokpit denemesi kapanır */   /* çökme saptandı: bu cihazda çevrimdışı paket indirmesi kapanır */
+    try { if (navigator.serviceWorker) P.push(navigator.serviceWorker.getRegistrations().then(function(r){ return Promise.all(r.map(function(x){ return x.unregister(); })); })); } catch (e) {}
+    try { if (window.caches) P.push(caches.keys().then(function(k){ return Promise.all(k.map(function(x){ return caches.delete(x); })); })); } catch (e) {}
+    Promise.all(P).catch(function(){}).then(function(){ location.replace(location.pathname); });
+  } else { localStorage.setItem('sd_boot', String(n + 1)); setTimeout(function(){ try { localStorage.setItem('sd_boot', '0'); } catch (e) {} }, 20000); }
+} catch (e) {} })();
+</script>
 <script src="vendor/three.min.js"></script>
 <script>window.THREE || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');</script>
 <script>
 /* SÜRÜM: her güncellemede bu numarayı artır. Tarayıcı eski game.js dosyasını önbellekten getirmez,
    ayarlar panelinin altında da bu numara görünür. */
-window.SD_VERSION = '1.44.1';
+window.SD_VERSION = '1.53.1';
 window.SD_FB = { apiKey: "AIzaSyADLoPqH_HEHjSv1mwY23cJZkuce-KOkUo", authDomain: "stardrift-617de.firebaseapp.com", projectId: "stardrift-617de", storageBucket: "stardrift-617de.firebasestorage.app", messagingSenderId: "527698904689", appId: "1:527698904689:web:dfdceeabba807fdf747dd0" };   // Firebase istemci ayarı (gizli değildir; güvenlik Firestore kurallarındadır)
 document.write('<script src="vendor/three-bloom.js?v=' + window.SD_VERSION + '"><\/script>');
 document.write('<script src="js/game.js?v=' + window.SD_VERSION + '"><\/script>');
