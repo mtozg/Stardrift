@@ -170,7 +170,7 @@ def cmd_qc(a):
     add('uv.out_of_bounds', 'L2', 'PASS' if bres['faces_out_of_bounds'] == 0 else 'FAIL', bres['faces_out_of_bounds'], 0)
     full = budgets['classes'][spec['class']].get('tex_size', pmeta['texture_size'])
     tgt = rules['texel_target'].get(spec['class'], 256) * pmeta['texture_size'] / full
-    dev = abs(bres['texel_px_per_m_median'] - tgt) / tgt
+    dev = (tgt - bres['texel_px_per_m_median']) / tgt      # yalnızca hedefin ALTI kusurdur; üstü daha yüksek çözünürlük demektir (doku küçültülebilir, bilgi)
     add('uv.texel_density', 'L2', 'FAIL' if dev > rules['texel_tol_fail'] else ('WARN' if dev > rules['texel_tol_warn'] else 'PASS'),
         bres['texel_px_per_m_median'], round(tgt, 1), 'px/m medyan; hedef ±%d%% (WARN ±%d%%)%s; UV doluluk %.0f%%' % (
             rules['texel_tol_fail'] * 100, rules['texel_tol_warn'] * 100, ' — hızlı mod, hedef doku boyutuna göre ölçeklendi' if fast else '', bres['uv_coverage'] * 100))

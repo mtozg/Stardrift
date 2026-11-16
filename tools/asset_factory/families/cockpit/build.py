@@ -62,17 +62,20 @@ def lin(a, b, n):
 
 
 def _rot(bm, pivot, deg):
-    bmesh.ops.rotate(bm, cent=Vector(pivot), matrix=Matrix.Rotation(math.radians(-deg), 3, 'X'), verts=bm.verts)
+    t = bm.bm if isinstance(bm, Soft) else bm
+    bmesh.ops.rotate(t, cent=Vector(pivot), matrix=Matrix.Rotation(math.radians(-deg), 3, 'X'), verts=t.verts)
     return bm
+
+
+class Soft:
+    """Yumuşak minder tarifi: düz kutu + belirlenimli değiştiriciler (Bevel + Subdivision Surface).
+    r010 bulgusu: bmesh ızgara dolgulu bölme köşe/yüz SIRASINI her çalıştırmada farklı üretiyordu (tekrar üretilebilirlik FAIL)."""
+    def __init__(self, bm, bev, level):
+        self.bm, self.bev, self.level = bm, bev, level
 
 
 def soft_box(center, size, bev=0.02, level=2):
-    """Yumuşak minder: pah + Catmull-Clark (bmesh üzerinde; nesneye uygulanmadan önce)."""
-    bm = geo.bm_box(center, size)
-    bmesh.ops.bevel(bm, geom=list(bm.edges), offset=bev, segments=2, profile=0.5, affect='EDGES')
-    for _ in range(level):
-        bmesh.ops.subdivide_edges(bm, edges=list(bm.edges), cuts=1, use_grid_fill=True, smooth=1.0)
-    return bm
+    return Soft(geo.bm_box(center, size), bev, level)
 
 
 def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, sl, rail):
@@ -179,9 +182,22 @@ def build(spec, mats):
     obs = []
 
     def add(name, bm, mat, role='body', smooth=35, eye=False, solid=None, toward_eye=False):
+        sft = bm if isinstance(bm, Soft) else None
+        if sft:
+            bm = sft.bm
         if eye:
             face_eye(bm)
         ob = geo.mesh_object(name, bm, mats[mat], coll='Asset', role=role)
+        if sft:
+            mb = ob.modifiers.new('bev', 'BEVEL')
+            mb.width = sft.bev
+            mb.segments = 2
+            mb.limit_method = 'NONE'
+            geo.apply_modifier(ob, mb)
+            ms = ob.modifiers.new('ss', 'SUBSURF')
+            ms.levels = sft.level
+            ms.render_levels = sft.level
+            geo.apply_modifier(ob, ms)
         if solid:
             m = ob.modifiers.new('sol', 'SOLIDIFY')
             m.thickness = solid
@@ -402,7 +418,12 @@ def preview(spec, out, fast, obs):
     if not fast:      # PRODUCTION: nötr ışıklı altın referans (L3: Three r128 ile aynı kamera ve eşdeğer ışık)
         R.rig_neutral()
         cams = []
-        for name, cam, rs in (('N1_pilot', pilot, (800, 328)), ('N2_capraz', R.camera('N2_capraz', (0.62, -0.30, 0.28), (-0.15, 0.85, -0.45), 70), (800, 500))):
+        def eye_cam(nm, dx, dz):      # kokpit GLB'si yalnızca pilot gözünden görülür: altın referans da göz aralığından
+            c = _pilot_cam()
+            c.name = nm
+            c.location = (dx, 0, dz)
+            return c
+        for name, cam, rs in (('N1_pilot', pilot, (800, 328)), ('N2_goz_sol', eye_cam('N2_goz_sol', -0.07, 0.0), (800, 328)), ('N3_goz_sag_alt', eye_cam('N3_goz_sag_alt', 0.07, -0.04), (800, 328))):
             R.render(os.path.join(out, 'golden_%s.png' % name), cam, rs, 128, view='Standard', transparent=True)
             j = R.camera_json(cam, rs)
             j['name'] = name

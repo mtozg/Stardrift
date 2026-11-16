@@ -84,7 +84,7 @@ def run(path, spec, budgets, rules, extra=None):
     nonid = [n.get('name') for n in nodes if not n.get('name', '').startswith('SOCK_') and any(k in n for k in ('translation', 'rotation', 'scale', 'matrix'))]
     o.add('contract.transforms', 'L2', not nonid, nonid, 'mesh/LOD/kök düğümleri birim dönüşümlü')
     ex = root.get('extras', {})
-    req = ['id', 'rev', 'family', 'class', 'length_m', 'units', 'forward', 'up', 'bounds_min', 'bounds_max', 'radius', 'tris', 'spec_hash', 'geometry_hash']
+    req = ['id', 'rev', 'family', 'class', 'units', 'forward', 'up', 'bounds_min', 'bounds_max', 'radius', 'tris', 'spec_hash', 'geometry_hash'] + (['length_m'] if spec.get('length_m') is not None else [])      # kokpitin boyu yok
     o.add('contract.extras', 'L2', all(k in ex for k in req), [k for k in req if k not in ex] or 'tam', req)
 
     # --- geometri: LOD0 sınırları (gerçek köşelerden), boy, yön

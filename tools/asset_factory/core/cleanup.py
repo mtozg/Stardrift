@@ -83,7 +83,7 @@ def cull_hidden_exterior(target, occluders, far=1e3, eps=2e-4):
     return len(kill)
 
 
-def cull_hidden_interior(target, occluders, eyes, eps=2e-4):
+def cull_hidden_interior(target, occluders, eyes, eps=2e-4, spacing=0.03):
     """İç mekân (kokpit): yüz, verilen göz noktalarından (pilotun baş hareket aralığı) hiçbirinden görünmüyorsa silinir.
     Görünür = yüz göze dönük VE yüz noktasından göze giden ışın engelsiz (merkez + 4 iç nokta)."""
     tree = _bvh(occluders)
@@ -97,6 +97,16 @@ def cull_hidden_interior(target, occluders, eyes, eps=2e-4):
         cl = f.calc_center_median()
         n = (M.to_3x3() @ f.normal).normalized()
         pts = [M @ cl] + [M @ (v.co * 0.8 + cl * 0.2) for v in f.verts]
+        # büyük yüzlerde ~3 cm aralıklı ek örnekler (r010 bulgusu: uzun konsol yüzleri 5 noktayla yanlışlıkla silindi)
+        vs = [v.co for v in f.verts]
+        for k in range(1, len(vs) - 1):
+            a, b, c = vs[0], vs[k], vs[k + 1]
+            nseg = max(1, min(24, int(max((b - a).length, (c - a).length, (c - b).length) / spacing)))
+            for i in range(nseg + 1):
+                for j in range(nseg + 1 - i):
+                    w1, w2 = (i + 1 / 3) / (nseg + 1), (j + 1 / 3) / (nseg + 1)
+                    if w1 + w2 < 1:
+                        pts.append(M @ (a + (b - a) * w1 + (c - a) * w2))
         vis = False
         for p in pts:
             o = p + n * eps

@@ -155,7 +155,7 @@
   },
   "sahin_cockpit": {
    "state": "visual_approved",
-   "rev": 10,
+   "rev": 11,
    "history": [
     {
      "t": "2026-11-16T03:31:01+00:00",
@@ -265,11 +265,27 @@
      "from": "visual_approved",
      "to": "visual_approved",
      "reason": "PRODUCTION modeli r010 (Kapı 1 onaylı r009 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-16T05:33:56+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-16T05:34:35+00:00",
+     "from": "prepared",
+     "to": "qc_fail",
+     "reason": "QC FAIL (56 PASS, 1 WARN, 4 FAIL)"
+    },
+    {
+     "t": "2026-11-16T05:36:22+00:00",
+     "from": "qc_fail",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r011 (Kapı 1 onaylı r010 tasarımına dayanır)"
     }
    ],
-   "timings": {
-    "model": 921.3
-   },
+   "timings": {},
    "approvals": [
     {
      "t": "2026-11-16T04:55:05+00:00",
@@ -282,7 +298,12 @@
    "geometry_hash": "594832f02e253e63cd508a2ec37aecf69dfb5b9b38967e991e083bf02bbea220",
    "spec_hash": "b1f7ea4914fb2d11799674068b52d164e61ecdcc897d22b8e9c0e79ce77d7b52",
    "fast": false,
-   "perf_baseline": null
+   "perf_baseline": {
+    "masaüstü 1200×750|1": 13.6,
+    "iPad Pro 11 landscape|1": 13.5,
+    "iPhone 13 landscape|1": 16.4,
+    "Pixel 7 landscape|1": 13.9
+   }
   }
  }
 }
