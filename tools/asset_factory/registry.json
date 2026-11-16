@@ -154,8 +154,8 @@
    }
   },
   "sahin_cockpit": {
-   "state": "qc_pass",
-   "rev": 11,
+   "state": "visual_approved",
+   "rev": 12,
    "history": [
     {
      "t": "2026-11-16T03:31:01+00:00",
@@ -301,13 +301,15 @@
      "from": "qc_fail",
      "to": "qc_pass",
      "reason": "QC WARN (61 PASS, 1 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-16T06:23:34+00:00",
+     "from": "qc_pass",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r012 (Kapı 1 onaylı r011 tasarımına dayanır)"
     }
    ],
-   "timings": {
-    "model": 921.8,
-    "prepare": 210.9,
-    "qc": 13.5
-   },
+   "timings": {},
    "approvals": [
     {
      "t": "2026-11-16T04:55:05+00:00",
