@@ -9794,7 +9794,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   (function(){
     const target = () => { const c = save.cur; if (typeof c === 'number' && SYS[c] && (c === 0 || save.open.includes(c))) return c; return window.__homeSys ? window.__homeSys() : 0; };
     let restored = false;
-    const restore = () => { if (restored) return; restored = true; const k = target(); if (k !== curSys && SYS[k]){ window.__quietJump = true; try { enterSystem(k); } catch (e) { console.warn(e); } window.__quietJump = false; } };
+    const restore = () => { if (restored) return; restored = true; const k = target(); if (k !== curSys && SYS[k]){ window.__quietJump = true; try { enterSystem(k);
+        /* enterSystem istasyona kenetli bırakır ama menüyü açmaz: açılışta gemi uzayda, istasyonun önünde başlar (yeni pilot akışıyla aynı). Eskiden Ankora dışı evi olanlar kenetli ve menüsüz kalıyordu: hareket/ateş yoktu */
+        docked = false; curSt = null; $('dock').classList.add('hidden'); { const away = rig.position.clone().sub(STATION.pos).normalize(); rig.lookAt(rig.position.clone().sub(away)); } vel.set(0, 0, 0); scrFlash = 0;
+      } catch (e) { console.warn(e); } window.__quietJump = false; } };
     const tg = document.getElementById('titleGo'); if (tg && save.side) tg.addEventListener('click', () => setTimeout(restore, 50)); else if (save.side) setTimeout(restore, 300);
     EXTRA.push(() => { if (!restored && save.side && !document.getElementById('titleGo')) restore(); if (restored && save.cur !== curSys){ save.cur = curSys; persist(); } });
   })();
@@ -10353,7 +10356,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // =====  Kaşif kokpiti: Blender modeli (tools/cockpit çıktısı GLB) tek kokpit. Diğer gemiler eski çizim kokpitiyle devam eder.
   (function(){
     // ---- Kaşif kokpiti = tools/cockpit çıktısı GLB. Ekranlar SCR_SYS / SCR_RADAR / SCR_HULL adlı ayrı mesh'ler; içerik mevcut SCR tuvallerinden canlı gelir.
-    let BM = null, BP = null, BF = false, BK = null, bLast = 0, bEma = 0, bN = 0;
+    let BM = null, BP = null, BF = false, BK = null, bT0 = 0;
     const bStat = { calls: 0, tris: 0, ms: 0 };   /* test için: son kokpit çiziminin çizim çağrısı / üçgen / süre */
     window.__ckb = { get ready(){ return !!BM; }, get failed(){ return BF; }, get k(){ return BK; }, get stat(){ return bStat; }, get view(){ return { OX, OY, W, H }; } };
     const bWant = () => save.ship === 'kasif' && !BF;
@@ -10397,10 +10400,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (VIEW.b0 !== undefined) VIEW.b = Math.min(VIEW.b0, OY + (382 - 239.5) * (H - OY) / 416.5 - 30) + sway.y * 1.1;   /* HUD işaretleri ekranların ~30 px üstünde biter; sınır sallanan dashboard ile kayar */
       renderB();
     }
-    try { if (save.ship === 'kasif') setTimeout(() => loadB().catch(() => {}), 0); } catch (e) {}   /* açılış ekranındayken arka planda yüklenir */
     { const _dhm = drawHud; drawHud = function(){ _dhm(); if (window.__ck3on && !window.__noHudMask) try { hudMask(hctx); } catch (e) {} }; }   /* en son sarmalayıcı: tüm işaretler çizildikten sonra dashboard bölgesini siler */
     const _rm = renderMain; renderMain = function(){ _rm();
-      const kas = save.ship === 'kasif'; if (kas && !BM && !BP && !BF) loadB().catch(() => {});
+      const kas = save.ship === 'kasif'; if (kas && !BM && !BP && !BF){ const tt = document.getElementById('title'); if (!tt || tt.classList.contains('off')){ bT0 = bT0 || performance.now(); if (performance.now() - bT0 > 1200) loadB().catch(() => {}); } }   /* model, başlık ekranı kapanıp oyun 1,2 sn oturduktan sonra yüklenir: açılıştaki bellek tepesiyle çakışmaz (telefon) */
       window.__ck3on = kas && !!BM && IMGMODE && !docked && !window.__ck3bad;
       window.__ck3wait = kas && IMGMODE && !window.__ck3on;   /* Kaşif'in çizim (2B) kokpiti yok: model gelene kadar ve kenetliyken yalnızca HUD */
       if (window.__ck3on) try { render(); } catch (e) { console.warn(e); window.__ck3bad = true; window.__ck3on = false; } };
