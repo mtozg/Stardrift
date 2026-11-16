@@ -48,28 +48,38 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 <main>
 <div class="eyebrow">Asset Factory · Şahin · Kapı 2 teknik onay</div>
 <h1>Şahin Kokpit Kapı 2</h1>
-<p class="lede">PRODUCTION revizyonu r011: ayrıntılı model, UV, bake ve GLB. QC sonucu 61 PASS, 1 WARN, 0 FAIL. Oyuna entegre edilmedi; entegrasyon ayrı bir onay ve ayrı bir aşama.</p>
+<p class="lede">PRODUCTION revizyonu r012: senin seçtiğin ayrıntı ve malzeme geçişi uygulandı. Tasarım (onaylı r008 düzeni) değişmedi. QC sonucu 61 PASS, 1 WARN, 0 FAIL. Oyuna entegre edilmedi; entegrasyon ayrı bir onay ve ayrı bir aşama.</p>
 
 <div class="kpis">
   <div class="kpi"><b>0 FAIL</b><span>QC (61 PASS · 1 WARN)</span></div>
-  <div class="kpi"><b>617 KB</b><span>GLB (Kaşif 3,78 MB)</span></div>
-  <div class="kpi"><b>7 686</b><span>üçgen (Kaşif 56 556)</span></div>
+  <div class="kpi"><b>717 KB</b><span>GLB (Kaşif 3,78 MB)</span></div>
+  <div class="kpi"><b>9 384</b><span>pilotun gördüğü üçgen (kaynak 25 090)</span></div>
   <div class="kpi"><b>5</b><span>draw call (Kaşif 15)</span></div>
   <div class="kpi"><b>32 MB</b><span>GPU doku (bütçe 40; Kaşif ~512)</span></div>
-  <div class="kpi"><b>ΔE 3,1–3,3</b><span>Blender ⟷ Three r128</span></div>
+  <div class="kpi"><b>ΔE 2,9–3,1</b><span>Blender ⟷ Three r128; parlaklık farkı 1,5–2,4 %</span></div>
 </div>
 
-<div class="note"><h3>Dürüst kalite değerlendirmesi</h3>
-<p>Teknik olarak bütün kurallar geçiyor ve oyunun motorundaki görüntü Blender ile çok yakın. Ancak <b>ayrıntı yoğunluğu ve yüzey gerçekçiliği Kaşif'in düzeyinde değil</b>:</p>
-<ul>
-  <li>Yüzeyler temiz ve boyalı. Aşınma, kir ve fırça izi pilot uzaklığından neredeyse seçilmiyor; Kaşif'te fırçalı metal ve kenar aşınması belirgin.</li>
-  <li>Konsolda derz, perçin ve anahtar panelleri var, ama Kaşif'teki ızgaralar, katmanlı paneller ve çerçeve ayrıntısı düzeyinde yüzey zenginliği yok.</li>
-  <li>Pilotun gördüğü yüzey 7,7 bin üçgen; Kaşif 56,5 bin. Bütçede (60 bin) büyük boşluk var.</li>
-  <li>Küçük kusurlar: yan rayların uçları çerçeve kenarında kama gibi görünüyor; sağ anahtar panelinin altında bir çentik var.</li>
-</ul>
-<p>Önerim: Kapı 2'yi şimdi vermek yerine bir <b>ayrıntı ve malzeme geçişi</b> (aşağıda 2. seçenek). Tasarım ve teknik altyapı hazır; eksik olan yüzey zenginliği.</p></div>
+<h2>r011 → r012: ayrıntı ve malzeme geçişi</h2>
+<figure><img src="img/r011_r012.webp" alt="r011 ve r012 pilot görüşü"><figcaption>Üstte r011, altta r012 (Blender lookdev, pilot kamerası).</figcaption></figure>
+<figure><img src="img/r012_yakin.webp" alt="r012 konsol yakın"><figcaption>r012 konsol, pilot görüşünden kırpılmış.</figcaption></figure>
+<div class="tbl"><table>
+<tr><th>Alan</th><th>Eklenen ya da düzeltilen</th></tr>
+<tr><td>Malzeme</td><td>Altından metal görünen boya kırıkları (metaliklik kanalında gerçek metal), geniş ölçekli kir lekelenmesi, dikey akıntı izleri, daha geniş kenar aşınması, metal parçalarda güçlü fırça izi ve çizik</td></tr>
+<tr><td>Ekranların altı</td><td>Vidalı katmanlı plakalar; RADAR altında uçuş kolunun iki yanında ızgaralı havalandırma; yan ekranlardan inen klipsli kablo kanalları</td></tr>
+<tr><td>Konsol üstü</td><td>Üst kenarda metal profil; göz kalkanında 7 kırmızı gösterge ışığı</td></tr>
+<tr><td>Yanlar</td><td>Konsol uçlarında tutunma kolları; yan panellerde çerçeveli ızgara (r011'deki "kama" görüntüsü kaldırıldı)</td></tr>
+<tr><td>Düzeltme</td><td>Panel derzleri anahtar panellerinin dışına alındı, paneller yüzeyi sık izliyor (r011'deki çentik kalktı)</td></tr>
+</table></div>
 
-<h2>Pilot görüşü: Blender (üstte) ⟷ oyunun motoru Three r128 (altta)</h2>
+<div class="note"><h3>Dürüst kalite değerlendirmesi</h3>
+<p>r012, r011'den belirgin biçimde daha zengin; iki görsel kusur giderildi ve bütün teknik kurallar geçiyor. Ancak:</p>
+<ul>
+  <li>Boya kırıkları ve lekelenme yakın planda seçiliyor, ama <b>pilot uzaklığında hâlâ ince</b>. Kaşif'in yıpranmış, koyu fırçalı metal hissi tam yakalanmış değil; Şahin'in açık gri boyalı yüzeyleri daha "temiz" okunuyor.</li>
+  <li>Bu kısmen tasarımın doğası: Şahin konsepti açık gri boyalı bir avcı, Kaşif ise koyu metal bir kokpit. Aşınmayı daha da artırmak Şahin'in temiz avcı kimliğini bozabilir.</li>
+</ul>
+<p>Bu nedenle karar senin: mevcut aşınma düzeyi Şahin için uygun mu, yoksa daha yıpranmış mı olmalı?</p></div>
+
+<h2>Pilot görüşü r012: Blender (üstte) ⟷ oyunun motoru Three r128 (altta)</h2>
 <figure><img src="img/blender_three_pilot.webp" alt="Şahin kokpiti pilot görüşü, Blender ve Three.js"><figcaption>Üstte Cycles lookdev, altta GLB'nin oyunun kendi <code>vendor/three.min.js</code> (r128) dosyasıyla render'ı (nötr ışık). Ekranlardaki camgöbeği yer tutucudur; oyunda canlı Sistem, Radar ve Gövde ekranları bağlanır.</figcaption></figure>
 <figure><img src="img/kasif_ref.webp" alt="Onaylı Kaşif kokpiti, oyun içi"><figcaption>Kalite referansı: onaylı Kaşif Blender kokpiti, oyun içinde.</figcaption></figure>
 
@@ -90,10 +100,10 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 <tr><td>Kamera ve soket</td><td>Kamera hatası 0 px; <code>SOCK_cam_0</code> yönü oyun −Z (0°)</td></tr>
 <tr><td>Cam oranı · HUD engeli</td><td>54,5 % · 0,6 % (Kaşif 50,7 % · 9,3 %)</td></tr>
 <tr><td>Geometri</td><td>Pilot gözünden görünen arka yüz 0; tekrar üretilebilirlik hash'i eşit; yüz yönü farkı 0,008 %</td></tr>
-<tr><td>Dokular</td><td>3 girdi = 3 görsel; yinelenen görsel yok; GPU 32 MB ≤ 40; texel 425 px/m (Kaşif 239)</td></tr>
-<tr><td>PBR</td><td>Dielektrik taban 66–185 · metal 140–180 sRGB; metal ikili; pürüzlülük ≥ 0,29</td></tr>
-<tr><td>Blender ⟷ Three r128 (3 göz kamerası)</td><td>parlaklık farkı 4,2–4,4 % · ΔE ort. 3,1–3,3 · siluet farkı 0,15–0,22 %</td></tr>
-<tr><td>Performans (swiftshader, bilgi)</td><td>1 örnek, 5 çağrı, 16–18 ms/kare (yazılım GPU'su; gerçek cihaz ölçümü <code>bench.html</code> ile)</td></tr>
+<tr><td>Dokular</td><td>3 girdi = 3 görsel; yinelenen görsel yok; GPU 32 MB ≤ 40; texel 406 px/m (Kaşif 239)</td></tr>
+<tr><td>PBR</td><td>Dielektrik taban 65–179 · metal 140–183 sRGB; ara metaliklik 3,9 % (boya kırıkları); pürüzlülük ≥ 0,31</td></tr>
+<tr><td>Blender ⟷ Three r128 (3 göz kamerası)</td><td>parlaklık farkı 1,5–2,4 % · ΔE ort. 2,9–3,1 · siluet farkı 0,15–0,23 %</td></tr>
+<tr><td>Performans (swiftshader, bilgi)</td><td>1 örnek, 5 çağrı, 9 384 üçgen (yazılım GPU'su; gerçek cihaz ölçümü <code>bench.html</code> ile)</td></tr>
 </table></div>
 <figure><img src="img/dE_pilot.webp" alt="Blender, Three ve ΔE haritası"><figcaption>Pilot kamerası: Blender altın referans · Three r128 · ΔE haritası. Fark kenar piksellerinde ve ince ayrıntılarda.</figcaption></figure>
 
@@ -109,19 +119,12 @@ tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: n
 </table></div>
 
 <div class="gate">
-  <h2>Kapı 2: senin kararın</h2>
+  <h2>Kapı 2: senin kararın (r012)</h2>
   <ol>
-    <li><b>Teknik onay:</b> r011 olduğu gibi teslim paketine girer (GLB, dokular, spec sheet, QC raporu, entegrasyon notu). Oyuna entegrasyon yine ayrı bir onay.</li>
-    <li><b>Ayrıntı ve malzeme geçişi (önerim):</b> Tasarım aynı kalır. Yapılacaklar:
-      <ul>
-        <li>Konsolda katmanlı paneller, ızgara ve havalandırmalar, kablo kanalları, çerçeve profilleri.</li>
-        <li>Belirgin kenar aşınması, kir ve fırçalı metal vurgular.</li>
-        <li>Ray uçlarının ve çentiğin düzeltilmesi.</li>
-        <li>Üçgen hedefi ~25–35 bin; GPU bütçesi aynı kalır.</li>
-      </ul>
-      Sonra yeniden Kapı 2.</li>
+    <li><b>Teknik onay:</b> r012 teslim paketine girer: GLB, dokular, spec sheet, QC raporu, entegrasyon notu. Oyuna entegrasyon yine ayrı bir onay.</li>
+    <li><b>Daha yıpranmış görünüm:</b> Aşınma, kir ve kırık yoğunluğunu artırıp konsol ve kenarlarda koyu metal oranını yükseltirim. Geometri aynı kalır; yalnızca malzeme ve bake yenilenir (~20 dk), sonra yeniden Kapı 2.</li>
     <li><b>Başka değişiklik:</b> İstediğin noktaları yaz.</li>
   </ol>
-  <p style="color:var(--muted);font-size:14px">Koltuk pilot kamerasında görünmüyor (pilotun arkasında ve altında). GLB'de kalması isteğe bağlı; çıkarılırsa ~900 üçgen ve atlas alanı kazanılır. Varsayılan: kalsın.</p>
+  <p style="color:var(--muted);font-size:14px">Koltuk pilot kamerasında görünmüyor; varsayılan olarak GLB'de kalıyor (çıkarılırsa ~900 üçgen kazanılır).</p>
 </div>
 </main>

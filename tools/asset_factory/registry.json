@@ -154,7 +154,7 @@
    }
   },
   "sahin_cockpit": {
-   "state": "visual_approved",
+   "state": "qc_pass",
    "rev": 12,
    "history": [
     {
@@ -307,9 +307,25 @@
      "from": "qc_pass",
      "to": "visual_approved",
      "reason": "PRODUCTION modeli r012 (Kapı 1 onaylı r011 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-16T06:45:41+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-16T06:45:58+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (61 PASS, 1 WARN, 0 FAIL)"
     }
    ],
-   "timings": {},
+   "timings": {
+    "model": 1061.0,
+    "prepare": 265.3,
+    "qc": 15.8
+   },
    "approvals": [
     {
      "t": "2026-11-16T04:55:05+00:00",
@@ -319,8 +335,8 @@
      "accept_warn": []
     }
    ],
-   "geometry_hash": "3fa3e6fdb82011647d0bb4b27c739a86eb663e5685fd42a063490eb68d44b518",
-   "spec_hash": "b1f7ea4914fb2d11799674068b52d164e61ecdcc897d22b8e9c0e79ce77d7b52",
+   "geometry_hash": "1bd5cd58dcb9e0626c4cf1d7b5d40dc3ea39ebf12621518671b29659b99d7323",
+   "spec_hash": "f5cf3b68c3933a42d19a8c1e5d24e0120f5fb251cf0280e943cb64ae6f564e63",
    "fast": false,
    "perf_baseline": {
     "masaüstü 1200×750|1": 13.6,
