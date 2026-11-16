@@ -1,0 +1,310 @@
+<title>Yük Devi Kokpit Konseptleri</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: Yük Devi kimlik şeridi ve araştırma bulguları, üç konsept (pilot görüşü şeması, plan, özellik tablosu), kıskaç hiyerarşisi, karşılaştırma, karar. */
+:root {
+  --bg: #f2f2ec; --surface: #ffffff; --ink: #1e1f19; --muted: #5d5f52; --line: #dcdcd0;
+  --accent: #a8561c; --accent-soft: #f6e6d8; --good: #2f7a45; --warn: #946200; --code-bg: #ebebe2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --accent-soft: #3a2614; --good: #74d494; --warn: #f0bd4f; --code-bg: #20211b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --accent-soft: #3a2614; --good: #74d494; --warn: #f0bd4f; --code-bg: #20211b; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 80px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 46px/1.05 var(--f-display); margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 30px/1.15 var(--f-display); margin: 0 0 6px; text-wrap: balance }
+h3 { font: 600 19px var(--f-display); letter-spacing: .04em; margin: 22px 0 8px; text-transform: uppercase; color: var(--muted) }
+p, li { max-width: 74ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font: .86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px }
+.note { border-left: 3px solid var(--warn); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 18px 0 }
+.idstrip { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 18px 0 8px }
+.idstrip figure { margin: 0 }
+.idstrip img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; background: #10141c }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 5px }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0 }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: 14px; font-variant-numeric: tabular-nums }
+.fact b { font-family: var(--f-display); letter-spacing: .04em }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; border: 1px solid var(--line) }
+.concept { margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--line) }
+.tag { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 8px; background: var(--accent); color: #fff; font: 700 22px var(--f-display); margin-right: 12px; vertical-align: 4px }
+.sub { color: var(--muted); font-size: 17px; margin: 0 0 14px }
+.view { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: #0a1220 }
+.view svg { display: block; width: 100%; height: auto }
+.row { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; margin-top: 16px; align-items: start }
+.plan { border-radius: 10px; border: 1px solid var(--line); background: var(--surface); padding: 8px }
+.plan svg { display: block; width: 100%; height: auto }
+.plan .cap { font-size: 12.5px; color: var(--muted); padding: 2px 6px 4px }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); min-width: 0 }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap; width: 1% }
+tr:last-child td, tr:last-child th { border-bottom: 0 }
+.cmp th { width: auto }
+.pc { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px }
+.pc div { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px }
+.pc h4 { margin: 0 0 4px; font: 600 14px var(--f-display); letter-spacing: .08em; text-transform: uppercase }
+.pc .plus h4 { color: var(--good) } .pc .minus h4 { color: var(--warn) }
+.pc ul { margin: 0; padding-left: 18px } .pc li { margin: 3px 0 }
+pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; font: 13.5px/1.55 var(--f-mono); overflow-x: auto }
+.decide { margin-top: 40px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px }
+.decide ol { margin: 8px 0 0; padding-left: 20px } .decide li { margin: 5px 0 }
+@media (max-width: 820px) { .row, .pc { grid-template-columns: minmax(0, 1fr) } h1 { font-size: 36px } }
+</style>
+
+<main>
+<div class="eyebrow">Asset Factory · Grup 1 · Oyuncu gemileri</div>
+<h1>Yük Devi Kokpit Konseptleri</h1>
+<p class="lede">Üç özgün yön, oyunun pilot kamerası çerçevesinde (1600×656, FOV 74°) 2B şema olarak çizildi. Hiçbiri modellenmedi. Seçtiğin yön PREVIEW blokajına geçer; PRODUCTION senin görsel onayından sonra başlar.</p>
+<div class="note"><b>Kaynaklar:</b> rol ve çarpanlar <code>PSHIPS</code> (<code>js/game.js:1079</code>), dış model tanımı ve kıskaç <code>SPECS3D.yuk</code> (<code>js/game.js:3839, 3873</code>), hangar ölçeği ×1,16 (<code>js/game.js:6116</code>), motor alevi amber (<code>js/game.js:7552</code>), dış çizimler <code>shipart_yuk_*</code> ve <code>shipx_yuk_*</code>. Eski 2B kokpit çizimleri (<code>ck_yuk.webp</code> ve daldaki yeni çizim) kullanılmadı. Kaşif'ten yalnızca kalite düzeyi ve teknik sözleşme alındı: göz orijinde, FOV 74°, üç canlı ekran <code>SCR_SYS / SCR_RADAR / SCR_HULL</code>.</div>
+
+<div class="idstrip">
+  <figure><img src="img/yuk/shipx_yuk_f.webp" alt="Yük Devi önden"><figcaption>Önden: düz köprü bandı, 2 büyük + 3+3 dar cam, mor ton</figcaption></figure>
+  <figure><img src="img/yuk/shipart_yuk_side.webp" alt="Yük Devi yandan"><figcaption>Yandan: kutu kabin, perçinli haki levha, burun altında kıskaç</figcaption></figure>
+  <figure><img src="img/yuk/shipart_yuk_top.webp" alt="Yük Devi üstten"><figcaption>Üstten: konteyner dizileri, uyarı şeritleri</figcaption></figure>
+  <figure><img src="img/yuk/shipx_yuk_r.webp" alt="Yük Devi arkadan"><figcaption>Arkadan: 8 motor, amber alev</figcaption></figure>
+</div>
+<div class="facts">
+  <span class="fact"><b>Rol</b> ağır madenci</span><span class="fact"><b>Kargo</b> ×2 (en yüksek)</span><span class="fact"><b>Gövde</b> ×1,7 (en sağlam)</span>
+  <span class="fact"><b>İtiş</b> ×0,8</span><span class="fact"><b>Dönüş</b> ×0,75 (en yavaş)</span><span class="fact"><b>Hız</b> ×0,85</span><span class="fact"><b>Fiyat</b> 5000</span>
+  <span class="fact"><span class="sw" style="background:#8f8a5c"></span>haki</span><span class="fact"><span class="sw" style="background:#4a4430"></span>koyu haki</span><span class="fact"><span class="sw" style="background:#b8652a"></span>pas turuncu</span><span class="fact"><span class="sw" style="background:#e0b020"></span>uyarı sarısı</span><span class="fact"><span class="sw" style="background:#ffb347"></span>amber lamba</span>
+</div>
+
+<h3>Araştırmadan çıkan tasarım ilkeleri</h3>
+<ul>
+  <li><b>Ağırlık ve dayanıklılık:</b> kalın çerçeveler, perçinli levhalar, cıvatalı ekran yuvaları. Şahin'in ince kompozit dili burada yok.</li>
+  <li><b>Cam:</b> dıştaki mor ton Hayalet'in mor kimliğiyle çakışmasın diye içeride yalnızca cam kenarında, çok hafif kalır. Ana vurgu amber.</li>
+  <li><b>Kıskaç:</b> Yük Devi'yi diğer gemilerden ayıran tek mekanik parça. Konseptler kokpitte kıskacı ne kadar gösterdiğine göre ayrışır.</li>
+  <li><b>Şahin'den taşınan dersler:</b> ekranlar baştan büyük, yakın ve yüksek; orta HUD bölgesi (kesikli çerçeve) %10'dan az kapanır; ekranların önüne hiçbir dudak veya çerçeve girmez.</li>
+  <li><b>Kaşif'ten ayrışma:</b> Kaşif'in üç bölmeli eğik dikmeli camı ve birleşik ekran bandı kullanılmaz.</li>
+</ul>
+
+<!-- ============ A ============ -->
+<section class="concept" id="a">
+<h2><span class="tag">A</span>Köprü Bandı</h2>
+<p class="sub">Dıştaki köprünün içi: geniş, düz yüzlü cam bandı, kalın tavan kirişi, ayrı cıvatalı yuvalarda üç ekran. Bir yük gemisinin seyir köprüsü.</p>
+<div class="view"><svg viewBox="0 0 1600 656" role="img" aria-label="Konsept A pilot görüşü">
+  <defs>
+    <linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1424"/><stop offset="1" stop-color="#18294a"/></linearGradient>
+    <pattern id="hzA" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="28" height="28" fill="#1d1d1a"/><rect width="14" height="28" fill="#e0b020"/></pattern>
+  </defs>
+  <rect width="1600" height="656" fill="url(#skyA)"/>
+  <g fill="#cfe0ff" opacity=".7"><circle cx="210" cy="190" r="2"/><circle cx="460" cy="140" r="1.5"/><circle cx="1180" cy="170" r="2"/><circle cx="1390" cy="260" r="1.5"/><circle cx="960" cy="110" r="1.5"/><circle cx="640" cy="280" r="1.5"/></g>
+  <rect x="560" y="60" width="480" height="320" fill="none" stroke="#9fd6ea" stroke-width="2" stroke-dasharray="8 8" opacity=".35"/>
+  <rect width="1600" height="62" fill="#4a4430"/>
+  <rect y="52" width="1600" height="10" fill="#6a2f7a" opacity=".55"/>
+  <g fill="#2f2b1f"><circle cx="120" cy="30" r="4"/><circle cx="420" cy="30" r="4"/><circle cx="1180" cy="30" r="4"/><circle cx="1480" cy="30" r="4"/></g>
+  <circle cx="290" cy="32" r="8" fill="#ffb347"/><circle cx="1310" cy="32" r="8" fill="#ffb347"/>
+  <polygon points="787,62 813,62 813,392 787,392" fill="#4a4430"/>
+  <polygon points="462,62 488,62 470,392 444,392" fill="#4a4430"/><polygon points="1112,62 1138,62 1156,392 1130,392" fill="#4a4430"/>
+  <polygon points="330,62 354,62 316,400 290,400" fill="#4a4430"/><polygon points="1246,62 1270,62 1310,400 1284,400" fill="#4a4430"/>
+  <polygon points="198,62 222,62 160,410 134,410" fill="#4a4430"/><polygon points="1378,62 1402,62 1466,410 1440,410" fill="#4a4430"/>
+  <polygon points="0,62 90,62 0,300" fill="#4a4430"/><polygon points="1600,62 1510,62 1600,300" fill="#4a4430"/>
+  <path d="M0,430 L450,392 L1150,392 L1600,430 L1600,656 L0,656 Z" fill="#8f8a5c"/>
+  <path d="M450,392 L1150,392 L1150,408 L450,408 Z" fill="url(#hzA)"/>
+  <path d="M0,430 L450,392 L450,408 L0,446 Z M1600,430 L1150,392 L1150,408 L1600,446 Z" fill="#4a4430"/>
+  <path d="M0,600 L1600,600 L1600,656 L0,656 Z" fill="#6e6a46"/>
+  <g stroke="#4a4430" stroke-width="12" fill="#0c3a4e">
+    <rect x="336" y="424" width="264" height="164" rx="6"/><rect x="652" y="418" width="296" height="180" rx="6"/><rect x="1000" y="424" width="264" height="164" rx="6"/>
+  </g>
+  <g fill="#2f2b1f"><circle cx="336" cy="424" r="6"/><circle cx="600" cy="424" r="6"/><circle cx="336" cy="588" r="6"/><circle cx="600" cy="588" r="6"/><circle cx="652" cy="418" r="6"/><circle cx="948" cy="418" r="6"/><circle cx="1000" cy="424" r="6"/><circle cx="1264" cy="424" r="6"/><circle cx="1000" cy="588" r="6"/><circle cx="1264" cy="588" r="6"/></g>
+  <g fill="#ffb347"><circle cx="626" cy="470" r="6"/><circle cx="626" cy="500" r="6"/><circle cx="974" cy="470" r="6"/><circle cx="974" cy="500" r="6"/></g>
+  <rect x="120" y="500" width="150" height="70" rx="6" fill="#4a4430"/><g fill="#ffb347"><circle cx="150" cy="535" r="9"/><circle cx="195" cy="535" r="9"/><circle cx="240" cy="535" r="9" opacity=".35"/></g>
+  <rect x="1360" y="520" width="110" height="80" rx="8" fill="#3a3527"/><rect x="1384" y="470" width="20" height="70" rx="5" fill="#2a2a24"/><rect x="1426" y="482" width="20" height="58" rx="5" fill="#2a2a24"/><rect x="1380" y="458" width="28" height="22" rx="5" fill="#e0b020"/><rect x="1422" y="470" width="28" height="22" rx="5" fill="#e0b020"/>
+  <g font-family="JetBrains Mono, monospace" font-size="20" fill="#9fd6ea"><text x="720" y="515">RADAR</text><text x="420" y="512">SİSTEM</text><text x="1090" y="512">GÖVDE</text></g>
+  <text x="128" y="590" font-family="JetBrains Mono, monospace" font-size="15" fill="#2a2a24">KISKAÇ</text>
+</svg></div>
+<div class="row">
+  <div class="tbl"><table>
+    <tr><th>Cam</th><td>Dıştaki gibi 2 büyük orta cam (ince orta dikme) ve her yanda 3 dar, geriye dönen cam. Üstte kalın tavan kirişi, iki amber lamba</td></tr>
+    <tr><th>Ekranlar</th><td>Düz bir sıra, her biri ayrı cıvatalı haki yuvada. RADAR ortada en büyük; aralarda amber durum lambaları</td></tr>
+    <tr><th>Konsol</th><td>Geniş, düz, alçak gösterge masası. Kenarında sarı-siyah uyarı şeridi. Sağda iki kollu ağır gaz kolu, solda kıskaç durum paneli</td></tr>
+    <tr><th>Koltuk</th><td>Geniş, dolgulu sürücü koltuğu, kalın kolçaklar (görüşte yalnız kolçak uçları)</td></tr>
+    <tr><th>Malzeme</th><td>Boyalı haki çelik (kullanılmış, kenar aşınması), koyu haki çerçeveler, pas turuncu detay, sarı-siyah şerit</td></tr>
+    <tr><th>Kıskaç</th><td>Kokpitte görünmez; yalnız durum paneli (3 lamba: açık / kilitli / yük)</td></tr>
+  </table></div>
+  <div class="plan"><svg viewBox="0 0 400 300" role="img" aria-label="Konsept A plan">
+    <polygon points="70,40 330,40 360,120 360,280 40,280 40,120" fill="none" stroke="#a8561c" stroke-width="3" stroke-dasharray="6 5"/>
+    <rect x="70" y="40" width="260" height="12" fill="#4a4430"/>
+    <rect x="70" y="110" width="260" height="34" fill="#8f8a5c" stroke="#4a4430" stroke-width="2"/>
+    <rect x="96" y="114" width="58" height="12" rx="2" fill="#0c3a4e"/><rect x="170" y="114" width="60" height="12" rx="2" fill="#0c3a4e"/><rect x="246" y="114" width="58" height="12" rx="2" fill="#0c3a4e"/>
+    <rect x="165" y="190" width="70" height="72" rx="12" fill="#3a3527"/><rect x="290" y="160" width="18" height="30" rx="4" fill="#e0b020"/>
+    <text x="10" y="294" font-family="JetBrains Mono, monospace" font-size="12" fill="#5d5f52">üstten · kesikli = köprü kabini</text>
+  </svg><div class="cap">Kutu kabin; masa camın hemen arkasında, koltuk ortada.</div></div>
+</div>
+<div class="pc">
+  <div class="plus"><h4>Güçlü yanları</h4><ul><li>Dış tasarımla birebir bağ: aynı cam düzeni</li><li>En okunaklı ekran yerleşimi, telefonda en güvenli</li><li>En düşük risk ve üçgen sayısı</li></ul></div>
+  <div class="minus"><h4>Riskler</h4><ul><li>Düz sıra ekran, Kaşif'in ekran bandına yaklaşabilir; ayrı yuvalar ve amber lambalarla ayrıştırılmalı</li><li>Kıskaç kokpitte görünmediği için madenci kimliği yalnız malzeme ve şeritle taşınır</li></ul></div>
+</div>
+</section>
+
+<!-- ============ B ============ -->
+<section class="concept" id="b">
+<h2><span class="tag">B</span>Kıskaç Gözü</h2>
+<p class="sub">Konsol ortadan açılır; pilotun önünde aşağı bakan bir çene camı, içinden kıskacın çeneleri görünür. Pilot hem uçar hem kıskacı yönetir.</p>
+<div class="view"><svg viewBox="0 0 1600 656" role="img" aria-label="Konsept B pilot görüşü">
+  <defs>
+    <linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1424"/><stop offset="1" stop-color="#18294a"/></linearGradient>
+    <pattern id="hzB" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="28" height="28" fill="#1d1d1a"/><rect width="14" height="28" fill="#e0b020"/></pattern>
+  </defs>
+  <rect width="1600" height="656" fill="url(#skyB)"/>
+  <g fill="#cfe0ff" opacity=".7"><circle cx="240" cy="200" r="2"/><circle cx="520" cy="150" r="1.5"/><circle cx="1150" cy="140" r="2"/><circle cx="1400" cy="240" r="1.5"/><circle cx="700" cy="250" r="1.5"/></g>
+  <rect x="560" y="60" width="480" height="320" fill="none" stroke="#9fd6ea" stroke-width="2" stroke-dasharray="8 8" opacity=".35"/>
+  <rect width="1600" height="58" fill="#4a4430"/>
+  <rect y="48" width="1600" height="10" fill="#6a2f7a" opacity=".5"/>
+  <circle cx="800" cy="28" r="10" fill="#ffb347"/>
+  <polygon points="788,58 812,58 812,380 788,380" fill="#4a4430"/>
+  <polygon points="430,58 458,58 420,390 392,390" fill="#4a4430"/><polygon points="1142,58 1170,58 1208,390 1180,390" fill="#4a4430"/>
+  <polygon points="150,58 180,58 90,420 60,420" fill="#4a4430"/><polygon points="1420,58 1450,58 1540,420 1510,420" fill="#4a4430"/>
+  <path d="M0,440 L400,386 L1200,386 L1600,440 L1600,656 L0,656 Z" fill="#8f8a5c"/>
+  <path d="M0,600 L1600,600 L1600,656 L0,656 Z" fill="#6e6a46"/>
+  <polygon points="620,560 980,560 1030,656 570,656" fill="#0d1628" stroke="#4a4430" stroke-width="14" stroke-linejoin="round"/>
+  <path d="M570,656 L620,560 L980,560 L1030,656" fill="none" stroke="#6a2f7a" stroke-width="3" opacity=".6"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M740,656 Q720,620 760,604 Q790,596 796,620" stroke="#b8652a" stroke-width="16"/>
+    <path d="M860,656 Q880,620 840,604 Q810,596 804,620" stroke="#b8652a" stroke-width="16"/>
+  </g>
+  <circle cx="800" cy="650" r="20" fill="#5d5d55"/>
+  <path d="M600,560 L1000,560 L1000,574 L600,574 Z" fill="url(#hzB)"/>
+  <g stroke="#4a4430" stroke-width="12" fill="#0c3a4e" stroke-linejoin="round">
+    <rect x="660" y="396" width="280" height="148" rx="6"/>
+    <polygon points="318,430 588,410 596,566 334,596"/>
+    <polygon points="1282,430 1012,410 1004,566 1266,596"/>
+  </g>
+  <g><rect x="536" y="590" width="26" height="66" rx="6" fill="#2a2a24"/><rect x="532" y="574" width="34" height="30" rx="6" fill="#e0b020"/>
+     <rect x="1038" y="590" width="26" height="66" rx="6" fill="#2a2a24"/><rect x="1034" y="574" width="34" height="30" rx="6" fill="#e0b020"/></g>
+  <g fill="#ffb347"><circle cx="160" cy="540" r="8"/><circle cx="1440" cy="540" r="8"/></g>
+  <g font-family="JetBrains Mono, monospace" font-size="20" fill="#9fd6ea"><text x="742" y="478">RADAR</text><text x="400" y="510">SİSTEM</text><text x="1110" y="510">GÖVDE</text></g>
+  <text x="690" y="590" font-family="JetBrains Mono, monospace" font-size="15" fill="#cfe0ff" opacity=".75">çene camı · kıskaç</text>
+</svg></div>
+<div class="row">
+  <div class="tbl"><table>
+    <tr><th>Cam</th><td>Üstte daha az bölmeli bant (2 büyük + her yanda 2). Altta konsolun ortasında, aşağı ve öne bakan yamuk çene camı</td></tr>
+    <tr><th>Ekranlar</th><td>RADAR çene camının hemen üstünde; SİSTEM ve GÖVDE yan kanatlarda pilota dönük. Üçü de büyük ve yüksek</td></tr>
+    <tr><th>Konsol</th><td>İki kanatlı, ortası açık. Çene camının iki yanında sarı tutamaklı iki kıskaç kumanda kolu; cam kenarında uyarı şeridi</td></tr>
+    <tr><th>Koltuk</th><td>Öne eğik çalışma koltuğu, ayak dayama çene camının iki yanında</td></tr>
+    <tr><th>Malzeme</th><td>A ile aynı haki çelik; kıskaç pas turuncu boyalı çelik, eklem yerlerinde parlak metal</td></tr>
+    <tr><th>Kıskaç</th><td>Çene uçları kokpit GLB'sinde görünür: <code>ART_claw_*</code> hiyerarşisi, pivotlar eklemde, statik. Dış modelle aynı adlar ve oranlar</td></tr>
+  </table></div>
+  <div class="plan"><svg viewBox="0 0 400 300" role="img" aria-label="Konsept B plan">
+    <polygon points="70,40 330,40 360,120 360,280 40,280 40,120" fill="none" stroke="#a8561c" stroke-width="3" stroke-dasharray="6 5"/>
+    <rect x="70" y="40" width="260" height="12" fill="#4a4430"/>
+    <polygon points="70,110 170,104 170,160 70,150" fill="#8f8a5c" stroke="#4a4430" stroke-width="2"/><polygon points="330,110 230,104 230,160 330,150" fill="#8f8a5c" stroke="#4a4430" stroke-width="2"/>
+    <rect x="170" y="100" width="60" height="16" fill="#8f8a5c" stroke="#4a4430" stroke-width="2"/>
+    <polygon points="176,120 224,120 232,170 168,170" fill="#0d1628" stroke="#6a2f7a" stroke-width="2"/>
+    <path d="M186,30 Q200,10 214,30" fill="none" stroke="#b8652a" stroke-width="5"/><line x1="200" y1="30" x2="200" y2="60" stroke="#b8652a" stroke-width="4"/>
+    <rect x="165" y="200" width="70" height="66" rx="12" fill="#3a3527"/>
+    <text x="10" y="294" font-family="JetBrains Mono, monospace" font-size="12" fill="#5d5f52">üstten · turuncu = kıskaç (burun altı)</text>
+  </svg><div class="cap">Çene camı burnun altındaki kıskaca bakar.</div></div>
+</div>
+<div class="pc">
+  <div class="plus"><h4>Güçlü yanları</h4><ul><li>En güçlü kimlik: madenci olduğu kokpitten anlaşılır</li><li>Kıskaç animasyonu eklenirse kokpitten görünür, oyun hissi artar</li><li>Kaşif ve Şahin'den en farklı yerleşim</li></ul></div>
+  <div class="minus"><h4>Riskler</h4><ul><li>Kıskaç parçaları üçgen ekler (tahmini +3–4 bin)</li><li>Çene camı konsol yüzeyini azaltır; ekranlar sıkışmamalı</li><li>Kıskaç dış modelle tutarlı olmalı: dış Yük Devi modeli henüz yok, oranlar <code>SPECS3D.yuk.claw</code>'dan alınır</li></ul></div>
+</div>
+</section>
+
+<!-- ============ C ============ -->
+<section class="concept" id="c">
+<h2><span class="tag">C</span>Vinç Kabini</h2>
+<p class="sub">Açıkta duran I-kiriş iskelet, tavanda hidrolik borular, yanlarda aşağıya kadar inen cam. Ekranlar döner kollarda asılı. Bir liman vinci operatör kabini.</p>
+<div class="view"><svg viewBox="0 0 1600 656" role="img" aria-label="Konsept C pilot görüşü">
+  <defs><linearGradient id="skyC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1424"/><stop offset="1" stop-color="#18294a"/></linearGradient></defs>
+  <rect width="1600" height="656" fill="url(#skyC)"/>
+  <g fill="#cfe0ff" opacity=".7"><circle cx="230" cy="250" r="2"/><circle cx="520" cy="130" r="1.5"/><circle cx="1100" cy="160" r="2"/><circle cx="1450" cy="300" r="1.5"/><circle cx="90" cy="560" r="1.5"/><circle cx="1520" cy="590" r="1.5"/></g>
+  <rect x="560" y="60" width="480" height="320" fill="none" stroke="#9fd6ea" stroke-width="2" stroke-dasharray="8 8" opacity=".35"/>
+  <rect width="1600" height="54" fill="#4a4430"/>
+  <rect y="14" width="1600" height="8" fill="#b8652a"/><rect y="30" width="1600" height="6" fill="#6e6a46"/>
+  <path d="M770,54 A30,30 0 0 1 830,54 Z" fill="#ffb347"/>
+  <polygon points="300,54 372,54 262,456 186,456" fill="#4a4430"/><polygon points="314,54 358,54 248,456 204,456" fill="#5c5538"/>
+  <polygon points="1300,54 1228,54 1338,456 1414,456" fill="#4a4430"/><polygon points="1286,54 1242,54 1352,456 1396,456" fill="#5c5538"/>
+  <line x1="352" y1="54" x2="244" y2="456" stroke="#b8652a" stroke-width="5"/><line x1="1248" y1="54" x2="1356" y2="456" stroke="#b8652a" stroke-width="5"/>
+  <path d="M0,456 L1600,456 L1600,476 L0,476 Z" fill="#4a4430"/>
+  <polygon points="0,476 190,476 190,656 0,656" fill="#0d1628" stroke="#4a4430" stroke-width="10"/>
+  <polygon points="1600,476 1410,476 1410,656 1600,656" fill="#0d1628" stroke="#4a4430" stroke-width="10"/>
+  <line x1="95" y1="476" x2="95" y2="656" stroke="#4a4430" stroke-width="8"/><line x1="1505" y1="476" x2="1505" y2="656" stroke="#4a4430" stroke-width="8"/>
+  <path d="M190,476 L520,476 L560,440 L1040,440 L1080,476 L1410,476 L1410,656 L190,656 Z" fill="#8f8a5c"/>
+  <path d="M190,610 L1410,610 L1410,656 L190,656 Z" fill="#6e6a46"/>
+  <g stroke="#2a2a24" stroke-width="10" fill="none" stroke-linecap="round"><path d="M250,330 L360,330 L400,400"/><path d="M1350,330 L1240,330 L1200,400"/></g>
+  <g stroke="#4a4430" stroke-width="12" fill="#0c3a4e" stroke-linejoin="round">
+    <polygon points="300,410 548,396 556,552 316,576"/>
+    <rect x="652" y="400" width="296" height="176" rx="6"/>
+    <polygon points="1300,410 1052,396 1044,552 1284,576"/>
+  </g>
+  <rect x="720" y="590" width="160" height="66" rx="10" fill="#3a3527"/><circle cx="800" cy="600" r="16" fill="#e0b020"/>
+  <g fill="#ffb347"><circle cx="560" cy="600" r="7"/><circle cx="1040" cy="600" r="7"/></g>
+  <g font-family="JetBrains Mono, monospace" font-size="20" fill="#9fd6ea"><text x="742" y="495">RADAR</text><text x="380" y="492">SİSTEM</text><text x="1120" y="492">GÖVDE</text></g>
+  <text x="18" y="640" font-family="JetBrains Mono, monospace" font-size="14" fill="#cfe0ff" opacity=".7">alt yan cam</text>
+</svg></div>
+<div class="row">
+  <div class="tbl"><table>
+    <tr><th>Cam</th><td>Tek büyük ön cam, orta dikme yok. Yanlarda aşağıya kadar inen alt camlar (kabinden aşağıyı görme)</td></tr>
+    <tr><th>Ekranlar</th><td>SİSTEM ve GÖVDE kirişlerden çıkan döner kollarda asılı; RADAR orta kaidede. Kollar animasyona hazır pivotlu</td></tr>
+    <tr><th>Konsol</th><td>Dar orta kaide, tek büyük joystick. Tavanda boydan boya hidrolik borular ve amber döner lamba</td></tr>
+    <tr><th>Koltuk</th><td>Operatör koltuğu, kolçaklarda kumanda düğmeleri</td></tr>
+    <tr><th>Malzeme</th><td>Açıkta I-kiriş (koyu haki, kenarda pas turuncu), boyalı borular, haki çelik zemin</td></tr>
+    <tr><th>Kıskaç</th><td>Kokpitte görünmez; alt yan camlardan burun altı sezilir</td></tr>
+  </table></div>
+  <div class="plan"><svg viewBox="0 0 400 300" role="img" aria-label="Konsept C plan">
+    <polygon points="50,40 350,40 370,280 30,280" fill="none" stroke="#a8561c" stroke-width="3" stroke-dasharray="6 5"/>
+    <rect x="80" y="40" width="16" height="200" fill="#4a4430"/><rect x="304" y="40" width="16" height="200" fill="#4a4430"/>
+    <line x1="96" y1="120" x2="140" y2="130" stroke="#2a2a24" stroke-width="5"/><line x1="304" y1="120" x2="260" y2="130" stroke="#2a2a24" stroke-width="5"/>
+    <rect x="120" y="128" width="50" height="12" rx="2" fill="#0c3a4e"/><rect x="230" y="128" width="50" height="12" rx="2" fill="#0c3a4e"/>
+    <rect x="172" y="120" width="56" height="40" fill="#8f8a5c" stroke="#4a4430" stroke-width="2"/><rect x="176" y="124" width="48" height="12" rx="2" fill="#0c3a4e"/>
+    <rect x="165" y="200" width="70" height="66" rx="12" fill="#3a3527"/>
+    <text x="10" y="294" font-family="JetBrains Mono, monospace" font-size="12" fill="#5d5f52">üstten · kiriş iskelet, asılı ekranlar</text>
+  </svg><div class="cap">Ekran kolları kirişlere bağlı; orta kaide dar.</div></div>
+</div>
+<div class="pc">
+  <div class="plus"><h4>Güçlü yanları</h4><ul><li>En geniş görüş ve en endüstriyel his</li><li>Asılı ekranlar ve borular, Kaşif'ten tamamen farklı bir dil</li></ul></div>
+  <div class="minus"><h4>Riskler</h4><ul><li>Dıştaki çok bölmeli cam bandıyla bağı en zayıf olanı</li><li>Asılı ekranlar sallanma (sway) ile kayabilir gibi görünebilir</li><li>Kiriş ve borular en yüksek üçgen sayısı</li></ul></div>
+</div>
+</section>
+
+<section class="concept" id="kiskac">
+<h2>Kıskaç hiyerarşisi (her konsept için geçerli)</h2>
+<p class="sub">Kıskaç ilk modelde statik. Hiyerarşi ve pivotlar ileride animasyon eklenebilecek şekilde kurulur (<code>STANDARDS.md §0.3</code>).</p>
+<pre class="tree">ART_claw_root        gövde bağlantısı (burun altı)      pivot: bağlantı noktası
+└─ ART_claw_shoulder  omuz, yukarı-aşağı                 dönüş ekseni: yan (X)
+   └─ ART_claw_elbow  dirsek                             dönüş ekseni: yan (X)
+      └─ ART_claw_wrist   bilek göbeği                   dönüş ekseni: ileri (Z)
+         ├─ ART_claw_jaw_L   sol çene                    pivot: çene menteşesi
+         ├─ ART_claw_jaw_R   sağ çene                    pivot: çene menteşesi
+         └─ SOCK_claw_grip   kavrama noktası (soket)</pre>
+<p>Oranlar dış modelin <code>SPECS3D.yuk.claw</code> tanımından (taban, bilek, çene yarıçapı) alınır. Kokpitte kıskaç yalnız konsept B'de görünür; A ve C'de kokpitte kıskaç düğümü bulunmaz, hiyerarşi dış Yük Devi modelinde kurulur. QC, her <code>ART_*</code> düğümünün pivotunun eklem merkezinde olduğunu ve hiyerarşi sırasını kontrol edecek.</p>
+</section>
+
+<section class="concept" id="karsilastirma">
+<h2>Karşılaştırma</h2>
+<div class="tbl"><table class="cmp">
+  <tr><th></th><th>A · Köprü Bandı</th><th>B · Kıskaç Gözü</th><th>C · Vinç Kabini</th></tr>
+  <tr><td>Dış tasarımla bağ</td><td>Çok güçlü (aynı cam düzeni)</td><td>Güçlü (cam + kıskaç)</td><td>Orta</td></tr>
+  <tr><td>Madenci kimliği</td><td>Malzeme ve şeritle</td><td>Kıskaç görünür, en güçlü</td><td>Endüstriyel iskeletle</td></tr>
+  <tr><td>Cam oranı (tahmin)</td><td>%40–45</td><td>%35–40</td><td>%55–60</td></tr>
+  <tr><td>Üçgen (tahmin, görünen)</td><td>10–12 bin</td><td>13–16 bin</td><td>14–17 bin</td></tr>
+  <tr><td>Draw call</td><td>2 + 3 ekran</td><td>2 + 3 ekran (kıskaç gövde malzemesinde)</td><td>2 + 3 ekran</td></tr>
+  <tr><td>Ekran okunurluğu</td><td>En iyi</td><td>İyi (yan ekranlar dönük)</td><td>İyi; sallanmada test gerekir</td></tr>
+  <tr><td>Kaşif'ten ayrışma</td><td>Orta (düz ekran sırası)</td><td>Çok yüksek</td><td>Çok yüksek</td></tr>
+  <tr><td>Risk</td><td>Düşük</td><td>Orta</td><td>Orta</td></tr>
+</table></div>
+<p>Hepsi kokpit bütçesinin (60 bin üçgen, 4 MB, 40 MB GPU) çok altında. <b>Önerim B</b>: Yük Devi'yi oyundaki tek mekanik parçasıyla kokpitten tanınır kılıyor ve kıskaç hiyerarşisini baştan kokpitte test etmemizi sağlıyor. Okunurluk en önemli ölçütse A daha güvenli.</p>
+</section>
+
+<div class="decide">
+  <h2 style="font-size:24px">Senden beklenen</h2>
+  <ol>
+    <li>Bir yön seç (A, B veya C) ya da birleştirme iste (ör. A'nın cam bandı + B'nin çene camı).</li>
+    <li>Seçimden sonra PREVIEW blokajı üretilir: pilot görüşü, çapraz, konsol, koltuk renderları ve ölçümler (cam oranı, HUD bölgesi, ekran görünürlüğü, kamera sözleşmesi).</li>
+    <li>PRODUCTION modellemesi yalnız PREVIEW'a vereceğin görsel onaydan sonra başlar.</li>
+  </ol>
+</div>
+</main>
