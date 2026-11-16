@@ -287,13 +287,14 @@ def cmd_qc(a):
 
 
 def cmd_deliver(a):
-    reg = registry.require(a.id, 'tech_approved', 'delivered')
+    # --candidate: Kapı 2 (teknik onay) kaydı olmadan, qc_pass durumunda 'teslim adayı' paketi; durum değişmez, onay yerine geçmez
+    reg = registry.require(a.id, 'qc_pass', 'tech_approved', 'delivered') if getattr(a, 'candidate', False) else registry.require(a.id, 'tech_approved', 'delivered')
     rev = reg['rev']
     spec = load_spec(a.id)
     mdir, pdir, qdir = (work_dir(a.id, rev, s) for s in ('model', 'prepare', 'qc'))
     R = load_json(os.path.join(qdir, 'qc_report.json'))
     pmeta = load_json(os.path.join(pdir, 'meta.json'))
-    out = os.path.join(DELIVERIES, a.id, 'r%03d' % rev)
+    out = os.path.join(DELIVERIES, a.id, 'r%03d' % rev + ('_aday' if getattr(a, 'candidate', False) else ''))
     if os.path.exists(out):
         shutil.rmtree(out)
     os.makedirs(os.path.join(out, 'textures'))
@@ -310,24 +311,40 @@ def cmd_deliver(a):
         open(os.path.join(out, 'textures', fn), 'wb').write(bin_[bv.get('byteOffset', 0): bv.get('byteOffset', 0) + bv['byteLength']])
         texfiles.append('textures/' + fn)
     prev = {}
-    for k, src in (('hero.png', 'model/hero.png'), ('hero_rear.png', 'model/hero_rear.png'), ('closeup.png', 'model/closeup.png'), ('ortho_6.png', 'model/ortho_6.png'),
-                   ('thumb_128.png', 'model/thumb_128.png'), ('normal_side_diff.png', 'qc/three_normal_side_diff.png')):
-        shutil.copy(os.path.join(work_dir(a.id, rev), src), os.path.join(out, 'preview', k))
-        prev[k.split('.')[0]] = 'preview/' + k
+    if spec['family'] == 'cockpit':      # kokpit: pilot görüşü merkezli önizlemeler
+        cands = (('hero.png', 'model/01_pilot.png'), ('hero_rear.png', 'model/02_capraz.png'), ('closeup.png', 'model/03_konsol.png'), ('ortho_6.png', 'model/06_plan.png'),
+                 ('koltuk.png', 'model/04_koltuk.png'), ('dis.png', 'model/05_dis.png'), ('normal_side_diff.png', 'qc/three_normal_side_diff.png'))
+    else:
+        cands = (('hero.png', 'model/hero.png'), ('hero_rear.png', 'model/hero_rear.png'), ('closeup.png', 'model/closeup.png'), ('ortho_6.png', 'model/ortho_6.png'),
+                 ('thumb_128.png', 'model/thumb_128.png'), ('normal_side_diff.png', 'qc/three_normal_side_diff.png'))
+    for k, src in cands:
+        if os.path.exists(os.path.join(work_dir(a.id, rev), src)):
+            shutil.copy(os.path.join(work_dir(a.id, rev), src), os.path.join(out, 'preview', k))
+            prev[k.split('.')[0]] = 'preview/' + k
     for c in R['three_vs_golden']:
         shutil.copy(os.path.join(qdir, 'cmp_%s.png' % c), os.path.join(out, 'preview', 'three_vs_blender_%s.png' % c))
         prev['cmp_' + c] = 'preview/three_vs_blender_%s.png' % c
+        if os.path.exists(os.path.join(qdir, 'three_%s.png' % c)):
+            shutil.copy(os.path.join(qdir, 'three_%s.png' % c), os.path.join(out, 'preview', 'three_r128_%s.png' % c))
+        if os.path.exists(os.path.join(mdir, 'golden_%s.png' % c)):
+            shutil.copy(os.path.join(mdir, 'golden_%s.png' % c), os.path.join(out, 'preview', 'blender_notr_%s.png' % c))
     shutil.copy(os.path.join(qdir, 'qc_report.json'), out)
+    compat = None
+    if os.path.exists(os.path.join(qdir, 'kasif_uyumluluk.json')):
+        shutil.copy(os.path.join(qdir, 'kasif_uyumluluk.json'), out)
+        compat = load_json(os.path.join(qdir, 'kasif_uyumluluk.json'))
     from qc.report import html_report
-    html_report(R, os.path.join(out, 'qc_report.html'), {'hero': prev['hero'], 'hero_rear': prev['hero_rear'], 'closeup': prev['closeup'], 'ortho_6': prev['ortho_6'],
-                                                          'thumb': prev['thumb_128'], 'normal_side_diff': prev['normal_side_diff'], **{k: v for k, v in prev.items() if k.startswith('cmp_')}})
+    html_report(R, os.path.join(out, 'qc_report.html'), {k2: prev[k1] for k1, k2 in (('hero', 'hero'), ('hero_rear', 'hero_rear'), ('closeup', 'closeup'), ('ortho_6', 'ortho_6'),
+                                                                                     ('thumb_128', 'thumb'), ('normal_side_diff', 'normal_side_diff')) if k1 in prev}
+                | {k: v for k, v in prev.items() if k.startswith('cmp_')})
     st = R['stats']
     socks = R['three']['inspect'].get('sockets', [])
     manifest = {'id': a.id, 'rev': rev, 'glb': glb_name, 'glb_sha256': file_hash(os.path.join(out, glb_name)), 'glb_bytes': st['glb_bytes'],
                 'class': spec['class'], 'family': spec['family'], 'test_asset': bool(spec.get('test_asset')), 'units': 'm', 'forward': '-Z', 'up': '+Y',
                 'length_m': st['length_m'], 'bounds_min': st['bounds_min'], 'bounds_max': st['bounds_max'], 'tris': st['tris'], 'calls_lod0': st['calls_lod0'],
                 'materials': list(R['three']['inspect'].get('materials', {}).keys()), 'textures': texfiles, 'tex_gpu_bytes_est': st['tex_gpu_bytes_est'],
-                'sockets': socks, 'qc': {'verdict': R['verdict'], **R['summary']}, 'contract': 'GEÇİCİ — contracts/game_contract.md bekleniyor'}
+                'sockets': socks, 'qc': {'verdict': R['verdict'], **R['summary']}, 'contract': 'GEÇİCİ — contracts/game_contract.md bekleniyor',
+                'draw_calls_three': R['three']['info'].get('calls'), 'frozen': bool(reg.get('frozen')), 'kasif_uyumluluk': compat['ozet'] if compat else None}
     save_json(os.path.join(out, 'manifest.json'), manifest)
     save_json(os.path.join(out, 'source.json'), {'spec': spec, 'seed': spec.get('seed'), 'spec_hash': json_hash(spec), 'geometry_hash': reg.get('geometry_hash'),
                                                   'factory_commit': commit(), 'blender': R.get('blender'), 'library_materials': spec.get('materials'),
@@ -381,6 +398,12 @@ def cmd_deliver(a):
 - **Fallback (öneri):** GLB yüklenemezse mevcut model kalır.
 - **Test:** `qc/viewer/check.html` (otomatik) ve `qc/viewer/bench.html?glb=…` (gerçek cihaz).
 """ % (a.id, rev, '\n> **Test nesnesi: oyuna entegre edilmeyecek.**' if spec.get('test_asset') else '', glb_name, a.id))
+    if spec['family'] == 'cockpit':      # kokpite özel entegrasyon notu + teslim raporu + Kaşif uyumluluğu (yukarıdaki genel notun yerine)
+        from pipeline import cockpit_docs
+        cockpit_docs.write(out, a.id, rev, glb_name, R, compat, reg, candidate=getattr(a, 'candidate', False))
+    if getattr(a, 'candidate', False):
+        print('RESULT', json.dumps({'stage': 'deliver', 'candidate': True, 'out': out, 'files': sorted(os.path.relpath(p, out) for p in glob.glob(out + '/**/*', recursive=True) if os.path.isfile(p))}, ensure_ascii=False))
+        return
     if reg['state'] != 'delivered':
         registry.transition(a.id, 'delivered', 'teslim paketi: ' + os.path.relpath(out, FACTORY))
     print('RESULT', json.dumps({'stage': 'deliver', 'out': out, 'files': sorted(os.path.relpath(p, out) for p in glob.glob(out + '/**/*', recursive=True) if os.path.isfile(p))}, ensure_ascii=False))
@@ -410,6 +433,8 @@ def main():
         p.add_argument('id')
         if n in ('model', 'prepare'):
             p.add_argument('--fast', action='store_true')
+        if n == 'deliver':
+            p.add_argument('--candidate', action='store_true', help='Kapı 2 onayı beklenirken aday paket (durum değişmez)')
     p = sp.add_parser('approve')
     p.add_argument('id')
     p.add_argument('--gate', choices=['visual', 'tech'], required=True)

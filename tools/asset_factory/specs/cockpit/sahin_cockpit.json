@@ -246,5 +246,11 @@
   },
   "uv_pack": "CONVEX",
   "_note": "Kaşif dersleri: GPU ≤ 40 MB → base 2048², ORM ve normal 1024² (~33,6 MB); göz noktaları pilotun baş hareket aralığı"
+ },
+ "frozen": {
+  "rev": 12,
+  "tarih": "2026-11-16",
+  "not": "r012 görsel olarak onaylandı ve donduruldu (kullanıcı, sohbet 2026-11-16). Daha fazla aşınma/koyulaştırma yok; açık gri, temiz ama kullanılmış avcı karakteri korunur; Kaşif'in yıpranmış koyu metali kopyalanmaz.",
+  "kural": "Görsel değişiklik yeni kullanıcı onayı olmadan yapılmaz (factory revise + Kapı 1)."
  }
 }
