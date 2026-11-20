@@ -187,3 +187,9 @@ Not: seçim rastgele; her koşul satırı tek tek otomatik doğrulanmadı. Başl
 |---|---|
 | zincir_telsiz: `__chainSay` korsan 1. ve Filo 3. adımda telsiz satırı verir, çift adımda (Lonca 2) vermez, sayfa hatası yok | PASS |
 Not: gerçek ana görev düğmesinden tetiklenme (kanca `S.src` kullanır) otomatik testte uçtan uca denenmedi; kanca tek satır ve `try/catch` içinde.
+
+## 20. Sürüm 1.63.2 test özeti
+| Test | Sonuç |
+|---|---|
+| hesap_kayit (taklit Firebase sunucusu): doğrulama e-postası bağlantı adresi yüzünden reddedilince önce adresli, sonra adressiz gönderilir ve kayıt "hesabı etkinleştir" ekranına geçer. Düzeltme öncesi aynı test "Bir sorun oldu: auth/unauthorized-continue-uri" ile FAIL | PASS |
+Not: gerçek Firebase sunucusu, Google girişi (iOS PWA'da açılır pencere sorunu olabilir) ve e-postanın gerçekten gelmesi test edilmedi. Authorized domains ayarı Firebase konsolunda kontrol edilmeli (mtozg.github.io).
