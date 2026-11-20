@@ -25,7 +25,7 @@ def tick(k, t0):
 
 t0 = time.time()
 geo.reset_scene()
-mats = materials.library(spec['materials'])
+mats = materials.library(spec['materials'], spec.get('material_overrides'))
 fam = importlib.import_module('families.%s.build' % spec['family'])
 built = fam.build(spec, mats)
 obs = built['objects']

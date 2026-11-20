@@ -1,0 +1,24 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.115,
+  0.12,
+  0.135
+ ],
+ "rough": [
+  0.4,
+  0.62
+ ],
+ "micro_scale": 420.0,
+ "bump": 0.07,
+ "wear": 0.3,
+ "wear_color": [
+  0.3,
+  0.31,
+  0.34
+ ],
+ "dirt": 0.35,
+ "grime": 0.25,
+ "_note": "Şahin r013 adayı: koyu grafit deri koltuk"
+}

@@ -1,0 +1,15 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.62,
+  0.63,
+  0.6
+ ],
+ "rough": [
+  0.5,
+  0.7
+ ],
+ "bump": 0.01,
+ "_note": "koltuk diki\u015f ipi (a\u00e7\u0131k)"
+}

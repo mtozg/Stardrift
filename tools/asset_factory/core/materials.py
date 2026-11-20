@@ -256,5 +256,12 @@ def build(defn):
     return m
 
 
-def library(names):
-    return {n: build(load_def(n)) for n in names}
+def library(names, overrides=None):
+    """overrides: {malzeme_adı: {alan: değer}} — spec düzeyinde (kütüphane JSON'una dokunmadan) ince ayar; r012 gibi dondurulmuş varlıkların yeniden üretimini bozmaz"""
+    ov = overrides or {}
+    out = {}
+    for n in names:
+        d = load_def(n)
+        d.update(ov.get(n, {}))
+        out[n] = build(d)
+    return out
