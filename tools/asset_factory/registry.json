@@ -380,7 +380,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "modeled",
+   "state": "visual_approved",
    "rev": 7,
    "history": [
     {
@@ -460,12 +460,27 @@
      "from": "draft",
      "to": "modeled",
      "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-20T08:16:40+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: PREVIEW r007 görsel onayı (konsept B + yükseltilmiş ekranlar). PRODUCTION: K15 ile Mehmet başlattı.",
+     "by": "Mehmet (sohbet 2026-11-20: onay + Bash izni verildi; K3/K15 HOD üzerinden iletildi)"
     }
    ],
    "timings": {
     "model": 1564.8
    },
-   "approvals": [],
+   "approvals": [
+    {
+     "t": "2026-11-20T08:16:40+00:00",
+     "gate": "visual",
+     "by": "Mehmet (sohbet 2026-11-20: onay + Bash izni verildi; K3/K15 HOD üzerinden iletildi)",
+     "note": "PREVIEW r007 görsel onayı (konsept B + yükseltilmiş ekranlar). PRODUCTION: K15 ile Mehmet başlattı.",
+     "accept_warn": []
+    }
+   ],
    "geometry_hash": "f5032de428ae3d351b6ad2c744e37eb2f8771124b2d7c125da07eabceb6ee1ca",
    "spec_hash": "47d6ac74b5f2250085ec6cf666bd6f8a562ca59b7402d01b313dee815e3adba7",
    "fast": false,
