@@ -7,7 +7,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 |---|---|---|---|---|
 | 1 | Şahin r014 ve Yük Devi r015 3B kokpitleri oyunda | Hazır, PR #42 senin onayını bekliyor | 9d92f6f / PR #42 | `git revert 9d92f6f` |
 | 2 | Hayalet 3B kokpit r001 (Asset Factory production → oyuna `CK3.hayalet`) | Hazır, oyunda; Kapı 1 görsel kararın bekliyor | b58af28 | `git revert b58af28` |
-| 3 | Başarım rozet çizimleri (10 rozet × 3 kademe) oyunda; çevrimdışı paket düzeltmesi | Hazır | ROZET_SHA | `git revert ROZET_SHA` (not: çevrimdışı düzeltmesi de bu commit'te; geri alınırsa Hayalet GLB'leri çevrimdışı pakette olmaz) |
+| 3 | Başarım rozet çizimleri (10 rozet × 3 kademe) oyunda; çevrimdışı paket düzeltmesi | Hazır | 1a43723 | `git revert 1a43723` (not: çevrimdışı düzeltmesi de bu commit'te; geri alınırsa Hayalet GLB'leri çevrimdışı pakette olmaz) |
 
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
