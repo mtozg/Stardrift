@@ -84,3 +84,100 @@ Satır numaraları `js/game.js` 1.53.1 içindir; sonraki sürümlerde kayabilir.
 ### Asset Factory
 - PR #28 main ile birleştirildi (fd6a7c5, sürüm 1.54.0, çakışma çözüldü, iPhone 13 testi geçti). Birleştirme Mehmet'te.
 - Yük Devi PRODUCTION, fabrikanın Kapı 1 kaydını bekliyor: `cd tools/asset_factory && python3 factory.py approve yuk_cockpit --gate visual --by "Mehmet" --note "PREVIEW r007 onayı"` (Asset Factory oturumunda Mehmet'in izni gerekir).
+
+## 9. Sürüm 1.55.0 test özeti (Lead Developer, PR #32)
+Playwright, swiftshader, test kaydı. Betikler oturum geçici klasöründe; kokpit testi `tools/qa/qa_pr28.js`.
+
+| Konu | Sonuç |
+|---|---|
+| K9 kargo kaydı: eski kayıt, yenileme, pagehide, satış sonrası, bozuk değerler, gemi değişimi kapasite engeli, gerçek kayıtta test kancası yok | Geçti |
+| K13: Ankora satış var; Kara Liman ana istasyonu kara pazar; Kara Liman'daki üste pazar yok, zorla alım etkisiz | Geçti (Ankora'daki üsse yanaşma test ortamında tamamlanamadı) |
+| K6 göç: temiz korsan −65 → −50; Filo gemisi düşürmüş (−65), hain (sideN, −65) ve kötüleşmiş (−80) kayıtlar değişmedi | Geçti |
+| 1-B: Korsan'da devriye "wary" (mor), kargo/madenci "prey", korsan "ally"; Filo'da korsan "foe" | Geçti |
+| 1-A: "Sıçrama tamamlandı: Kızıl Geçit · Çekişmeli bölge" | Geçti |
+| S1-11: Filo + 3 patron, Morr yenilmemiş → "Ücra kapı → Kara Liman" işaretli; Morr yenilmişse işaret yok | Geçti |
+| K14: model engelli → 30 sn sonra uyarı; engel kalkınca "Kokpit yüklendi" | Geçti |
+| S1-03 hangar: 3 tur × 4 gemi, geometri 45 sabit, doku ilk turdan sonra 24 sabit | Geçti |
+| Kokpit regresyonu (qa_pr28.js): K→Ş→K→Ş→K doku Δ0 (masaüstü 71/50, iPhone 54/33), engel kalkınca ~12 sn'de toparlanma, gerçek kayıtta `__ckb.swap` tanımsız | Geçti |
+| Sayfa hatası | Hiçbiri |
+
+Test edilmeyenler: gerçek iPhone/iPad, bulut kaydında iki cihaz çakışması, Firebase.
+
+## 10. Sürüm 1.56.0 test özeti (Aşama 1-C)
+| Konu | Sonuç |
+|---|---|
+| Karar tablosu: Ankora temiz/kaçak/★2/★3/itibar ≤ −60 → yok/çağrı/çağrı/saldırı/saldırı; Kızıl kaçak %50 çağrı, ★2/★3/düşük → çağrı; Zümrüt ★2 yok, ★3/düşük saldırı; Lonca Pazarı hiçbiri | Geçti |
+| Filo, 4 kaçak, Ankora: çağrı kutusu → Uy → tarama (3 sn) → sonuç; aranma değişmedi | Geçti |
+| Korsan, 10 kaçak, Ankora: kutuda "Rüşvet · 450 kredi"; rüşvet → −450 kredi, tarama yok, kaçak 10 kaldı | Geçti |
+| Kaç: aranma 1 → 2 (tek artış; ikinci devriye 30 sn çağrı yapmaz), takip; süre sonunda yakındaysa devriye düşman | Geçti |
+| Tüccar kaçışı: Korsan 250 m'ye girince kargo gemisi kaçıyor | Geçti |
+| Önceki testler (göç, renkler, bölge mesajı, ücra kapı, K14, K13) | Geçti |
+| Sayfa hatası | Hiçbiri |
+
+Not: test ortamında (swiftshader) oyun saati gerçek zamanın yaklaşık 1/8'i hızında akıyor; zamanlı adımlar oyun saatine göre beklendi. Korsan selamı (itibar ≥ 60) ayrıca test edilmedi.
+
+### iPhone 13 boyutunda oyun testi (dokunmatik, 750×342)
+Senaryo: Korsan kaydı → Kara Liman'da dokunarak 10 kaçak al → Ankora → devriyenin yanına git → çağrı kutusu → dokunarak rüşvet.
+Bulunan ve düzeltilen hatalar:
+1. **Eski kural korsana koşulsuz ateş ettiriyordu** (`js/game.js` "Filo devriyeleri korsanı görünce ateş açar"): temiz korsan Ankora'ya girer girmez 800 m içindeki devriyeler saldırıyor, gemi ~10 sn'de parçalanıyordu. K6 (−50) ve K20 tablosunu geçersiz kılıyordu; önceki testler çaylak korumasıyla çalıştığı için görünmedi. Artık devriye kararına bağlı.
+2. **Duran oyuncu seçim yapamıyordu:** çağrı 1 sn sonra kendiliğinden taramaya geçiyordu. Artık "Uy" ya da 3 sn yavaş kalma gerekir.
+3. **Düğmeler her 0,25 sn yeniden oluşturuluyordu:** dokunuş kaybolabiliyordu. Kutu artık aşama başına bir kez kurulur; düğmeler `pointerdown` ile (uçuş düğmeleri gibi) çalışır, 42 px yüksekliğinde.
+Sonuç: çağrı kutusu iPhone ekranında okunaklı; dokunarak rüşvet −450 kredi, tarama yok, kaçak korundu; hata yok.
+
+## 12. Sprint 2 (1.58.0) test özeti
+Regresyon seti artık depoda: `bash tools/qa/run.sh` (9 test; bekleme ~20 dk). Kokpit/bellek testi ayrı: `node tools/qa/qa_pr28.js`.
+| Test | Sonuç |
+|---|---|
+| kargo_kaydi, kacak_uste, toplu_regresyon, devriye_akis, devriye_rusvet, telefon_devriye, hangar_bellek | PASS |
+| bekci: görev adımı gelmeden aktif değil; adım gelince doğuyor; Filo ve Korsan'da düşman; faz 2 (takviye) ve faz 3 (öfke); ölünce `save.bekci`, `save.boss` 6'da kalıyor | PASS |
+| kutuk: 10 rozet, kademeler, "Pilot Kütüğü · 9/30" başlığı, açılır bölüm | PASS |
+**Bekçi ödülü:** yalnız rozet. Mevcut öldürme ödülü geçerli (test kaydında Filo +1.045 kredi / +30 XP, Korsan +80 kredi / +50 XP; normal bir patron gemisi öldürmeyle aynı sistem). Yeni ödül değeri eklenmedi.
+Sınırlar: gerçek cihaz; Bekçi savaşının gerçek oynanış dengesi (gövde 2.600, salvo 24 hasar) elle denenmedi, yalnızca akış otomatik test edildi.
+
+## 13. Sürüm 1.59.0 (Sprint 3) test özeti
+| Konu | Sonuç |
+|---|---|
+| unvan_hata: 7 kademe × 3 taraf unvanı doğru; test kaydında ham hata metni, gerçek kayıtta "Küçük bir sorun oluştu, oyun devam ediyor." | PASS |
+| hangar_bellek (hangar animasyon değişikliği sonrası) | PASS |
+| Yaklaşma yazısı: Kaşif 3B kokpitinde üst orta kısımda (ekran görüntüsü), konsolu örtmüyor | Doğrulandı |
+| Sayfa hatası | Yok |
+Not: 120 Hz'de animasyon hızı gerçek ekranda denenmedi; yöntem zaman tabanlı (dt) olduğundan 60 Hz'de davranış aynıdır.
+
+### 1.59.2 eki
+- Hangar geri dönüş döngüsü (QA P2 "hiç durmayan rAF"): yalnız gemi bırakıldıktan sonra çalışır, bitince durur. Test `hangar_geri`: sürükleme hgYo 1,6 → bırakınca 4 sn içinde 0: PASS. `hangar_bellek`: PASS.
+
+## 14. Sürüm 1.60.0 test özeti
+| Test | Sonuç |
+|---|---|
+| ozel_ekonomi: Kaşif kargo kapasitesi 16; Filo unvan 2'de "Uzak devriye" teklifi, unvan 1'de yok; yakında öldürme 0 ilerleme, 9 km uzakta 1; Lonca "Toplu sipariş" (n=34); Korsan "Pusu"; kaçak satışı 4 birim → +20 XP | PASS |
+| kargo_kaydi, kacak_uste, kutuk (kapasite 16 sonrası) | PASS |
+Not: 3. ve 4. kademe görevleri yok; yalnız 2. kademe. Test ortamında oyun saati yavaş akar; zamanlı adımlar oyun saatine göre beklendi.
+
+## 15. Sürüm 1.61.0 test özeti
+| Test | Sonuç |
+|---|---|
+| bildirim: açılışta 0 bildirim (taban çizgisi sessiz kaydedilir); satış sayacı 40 → 60 ve unvan 1 → 2 sonrası sırayla "Başarım: Madenci · Bronz" ve "Yeni unvan: Devriye Subayı" | PASS |
+| kutuk, unvan_hata | PASS |
+Not: telsiz mesajı (unvan atlayınca) ve ses otomatik testte doğrulanmadı; metinler `ULINES` tablosunda.
+
+## 16. Sürüm 1.62.0 test özeti
+| Test | Sonuç |
+|---|---|
+| pano_yeni: Keşif şablonu (N 25-45, ödül 7N), Kargoyu doldur (100 kredi), keşif ilerlemesi (uzak noktaya gidince 4 kare), kargo dolunca görev biter | PASS |
+| derin_sinyal: 14 km derinlikte zorla tetiklenen sinyal teklif eder, kabul edilince 5 muhafız doğar, hepsi düşünce ≥ 450 kredi ödül | PASS |
+| ozel_ekonomi, bildirim (ctGen sarmalayıcılarıyla birlikte) | PASS |
+Not: "yalnız derin kuşakta çıkar" kuralı (ağırlık fonksiyonu) otomatik testte doğrulanmadı; zorla tetikleme bu kuralı atlar. Kod incelemesiyle kontrol edildi.
+
+## 17. Sürüm 1.62.3 test özeti
+| Test | Sonuç |
+|---|---|
+| derin_kural: Kadim yankı ağırlığı 14 km'de 2; 7 km, 3 km ve 12,5 km'de 0; 12,7 km'de 2; Lonca'da 2; Korsan'da 0 | PASS |
+| olum_hesap: ölüm bedeli 0→0, 30→30, 50→50, 200→50, 500→50, 600→60, 1000→100, 8000→800, 19999→2000, 25000→2000, 999999→2000 | PASS |
+| derin_sinyal, olum_siniri, pano_yeni, bildirim, ozel_ekonomi, kutuk (olay seçicisi `evW` işlevine ayrıldı; davranış aynı) | PASS |
+Not: `evW` ve `feeT` yalnızca `:test` kaydında dışarı verilir. Gerçek cihaz ve K37'nin gerçek oynanış dengesi test edilmedi.
+
+## 18. Sürüm 1.63.0 test özeti
+| Test | Sonuç |
+|---|---|
+| bulten: Filo, Lonca ve Korsan oyuncusu yanaşınca kendi önekli bülten satırı çıkar, `{u}` yer tutucusu kalmaz, sayfa hatası yok | PASS |
+Not: seçim rastgele; her koşul satırı tek tek otomatik doğrulanmadı. Başlık yanındaki yerleşim ekran görüntüsüyle kontrol edildi.

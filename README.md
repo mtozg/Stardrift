@@ -21,20 +21,30 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Pilot adı ve otomatik kayıt.
 - Anlık sinyaller: yardım çağrısı, eskort, düşmüş kargo, arıza, korsan pususu, gezgin tüccar, bilinmeyen enerji, aranan korsan, kayıp sonda, kaçan korsan, korsan kampı, terk edilmiş istasyon, göç eden kristaller. Hepsi isteğe bağlı; kabul et ya da yoksay.
 - Kilit (T): nişandaki hedefe, nişan boşsa 5 km içindeki en yakın düşmana, o da yoksa en yakın kayaya kilitlenir; kaya kırılınca sıradakine geçer. Uzak yerler için haritada hedefe dokunulur. Lazer menzili 450 m'den başlar.
-- Ana görev: 6 bölümlük sıralı hikâye (İlk Uçuş → Kızıl Geçit → Buzul Halka → Zümrüt Sis → Kadim Kapı → Yıldız Bekçisi). Tarafın zinciri, Kadim yankılar ve Kendi Üssün adımları hikâyeye yerleşir; bölüm sonları yeni sistemlerin kapılarını açar.
+- Ana görev: 6 bölümlük sıralı hikâye (İlk Uçuş → Kızıl Geçit → Buzul Halka → Zümrüt Sis → Kadim Kapı → Yıldız Bekçisi). Son bölümün son adımında Ankora'da Kadim Kapı'nın Bekçisi seni bekler: 3 aşamalı bir patron savaşı; ödülü Bekçi rozetidir. Tarafın zinciri, Kadim yankılar ve Kendi Üssün adımları hikâyeye yerleşir; bölüm sonları yeni sistemlerin kapılarını açar.
 - Yan görevler: istasyon panosundaki kısa görevler, isteğe bağlı, aynı anda en fazla 2.
 - Rütbe ve seviye: satış, korsan avı, kaya, kalıntı ve görevler XP verir (Çaylak → Efsane, 30 seviye, seviye 30 ≈ 32.400 XP).
 - Kapılar: Kızıl Geçit, Buzul Halka ve Zümrüt Sis kapıları ilgili ana görev bölümü bitince açılır; geçiş ücreti 250 / 600 / 1200 kredi. Ankora'ya dönüş serbest.
 - Evrenlere özgü yerler: Ankora'da sökülebilir eski uydu tarlası, Kızıl'da lav akıntısı ve güneş fırtınaları, Buzul'da buz devleri, Zümrüt'te kristal monolitler ve korsanlardan saklayan sis bulutları.
 - Altı evren: Ankora, Kızıl, Buzul, Zümrüt ve iki ev sistemi. Lonca Pazarı (Tüccar Loncasının altın ticaret merkezi) ve Kara Liman (Korsan Birliğinin asteroid içine kurulmuş sığınağı). Lonca ve Korsan seçen pilot kendi evinde başlar; diğerleri ilgili grupla Dost olunca koordinatları alır. Ana istasyonlar kendilerine düşman olanı içeri almaz.
 - Aranma ve ödül: devriye ya da sivil gemi düşürmek aranma seviyesini (★1-5) yükseltir; ödül avcıları peşine düşer, ★3'ten sonra devriyeler saldırır. Kayıtlar Kara Liman'da silinir ya da Ankora'da ceza ödenir; zamanla da unutulur.
-- Kaçak mal: Kara Liman'da ucuza alınır, diğer istasyonlarda (en iyi Lonca Pazarı'nda) pahalıya satılır; kargodan ayrı gizli bölmede taşınır (6, korsanlarda 10 birim); devriye ve gümrük taramasında el konur, ceza ve aranma gelir.
+- Bölgeler: Ankora Filo bölgesi (güvenli), Kızıl Geçit ve Buzul Halka çekişmeli, Zümrüt Sis kanunsuz, Lonca Pazarı tarafsız ticaret bölgesi, Kara Liman korsan bölgesi. Sıçrama mesajında görünür.
+- Devriye çağrısı: kaçak taşıyan ya da aranan pilotu devriye önce çağırır (Uy / Kaç; korsanlar rüşvet de verebilir). Uyarsan tarama yapılır, kaçarsan aranma artar ve devriye peşine düşer. Bölgeye göre değişir: Ankora'da çok arananlara doğrudan saldırı, Zümrüt Sis'te çağrı yok, Lonca Pazarı ve Kara Liman'da devriye karışmaz. Tüccarlar korsan görünce kaçar; korsan itibarı yüksekse korsan gemileri selam verir.
+- Taraf unvanı: tarafın görev zincirindeki ilerlemene göre değişir (Filo: Er → Devriye Subayı → Operasyon Lideri → Filo Komutanı; Lonca: Küçük Tüccar → Pazar Ustası → Sözleşme Lideri → Ticaret Lideri; Korsan: Kaçakçı → Akıncı → Çete Reisi → Korsan Lordu). Görevler sekmesindeki taraf satırında görünür; rütbeden ve ekonomiden bağımsızdır.
+- Unvanla açılan özel görevler: 2. unvana ulaşınca panoya tarafına özgü bir teklif gelir (Filo: Uzak devriye, Korsan: Pusu, Lonca: Toplu sipariş). Ödül formülleri diğer görevlerle aynıdır.
+- Başlangıç kargo kapasitesi 16 birim; kaçak mal satışı birim başına 5 XP verir.
+- Yeni pano görevleri: "Keşif" (bu sistemde yeni bölge kareleri aç) ve "Kargoyu doldur". Derin kuşakta (üsten 12,6 km ötede) "Kadim yankı" sinyali çıkabilir: 5 muhafızlı, yüksek riskli, yüksek ganimetli bir savaş.
+- Başarım ve unvan bildirimleri: rozet kazandığında ya da unvan atladığında ekranda bildirim çıkar; unvan atlayınca tarafın kısa bir telsiz mesajı gelir.
+- Başarımlar: istasyonda Görevler sekmesinin sonunda 10 rozet (Madenci, Avcı, Devriye avcısı, Kaçakçı, Siparişçi, Patron avcısı, Kadim dinleyici, Gezgin, Üs kurucu, Kapı Bekçisi), Bronz / Gümüş / Altın kademeli. Mevcut sayaçlardan hesaplanır; ödülü yoktur.
+- Kokpit camı hissi: 3B kokpitte pencere alanında hafif soğuk pus perdesi, güneşe bakınca ışıma. Kapatmak için adrese `?cam=0`, geri açmak için `?cam=1` eklenir.
+- Hedef renkleri: düşman kırmızı, dost mavi; Korsan oynarken kargo ve madenciler av (kehribar), sana saldırmayan Filo devriyeleri tetikte (mor).
+- Kaçak mal: Kara Liman'da ucuza alınır, diğer istasyonlarda (en iyi Lonca Pazarı'nda) pahalıya satılır; kargodan ayrı gizli bölmede taşınır (6, korsanlarda 10 birim); devriye ve gümrük taramasında el konur, ceza ve aranma gelir. Korsanlar için gümrük riski %25, yol taraması %25 (Lonca %25 / %20, Filo %40 / %30). Kara pazar yalnız Kara Liman ana istasyonundadır; oyuncu üssünde kaçak mal satılmaz.
 - Toplama: kırılan kayadan dökülen cevherleri 190 m içinden çekim ışını kendiliğinden toplar; ekranda "+1 Demir" yazısı çıkar, yakındaki cevherler renkli işaretle görünür.
 - Korsan çaylak koruması: yeni korsan pilota ilk 10 dakika ödül avcısı gelmez, devriyeler ateş açmaz.
 - Lonca'ya özel süreli acil siparişler; rütbe rozetleri (Çaylak → Efsane).
 - Kayıt kodu: Ayarlar → Kayıt bölümünden kaydı başka cihaza taşı (kodu al / kod gir).
-- Ücra kapılar: üç ev sisteminin uzak bir köşesinde rakip tarafın evine açılan gizli kapı (400 kredi).
-- Taraf seçimi: oyunun başında Yıldız Filosu, Tüccar Loncası ya da Korsan Birliği seçilir; her tarafın kendi avantajı ve başlangıç ilişkileri var. Taraf sonradan değiştirilebilir ama ağır bedelli (1200 XP, 4000 kredi, yeni tarafla Dost olmak, XP'nin %20'si; eski taraf seni düşman sayar).
+- Ücra kapılar: üç ev sisteminin uzak bir köşesinde rakip tarafın evine açılan gizli kapı (400 kredi). Filo oyuncusu 3 patronu yenince, Kara Liman'daki Morr'a giden Ankora ücra kapısı haritada kendiliğinden işaretlenir; Kara Liman yanaşmayı reddederse çıkış kapısı gösterilir.
+- Taraf seçimi: oyunun başında Yıldız Filosu, Tüccar Loncası ya da Korsan Birliği seçilir; her tarafın kendi avantajı ve başlangıç ilişkileri var. Taraf sonradan değiştirilebilir ama ağır bedelli (1200 XP, 4000 kredi, yeni tarafla Dost olmak, XP'nin %20'si; eski taraf seni düşman sayar; iki değişiklik arasında en az 2 saat).
 - Gruplar ve itibar: Yıldız Filosu, Tüccar Loncası, Korsan Birliği. Korsan avı Filoyu, satış ve yardım Loncayı güçlendirir; itibar fiyatları, ödülleri ve kimin sana saldıracağını değiştirir.
 - Patron savaşları (Lonca Pazarı'nda Kiralık Kaptan Varak, Kara Liman'da Liman Ağası Morr dahil): her evrende bir korsan reisi kendi ininde bekler. Üç aşamalı dövüş (takviye, roket salvosu, öfke); yenince kalıcı bir ödül kazanılır.
 - Sıçramalar: istasyondan hiperatlamada kokpitin içinden geri sayım, camda ışık çizgisi, ışın patlaması ve beyaz flaş; kapıdan geçişte yıldızlar ışık çizgilerine döner, gidilen evrenin renginde dönen bir tünelden geçilir.
@@ -66,7 +76,7 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 
 ## Kayıt
 
-İlerleme tarayıcıda (`localStorage`) saklanır. Tarayıcı verisi silinirse kayıt da gider.
+İlerleme tarayıcıda (`localStorage`) saklanır; kargodaki cevherler de kayda girer, sayfa yenilense de korunur. Tarayıcı verisi silinirse kayıt da gider.
 
 ## Teknik
 
@@ -96,4 +106,5 @@ Görseller `assets/img/` içinde, adları kodda nerede kullanıldıklarını sö
 - Seviyeler (30) ve rütbe rozetleri (rütbeye göre çerçeve, yükseldikçe çoğalan parıltılar ve kuyruklu yıldız izleri; Efsane hepsini birleştirir); seviye atlama ekranı. Yetenek ağacı dal sekmeleri, kademe şeritleri ve bağlantılı düğümlerle.
 - Gemi geliştirme kaldırıldı; yerine yetenek ağacı: 4 dal (madencilik, savaş, pilotaj, ticaret), 3 kademe, 20 yetenek. Üst kademeler dalda harcanan puanla açılır. Gövde ve kalkan gemiden, hasar silah ve roketlerden gelir; eski geliştirmelerin kredisi ve parçaları iade edilir.
 
-- Çevrimdışı oyun: oyun bir kez internetle açılınca bütün dosyaları (~30 MB: kod, görseller, sesler, müzik) arkada iner; sonra tamamen internetsiz oynanır. Durum Ayarlar'ın altında görünür. İnternet varken her açılışta yeni sürüm gelir, yalnızca değişen dosyalar yeniden iner. Görsel/ses/müzik eklediğinde ya da değiştirdiğinde `python3 tools/offline_list.py` çalıştır (offline.json güncellenir). Ana ekrana eklenince oyunun amblemiyle tam ekran uygulama gibi açılır.
+- Çevrimdışı oyun: oyun bir kez internetle açılınca bütün dosyaları (~38 MB: kod, görseller, 3B kokpit modelleri, sesler, müzik) arkada iner; sonra tamamen internetsiz oynanır. Durum Ayarlar'ın altında görünür. İnternet varken her açılışta yeni sürüm gelir, yalnızca değişen dosyalar yeniden iner. Görsel/ses/müzik eklediğinde ya da değiştirdiğinde `python3 tools/offline_list.py` çalıştır (offline.json güncellenir). Ana ekrana eklenince oyunun amblemiyle tam ekran uygulama gibi açılır.
+- İstasyon bülteni: yanaşınca başlık yanında tarafa göre bir bülten satırı (Filo Bülteni, Lonca Haberleri, Kara Liman Dedikodusu); yalnız bilgi.

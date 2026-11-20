@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Çevrimdışı paket listesi: offline.json'u yeniden üretir.
-Görsel, ses, müzik, yazı tipi ya da vendor dosyası eklediğinde/değiştirdiğinde çalıştır:
+Görsel, ses, müzik, yazı tipi, 3B model (models/) ya da vendor dosyası eklediğinde/değiştirdiğinde çalıştır:
     python3 tools/offline_list.py
 Service worker (sw.js) bu listeye bakıp eksik ya da içeriği değişmiş dosyaları indirir."""
 import hashlib, json, os, subprocess
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-files = subprocess.run(['git', 'ls-files', 'assets', 'vendor', 'manifest.webmanifest'], cwd=root, capture_output=True, text=True).stdout.split()
+files = subprocess.run(['git', 'ls-files', 'assets', 'vendor', 'models', 'manifest.webmanifest'], cwd=root, capture_output=True, text=True).stdout.split()
 files += sorted(f for f in os.listdir(root) if f.startswith('muzik_') and f.endswith('.mp3'))
 out = {}
 for f in sorted(set(files)):
