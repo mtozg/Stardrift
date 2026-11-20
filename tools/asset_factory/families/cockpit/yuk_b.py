@@ -97,7 +97,7 @@ def build(spec, mats):
     add('header_front', wall_box((-fh, fy), (fh, fy), zh, zc, 0.08), 'yuk_dark')
     add('glass_edge_front', wall_box((-fh, fy - 0.004), (fh, fy - 0.004), zh - 0.016, zh, 0.01), 'yuk_glass_edge')
     add('sill_front', wall_box((-fh, fy), (fh, fy), -0.62, zs, 0.06), 'yuk_paint')
-    add('post_center', geo.bm_box((0, fy + 0.03, (zs + zh) / 2), (cb.get('post_w', 0.058), 0.06, zh - zs)), 'yuk_dark')      # r013: tek parça ince dikme (kafes/merdiven kaldırıldı)
+    # r014: orta dikme KALDIRILDI (Mehmet: nişangâhın üstünden geçen dikey şerit; görüş merkezi Kaşif gibi açık)
     for s in (-1, 1):
         sd = 'L' if s < 0 else 'R'
         c0, c1 = side_pt(s, 0), side_pt(s, 1)
@@ -271,13 +271,6 @@ def build(spec, mats):
                 pp = a2 + (b2 - a2) * t
                 for z in (zs + 0.05, zh - 0.05):
                     dark_d.box((pp.x + inw.x * 0.004, pp.y + inw.y * 0.004, z), (pw_ + 0.016, pw_ + 0.016, 0.08), rot_z=math.atan2(dd.y, dd.x))
-        for z in (zs + 0.055, zh - 0.055):      # orta dikme plakaları
-            pw2 = cb.get('post_plate_w', 0.1)      # orta dikme plakası genişliği (HUD bölgesindeki engel)
-            dark_d.box((0, fy - 0.006, z), (pw2, 0.012, 0.07))
-            for dx in (-0.32 * pw2, 0.32 * pw2):
-                for dz in (-0.022, 0.022):
-                    rivets.cyl((dx, fy - 0.0125, z + dz), (dx, fy - 0.006, z + dz), 0.007, 6)
-
         # (2) güverte dudağı: perçin sırası; güverte plakaları, havalandırma ızgaraları, anahtar kapakları
         for x in lin(-0.86, 0.86, 29):
             rivets.cyl((x, ey - 0.014, ez - 0.045), (x, ey - 0.006, ez - 0.045), 0.0055, 6)
@@ -402,17 +395,7 @@ def build(spec, mats):
             for (x1, y1, z1) in pts[1:-1]:
                 steel_d.box((x1, y1, z1), (n * r * 2.1 + 0.006, 0.014, 0.012))
 
-        # --- A: radarın altındaki şerit (çene camının üstü): röle/sigorta paneli, kablo demeti, etiketler
-        pA = [onF(u, 560, 0.0) for u in (650, 950)]
-        plate(646, 543, 954, 580, dark_d, 0.0065, 0.009)
-        frame(646, 543, 954, 580, bare_d, 2, 0.0075, 0.006)
-        for k_, u_ in enumerate(lin(668, 932, 12)):
-            pc = onF(u_, 556, 0.0)
-            relay(pc, k_)
-        for k_, u_ in enumerate(lin(668, 932, 6)):      # ikinci sıra: küçük gösterge lambaları + etiketler
-            pc = onF(u_, 572, 0.0)
-            label(pc, 0.034, 0.011, 4, k_)
-            lamps_d.cyl((pc.x + 0.024, pc.y - 0.006, pc.z), (pc.x + 0.024, pc.y - 0.012, pc.z), 0.0026, 5)
+        # --- A: r014: radar altı röle şeridi kaldırıldı; orta şeridi koltuk başlığı doldurur (Kaşif oranı)
         # --- B/C: çene camının iki yanındaki orta paneller
         for sd, (u0, u1) in ((-1, (578, 676)), (1, (924, 1022))):
             plate(u0, 586, u1, 654, dark_d, 0.0065, 0.009)
@@ -429,17 +412,6 @@ def build(spec, mats):
                 label(onF((u0 + u1) / 2, 646, 0.0), 0.075, 0.012, 6, 3)
                 for u_ in lin(u0 + 12, u1 - 12, 4):
                     lamps_d.cyl((onF(u_, 591, 0.0).x, onF(u_, 591, 0.0).y - 0.004, onF(u_, 591, 0.0).z), (onF(u_, 591, 0.0).x, onF(u_, 591, 0.0).y - 0.009, onF(u_, 591, 0.0).z), 0.0028, 5)
-        # kablo demetleri: şeridin altından çene camı kenarlarına
-        for sd, u_ in ((-1, 676), (1, 924)):      # çene camı yan lamba sırası + tünel üstünde LED şeridi
-            for v_ in (600, 618, 636, 650):
-                pl = onF(u_ + sd * 7 * -1, v_, 0.0)
-                lamps_d.cyl((pl.x, pl.y - 0.012, pl.z), (pl.x, pl.y - 0.018, pl.z), 0.0032, 5)
-            p1, p2, p3 = onF(u_, 580, 0.012), onF(u_ + sd * -10, 600, 0.012), onF(u_ + sd * -22, 640, 0.012)
-            bundle([(p1.x, p1.y, p1.z), (p2.x, p2.y, p2.z), (p3.x, p3.y, p3.z)])
-        for u_ in lin(cq[0][0] + 10, cq[1][0] - 10, 9):      # çene camı üst kenarı: etiketli aydınlık şerit (pale) + LED
-            pp = onF(u_, 586, 0.0)
-            pale_d.box((pp.x, pp.y - 0.006, pp.z), (0.012, 0.004, 0.0045))
-        label(onF((cq[0][0] + cq[1][0]) / 2, 579, 0.0), 0.10, 0.011, 7, 4)
         # --- D: sol/sağ kanat (kıskaç kumanda grubu ve göstergeler)
         for sd, (u0, u1) in ((-1, (330, 522)), (1, (1078, 1270))):
             plate(u0, 572, u1, 650, dark_d, 0.006, 0.009)
@@ -555,17 +527,6 @@ def build(spec, mats):
                         wbox(pale_d, sd, t_ - 0.004 / Lw, zc_, pw_ * 0.74, 0.048, 0.020)
                         for k2_ in range(3):
                             wbox(black_d, sd, t_ - 0.004 / Lw + (k2_ - 1) * 0.008 / Lw, zc_, 0.005, 0.030 - 0.006 * (k2_ % 2), 0.0225)
-        # orta dikme: tek ince gövde; yüzeyde küçük panel, etiket ve bulon (r013)
-        pw0 = cb.get('post_w', 0.03)
-        bare_d.box((0, fy - 0.0025, zs + (zh - zs) * 0.40), (pw0 + 0.004, 0.005, 0.060))
-        dark_d.box((0, fy - 0.0045, zs + (zh - zs) * 0.40), (pw0 - 0.004, 0.005, 0.052))
-        pale_d.box((0, fy - 0.0045, zs + (zh - zs) * 0.62), (pw0 - 0.004, 0.005, 0.050))
-        for k2_ in range(3):
-            black_d.box(((k2_ - 1) * 0.0065, fy - 0.0075, zs + (zh - zs) * 0.62), (0.0035, 0.002, 0.030 - 0.006 * (k2_ % 2)))
-        for fz_ in (0.31, 0.49, 0.55, 0.69):
-            rivets.cyl((0, fy - 0.0075, zs + (zh - zs) * fz_), (0, fy - 0.0125, zs + (zh - zs) * fz_), 0.0035, 6)
-        for z_ in (zs + 0.11, (zs + zh) / 2, zh - 0.11):
-            hazard_d.box((0, fy - 0.0045, z_), (cb.get('post_w', 0.036) + 0.004, 0.009, 0.034))
         # başlık kirişi: boru hattı, kelepçeler, sarı-siyah alt flanş, etiket plakaları
         for z_ in (zh + 0.075, zh + 0.112):
             black_d.cyl((-0.70, fy - 0.026, z_), (0.70, fy - 0.026, z_), 0.0125, 8)
@@ -596,19 +557,19 @@ def build(spec, mats):
         add('seat_buckle', geo.bm_box((0, -0.27, pz + 0.22), (0.07, 0.02, 0.05)), 'gunmetal')
     add('seat_base', geo.bm_box((0, -0.05, pz - 0.18), (0.36, 0.5, 0.24)), 'gunmetal')
 
-    if prod:      # r013: pilot görüşünde görünen koltuk başlığı/omuz kanatları (Kaşif'te alt orta bölgede koltuk belli oluyor); çene camı bölgesinde, HUD sırtının altında
+    if prod:      # r014: koltuk başlığı radar çerçevesinin hemen altından (v≈552) kadraj altına; görünen kısım ≈ üst 12 cm. Kaşif oranına en yakın değer (radar ekran sözleşmesi sabit)
         sy = 0.555
-        add('seat_headrest_v', soft_box((0, sy, -0.530), (0.30, 0.10, 0.19), 0.025, 1), 'yuk_leather')
+        add('seat_headrest_v', soft_box((0, sy, -0.519), (0.36, 0.10, 0.26), 0.025, 1), 'yuk_leather')
         for s_ in (-1, 1):
-            add('seat_wing_v_%s' % ('L' if s_ < 0 else 'R'), soft_box((s_ * 0.205, sy - 0.01, -0.595), (0.09, 0.11, 0.17), 0.022, 1), 'yuk_leather')
-            add('seat_strap_v_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.085, sy - 0.047, -0.66), (0.030, 0.008, 0.20)), 'yuk_black')
-        fy_ = sy - 0.0475
-        add('seat_seam_v', geo.bm_box((0, fy_, -0.57), (0.006, 0.004, 0.15)), 'yuk_pale')
-        add('seat_seam_h', geo.bm_box((0, fy_, -0.505), (0.26, 0.004, 0.006)), 'yuk_pale')
-        for s_ in (-1, 1):
-            add('seat_seam_w_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.12, fy_, -0.57), (0.006, 0.004, 0.15)), 'yuk_pale')
-            add('seat_wing_seam_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.205, sy - 0.0605, -0.595), (0.006, 0.004, 0.13)), 'yuk_pale')
-        add('seat_buckle_v', geo.bm_box((0, sy - 0.049, -0.66), (0.050, 0.010, 0.036)), 'yuk_steel')
+            nm_ = 'L' if s_ < 0 else 'R'
+            add('seat_wing_v_' + nm_, soft_box((s_ * 0.235, sy - 0.012, -0.585), (0.10, 0.11, 0.25), 0.022, 1), 'yuk_leather')
+            add('seat_strap_v_' + nm_, geo.bm_box((s_ * 0.085, sy - 0.0525, -0.50), (0.026, 0.006, 0.26)), 'yuk_black')
+            add('seat_seam_c_' + nm_, geo.bm_box((s_ * 0.150, sy - 0.0515, -0.50), (0.004, 0.003, 0.22)), 'yuk_pale')
+            add('seat_seam_w_' + nm_, geo.bm_box((s_ * 0.235, sy - 0.0625, -0.50), (0.004, 0.003, 0.20)), 'yuk_pale')
+        fy_ = sy - 0.0515
+        add('seat_seam_h1', geo.bm_box((0, fy_, -0.405), (0.30, 0.003, 0.004)), 'yuk_pale')
+        add('seat_buckle_v', geo.bm_box((0, sy - 0.0535, -0.46), (0.070, 0.012, 0.050)), 'yuk_steel')
+        add('seat_buckle_tongue', geo.bm_box((0, sy - 0.0585, -0.46), (0.030, 0.004, 0.026)), 'yuk_bare')
 
     # ---- kıskaç: statik, animasyona hazır hiyerarşi (STANDARDS §0.3)
     cl = A['claw']
