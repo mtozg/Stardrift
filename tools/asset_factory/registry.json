@@ -475,7 +475,9 @@
      "reason": "PRODUCTION modeli r008 (Kapı 1 onaylı r007 tasarımına dayanır)"
     }
    ],
-   "timings": {},
+   "timings": {
+    "model": 1249.6
+   },
    "approvals": [
     {
      "t": "2026-11-20T08:16:40+00:00",
@@ -485,8 +487,8 @@
      "accept_warn": []
     }
    ],
-   "geometry_hash": "f5032de428ae3d351b6ad2c744e37eb2f8771124b2d7c125da07eabceb6ee1ca",
-   "spec_hash": "47d6ac74b5f2250085ec6cf666bd6f8a562ca59b7402d01b313dee815e3adba7",
+   "geometry_hash": "a6bf5a44ce90568a51d6fd5ea153ceff400bca2e92ee546e46833a0bf2c5ee43",
+   "spec_hash": "5450cdac23dd2831341c7b7e81d70f6a31f91c6295e1a558887ce6bdf052a92f",
    "fast": false,
    "perf_baseline": null
   }
