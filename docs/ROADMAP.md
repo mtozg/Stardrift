@@ -68,7 +68,7 @@ Lead Developer işleri tek dalda (`claude/stardrift-hod-system-np3akq`) sırayla
 | B-01d | Aşama 1-D taraf unvanları | İnceleme (Sprint 3, 1.59.0); tarafa özel görev kilidi sonraya |
 | B-03 | Hayalet kokpiti | Yük Devi'den sonra |
 | B-04 | Bölüm 6 final patronu: Kadim Bekçi | İnceleme (K25); ödül yalnız rozet |
-| B-05 | Pilot Kütüğü ve rozetler | İnceleme (Sprint 2): 10 rozet, kademeli, ödülsüz; rozet çizimleri Asset Factory'ye sonra |
+| B-05 | Başarımlar (eski adı Pilot Kütüğü) ve rozetler | İnceleme (Sprint 2): 10 rozet, kademeli, ödülsüz; rozet çizimleri Asset Factory'ye sonra |
 | B-06 | Yetenek sıfırlama | Ücret Mehmet onayına bağlı |
 | B-07 | Playwright regresyon seti | Tamam: `tools/qa/` (`bash tools/qa/run.sh`) |
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | QA incelemesi |

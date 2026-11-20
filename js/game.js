@@ -5589,7 +5589,7 @@ const RWM = () => curW().cost * (1 - 0.15 * (window.__facDep ? window.__facDep()
   const dc = $('dcont'), openMap = {}, SPEC = {
     cargoList: { rules: [['ore', 'Cevher satışı', el => !!el.querySelector('img.oi')], ['dev', 'İstasyon gelişimi', el => !!el.querySelector('img.db')], ['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)]], def: 'ore' },
     hgBox: { rules: [['rep', 'Tamirhane', el => /Tamirhane/.test(el.textContent)], ['ships', 'Gemiler', () => true]], def: 'ships' },
-    wpBox: { sect: true, def: ['Lazer'] }, eqBox: { sect: true, def: [] }, repBox: { sect: true, def: [] }, stBox: { sect: true, def: [] }, facBox: { sect: true, def: [] }, lqBox: { sect: true, def: ['Ana görev'] }, upgrades: { sect: true, def: ['Gemi geliştirme'] }, exBox: { sect: true, def: ['Kendi üssün'] }, jumpBox: { sect: true, def: ['Hiperatlama'] }, ctBox: { sect: true, def: ['Aktif yan', 'Yan görev panosu'] }
+    wpBox: { sect: true, def: ['Lazer'] }, eqBox: { sect: true, def: [] }, repBox: { sect: true, def: [] }, stBox: { sect: true, def: [] }, facBox: { sect: true, def: [] }, lqBox: { sect: true, def: ['Ana görev'] }, upgrades: { sect: true, def: ['Gemi geliştirme'] }, exBox: { sect: true, def: ['Kendi üssün'] }, jumpBox: { sect: true, def: ['Hiperatlama'] }, ctBox: { sect: true, get def(){ return (save.mq && save.mq.i >= 1) ? ['Aktif yan', 'Yan görev panosu'] : ['Aktif yan']; } }   /* 1.60.1: yeni oyuncuda yan görev panosu ilk ana görev adımı alınana kadar kapalı gelir (kalabalık azalsın) */
   };
   for (const id of ['exBox', 'jumpBox']){ const e = $(id); if (e && e.parentNode !== dc) dc.appendChild(e); }
   const obs = {};
@@ -7543,7 +7543,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   if (TESTM) window.__ozelT = { gen: () => ctGen(), mkUzak, mkToplu };
 }
 
-// ---- Pilot Kütüğü (B-05): mevcut sayaçlardan türeyen rozetler, Görevler sekmesinin sonunda. Ödülü yok (kozmetik); yeni sayaç ya da ekonomi değişikliği yok.
+// ---- Başarımlar (B-05, eski adı Pilot Kütüğü): mevcut sayaçlardan türeyen rozetler, Görevler sekmesinin sonunda. Ödülü yok (kozmetik); yeni sayaç ya da ekonomi değişikliği yok.
 {
   const KD = () => (window.__kadimCount ? window.__kadimCount() : 0), ST = k => ((save.st && save.st[k]) || 0);
   const TIER = ['Bronz', 'Gümüş', 'Altın'], TCOL = ['#c98a5a', '#c5d2e2', '#ffc94d'];
@@ -7567,7 +7567,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     for (const b of BG){ const { v, n } = level(b); tot += b.tek ? (n ? 3 : 0) : n; const nx = b.t[Math.min(n, 2)];
       const tag = n === 0 ? '<i style="color:#6f7d99">kilitli</i>' : b.tek ? '<i style="color:' + TCOL[2] + '">kazanıldı</i>' : '<i style="color:' + TCOL[n - 1] + '">' + TIER[n - 1] + '</i>';
       h += '<div class="line"><span>' + b.ad + ' ' + tag + '<span class="dim"><br>' + (b.tek ? b.d : (n >= 3 ? v + ' ' + b.d + ' · en üst kademe' : v + ' / ' + nx + ' ' + b.d)) + '</span></span></div>'; }
-    box.insertAdjacentHTML('beforeend', '<div class="sect">Pilot Kütüğü · ' + tot + '/30</div>' + h);
+    box.insertAdjacentHTML('beforeend', '<div class="sect">Başarımlar · ' + tot + '/30</div>' + h);
   };
 }
 
