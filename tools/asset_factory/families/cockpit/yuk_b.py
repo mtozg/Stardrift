@@ -9,7 +9,27 @@ Kütleler (Blender: +Y ileri, +Z yukarı, göz orijinde):
 import bpy, bmesh, math
 from mathutils import Vector, Matrix
 from core import geo
-from families.cockpit.build import P, face_eye, grid, tube, lin, F, CX, CY, W, H
+from families.cockpit.build import P, face_eye, grid, tube, lin, F, CX, CY, W, H, Soft, soft_box
+
+
+class Acc:
+    """Aynı malzemeli küçük parçaları tek bmesh'te toplar (PRODUCTION ayrıntısı: nesne sayısı düşük kalır)."""
+    def __init__(self):
+        self.bm = bmesh.new()
+
+    def box(self, c, s, rot_z=0.0):
+        r = bmesh.ops.create_cube(self.bm, size=1.0)
+        bmesh.ops.transform(self.bm, matrix=Matrix.Translation(Vector(c)) @ Matrix.Rotation(rot_z, 4, 'Z') @ Matrix.Diagonal((*s, 1.0)), verts=r['verts'])
+
+    def cyl(self, p0, p1, r, seg=6):
+        p0, p1 = Vector(p0), Vector(p1)
+        d = p1 - p0
+        up = 'X' if abs(d.normalized().y) > 0.99 else 'Y'
+        M = Matrix.Translation((p0 + p1) / 2) @ d.to_track_quat('Z', up).to_matrix().to_4x4()
+        bmesh.ops.create_cone(self.bm, cap_ends=True, cap_tris=False, segments=seg, radius1=r, radius2=r, depth=d.length, matrix=M)
+
+    def empty(self):
+        return len(self.bm.verts) == 0
 
 
 def wall_box(a, b, z0, z1, th):
@@ -34,11 +54,26 @@ def wall_box(a, b, z0, z1, th):
 def build(spec, mats):
     A = spec['params']
     obs = []
+    prod = spec.get('profile') == 'PRODUCTION'
+    rivets, dark_d, black_d, rust_d, hazard_d, lamps_d = Acc(), Acc(), Acc(), Acc(), Acc(), Acc()      # PRODUCTION ayrıntı grupları (malzeme başına tek nesne)
 
     def add(name, bm, mat, role='body', smooth=35, eye=False, solid=None, toward_eye=False):
+        sft = bm if isinstance(bm, Soft) else None
+        if sft:
+            bm = sft.bm
         if eye:
             face_eye(bm)
         ob = geo.mesh_object(name, bm, mats[mat], coll='Asset', role=role)
+        if sft:
+            mb = ob.modifiers.new('bev', 'BEVEL')
+            mb.width = sft.bev
+            mb.segments = 2
+            mb.limit_method = 'NONE'
+            geo.apply_modifier(ob, mb)
+            ms = ob.modifiers.new('ss', 'SUBSURF')
+            ms.levels = sft.level
+            ms.render_levels = sft.level
+            geo.apply_modifier(ob, ms)
         if solid:
             m = ob.modifiers.new('sol', 'SOLIDIFY')
             m.thickness = solid
@@ -156,6 +191,9 @@ def build(spec, mats):
             outer.append(((u + du / l * bezel_px * 1.4, v + dv / l * bezel_px * 1.4), d))
         rin = [P(u, v, d + 0.002) for (u, v), d in zip(q, depths)]
         rout = [P(u, v, d + 0.002) for (u, v), d in outer]
+        if prod:      # çerçeve köşelerinde bulon başları
+            for pp in rout:
+                rivets.cyl(pp - pp.normalized() * 0.006, pp - pp.normalized() * 0.0135, 0.0085, 6)
         bm2 = bmesh.new()
         vi = [bm2.verts.new(p) for p in rin]
         vo = [bm2.verts.new(p) for p in rout]
@@ -197,15 +235,99 @@ def build(spec, mats):
         add('lever_grip_%d' % u, geo.bm_cylinder((x, 0.58, -0.52), (x, 0.575, -0.46), 0.03, 14), 'yuk_hazard', smooth=60)
         add('lever_cap_%d' % u, geo.bm_cylinder((x, 0.575, -0.46), (x, 0.574, -0.445), 0.026, 14), 'yuk_black', smooth=60)
 
+    # ---- PRODUCTION ayrıntısı (kokpit gövdesi): perçin sıraları, flanşlar, plakalar, havalandırma, anahtar panelleri, ikaz lambaları
+    if prod:
+        # (1) başlık kirişi: ön yüzde iki perçin sırası + alt flanş şeridi; yan başlıklarda aynı sıralar eğik hat boyunca
+        for z in (zh + 0.026, zc - 0.026):
+            for x in lin(-fh + 0.06, fh - 0.06, 17):
+                if abs(x) > 0.05:
+                    rivets.cyl((x, fy - 0.0085, z), (x, fy, z), 0.0075, 6)
+        dark_d.box((0, fy - 0.015, zh + 0.012), (2 * fh, 0.03, 0.024))
+        for sd in (-1, 1):
+            a2, b2 = Vector((*side_pt(sd, 0), 0)), Vector((*side_pt(sd, 1), 0))
+            dd = (b2 - a2).normalized()
+            nn = Vector((dd.y, -dd.x, 0))
+            if nn.dot((a2 + b2) / 2) < 0:
+                nn = -nn
+            inw = -nn
+            for z in (zh + 0.026, zc - 0.026):
+                for t in lin(0.05, 0.95, 9):
+                    pp = a2 + (b2 - a2) * t
+                    rivets.cyl((pp.x, pp.y, z), (pp.x + inw.x * 0.0085, pp.y + inw.y * 0.0085, z), 0.0075, 6)
+            # dikme tabanı ve tepesinde bağlantı plakaları + 4 bulon
+            for t in (0.0, cb['side_post_t']):
+                pp = a2 + (b2 - a2) * t
+                for z in (zs + 0.05, zh - 0.05):
+                    dark_d.box((pp.x + inw.x * 0.004, pp.y + inw.y * 0.004, z), (0.085, 0.085, 0.08), rot_z=math.atan2(dd.y, dd.x))
+        for z in (zs + 0.055, zh - 0.055):      # orta dikme plakaları
+            dark_d.box((0, fy - 0.006, z), (0.1, 0.012, 0.07))
+            for dx in (-0.032, 0.032):
+                for dz in (-0.022, 0.022):
+                    rivets.cyl((dx, fy - 0.0125, z + dz), (dx, fy - 0.006, z + dz), 0.007, 6)
+
+        # (2) güverte dudağı: perçin sırası; güverte plakaları, havalandırma ızgaraları, anahtar kapakları
+        for x in lin(-0.86, 0.86, 29):
+            rivets.cyl((x, ey - 0.014, ez - 0.045), (x, ey - 0.006, ez - 0.045), 0.0055, 6)
+        for sd in (-1, 1):
+            gx, gy = sd * 0.43, 0.94
+            dark_d.box((gx, gy, ez + 0.006), (0.22, 0.15, 0.012))
+            for k in range(8):
+                black_d.box((gx, gy - 0.062 + k * 0.0177, ez + 0.0145), (0.19, 0.007, 0.01))
+            for k in range(3):      # anahtar kapakları (kaldırma kolları)
+                cx_ = sd * (0.19 + k * 0.045)
+                rust_d.box((cx_, 0.86, ez + 0.014), (0.032, 0.034, 0.028))
+                hazard_d.cyl((cx_, 0.86, ez + 0.026), (cx_, 0.86, ez + 0.044), 0.006, 6)
+            dark_d.box((sd * 0.62, 0.95, ez + 0.008), (0.12, 0.10, 0.016))      # kenar servis kapağı
+            for dx_ in (-0.05, 0.05):
+                for dy_ in (-0.035, 0.035):
+                    rivets.cyl((sd * 0.62 + dx_, 0.95 + dy_, ez + 0.016), (sd * 0.62 + dx_, 0.95 + dy_, ez + 0.0235), 0.0065, 6)
+
+        # (3) konsol ön yüzü (fascia): panel dikişleri, anahtar panelleri, ikaz lambaları, kadran
+        def onF(u, v, off=0.0):
+            return P(u, v, fd(v) - off)
+
+        def seam(u, v0, v1):
+            pc = onF(u, (v0 + v1) / 2, 0.003)
+            black_d.box((pc.x, pc.y, pc.z), (0.006, 0.004, abs(v1 - v0) / F * fd((v0 + v1) / 2)))
+        for u in (300, 1300):
+            seam(u, 566, 656)
+        for u in (590, 1010):
+            seam(u, 580, 656)
+        for sd, (u0, u1) in ((-1, (345, 480)), (1, (1120, 1255))):
+            pa, pb = onF(u0, 588, 0.004), onF(u1, 640, 0.004)
+            dark_d.box(((pa.x + pb.x) / 2, pa.y, (pa.z + pb.z) / 2), (abs(pb.x - pa.x) + 0.02, 0.008, abs(pa.z - pb.z) + 0.02))
+            for r_, v_ in enumerate((602, 626)):
+                for k_, u_ in enumerate(lin(u0 + 14, u1 - 14, 5)):
+                    pc = onF(u_, v_, 0.0)
+                    black_d.box((pc.x, pc.y - 0.006, pc.z), (0.02, 0.016, 0.018))
+                    (rust_d if (k_ + r_) % 2 else hazard_d).cyl((pc.x, pc.y - 0.014, pc.z), (pc.x, pc.y - 0.032, pc.z), 0.0062, 6)
+            for u_ in lin(u0 + 14, u1 - 14, 5):      # ikaz lambaları
+                pc = onF(u_, 578, 0.0)
+                lamps_d.cyl((pc.x, pc.y - 0.002, pc.z), (pc.x, pc.y - 0.012, pc.z), 0.0058, 6)
+            pd = onF(u1 + 26 if sd < 0 else u0 - 26, 612, 0.0)      # kadran
+            dark_d.cyl((pd.x, pd.y - 0.002, pd.z), (pd.x, pd.y - 0.016, pd.z), 0.034, 10)
+            black_d.cyl((pd.x, pd.y - 0.016, pd.z), (pd.x, pd.y - 0.019, pd.z), 0.027, 10)
+            rust_d.box((pd.x + 0.008, pd.y - 0.0205, pd.z + 0.008), (0.003, 0.003, 0.02), rot_z=0.0)
+        for u in lin(cq[0][0] + 16, cq[1][0] - 16, 12):      # çene camı çerçevesi perçinleri
+            pp = onF(u, cv0 - 13, 0.0)
+            rivets.cyl((pp.x, pp.y - 0.003, pp.z), (pp.x, pp.y - 0.0115, pp.z), 0.0062, 6)
+
     # ---- koltuk (pilot görüşünde görünmez; çapraz ve plan görünüşleri için)
     st = A['seat']
     pz = st['pan_z']
-    add('seat_pan', geo.bm_box((0, -0.02, pz), (0.58, 0.52, 0.13)), 'seat_textile')
-    back = geo.bm_box((0, -0.31, pz + 0.42), (0.56, 0.12, 0.80))
-    bmesh.ops.rotate(back, cent=Vector((0, -0.31, pz + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=back.verts)
+    mk = (lambda c, sz: soft_box(c, sz, 0.035, 1)) if prod else (lambda c, sz: geo.bm_box(c, sz))      # PRODUCTION: dolgulu yumuşak minderler (Bevel + Subsurf)
+    add('seat_pan', mk((0, -0.02, pz), (0.58, 0.52, 0.13)), 'seat_textile')
+    back = mk((0, -0.31, pz + 0.42), (0.56, 0.12, 0.80))
+    bmesh.ops.rotate(back.bm if isinstance(back, Soft) else back, cent=Vector((0, -0.31, pz + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=(back.bm if isinstance(back, Soft) else back).verts)
     add('seat_back', back, 'seat_textile')
     for s in (-1, 1):
-        add('seat_arm_%s' % ('L' if s < 0 else 'R'), geo.bm_box((s * 0.34, -0.05, pz + 0.17), (0.09, 0.46, 0.08)), 'yuk_dark')
+        add('seat_arm_%s' % ('L' if s < 0 else 'R'), mk((s * 0.34, -0.05, pz + 0.17), (0.09, 0.46, 0.08)), 'yuk_dark')
+    if prod:      # kemer şeritleri ve tokalar
+        for s in (-1, 1):
+            strap = geo.bm_box((s * 0.15, -0.35, pz + 0.55), (0.05, 0.012, 0.62))
+            bmesh.ops.rotate(strap, cent=Vector((0, -0.31, pz + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=strap.verts)
+            add('seat_strap_%s' % ('L' if s < 0 else 'R'), strap, 'yuk_black')
+        add('seat_buckle', geo.bm_box((0, -0.27, pz + 0.22), (0.07, 0.02, 0.05)), 'gunmetal')
     add('seat_base', geo.bm_box((0, -0.05, pz - 0.18), (0.36, 0.5, 0.24)), 'gunmetal')
 
     # ---- kıskaç: statik, animasyona hazır hiyerarşi (STANDARDS §0.3)
@@ -239,7 +361,7 @@ def build(spec, mats):
     joint('ART_claw_jaw_R', wrist + xa * 0.06 + d * 0.04, 'ART_claw_wrist', 'çene düzlemi normali: sağ çene açma')
 
     def part(name, bm, mat, parent, smooth=60):
-        ob = add(name, bm, mat, smooth=smooth)
+        ob = add(name, bm, mat, smooth=smooth, role='art')      # eklemli: prepare birleştirmez, eklem başına ayırır (STANDARDS §0.3)
         ob.parent = joints[parent]
         ob.matrix_parent_inverse = joints[parent].matrix_world.inverted()
         return ob
@@ -258,6 +380,35 @@ def build(spec, mats):
         part('claw_jaw_%s' % jn, tube(pts, tr, 12), 'yuk_rust', 'ART_claw_jaw_' + jn)
         tip = pts[-1]
         part('claw_tooth_%s' % jn, geo.bm_cylinder(tip - nrm * 0.03, tip + nrm * 0.03, tr * 1.25, 12), 'gunmetal', 'ART_claw_jaw_' + jn)
+
+
+    if prod:      # kıskaç ayrıntısı: hidrolik silindirler, kelepçeler, civata başları, çene dişleri (hepsi ilgili eklemin çocuğu)
+        for sx in (-1, 1):
+            off = xa * sx * (gap * 0.5 + 0.075)
+            a0, a1 = shoulder + d * 0.03 + off, elbow - d * 0.06 + off
+            part('claw_piston_barrel_%d' % sx, geo.bm_cylinder(a0, a0 + (a1 - a0) * 0.62, 0.024, 12), 'yuk_dark', 'ART_claw_shoulder')
+            part('claw_piston_rod_%d' % sx, geo.bm_cylinder(a0 + (a1 - a0) * 0.62, a1, 0.011, 8), 'gunmetal', 'ART_claw_elbow')
+            part('claw_clamp_%d' % sx, geo.bm_cylinder(a0 + (a1 - a0) * 0.30 - d * 0.012, a0 + (a1 - a0) * 0.30 + d * 0.012, 0.031, 12), 'gunmetal', 'ART_claw_shoulder')
+            part('claw_pin_head_%d' % sx, geo.bm_cylinder(elbow + xa * sx * 0.09, elbow + xa * sx * 0.108, 0.03, 8), 'gunmetal', 'ART_claw_elbow')
+        part('claw_shoulder_collar', geo.bm_cylinder(shoulder - xa * 0.11, shoulder + xa * 0.11, 0.05, 14), 'gunmetal', 'ART_claw_shoulder')
+        for k in range(6):
+            ang = k * math.pi / 3
+            bp = wrist + d * 0.09 + (xa * math.cos(ang) + nrm * math.sin(ang)) * 0.056
+            part('claw_hub_bolt_%d' % k, geo.bm_cylinder(bp, bp + d * 0.012, 0.0085, 6), 'gunmetal', 'ART_claw_wrist')
+        for dx_ in (-0.07, 0.07):
+            for dd_ in (-0.045, 0.045):
+                bp = root + Vector((dx_, dd_, 0.085))
+                part('claw_mount_bolt_%d_%d' % (dx_ * 100, dd_ * 100), geo.bm_cylinder(bp, bp + Vector((0, 0, 0.012)), 0.011, 6), 'gunmetal', 'ART_claw_root')
+        for jn, sx in (('L', -1), ('R', 1)):      # çene dişleri: ucun son bölümünde üç diş
+            pts_ = [c + R * (-math.cos(math.radians(a)) * d + math.sin(math.radians(a)) * sx * xa) for a in lin(12, 158, 16)]
+            for k, i_ in enumerate((11, 12, 13)):
+                part('claw_tooth_%s_%d' % (jn, k), geo.bm_box(tuple(pts_[i_] - xa * sx * 0.026), (0.022, 0.03, 0.022)), 'gunmetal', 'ART_claw_jaw_' + jn, smooth=35)
+
+    if prod:      # toplu ayrıntı grupları: malzeme başına tek nesne
+        for nm, acc, mt, role in (('detail_rivets', rivets, 'gunmetal', 'body'), ('detail_plates', dark_d, 'yuk_dark', 'body'), ('detail_black', black_d, 'yuk_black', 'body'),
+                                  ('detail_rust', rust_d, 'yuk_rust', 'body'), ('detail_hazard', hazard_d, 'yuk_hazard', 'body'), ('detail_lamps', lamps_d, 'emit_amber', 'emit_live')):
+            if not acc.empty():
+                add(nm, acc.bm, mt, role=role, smooth=60)
 
     socks = [{'name': 'SOCK_cam_0', 'loc': (0, 0, 0), 'dir': (0, 1, 0), 'extras': {'purpose': 'pilot gözü (kamera sözleşmesi)', 'fovy': 74}},
              {'name': 'SOCK_claw_grip', 'loc': tuple(c + Vector((0, R, 0))), 'dir': (0, 1, 0), 'extras': {'purpose': 'kıskaç kavrama noktası', 'parent': 'ART_claw_wrist'}}]

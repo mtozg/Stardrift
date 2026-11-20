@@ -73,24 +73,74 @@ def run(path, spec, budgets, rules, extra=None):
     nl = len(spec['lods'])
     lod_nodes = {names[c]: nodes[c] for c in root.get('children', []) if names[c].startswith('LOD')}
     o.add('contract.lods', 'L2', sorted(lod_nodes) == ['LOD%d' % i for i in range(nl)], sorted(lod_nodes), nl)
-    bad_names = [n for n in names if not (n == root_name or n.startswith(('LOD', 'SOCK_', 'COL_', 'SCR_')))]
-    o.add('contract.names', 'L2', not bad_names, bad_names, 'SD_/LODn/LODn_<rol>/SOCK_/COL_/SCR_')
+    bad_names = [n for n in names if not (n == root_name or n.startswith(('LOD', 'SOCK_', 'COL_', 'SCR_', 'ART_')))]
+    o.add('contract.names', 'L2', not bad_names, bad_names, 'SD_/LODn/LODn_<rol>/SOCK_/COL_/SCR_/ART_<parça>_<eklem>')
     import re
-    bad_mesh = [names[c] for ln in lod_nodes.values() for c in ln.get('children', []) if not re.fullmatch(r'LOD\d_(body|emit|glass)', names[c])]
-    o.add('contract.mesh_roles', 'L2', not bad_mesh, bad_mesh or None, 'LODn_body|emit|glass')
+    bad_mesh = [names[c] for ln in lod_nodes.values() for c in ln.get('children', []) if not re.fullmatch(r'LOD\d_(body|emit|glass)|ART_\w+', names[c])]
+    o.add('contract.mesh_roles', 'L2', not bad_mesh, bad_mesh or None, 'LODn_body|emit|glass (+ ART_ eklem düğümleri)')
     socks = [n for n in names if n.startswith('SOCK_')]
     need = {'test': ['SOCK_engine_'], 'npc_ship': ['SOCK_engine_'], 'player_ship': ['SOCK_engine_'], 'station': ['SOCK_dock_'], 'cockpit': ['SOCK_cam_']}.get(spec['family'], [])
     o.add('contract.sockets', 'L2', all(any(s.startswith(p) for s in socks) for p in need), socks, need)
-    nonid = [n.get('name') for n in nodes if not n.get('name', '').startswith('SOCK_') and any(k in n for k in ('translation', 'rotation', 'scale', 'matrix'))]
-    o.add('contract.transforms', 'L2', not nonid, nonid, 'mesh/LOD/kök düğümleri birim dönüşümlü')
+
+    # --- eklemli parçalar (STANDARDS §0.3): hiyerarşi, eksen bilgisi, pivot eklem merkezinde, mesh düğümleri birim, soket eklemle birlikte hareket eder
+    artspec = spec.get('articulation')
+    if artspec:
+        parent_of = {c: i for i, n in enumerate(nodes) for c in n.get('children', [])}
+        idx_of = {n: i for i, n in enumerate(names)}
+        wrong = []
+        for jn, exp in artspec.get('joints', {}).items():
+            i = idx_of.get(jn)
+            if i is None:
+                wrong.append('%s yok' % jn)
+            elif names[parent_of.get(i, -1)] != (exp or 'LOD0'):
+                wrong.append('%s: ebeveyn %s ≠ %s' % (jn, names[parent_of.get(i, -1)], exp or 'LOD0'))
+        o.add('art.hierarchy', 'L2', not wrong, wrong or 'tam', sorted(artspec.get('joints', {})), 'gövde → omuz → dirsek → bilek → çeneler')
+        noax = [jn for jn in artspec.get('joints', {}) if jn in idx_of and not nodes[idx_of[jn]].get('extras', {}).get('joint_axis')]
+        o.add('art.joint_axis', 'L2', not noax, noax or 'tam', None, 'her eklem düğümünde extras.joint_axis (dönüş ekseni)')
+        far, nonid_geo = [], []
+        for jn in artspec.get('joints', {}):
+            i = idx_of.get(jn)
+            if i is None:
+                continue
+            for c in nodes[i].get('children', []):
+                if names[c].endswith('_geo') and 'mesh' in nodes[c]:
+                    if any(k in nodes[c] for k in ('translation', 'rotation', 'scale', 'matrix')):
+                        nonid_geo.append(names[c])
+                    lo_, hi_ = np.array([1e9] * 3), np.array([-1e9] * 3)
+                    for p_ in j['meshes'][nodes[c]['mesh']]['primitives']:
+                        acc = j['accessors'][p_['attributes']['POSITION']]
+                        lo_, hi_ = np.minimum(lo_, acc['min']), np.maximum(hi_, acc['max'])
+                    d = float(np.linalg.norm(np.maximum(np.maximum(lo_, -hi_), 0)))      # eklem merkezinin (yerel başlangıç) geometri kutusuna uzaklığı
+                    if d > artspec.get('pivot_tol_m', 0.15):
+                        far.append('%s: %.3f m' % (names[c], d))
+        o.add('art.pivot_near_geometry', 'L2', not far, far or 'tam', artspec.get('pivot_tol_m', 0.15), 'eklem merkezi (pivot) kendi geometrisine yakın')
+        o.add('art.geo_identity', 'L2', not nonid_geo, nonid_geo or 'tam', None, 'eklem mesh düğümleri birim dönüşümlü (köşeler eklem uzayında)')
+        sock_bad = [s_ for s_, pj in artspec.get('sockets', {}).items() if s_ not in idx_of or names[parent_of.get(idx_of[s_], -1)] != pj]
+        o.add('art.socket_follows', 'L2', not sock_bad, sock_bad or 'tam', artspec.get('sockets'), 'soket ilgili eklemin çocuğu')
+    nonid = [n.get('name') for n in nodes if not n.get('name', '').startswith(('SOCK_', 'ART_')) and any(k in n for k in ('translation', 'rotation', 'scale', 'matrix'))]
+    o.add('contract.transforms', 'L2', not nonid, nonid, 'mesh/LOD/kök düğümleri birim dönüşümlü (SOCK_ ve ART_ eklem düğümleri hariç)')
     ex = root.get('extras', {})
     req = ['id', 'rev', 'family', 'class', 'units', 'forward', 'up', 'bounds_min', 'bounds_max', 'radius', 'tris', 'spec_hash', 'geometry_hash'] + (['length_m'] if spec.get('length_m') is not None else [])      # kokpitin boyu yok
     o.add('contract.extras', 'L2', all(k in ex for k in req), [k for k in req if k not in ex] or 'tam', req)
 
     # --- geometri: LOD0 sınırları (gerçek köşelerden), boy, yön
+    def art_descendants(idx):
+        out = []
+        for c in nodes[idx].get('children', []):
+            if names[c].startswith('ART_'):
+                if 'mesh' in nodes[c]:
+                    out.append(nodes[c])
+                out += art_descendants(c)
+        return out
+
     def lod_meshes(i):
         ln = lod_nodes.get('LOD%d' % i, {})
-        return [nodes[c] for c in ln.get('children', []) if 'mesh' in nodes[c]]
+        res = [nodes[c] for c in ln.get('children', []) if 'mesh' in nodes[c]]
+        if i == 0:      # eklemli parçalar (ART_ altındaki mesh'ler) LOD0'ın parçasıdır: üçgen, çağrı, sınır, UV kapsamı
+            for c in ln.get('children', []):
+                if names[c].startswith('ART_'):
+                    res += art_descendants(c)
+        return res
     pos = []
     tris = []
     calls = 0

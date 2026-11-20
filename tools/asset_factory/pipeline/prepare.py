@@ -38,12 +38,15 @@ for o in objs:
     roles.setdefault(o.get('sd_role', 'body'), []).append(o)
 PC = spec.get('prepare', {})      # aileye özel hazırlık ayarları (kokpit: iç mekân temizliği, ekranlar, kanal boyutları)
 screens = roles.get('screen', [])      # SCR_* düğümleri ayrı kalır (oyun canlı ekranları ada göre bağlar)
+arts = roles.get('art', [])      # eklemli parçalar (ör. Yük Devi kıskacı): aynı atlasa pişer, sonra eklem başına ayrılır; temizlikten (cull) muaf
+joints = {o.name: o for o in bpy.data.objects if o.type == 'EMPTY' and o.name.startswith('ART_')}
+bpy.context.view_layer.update()
 body = cleanup.join_role(roles.get('body', []), 'LOD0_body')
 live = cleanup.join_role(roles.get('emit_live', []), 'LOD0_emit')
 info['welded_verts'] = cleanup.weld(body) + (cleanup.weld(live) if live else 0)
 t0 = tick('join_weld', t0)
 
-occ = [o for o in (body, live) if o] + screens
+occ = [o for o in (body, live) if o] + screens + arts
 info['tris_before_cull'] = geo.tri_count(occ)
 if PC.get('cull') == 'interior':
     eyes = [tuple(e) for e in PC['eyes']]
@@ -56,6 +59,23 @@ else:
         info['culled_faces']['emit'] = cleanup.cull_hidden_exterior(live, occ)
 info['tris_after_cull'] = geo.tri_count(occ)
 t0 = tick('cull_hidden', t0)
+
+part_joint = {}      # yüz özniteliği sd_part → eklem adı (0 = gövde)
+if arts:
+    import bmesh
+    groups = {}
+    for o in arts:
+        groups.setdefault(o.parent.name, []).append(o)
+    for pid, (jn, objs_) in enumerate(sorted(groups.items()), start=1):
+        part_joint[pid] = jn
+        for o in objs_:
+            o.data.attributes.new('sd_part', 'INT', 'FACE')
+            for i in range(len(o.data.polygons)):
+                o.data.attributes['sd_part'].data[i].value = pid
+    body.data.attributes.new('sd_part', 'INT', 'FACE')
+    body = cleanup.join_role([body] + arts, 'LOD0_body')      # gövde aktif nesne kalır
+    info['articulated'] = {jn: pid for pid, jn in part_joint.items()}
+    t0 = tick('join_articulated', t0)
 
 size = 512 if fast else spec['texture_size']
 tex = {k: (max(256, v // 4) if fast else v) for k, v in PC.get('tex', {'base': size, 'orm': size, 'normal': size}).items()}
@@ -110,6 +130,39 @@ if screens:   # ekran yer tutucusu: tek düz emisyon (≤ 1); oyunda canlı ekra
         o.data.materials.append(ms)
 t0 = tick('materials', t0)
 
+# eklemli parçaları ayır: her eklem için tek mesh, köşeler eklemin yerel uzayında (pivot eklem merkezinde), düğüm dönüşümü birim
+art_meshes = []
+if part_joint:
+    import bmesh
+    from mathutils import Matrix
+    me0 = body.data
+    coll = body.users_collection[0]
+
+    def keep_faces(me, pid, to_local=None):
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        lay = bm.faces.layers.int['sd_part']
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if f[lay] != pid], context='FACES')
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+        if to_local is not None:
+            bmesh.ops.transform(bm, matrix=to_local, verts=bm.verts)
+        bm.to_mesh(me)
+        bm.free()
+        me.update()
+    for pid, jn in part_joint.items():
+        me = me0.copy()
+        me.name = jn + '_geo'
+        keep_faces(me, pid, joints[jn].matrix_world.inverted())
+        ob = bpy.data.objects.new(jn + '_geo', me)
+        coll.objects.link(ob)
+        ob.parent = joints[jn]      # matrix_parent_inverse birim: yerel köşeler eklem uzayında
+        art_meshes.append(ob)
+        me.attributes.remove(me.attributes['sd_part'])
+    keep_faces(me0, 0)
+    me0.attributes.remove(me0.attributes['sd_part'])
+    info['articulated_tris'] = {o.name: len(o.data.polygons) for o in art_meshes}
+    t0 = tick('split_articulated', t0)
+
 # LOD
 ratios = spec['lods']
 lods = {0: [body] + ([live] if live else [])}
@@ -128,7 +181,7 @@ info['tris_lod'] = tris
 t0 = tick('lod', t0)
 
 # hiyerarşi + soketler + extras
-lo, hi = geo.bounds(lods[0])
+lo, hi = geo.bounds(lods[0] + art_meshes)
 gl, gh = geo.b2g(lo), geo.b2g(hi)
 bmin = [round(min(a, b), 4) for a, b in zip(gl, gh)]
 bmax = [round(max(a, b), 4) for a, b in zip(gl, gh)]
@@ -145,6 +198,9 @@ for i, group in lods.items():
         o.parent = le
 for o in screens:
     o.parent = root
+for jn, j in joints.items():
+    if j.parent is None:
+        j.parent = bpy.data.objects['LOD0']      # kinematik zincirin kökü LOD0 altında; alt eklemler zaten ebeveynine bağlı
 sock_objs = []
 for e in [o for o in bpy.data.objects if o.type == 'EMPTY' and o.name.startswith('SOCK_')]:
     sd = json.loads(e['sd_socket'])
@@ -152,6 +208,10 @@ for e in [o for o in bpy.data.objects if o.type == 'EMPTY' and o.name.startswith
     name = e.name
     bpy.data.objects.remove(e)
     s.name = name
+    pj = sd['extras'].get('parent')
+    if pj in joints:      # soket eklemle birlikte hareket eder (ör. kıskaç kavrama noktası bilekte)
+        s.parent = joints[pj]
+        s.matrix_parent_inverse = joints[pj].matrix_world.inverted()
     sock_objs.append(s)
 # extras: fabrika iç özellikleri kaldır, yalnız sözleşme alanlarını glTF extras'a yaz
 allobjs = [root] + [o for o in bpy.data.objects if o.parent is not None]
@@ -161,6 +221,8 @@ for o in allobjs:
         keep = json.loads(o['sd_asset'])
     if 'sd_socket_extras' in o:
         keep = json.loads(o['sd_socket_extras'])
+    if 'sd_joint' in o:
+        keep = {'joint_axis': str(o['sd_joint'])}
     for k in list(o.keys()):
         del o[k]
     for k, v in keep.items():

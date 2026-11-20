@@ -3,8 +3,8 @@
  "family": "cockpit",
  "class": "cockpit",
  "seed": 5000,
- "profile": "PREVIEW",
- "concept": "B · Kıskaç Gözü + C'deki gibi panelden yükseltilmiş ekranlar (kullanıcı seçimi 2026-11-16)",
+ "profile": "PRODUCTION",
+ "concept": "B · Kıskaç Gözü + yükseltilmiş ekranlar (Kapı 1: PREVIEW r007, Mehmet 2026-11-20); PRODUCTION: K15",
  "_note": "Yük Devi kokpiti. Kaynak: konsept B şeması (docs/yuk_kokpit.html#b), kullanıcı değişikliği: ekranlar C'deki gibi panelden bir tık yukarı, braketlerde. Eski 2B kokpit çizimleri kullanılmaz (STANDARDS §0.1). Kaşif tasarımı kopyalanmaz.",
  "materials": [
   "yuk_paint",
@@ -216,5 +216,20 @@
    "normal": 1024
   },
   "uv_pack": "CONVEX"
+ },
+ "articulation": {
+  "joints": {
+   "ART_claw_root": null,
+   "ART_claw_shoulder": "ART_claw_root",
+   "ART_claw_elbow": "ART_claw_shoulder",
+   "ART_claw_wrist": "ART_claw_elbow",
+   "ART_claw_jaw_L": "ART_claw_wrist",
+   "ART_claw_jaw_R": "ART_claw_wrist"
+  },
+  "sockets": {
+   "SOCK_claw_grip": "ART_claw_wrist"
+  },
+  "pivot_tol_m": 0.15,
+  "_not": "Kıskaç statik; hiyerarşi/pivot animasyona hazır (STANDARDS §0.3). Eksenler düğüm extras.joint_axis"
  }
 }
