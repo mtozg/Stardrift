@@ -26,6 +26,8 @@ BEKLE = {
  'hangar_geri': [('sonra', 0), ('errs', [])],
  'ozel_ekonomi': [('kargoKasif', 16), ('filoT1.t1', 'uzak'), ('filoT1.ozel', True), ('filoT1.ks', 0), ('ilerleme.yakin', 0), ('ilerleme.uzak', 1), ('filoT0', False), ('lonca.t', 'teslim'), ('lonca.toplu', True), ('korsan.t', 'uzak'), ('korsan.ks', 1), ('kacakXp.fark', 20), ('kacakXp.kacak', 0), ('errs', [])],
  'bildirim': [('baseline', True), ('acilistaToast', 0), ('toasts.0', 'Başarım: Madenci · Bronz'), ('toasts.1', 'Yeni unvan: Devriye Subayı'), ('errs', [])],
+ 'pano_yeni': [('sablon.kesif.0', 'kesif'), ('sablon.kesif.1', True), ('sablon.kesif.2', True), ('sablon.doldur.0', 'doldur'), ('sablon.doldur.1', 100), ('sablon.doldur.2', True), ('doldurBitti', True), ('errs', [])],
+ 'derin_sinyal': [('teklif', True), ('muhafiz', 5), ('odul', True), ('errs', [])],
  'hangar_bellek': [('cycles.0.mem.geometries', 45), ('cycles.2.mem.geometries', 45), ('cycles.1.mem.textures', 24), ('errs', [])],
 }
 hata = [(k, got, exp) for k, exp in BEKLE[ad] for got in [get(k)] if got != exp]

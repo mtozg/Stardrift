@@ -159,3 +159,11 @@ Not: 3. ve 4. kademe görevleri yok; yalnız 2. kademe. Test ortamında oyun saa
 | bildirim: açılışta 0 bildirim (taban çizgisi sessiz kaydedilir); satış sayacı 40 → 60 ve unvan 1 → 2 sonrası sırayla "Başarım: Madenci · Bronz" ve "Yeni unvan: Devriye Subayı" | PASS |
 | kutuk, unvan_hata | PASS |
 Not: telsiz mesajı (unvan atlayınca) ve ses otomatik testte doğrulanmadı; metinler `ULINES` tablosunda.
+
+## 16. Sürüm 1.62.0 test özeti
+| Test | Sonuç |
+|---|---|
+| pano_yeni: Keşif şablonu (N 25-45, ödül 7N), Kargoyu doldur (100 kredi), keşif ilerlemesi (uzak noktaya gidince 4 kare), kargo dolunca görev biter | PASS |
+| derin_sinyal: 14 km derinlikte zorla tetiklenen sinyal teklif eder, kabul edilince 5 muhafız doğar, hepsi düşünce ≥ 450 kredi ödül | PASS |
+| ozel_ekonomi, bildirim (ctGen sarmalayıcılarıyla birlikte) | PASS |
+Not: "yalnız derin kuşakta çıkar" kuralı (ağırlık fonksiyonu) otomatik testte doğrulanmadı; zorla tetikleme bu kuralı atlar. Kod incelemesiyle kontrol edildi.

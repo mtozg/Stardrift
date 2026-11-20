@@ -1553,7 +1553,7 @@ function update(dt){
       if (!o.s0) o.s0 = o.mesh.scale.clone(); o.mesh.scale.copy(o.s0).multiplyScalar(o.pull && d < 50 ? clamp(d / 50, 0.3, 1) : 1);
       o.vel.multiplyScalar(Math.exp(-1.0 * dt)); o.mesh.position.addScaledVector(o.vel, dt); if (o.mesh.isSprite) o.mesh.material.rotation += dt * 1.2; else { o.mesh.rotation.x += dt * 2; o.mesh.rotation.y += dt * 3; }
       if (d < 14){
-        if (cargoSum() < cap){ cargo[o.type]++; window.__oreGot && window.__oreGot(o.type); burst(o.mesh.position, ORE[o.type].hex, 5, 14, 0.35); ((window.__sfx && window.__sfx('toplama', 0.5)) || blip(900 + cargoSum() * 25, 0.1)); scene.remove(o.mesh); ores.splice(i, 1); }
+        if (cargoSum() < cap){ cargo[o.type]++; if (cargoSum() >= cap && window.__ctStep) window.__ctStep('doldur', 1); window.__oreGot && window.__oreGot(o.type); burst(o.mesh.position, ORE[o.type].hex, 5, 14, 0.35); ((window.__sfx && window.__sfx('toplama', 0.5)) || blip(900 + cargoSum() * 25, 0.1)); scene.remove(o.mesh); ores.splice(i, 1); }
         else if (time - fullWarn > 4){ fullWarn = time; toast('Kargo dolu. Üsse dön ve sat.'); }
       }
     }
@@ -4640,6 +4640,7 @@ EXTRA.push(dt => {
   if (expSys !== curSys){ expSys = curSys; if (!Object.keys(expSet()).length){ revealAround(STATIONS[0].pos, 2400); persist(); } }
   expT -= dt; if (expT > 0 || docked) return; expT = 1;
   const n = revealAround(rig.position, 1100);
+  if (n > 0 && window.__ctStep) window.__ctStep('kesif', n, c => c.sys === curSys);   /* pano görevi: yeni keşfedilen kareler */
   if (n > 0){ persist(); if (time - expToastT > 10){ expToastT = time; toast('Yeni bölge keşfedildi · Keşif %' + expPct()); } }
 });
 function mapTiles(c, P, big){
@@ -5806,6 +5807,14 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
       tick(dt){ const left = SG.ps.filter(p => npcs.indexOf(p) >= 0).length;
         if (!left){ const v = pay(300, 520); save.kredi += v; givePart('levha', 2); givePart('devre', 1); for (let i = 0; i < 8; i++) spawnOre(SG.tp, Math.random() < 0.45 ? 'kristal' : 'demir'); persist(); sfxP('kalinti_bul', 0.7); return endEv('Kamp temizlendi: +' + v + ' kredi, +2 levha, +1 devre kartı. Ganimeti topla!'); }
         if (time > SG.t1) return endEv('Korsanlar kampı taşıdı.'); info('Kalan muhafız: ' + left + ' · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 300); } },
+    derin: { w: 2, noK: 1, deep: 1, title: 'Kadim yankı sinyali', offer: 'Derin kuşakta güçlü bir yankı sinyali. Eski bir muhafız filosu uyanmış gibi. Yüksek risk, yüksek ganimet.',
+      go(){ const tp = ahead(rand(1400, 2000), 400); SG.tp = tp; SG.t1 = time + 360; SG.ps = [];
+        const g = new THREE.Group(); g.add(sprite(glowTexture(170, 120, 255), 240, 0.45)); g.position.copy(tp); scene.add(g); SG.beacon = g;
+        for (const ty of ['brute', 'brute', 'reaver', 'reaver', 'raider']){ const n = spawnNpc(ty, tp.clone().add(V(rand(-1, 1), rand(-0.3, 0.3), rand(-1, 1)).normalize().multiplyScalar(rand(140, 300))), STATIONS[0]); n.state = 'roam'; n.guard = tp.clone(); SG.ps.push(n); }
+        radio('Tarayıcı', 'Yankının çevresinde 5 muhafız gemisi. Çok dikkatli yaklaş.', '#c9a7ff'); },
+      tick(dt){ const left = SG.ps.filter(p => npcs.indexOf(p) >= 0).length;
+        if (!left){ const v = pay(450, 750); save.kredi += v; givePart('levha', 3); givePart('devre', 2); givePart('hucre', 1); for (let i = 0; i < 12; i++) spawnOre(SG.tp, Math.random() < 0.5 ? 'kristal' : 'titan'); persist(); sfxP('kalinti_bul', 0.8); return endEv('Muhafızlar düştü: +' + v + ' kredi, +3 levha, +2 devre kartı, +1 enerji hücresi. Ganimeti topla!'); }
+        if (time > SG.t1) return endEv('Muhafızlar yankıyla birlikte kayboldu.'); info('Kalan muhafız: ' + left + ' · ' + dirTxt(SG.tp)); bar((SG.t1 - time) / 360); } },
     baskin: { w: 4, side: 'korsan', title: 'Konvoy baskını', offer: 'Birlik bir Lonca konvoyunun rotasını sızdırdı. Tüccarları düşür, yükleri senin.',
       go(){ const tp = ahead(rand(1000, 1400), 300), hm = nearestStationTo(tp); SG.ts = [];
         for (let i = 0; i < 2; i++){ const t = spawnNpc(i ? 'tanker' : 'cargo', tp.clone().add(V(rand(-70, 70), rand(-20, 20), rand(-70, 70))), hm); t.cargo.titan = 3; t.cargo.kristal = 2; t.load = 5; t.sg = 'run'; t.runTo = hm.pos.clone(); t.name = 'Konvoy ' + t.name.split('-').pop(); SG.ts.push(t); }
@@ -5867,7 +5876,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
       if (window.__tutOn && time < 360 && !window.__forceEv) return;   // rehber sürerken ilk 6 dakika sinyal gelmez
       nextT -= dt; if (nextT > 0 && !window.__forceEv) return;
       if (!window.__forceEv) for (let _q79 = 0, q; _q79 < npcs.length && ((q = npcs[_q79]), true); _q79++) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextT = 20; return; }
-      const EW = k => (EV[k].side ? (EV[k].side === save.side ? EV[k].w : 0) : (save.side === 'korsan' && EV[k].noK ? 0 : EV[k].w)); let tot = 0; for (const k in EV) tot += EW(k); let r = Math.random() * tot, key = 'anomali'; for (const k in EV){ if (!EW(k)) continue; r -= EW(k); if (r <= 0){ key = k; break; } }
+      const EW = k => (EV[k].deep && depthMul(rig.position) < 2) ? 0 : (EV[k].side ? (EV[k].side === save.side ? EV[k].w : 0) : (save.side === 'korsan' && EV[k].noK ? 0 : EV[k].w));   /* 1.62.0 (K36): deep: yalnız derin kuşakta (üsten >12,6 km) */ let tot = 0; for (const k in EV) tot += EW(k); let r = Math.random() * tot, key = 'anomali'; for (const k in EV){ if (!EW(k)) continue; r -= EW(k); if (r <= 0){ key = k; break; } }
       if (window.__forceEv){ key = window.__forceEv; window.__forceEv = null; }
       SG = { k: key, phase: 'offer', sys: curSys, t0: time }; const ev = EV[key]; show(ev.title, ev.offer, [['ok', ev.one ? 'Tamam' : 'Kabul'], ['no', 'Yoksay', 'n']]); if (!(window.__sfx && window.__sfx('sinyal', 0.6))){ blip(880, 0.12); setTimeout(() => blip(1180, 0.14), 140); } return;
     }
@@ -7525,6 +7534,14 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
       if (vel.length() < 55 && d < 1300){ hurt(24 * (SYSC.dmg || 1)); burst(rig.position, 0xc9a7ff, 26, 60, 0.8); shake = 0.8; setBanner('SALVO İSABET', 'bad', 1.2); } else setBanner('SALVODAN KAÇTIN', 'ok', 1.2); }
   });
   if (TESTM) window.__bekciDbg = () => ({ G, gph, active: active(), n: gg.length, GP });
+}
+
+// ---- Yeni pano görev türleri (K36): "Keşif" (bu sistemde N yeni bölge karesi) ve "Kargoyu doldur". Ödül aralığı mevcut görevlerle aynı (150-450); yeni mekanik yok, mevcut sayaçlar.
+{
+  const mkKesif = () => { const n = 5 * (5 + ((Math.random() * 5) | 0)); return { type: 'kesif', n, sys: curSys, reward: 7 * n, xp: 3 * n, txt: 'Bu sistemde ' + n + ' yeni bölge karesi keşfet (haritada kareler açılır)' }; };
+  const mkDoldur = () => ({ type: 'doldur', n: 1, reward: 100, xp: 40, txt: 'Kargonu tamamen doldur (' + cargoCap() + ' birim)' });
+  const _g5 = ctGen; ctGen = function(){ _g5(); try { const o = save.ct.offers; if (o.length && (o[0].type === 'kaya' || o[0].type === 'ziyaret') && Math.random() < 0.6){ const c = Math.random() < 0.5 ? mkKesif() : mkDoldur(); c.id = Date.now() + 5; c.prog = 0; o[0] = c; persist(); } } catch (e) { console.warn(e); } };
+  if (TESTM) window.__yeniT = { mkKesif, mkDoldur };
 }
 
 // ---- Unvanla açılan tarafa özel görevler (K32, 2. kademe): panodaki ikinci teklifin yerine geçer; ödül formülleri mevcutlarla aynı, yeni değer yok.
@@ -10728,6 +10745,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },
     spawn: (ty, pos) => spawnNpc(ty, pos, STATION),
+    spawnOre: (pos, k) => spawnOre(pos, k), rigPos: () => rig.position.clone(),
     kill: n => killNpc(n, 'player'), rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
     get time(){ return time; }, get hp(){ return Object.assign({}, hp); },
     tp: (v, dz) => { rig.position.copy(v).add(V(0, 0, dz || 0)); }, stop: () => vel.set(0, 0, 0), speed: v => vel.set(0, 0, -(v || 0)).applyQuaternion(rig.quaternion),
