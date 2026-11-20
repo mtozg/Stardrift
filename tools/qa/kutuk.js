@@ -1,4 +1,4 @@
-// Pilot Kütüğü testi: istasyonda Görevler sekmesinde rozet listesi, kademeler ve toplam doğru mu.
+// Başarımlar testi: istasyonda Görevler sekmesinde rozet listesi, kademeler ve toplam doğru mu.
 const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] }); const errs = [];
@@ -14,7 +14,7 @@ const { chromium } = require('playwright');
   await p.evaluate(() => { const t = window.__sdt; t.dockAt(t.stations()[0]); });
   for (let i = 0; i < 40; i++){ if (await p.evaluate(() => window.__sdt.docked)) break; await p.waitForTimeout(400); }
   await p.evaluate(() => { const t = document.querySelector('#dtabs [data-t="ct"]'); t && t.click(); }); await p.waitForTimeout(1000);
-  await p.evaluate(() => { const b = document.getElementById('ctBox'); const s = [...b.querySelectorAll('.sect')].find(x => /Pilot Kütüğü/.test(x.textContent)); s && s.scrollIntoView(); }); await p.waitForTimeout(600); await p.evaluate(() => { const h = [...document.querySelectorAll('#ctBox .acch, #ctBox .sect')].find(x => /Pilot Kütüğü/.test(x.textContent)); h && h.click(); }); await p.waitForTimeout(700); await p.evaluate(() => { const l = [...document.querySelectorAll('#ctBox .line')].filter(x => /Madenci|Kapı Bekçisi/.test(x.textContent)).pop(); l && l.scrollIntoView({ block: 'center' }); }); await p.waitForTimeout(500); await p.screenshot({ path: (process.argv[2] || '.') + '/kutuk.png' }).catch(() => {});
-  const R = { kutuk: await p.evaluate(() => window.__kutuk().map(x => x.ad + ':' + x.n)), metin: await p.evaluate(() => { const b = document.getElementById('ctBox'); const t = b ? b.innerText.replace(/\s+/g, ' ') : ''; const i = t.indexOf('Pilot Kütüğü'); return i < 0 ? null : t.slice(i, i + 260); }), errs };
+  await p.evaluate(() => { const b = document.getElementById('ctBox'); const s = [...b.querySelectorAll('.sect')].find(x => /Başarımlar/.test(x.textContent)); s && s.scrollIntoView(); }); await p.waitForTimeout(600); await p.evaluate(() => { const h = [...document.querySelectorAll('#ctBox .acch, #ctBox .sect')].find(x => /Başarımlar/.test(x.textContent)); h && h.click(); }); await p.waitForTimeout(700); await p.evaluate(() => { const l = [...document.querySelectorAll('#ctBox .line')].filter(x => /Madenci|Kapı Bekçisi/.test(x.textContent)).pop(); l && l.scrollIntoView({ block: 'center' }); }); await p.waitForTimeout(500); await p.screenshot({ path: (process.argv[2] || '.') + '/kutuk.png' }).catch(() => {});
+  const R = { kutuk: await p.evaluate(() => window.__kutuk().map(x => x.ad + ':' + x.n)), metin: await p.evaluate(() => { const b = document.getElementById('ctBox'); const t = b ? b.innerText.replace(/\s+/g, ' ') : ''; const i = t.indexOf('Başarımlar'); return i < 0 ? null : t.slice(i, i + 260); }), errs };
   console.log('@@' + JSON.stringify(R)); await b.close();
 })();

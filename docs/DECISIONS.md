@@ -82,6 +82,18 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 
 | K29 | Kokpit **cam hissi oyun tarafında** (Mehmet: "yeterli"): pencere alanında hafif soğuk pus perdesi + güneşe bakınca ışıma; varsayılan açık, `?cam=0` ile kapanır. Asset Factory'nin model içi cam yüzeyi denemesi (K27) kapatıldı: referansın yaptığı şey yüzey değil, atmosfer. | Kokpit modellerine dokunmaz, tüm gemilere uygulanır, ek çizim çağrısı yok. | Lead Developer |
 
+## 2026-11-20 (9) — "Evet, ayarla": ekonomi ve unvan görevleri
+
+Mehmet: "Evet ayarla, sonra da diğer işlere devam et." Değerler Lead Developer tarafından belirlendi; itiraz edilirse geri alınır.
+
+| ID | Karar | Değer / kısıt | Ajan |
+|---|---|---|---|
+| K30 | **Başlangıç kargosu 12 → 16** (Game Designer önerisi 16-18; alt uç seçildi). | Gemi katsayısıyla çarpılır: Kaşif 16, Şahin 11, Yük Devi 32, Hayalet 19. Yetenek ve mürettebat eklemeleri aynı. Sefer geliri yaklaşık +%33 (erken oyun). | Lead Developer |
+| K31 | **Kaçak satışından XP: birim başına 5** (Designer önerisi 6; biraz kısıldı). | Yalnız gümrüklü istasyonda satışta (üste satış zaten kapalı). Saatte yaklaşık 450-560 XP; yalnız kaçakla Usta Pilot yaklaşık 5-6 saat. Rütbe eşikleri değişmedi. | Lead Developer |
+| K32 | **Unvanla açılan özel görevler, 2. kademe**: Filo "Uzak devriye", Korsan "Pusu" (istasyondan 3 km ötede N düşman), Lonca "Toplu sipariş" (28-40 birim). 3. ve 4. kademe sonra. | Panodaki ikinci teklifin yerine geçer; ödül formülleri mevcutlarla aynı; yeni değer yok. | Lead Developer |
+| K33 | **"Pilot Kütüğü" → "Başarımlar"** olarak yeniden adlandırıldı (Mehmet: "kütük nedir ya"). Başarımlar bölümü gizlenmez, varsayılan kapalı kalır. Yeni oyuncuda **yan görev panosu ilk ana görev adımı alınana kadar kapalı** gelir. Köşe izleyicisi zaten yalnız ana görev adımını ve aktif yan görevleri gösteriyor (değişiklik gerekmedi). | Ekonomiye dokunmaz. | Lead Developer |
+| — | **Yetenek sıfırlama zaten var** (300 kredi + harcanan puan başına 100). Game Designer'ın "sıfırlama yok" bulgusu yanlıştı; yeni iş yok. | — | — |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.

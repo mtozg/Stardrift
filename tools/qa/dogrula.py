@@ -23,6 +23,8 @@ BEKLE = {
  'bekci': [(f'{t}.{k}', v) for t in ('filo', 'korsan') for k, v in (('dogdu.foe', 'foe'), ('faz_60.gph', 2), ('faz_30.gph', 3), ('bitis.bekci', 1), ('bitis.aktifSonra', False), ('bitis.boss', 6))] + [('errs', [])],
  'kutuk': [('kutuk.0', 'Madenci:2'), ('kutuk.1', 'Avcı:1'), ('kutuk.5', 'Patron avcısı:2'), ('kutuk.7', 'Gezgin:1'), ('kutuk.9', 'Kapı Bekçisi:3'), ('errs', [])],
  'unvan_hata': [('unvan.0', 'Er|Küçük Tüccar|Kaçakçı'), ('unvan.2', 'Devriye Subayı|Pazar Ustası|Akıncı'), ('unvan.4', 'Operasyon Lideri|Sözleşme Lideri|Çete Reisi'), ('unvan.6', 'Filo Komutanı|Ticaret Lideri|Korsan Lordu'), ('testHata', 'Hata: deneme hatası'), ('gercekHata', 'Küçük bir sorun oluştu, oyun devam ediyor.'), ('gercekUnvan', 'Çete Reisi'), ('errs', [])],
+ 'hangar_geri': [('sonra', 0), ('errs', [])],
+ 'ozel_ekonomi': [('kargoKasif', 16), ('filoT1.t1', 'uzak'), ('filoT1.ozel', True), ('filoT1.ks', 0), ('ilerleme.yakin', 0), ('ilerleme.uzak', 1), ('filoT0', False), ('lonca.t', 'teslim'), ('lonca.toplu', True), ('korsan.t', 'uzak'), ('korsan.ks', 1), ('kacakXp.fark', 20), ('kacakXp.kacak', 0), ('errs', [])],
  'hangar_bellek': [('cycles.0.mem.geometries', 45), ('cycles.2.mem.geometries', 45), ('cycles.1.mem.textures', 24), ('errs', [])],
 }
 hata = [(k, got, exp) for k, exp in BEKLE[ad] for got in [get(k)] if got != exp]
