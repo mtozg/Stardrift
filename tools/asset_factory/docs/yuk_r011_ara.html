@@ -43,16 +43,50 @@ pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; f
 </style>
 
 <main>
-<div class="eyebrow">Asset Factory · Yük Devi · r011 · ara görüntü (probe)</div>
-<h1>Yük Devi r011 Orta Konsol</h1>
-<p class="lede">Yön kontrolü için ara görüntü. Blender, düşük örnekleme; oyun içi karşılaştırma ve Şahin kıyası tam derlemeden sonra gelecek. Bu bir onay sayfası değil.</p>
-<figure><img src="img/yuk_r011/orta_ara.webp" alt="Pilotun gözünden orta konsol"><figcaption>Pilotun gözünden orta konsol (FOV 38°). Radar altı şerit: 12 röle/sigorta modülü, etiketler, durum lambaları. Çene camı daraltıldı (üstte 352 → 192 px); iki yanına paneller: solda havalandırma ızgarası, iki ribli döner düğme, etiket; sağda korumalı mandal anahtarlar, lambalar, etiket. Kablo demetleri şeritten çene camı kenarlarına iniyor.</figcaption></figure>
-<figure><img src="img/yuk_r011/pilot_ara.webp" alt="Pilot görüşü"><figcaption>Pilot görüşü (800×328). Kıskaç hâlâ çene camından görünüyor.</figcaption></figure>
-<h2>Bu turda değişenler</h2>
+<div class="eyebrow">Asset Factory · Yük Devi · r011 · Kapı 1 görsel onay</div>
+<h1>Yük Devi r011 Görsel Kıyas</h1>
+<p class="lede">r010 reddedildi: orta konsol boş, kumandalar oyuncak gibi, renkler doygundu. r011 oyun içinde Şahin r012 ile aynı oyun ve çözünürlükte yan yana. Puanlama yok, yalnızca görüntü ve olgular. Bu bir <b>inceleme derlemesi</b>dir (kayıtta "modeled"); görsel onay Mehmet'te.</p>
+
+<h2>Oyun içi: Şahin r012 ve Yük Devi r011</h2>
+<figure><img src="img/yuk_r011/oyun_sahin.webp" alt="Şahin r012 oyun içi"><figcaption>Şahin r012. Masaüstü 1600×800.</figcaption></figure>
+<figure><img src="img/yuk_r011/oyun_r011.webp" alt="Yük Devi r011 oyun içi"><figcaption>Yük Devi r011, aynı oyun ve çözünürlük. Ekranlar oyunun canlı ekranları.</figcaption></figure>
+
+<h2>Yakın planlar (oyun içi görüntüden kırpıldı)</h2>
+<figure><img src="img/yuk_r011/yakin_orta.webp" alt="Orta konsol"><figcaption>Orta konsol: radar altı şeritte 12 röle/sigorta modülü, etiket plakaları, durum lambaları. Oyunda ekranın en altındaki HUD yazısı çene camı yanındaki panellerin alt kısmını örtüyor.</figcaption></figure>
+<div class="grid2">
+  <figure><img src="img/yuk_r011/yakin_sol.webp" alt="Sol kanat"><figcaption>Sol: kıskaç kumanda grubu (dört çerçeveli ve kafesli basma düğmesi, korumalı mandal anahtarlar, ikaz lambaları), kauçuk kaplı kol.</figcaption></figure>
+  <figure><img src="img/yuk_r011/yakin_sag.webp" alt="Sağ kanat"><figcaption>Sağ: üç gösterge (tikli kadran, ibre), mandal anahtar sırası, etiket.</figcaption></figure>
+</div>
+<figure><img src="img/yuk_r011/orta_ara.webp" alt="Pilotun gözünden orta konsol"><figcaption>Pilotun gözünden orta konsol (Blender, FOV 38°, ara görüntü): çene camı iki yanındaki paneller (havalandırma ızgarası, ribli döner düğmeler, korumalı anahtarlar, etiketler) ve kablo demetleri.</figcaption></figure>
+<figure><img src="img/yuk_r011/capraz.webp" alt="Çapraz görünüş"><figcaption>Çapraz (Blender).</figcaption></figure>
+
+<h2>Ne değişti (r010 → r011)</h2>
 <ul>
-  <li><b>Kumandalar:</b> oyuncak silindirler gitti. Mandal anahtar: taban plakası, kovan halkası, ince çelik mandal, kauçuk uç, menteşeli koruma kapağı. Döner düğme: çelik etek, 8 ribli kauçuk gövde, işaret çizgisi, kadran tikleri. Basma düğmesi: çelik çerçeve, koruma kafesi. Kollar: kauçuk körük halkaları, çelik bilezik, ribli kauçuk tutamak, başlık etiketi; tek küçük turuncu başparmak düğmesi.</li>
-  <li><b>Renk:</b> sarı ve turuncu doygunluğu düşürüldü (mat, soluk); kullanım yalnız küçük vurgu (uç, çizgi, nokta, uyarı bantları).</li>
-  <li><b>Yüzey:</b> panel derzi iki kat genişletildi ve koyulaştırıldı; boya kırığı/çıplak metal ve aşınma artırıldı; koyu çelik biraz açıldı.</li>
-  <li><b>Değişmeyenler:</b> dikme inceltmesi, ekran köşeleri, RADAR 1,73:1, ART_* hiyerarşisi, kamera. HUD (probe) %8,0. Üçgen 19.400 kaynak (QC sınırı 60.000), draw call değişmedi.</li>
+  <li><b>Orta konsol:</b> çene camı daraltıldı (üstte 352 → 192 px; kıskaç hâlâ görünür). Radar altı şerit: 12 röle/sigorta modülü, 6 etiket, lamba. Camın iki yanına paneller: havalandırma ızgarası, iki ribli döner düğme, korumalı mandal anahtar 2×3, etiketler. Kablo demetleri şeritten cam kenarlarına.</li>
+  <li><b>Kumandalar:</b> mandal anahtar (taban plakası, kovan halkası, ince mandal, kauçuk uç, menteşeli koruma kapağı); döner düğme (çelik etek, 8 ribli kauçuk gövde, işaret, kadran tikleri); basma düğmesi (çelik çerçeve, koruma kafesi); gösterge (11 tik, ibre); kollar (kauçuk körük, çelik bilezik, ribli kauçuk tutamak, etiketli başlık). Etiketlerde baskı çizgileri.</li>
+  <li><b>Renk:</b> sarı ve turuncu mat ve soluk; kullanım küçük vurgu (uç, çizgi, nokta) ve uyarı bantları.</li>
+  <li><b>Yüzey:</b> panel derzi iki kat geniş ve koyu; boya kırığı, çıplak metal kenar aşınması ve leke artırıldı; koyu çelik biraz açıldı.</li>
+  <li><b>Değişmeyenler:</b> dikme inceltmesi, ekran köşeleri, RADAR 1,73:1, <code>ART_*</code> hiyerarşisi, kamera sözleşmesi, HUD sırtı.</li>
 </ul>
+
+<h2>Teknik olgular</h2>
+<div class="tbl"><table>
+<tr><th>Ölçü</th><th>r011 inceleme derlemesi</th><th>r010</th><th>Sınır</th></tr>
+<tr><td>Kaynak → görünen üçgen</td><td class="num">19.400 → 7.925</td><td class="num">15.264 → 6.004</td><td>≤ 60.000</td></tr>
+<tr><td>Draw call</td><td class="num">11</td><td class="num">11</td><td>≤ 28</td></tr>
+<tr><td>GLB boyutu</td><td class="num">957 KB</td><td class="num">829 KB</td><td>≤ 4 MB</td></tr>
+<tr><td>GPU doku belleği</td><td class="num">32 MB</td><td class="num">32 MB</td><td>≤ 40 MB</td></tr>
+<tr><td>HUD bölgesi (probe)</td><td class="num">%8,0</td><td class="num">%8,0</td><td>≤ %10</td></tr>
+<tr><td>Oyun içi ekran hizası · RADAR oranı</td><td class="num">0,03–0,05 px · 1,73</td><td class="num">aynı</td><td></td></tr>
+<tr><td>Hızlı doğrulama</td><td class="num">12/12</td><td class="num">12/12</td><td></td></tr>
+</table></div>
+<p>Tam model, QC ve Kapı 2 hazırlığı görsel onaydan sonra yapılır.</p>
+
+<div class="gate">
+  <h2>Kapı 1: Mehmet'in kararı</h2>
+  <ol>
+    <li><b>Onay:</b> tam model, tam QC, Kapı 2 sayfası ve teslim paketi.</li>
+    <li><b>Düzeltme:</b> notlar biriktirilip tek revizyonda uygulanır.</li>
+  </ol>
+</div>
 </main>

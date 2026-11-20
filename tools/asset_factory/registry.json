@@ -380,7 +380,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "draft",
+   "state": "modeled",
    "rev": 11,
    "history": [
     {
@@ -540,10 +540,17 @@
      "from": "modeled",
      "to": "draft",
      "reason": "yeni revizyon r011: Mehmet r010 ret: orta konsol boş, kumandalar oyuncak gibi, doygunluk; r011"
+    },
+    {
+     "t": "2026-11-20T14:24:36+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
     }
    ],
    "timings": {
-    "probe": 45.3
+    "probe": 45.3,
+    "model": 378.2
    },
    "approvals": [
     {
@@ -564,8 +571,8 @@
      ]
     }
    ],
-   "geometry_hash": "a4c7d7565144f65ee2204cda820a8620c33dc5c9956c00190fae2e7e48f67ea2",
-   "spec_hash": "c9779987ac19ae30418df7a8ec2467b465738b558131e0b909acd78208f3287c",
+   "geometry_hash": "24755e9ccbe63b733bf6c8933be9c50989114bc5aa2adeecf63da2dff5b5d590",
+   "spec_hash": "7a0c5f10c0fb7aa7e85220da3129bbecae65489da1e7e9c19d20feff205f93a0",
    "fast": true,
    "perf_baseline": {
     "masaüstü 1200×750|1": 13.6,
@@ -573,12 +580,7 @@
     "iPhone 13 landscape|1": 13.4,
     "Pixel 7 landscape|1": 13.1
    },
-   "notes": [
-    {
-     "t": "2026-11-20T14:15:29+00:00",
-     "text": "r011: orta konsol (radar altı) doldur; kumandalar küçük katmanlı gerçekçi; sarı/turuncu yalnız küçük vurgu; aşınma/derz pilot ölçeğinde okunur; HUD/ekran/ART/kamera aynı"
-    }
-   ],
+   "notes": [],
    "notes_applied": [
     {
      "rev": 9,
@@ -586,6 +588,15 @@
       {
        "t": "2026-11-20T09:33:46+00:00",
        "text": "Mehmet (Lead Dev üzerinden, r008): sağ ve sol dikme çok kalın, biraz daha ince olsun; Kaşif/Şahin dikme kalınlığı referans; HUD %10,5 sınır altına inmeli; kıskaç, ekranlar, malzeme, kamera aynı kalsın"
+      }
+     ]
+    },
+    {
+     "rev": 11,
+     "notes": [
+      {
+       "t": "2026-11-20T14:15:29+00:00",
+       "text": "r011: orta konsol (radar altı) doldur; kumandalar küçük katmanlı gerçekçi; sarı/turuncu yalnız küçük vurgu; aşınma/derz pilot ölçeğinde okunur; HUD/ekran/ART/kamera aynı"
       }
      ]
     }
