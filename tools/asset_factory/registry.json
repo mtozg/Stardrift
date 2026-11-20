@@ -538,7 +538,7 @@
    ],
    "timings": {
     "probe": 15.2,
-    "model": 369.2
+    "model": 382.4
    },
    "approvals": [
     {
@@ -559,8 +559,8 @@
      ]
     }
    ],
-   "geometry_hash": "7e864b0c797a1cbe05e4f0c1859a7a9fca07efe1bcc7591e5060bfa5ea0b11e0",
-   "spec_hash": "2c4ad96da949a380268794a108ad8032952b3bfe6c63732e66c2e2a194b30d99",
+   "geometry_hash": "a4c7d7565144f65ee2204cda820a8620c33dc5c9956c00190fae2e7e48f67ea2",
+   "spec_hash": "c9779987ac19ae30418df7a8ec2467b465738b558131e0b909acd78208f3287c",
    "fast": true,
    "perf_baseline": {
     "masaüstü 1200×750|1": 13.6,
