@@ -1,6 +1,6 @@
 # Aşama 1-C: Devriye karar mantığı (tasarım notu)
 
-Durum: **öneri, Mehmet'in kararını bekliyor.** Kod yazılmadı.
+Durum: **onaylandı (K20) ve 1.56.0'da uygulandı.** Rüşvet bedeli: `max(150, kaçak × 45 + aranma × 120)` kredi, yalnız Korsan. Çağrılar arasında 30 sn bekleme var (art arda aranma artışını önler). Klavye kısayolu eklenmedi (Q/E yuvarlanmada kullanılıyor); çağrı düğmelerle yanıtlanır.
 Dayanak: Developer'ın Aşama 1 önerisi (K12), Game Designer'ın S1-07 analizi, 1.55.0'da gelen bölge tablosu (Aşama 1-A) ve hedef renkleri (Aşama 1-B).
 
 ## Sorun

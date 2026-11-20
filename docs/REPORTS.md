@@ -102,3 +102,16 @@ Playwright, swiftshader, test kaydı. Betikler oturum geçici klasöründe; kokp
 | Sayfa hatası | Hiçbiri |
 
 Test edilmeyenler: gerçek iPhone/iPad, bulut kaydında iki cihaz çakışması, Firebase.
+
+## 10. Sürüm 1.56.0 test özeti (Aşama 1-C)
+| Konu | Sonuç |
+|---|---|
+| Karar tablosu: Ankora temiz/kaçak/★2/★3/itibar ≤ −60 → yok/çağrı/çağrı/saldırı/saldırı; Kızıl kaçak %50 çağrı, ★2/★3/düşük → çağrı; Zümrüt ★2 yok, ★3/düşük saldırı; Lonca Pazarı hiçbiri | Geçti |
+| Filo, 4 kaçak, Ankora: çağrı kutusu → Uy → tarama (3 sn) → sonuç; aranma değişmedi | Geçti |
+| Korsan, 10 kaçak, Ankora: kutuda "Rüşvet · 450 kredi"; rüşvet → −450 kredi, tarama yok, kaçak 10 kaldı | Geçti |
+| Kaç: aranma 1 → 2 (tek artış; ikinci devriye 30 sn çağrı yapmaz), takip; süre sonunda yakındaysa devriye düşman | Geçti |
+| Tüccar kaçışı: Korsan 250 m'ye girince kargo gemisi kaçıyor | Geçti |
+| Önceki testler (göç, renkler, bölge mesajı, ücra kapı, K14, K13) | Geçti |
+| Sayfa hatası | Hiçbiri |
+
+Not: test ortamında (swiftshader) oyun saati gerçek zamanın yaklaşık 1/8'i hızında akıyor; zamanlı adımlar oyun saatine göre beklendi. Korsan selamı (itibar ≥ 60) ayrıca test edilmedi.
