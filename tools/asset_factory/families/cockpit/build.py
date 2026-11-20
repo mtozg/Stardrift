@@ -116,13 +116,15 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
         v0, v1 = D.get('switch_v', [505, 600])[0] - 36, D.get('switch_v', [505, 600])[1] + 22
         plate = grid([[P(u, v, surf(u, v) - 0.004) for u in lin(u0, u1, 12)] for v in lin(v0, v1, 4)])      # r011 çentiği: yüzeyi sık izle
         add('switch_plate_%s' % side, plate, 'sahin_dark', eye=True)
-        for r, v in enumerate(D.get('switch_v', [505, 600])):
+        for r, v in enumerate(sorted(set(D.get('switch_v', [505, 600])))):
             for c, u in enumerate(us):
                 p = P(u, v, surf(u, v) - 0.003)
                 n = toward(p)
-                add('toggle_base_%s%d%d' % (side, r, c), geo.bm_cylinder(tuple(p), tuple(p + n * 0.006), 0.007, 10), 'gunmetal', smooth=60)
+                add('toggle_base_%s%d%d' % (side, r, c), geo.bm_cylinder(tuple(p), tuple(p + n * 0.006), 0.007 * D.get('switch_scale', 1.0), 10), 'gunmetal', smooth=60)
                 tip = p + n * 0.006 + Vector((0, -0.004, 0.018))
                 add('toggle_lever_%s%d%d' % (side, r, c), geo.bm_cylinder(tuple(p + n * 0.006), tuple(tip), 0.0024, 6, radius1=0.0018), 'gunmetal', smooth=60)
+                if D.get('no_indicators'):
+                    continue      # r014: parlayan kırmızı/turuncu ışıklar kaldırıldı
                 lp = P(u, v - 26, surf(u, v - 26) - 0.003)
                 add('indicator_%s%d%d' % (side, r, c), geo.bm_box(tuple(lp + toward(lp) * 0.001), (0.006, 0.003, 0.004)), 'emit_red', role='emit_live')
     # --- göz kalkanı dudağı (yuvarlatılmış alt kenar)
@@ -178,18 +180,17 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
     for s in (-1, 1):
         add('seat_rail_%s' % ('L' if s < 0 else 'R'), geo.bm_box((s * 0.13, -0.05, pz - 0.12), (0.035, 0.62, 0.10)), 'gunmetal')
     add('seat_rail_cross', geo.bm_box((0, -0.05, pz - 0.09), (0.30, 0.05, 0.04)), 'gunmetal')
-    if A.get('seat_visible'):      # r013 adayı: pilot görüşünde görünen spor/avcı koltuğu (yüksek sırt, ince yan kanatlar, kırmızı kemer); Kaşif'te alt orta bölgede koltuk belli oluyor
+    if A.get('seat_visible'):      # r014: pilot görüşünde görünen spor/avcı koltuğu; radar alt kenarının hemen altından başlar (ekran sözleşmesi sabit → yapılabilen en büyük)
         sy = 0.555
-        add('seat_headrest_v', soft_box((0, sy, -0.565), (0.23, 0.08, 0.21), bev=0.022, level=1), 'sahin_seat', smooth=60)
-        add('seat_back_v', soft_box((0, sy + 0.015, -0.745), (0.30, 0.07, 0.16), bev=0.02, level=1), 'sahin_seat', smooth=60)
+        add('seat_headrest_v', soft_box((0, sy, -0.585), (0.31, 0.09, 0.25), bev=0.024, level=1), 'sahin_seat', smooth=60)
+        add('seat_back_v', soft_box((0, sy + 0.015, -0.78), (0.40, 0.07, 0.18), bev=0.02, level=1), 'sahin_seat', smooth=60)
         for s_ in (-1, 1):
             nm = 'L' if s_ < 0 else 'R'
-            add('seat_wing_v_' + nm, soft_box((s_ * 0.165, sy - 0.020, -0.645), (0.045, 0.11, 0.20), bev=0.016, level=1), 'sahin_seat', smooth=60)
-            add('seat_strap_v_' + nm, geo.bm_box((s_ * 0.070, sy - 0.0405, -0.655), (0.034, 0.006, 0.26)), 'sahin_red')
-            add('seat_seam_w_' + nm, geo.bm_box((s_ * 0.100, sy - 0.0405, -0.585), (0.005, 0.004, 0.15)), 'seat_thread')
-        add('seat_seam_h', geo.bm_box((0, sy - 0.0405, -0.525), (0.19, 0.004, 0.005)), 'seat_thread')
-        add('seat_buckle_v', geo.bm_box((0, sy - 0.0445, -0.705), (0.048, 0.008, 0.030)), 'gunmetal')
-
+            add('seat_wing_v_' + nm, soft_box((s_ * 0.205, sy - 0.020, -0.650), (0.075, 0.115, 0.23), bev=0.018, level=1), 'sahin_seat', smooth=60)
+            add('seat_strap_v_' + nm, geo.bm_box((s_ * 0.085, sy - 0.0475, -0.640), (0.030, 0.006, 0.28)), 'sahin_red')
+            add('seat_seam_w_' + nm, geo.bm_box((s_ * 0.135, sy - 0.0465, -0.600), (0.004, 0.003, 0.17)), 'seat_thread')
+        add('seat_seam_h', geo.bm_box((0, sy - 0.0465, -0.515), (0.26, 0.003, 0.004)), 'seat_thread')
+        add('seat_buckle_v', geo.bm_box((0, sy - 0.0495, -0.690), (0.052, 0.008, 0.032)), 'gunmetal')
 
 def detail_pass2(A, add, D, vtop, surf, sl):
     """2. ayrıntı geçişi (Kapı 2 kararı, 2026-11-16): pilotun gördüğü yüzeylerde katman, ızgara, kablo, profil, ışık."""
@@ -209,6 +210,22 @@ def detail_pass2(A, add, D, vtop, surf, sl):
         add('lower_plate_%d' % k, grid(rows), 'sahin_paint', eye=True, solid=0.004)
         for j, (u, v) in enumerate(((u0 + 9, v0 + 8), (u1 - 9, v0 + 8), (u0 + 9, v1 - 8), (u1 - 9, v1 - 8))):
             screw('plate_screw_%d_%d' % (k, j), u, v, 0.0055)
+    if D.get('deep_panels'):      # r014: geometrik derinlik: alt plakalar üzerinde kabartma iç paneller + derz, yan alanlarda sakin panel ve kablo kanalı
+        for k, (u0, u1) in enumerate(D['lower_plates']):
+            vm = (v0 + v1) / 2
+            for q, (a_, b_) in enumerate(((v0 + 9, vm - 3), (vm + 3, v1 - 9))):
+                add('inset_%d_%d' % (k, q), grid([[on(u, v, 0.0105) for u in lin(u0 + 14, u1 - 14, 10)] for v in lin(a_, b_, 3)]), 'sahin_mid', eye=True, solid=0.005)
+            add('seam_h_%d' % k, grid([[on(u, vm - 1.2, 0.0085) for u in lin(u0 + 8, u1 - 8, 10)], [on(u, vm + 1.2, 0.0085) for u in lin(u0 + 8, u1 - 8, 10)]]), 'sahin_dark', eye=True)
+        for side in ('L', 'R'):
+            sg = (lambda u: u) if side == 'L' else (lambda u: W - u)
+            for q, (a_, b_) in enumerate(((470, 512), (606, 648))):      # yan alanlarda sakin, düz kabartma paneller
+                add('side_panel_%s%d' % (side, q), grid([[on(sg(u), v, 0.009) for u in lin(190, 350, 8)] for v in lin(a_, b_, 3)]), 'sahin_paint', eye=True, solid=0.005)
+                for j, (u, v) in enumerate(((198, a_ + 7), (342, a_ + 7), (198, b_ - 7), (342, b_ - 7))):
+                    screw('side_screw_%s%d%d' % (side, q, j), sg(u), v, 0.0105)
+            duct = [on(sg(u), 590 + 1.5 * math.sin((u - 170) / 40.0), 0.012) for u in lin(165, 360, 12)]
+            add('side_duct_%s' % side, tube(duct, 0.0075, 10), 'sahin_dark', smooth=60)
+            for j, u in enumerate((205, 265, 325)):
+                add('side_duct_clip_%s%d' % (side, j), geo.bm_box(tuple(on(sg(u), 590 + 1.5 * math.sin((u - 170) / 40.0), 0.013)), (0.020, 0.010, 0.012)), 'gunmetal')
     # 2) RADAR altında, uçuş kolunun iki yanında ızgaralı havalandırma
     for k, (u0, u1) in enumerate(D['grilles_u']):
         g0, g1 = D['grille_v']
