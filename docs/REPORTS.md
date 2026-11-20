@@ -167,3 +167,11 @@ Not: telsiz mesajı (unvan atlayınca) ve ses otomatik testte doğrulanmadı; me
 | derin_sinyal: 14 km derinlikte zorla tetiklenen sinyal teklif eder, kabul edilince 5 muhafız doğar, hepsi düşünce ≥ 450 kredi ödül | PASS |
 | ozel_ekonomi, bildirim (ctGen sarmalayıcılarıyla birlikte) | PASS |
 Not: "yalnız derin kuşakta çıkar" kuralı (ağırlık fonksiyonu) otomatik testte doğrulanmadı; zorla tetikleme bu kuralı atlar. Kod incelemesiyle kontrol edildi.
+
+## 17. Sürüm 1.62.3 test özeti
+| Test | Sonuç |
+|---|---|
+| derin_kural: Kadim yankı ağırlığı 14 km'de 2; 7 km, 3 km ve 12,5 km'de 0; 12,7 km'de 2; Lonca'da 2; Korsan'da 0 | PASS |
+| olum_hesap: ölüm bedeli 0→0, 30→30, 50→50, 200→50, 500→50, 600→60, 1000→100, 8000→800, 19999→2000, 25000→2000, 999999→2000 | PASS |
+| derin_sinyal, olum_siniri, pano_yeni, bildirim, ozel_ekonomi, kutuk (olay seçicisi `evW` işlevine ayrıldı; davranış aynı) | PASS |
+Not: `evW` ve `feeT` yalnızca `:test` kaydında dışarı verilir. Gerçek cihaz ve K37'nin gerçek oynanış dengesi test edilmedi.

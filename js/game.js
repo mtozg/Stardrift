@@ -5724,6 +5724,8 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
   const despawn = n => { const i = npcs.indexOf(n); if (i < 0) return; npcs.splice(i, 1); disposeNpc3(n); scene.remove(n.g); };
   const dirTxt = p => { const l = p.clone().sub(rig.position).applyQuaternion(rig.quaternion.clone().invert()), d = Math.round(l.length()); const side = Math.abs(l.x) < l.length() * 0.2 ? '' : l.x > 0 ? ' · sağda' : ' · solda'; return d + ' m · ' + (l.z < 0 ? 'önde' : 'arkada') + side; };
   const pay = (a, b) => Math.round(rand(a, b) * Math.max(1, SYSC.pay * 0.8));
+  const evW = k => (EV[k].deep && depthMul(rig.position) < 2) ? 0 : (EV[k].side ? (EV[k].side === save.side ? EV[k].w : 0) : (save.side === 'korsan' && EV[k].noK ? 0 : EV[k].w));
+  if (TESTM) window.__evW = evW;
   function show(title, text, btns){ card.innerHTML = '<b>' + title + '</b><span id="sigT">' + text + '</span><div class="sb">' + btns.map(([k, l, c]) => '<button data-a="' + k + '"' + (c ? ' class="' + c + '"' : '') + '>' + l + '</button>').join('') + '</div><div class="bar"><i></i></div>'; card.classList.add('on'); }
   const info = t => { const e = $('sigT'); if (e) e.textContent = t; };
   const bar = f => { const e = card.querySelector('.bar i'); if (e) e.style.width = Math.max(0, Math.min(1, f)) * 100 + '%'; };
@@ -5876,7 +5878,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
       if (window.__tutOn && time < 360 && !window.__forceEv) return;   // rehber sürerken ilk 6 dakika sinyal gelmez
       nextT -= dt; if (nextT > 0 && !window.__forceEv) return;
       if (!window.__forceEv) for (let _q79 = 0, q; _q79 < npcs.length && ((q = npcs[_q79]), true); _q79++) if (q.hostile && q.pos.distanceTo(rig.position) < 700){ nextT = 20; return; }
-      const EW = k => (EV[k].deep && depthMul(rig.position) < 2) ? 0 : (EV[k].side ? (EV[k].side === save.side ? EV[k].w : 0) : (save.side === 'korsan' && EV[k].noK ? 0 : EV[k].w));   /* 1.62.0 (K36): deep: yalnız derin kuşakta (üsten >12,6 km) */ let tot = 0; for (const k in EV) tot += EW(k); let r = Math.random() * tot, key = 'anomali'; for (const k in EV){ if (!EW(k)) continue; r -= EW(k); if (r <= 0){ key = k; break; } }
+      const EW = evW;   /* 1.62.0 (K37): deep: yalnız derin kuşakta (üsten >12,6 km); ağırlık işlevi evW (test için dışarı verilir) */ let tot = 0; for (const k in EV) tot += EW(k); let r = Math.random() * tot, key = 'anomali'; for (const k in EV){ if (!EW(k)) continue; r -= EW(k); if (r <= 0){ key = k; break; } }
       if (window.__forceEv){ key = window.__forceEv; window.__forceEv = null; }
       SG = { k: key, phase: 'offer', sys: curSys, t0: time }; const ev = EV[key]; show(ev.title, ev.offer, [['ok', ev.one ? 'Tamam' : 'Kabul'], ['no', 'Yoksay', 'n']]); if (!(window.__sfx && window.__sfx('sinyal', 0.6))){ blip(880, 0.12); setTimeout(() => blip(1180, 0.14), 140); } return;
     }
@@ -10117,6 +10119,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       setTimeout(show, 900);
     };
     window.__deathShow = show;
+    if (TESTM) window.__feeT = fee;
   })();
 
   // =====  BİLDİRİM PANELİ: mesaj kutusu yerine. Bilgi, uyarı, telsiz ve toplanan cevherler kayda girer; geriye dönük okunur.
