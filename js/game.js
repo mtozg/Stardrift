@@ -1089,6 +1089,9 @@ if (TESTM){
   document.body.appendChild(tb);
 }
 const cargo = { demir: 0, buz: 0, kristal: 0, titan: 0, hurda: 0 };
+// 1.54.1 (K9): kargo kayıtta. save.cargo aynı nesneye bağlanır, böylece her persist kargoyu krediyle birlikte tek yazımda saklar (sat → yenile kopya üretmez).
+// Eski kayıtta alan yoksa kargo boş başlar; bozuk değerler (negatif, NaN, aşırı büyük, bilinmeyen anahtar) 0..200'e sınırlanır.
+{ const sc = save.cargo; if (sc && typeof sc === 'object') for (const k in cargo){ const v = Math.floor(+sc[k]); cargo[k] = Number.isFinite(v) ? Math.max(0, Math.min(200, v)) : 0; } save.cargo = cargo; }
 const PSHIPS = [
   { id: 'kasif', ad: 'Kaşif', fiyat: 0, thr: 1, turn: 1, vmax: 1, hull: 1, shield: 1, cargo: 1, not: 'Dengeli, her işe uygun. Ücretsiz.' },
   { id: 'sahin', ad: 'Şahin', fiyat: 4500, thr: 1.3, turn: 1.3, vmax: 1.15, hull: 0.9, shield: 1.5, cargo: 0.7, not: 'Avcı gemisi: çevik, hızlı, güçlü kalkan. Kargosu küçük.' },
@@ -4121,6 +4124,7 @@ function hgAct(a){
   const own = (ship ? save.ships : save.weps);
   if (p[0] === 'buy'){ if (own.includes(it.id) || save.kredi < it.fiyat) return true; save.kredi -= it.fiyat; own.push(it.id); toast(it.ad + ' alındı'); ((window.__sfx && window.__sfx('gelistirme', 0.6)) || blip(660, 0.2)); }
   if (!own.includes(it.id)) return true;
+  if (ship && it.id !== save.ship){ const capN = Math.round((12 + (window.__skC || 0)) * it.cargo) + crewCargo(); if (cargoSum() > capN){ persist(); toast('Kargon ' + it.ad + ' gemisine sığmıyor (' + cargoSum() + '/' + capN + '). Önce sat ya da depoya koy.', 3800); renderDock(); return true; } }
   if (ship){ save.ship = it.id; hgSel = it.id; SHP = it; applyShip(true); setCockpit(it.id); } else { save.wep = it.id; hgSelW = it.id; WPN = it; }
   laser.heat = 0; laser.over = false; persist(); toast(it.ad + (ship ? ' hazır' : ' takıldı')); renderDock(); return true;
 }
@@ -10498,4 +10502,6 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         + 'hata: ' + (lastErr || '-'); }, 500);
   })();
   requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('sd-ready')));   // açılış perdesi kalkar (index.html)
+  // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
+  if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap() };
 })();

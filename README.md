@@ -34,7 +34,7 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Lonca'ya özel süreli acil siparişler; rütbe rozetleri (Çaylak → Efsane).
 - Kayıt kodu: Ayarlar → Kayıt bölümünden kaydı başka cihaza taşı (kodu al / kod gir).
 - Ücra kapılar: üç ev sisteminin uzak bir köşesinde rakip tarafın evine açılan gizli kapı (400 kredi).
-- Taraf seçimi: oyunun başında Yıldız Filosu, Tüccar Loncası ya da Korsan Birliği seçilir; her tarafın kendi avantajı ve başlangıç ilişkileri var. Taraf sonradan değiştirilebilir ama ağır bedelli (1200 XP, 4000 kredi, yeni tarafla Dost olmak, XP'nin %20'si; eski taraf seni düşman sayar).
+- Taraf seçimi: oyunun başında Yıldız Filosu, Tüccar Loncası ya da Korsan Birliği seçilir; her tarafın kendi avantajı ve başlangıç ilişkileri var. Taraf sonradan değiştirilebilir ama ağır bedelli (1200 XP, 4000 kredi, yeni tarafla Dost olmak, XP'nin %20'si; eski taraf seni düşman sayar; iki değişiklik arasında en az 2 saat).
 - Gruplar ve itibar: Yıldız Filosu, Tüccar Loncası, Korsan Birliği. Korsan avı Filoyu, satış ve yardım Loncayı güçlendirir; itibar fiyatları, ödülleri ve kimin sana saldıracağını değiştirir.
 - Patron savaşları (Lonca Pazarı'nda Kiralık Kaptan Varak, Kara Liman'da Liman Ağası Morr dahil): her evrende bir korsan reisi kendi ininde bekler. Üç aşamalı dövüş (takviye, roket salvosu, öfke); yenince kalıcı bir ödül kazanılır.
 - Sıçramalar: istasyondan hiperatlamada kokpitin içinden geri sayım, camda ışık çizgisi, ışın patlaması ve beyaz flaş; kapıdan geçişte yıldızlar ışık çizgilerine döner, gidilen evrenin renginde dönen bir tünelden geçilir.
@@ -66,7 +66,7 @@ iPad'de yatay tutarak oynamak en rahatı. Tarayıcılar sesi ilk dokunuşa kadar
 
 ## Kayıt
 
-İlerleme tarayıcıda (`localStorage`) saklanır. Tarayıcı verisi silinirse kayıt da gider.
+İlerleme tarayıcıda (`localStorage`) saklanır; kargodaki cevherler de kayda girer, sayfa yenilense de korunur. Tarayıcı verisi silinirse kayıt da gider.
 
 ## Teknik
 
