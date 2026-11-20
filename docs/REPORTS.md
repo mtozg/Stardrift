@@ -123,3 +123,13 @@ Bulunan ve düzeltilen hatalar:
 2. **Duran oyuncu seçim yapamıyordu:** çağrı 1 sn sonra kendiliğinden taramaya geçiyordu. Artık "Uy" ya da 3 sn yavaş kalma gerekir.
 3. **Düğmeler her 0,25 sn yeniden oluşturuluyordu:** dokunuş kaybolabiliyordu. Kutu artık aşama başına bir kez kurulur; düğmeler `pointerdown` ile (uçuş düğmeleri gibi) çalışır, 42 px yüksekliğinde.
 Sonuç: çağrı kutusu iPhone ekranında okunaklı; dokunarak rüşvet −450 kredi, tarama yok, kaçak korundu; hata yok.
+
+## 12. Sprint 2 (1.58.0) test özeti
+Regresyon seti artık depoda: `bash tools/qa/run.sh` (9 test; bekleme ~20 dk). Kokpit/bellek testi ayrı: `node tools/qa/qa_pr28.js`.
+| Test | Sonuç |
+|---|---|
+| kargo_kaydi, kacak_uste, toplu_regresyon, devriye_akis, devriye_rusvet, telefon_devriye, hangar_bellek | PASS |
+| bekci: görev adımı gelmeden aktif değil; adım gelince doğuyor; Filo ve Korsan'da düşman; faz 2 (takviye) ve faz 3 (öfke); ölünce `save.bekci`, `save.boss` 6'da kalıyor | PASS |
+| kutuk: 10 rozet, kademeler, "Pilot Kütüğü · 9/30" başlığı, açılır bölüm | PASS |
+**Bekçi ödülü:** yalnız rozet. Mevcut öldürme ödülü geçerli (test kaydında Filo +1.045 kredi / +30 XP, Korsan +80 kredi / +50 XP; normal bir patron gemisi öldürmeyle aynı sistem). Yeni ödül değeri eklenmedi.
+Sınırlar: gerçek cihaz; Bekçi savaşının gerçek oynanış dengesi (gövde 2.600, salvo 24 hasar) elle denenmedi, yalnızca akış otomatik test edildi.

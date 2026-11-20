@@ -46,7 +46,7 @@ Backlog · Planlandı · Devam · İnceleme · Test · Tamam · Bloke
 | S1-15 | K13: üste kaçak satışı kapatma, kara pazar yalnız Kara Liman ana istasyonu | Lead Developer | P1 | S1-13 | İnceleme (PR #33) | PR + QA |
 | S1-16 | K6, K7a, K7b: Korsan itibarı −50 (+ metin, tek seferlik göç), gümrük %25, tarama %25 | Lead Developer | P2 | S1-11 | İnceleme (PR #33) | PR + QA |
 | S1-17 | K14: kokpit modeli yüklenemezse durum satırı | Lead Developer | P2 | S1-02 | İnceleme (PR #33) | PR + QA |
-| S1-18 | Yük Devi kokpiti PRODUCTION (K15) | Asset Factory | P2 | — | Revizyon: dikmeler inceltilecek (K21) | Kapı 2 teslim paketi |
+| S1-18 | Yük Devi kokpiti PRODUCTION (K15) | Asset Factory | P2 | — | **r010 revizyonu: görsel detay (K22)**; oyuna ekleme geri alındı | Kapı 2 teslim paketi |
 | S1-13 | Kargo kaydı (K9): yenileme/yeniden girişte korunur, kopya kargo/ödül yok | Lead Developer | P1 | S1-12 | Tamam (PR #31) | PR + QA |
 
 ### Açık kalanlar (Sprint 2 adayı)
@@ -66,9 +66,9 @@ Lead Developer işleri tek dalda (`claude/stardrift-hod-system-np3akq`) sırayla
 | B-01c | Aşama 1-C devriye karar mantığı + rüşvet + tüccar kaçışı + korsan selamı | İnceleme (PR #33, 1.56.0), K20 |
 | B-01d | Aşama 1-D taraf unvanları | C sonrası |
 | B-03 | Hayalet kokpiti | Yük Devi'den sonra |
-| B-04 | Bölüm 6 final patron karşılaşması | Game Designer önerisi, ekonomi etkisi yok |
-| B-05 | Pilot Kütüğü ve başarımlar | Game Designer önerisi, ekonomi etkisi yok |
+| B-04 | Bölüm 6 final patronu: Kadim Bekçi | İnceleme (K25); ödül yalnız rozet |
+| B-05 | Pilot Kütüğü ve rozetler | İnceleme (Sprint 2): 10 rozet, kademeli, ödülsüz; rozet çizimleri Asset Factory'ye sonra |
 | B-06 | Yetenek sıfırlama | Ücret Mehmet onayına bağlı |
-| B-07 | Playwright smoke testi (QA'nın qa_pr28.js betiği temel alınır) | Lead Developer |
+| B-07 | Playwright regresyon seti | Tamam: `tools/qa/` (`bash tools/qa/run.sh`) |
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | QA incelemesi |
 | B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |

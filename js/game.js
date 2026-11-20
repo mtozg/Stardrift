@@ -296,9 +296,9 @@ const ruins = [];
 // ---------- Cevher ve asteroitler ----------
 // oyuncuya düşman mı? Korsan tarafında korsanlar müttefik, Filo gemileri düşman
 // 1.55.0 (Aşama 1-B): Korsan oyuncu için devriye ancak gerçekten çatışmadaysa (sana saldırıyor, kışkırtılmış ya da avcı) düşman sayılır; değilse 'tetikte' (mor)
-function foe(n){ if (!n) return false; if (n.kind !== 'npc') return !!n.hostile; if (save.side === 'korsan') return !!n.hunter || n.rev > time || (n.role === 'patrol' && n.state === 'attack' && n.tgt === 'player'); return !!n.hostile || n.rev > time; }
+function foe(n){ if (!n) return false; if (n.kind !== 'npc') return !!n.hostile; if (n.gd) return true; if (save.side === 'korsan') return !!n.hunter || n.rev > time || (n.role === 'patrol' && n.state === 'attack' && n.tgt === 'player'); return !!n.hostile || n.rev > time; }
 // lazer bu gemiye vurur mu? Korsan için: Birlik gemileri hariç her şey. Diğerleri için: korsanlar ve sana saldıran.
-function shootable(n){ if (!n || n.kind !== 'npc') return false; if (save.side === 'korsan') return n.role !== 'pirate' || !!n.hunter; return !!n.hostile || n.rev > time; }
+function shootable(n){ if (!n || n.kind !== 'npc') return false; if (n.gd) return true; if (save.side === 'korsan') return n.role !== 'pirate' || !!n.hunter; return !!n.hostile || n.rev > time; }
 /* ilişki (taraf mantığının tek kaynağı): 'foe' = düşman (kırmızı), 'prey' = av (kehribar; yalnızca Korsan'da kargo/madenci), 'ally' = dost ya da tarafsız (mavi).
    Filo / Lonca: korsanlar düşman; devriye, kargo, madenci dost. Korsan: devriye ve Filo avcıları düşman; korsanlar dost; kargo ve madenciler av. */
 function rel(n){ if (!n) return 'ally'; if (n.kind !== 'npc') return n.hostile ? 'foe' : 'ally'; if (foe(n)) return 'foe'; if (save.side === 'korsan' && n.role === 'patrol') return 'wary'; if (save.side === 'korsan' && shootable(n)) return 'prey'; return 'ally'; }
@@ -7431,7 +7431,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   const _ld = window.__leaderDrop; window.__leaderDrop = function(n){ if (n.boss == null) _ld(n); };
   const css = document.createElement('style'); css.textContent = '#bossBar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);transform:translateX(-50%);z-index:5;width:min(460px,56vw);display:none;pointer-events:none;text-align:center;font:700 13px var(--font);letter-spacing:.14em;color:#ffd0d6;text-shadow:0 0 8px #000}#bossBar.on{display:block}#bossBar .b{height:9px;margin-top:4px;border:1px solid rgba(255,107,138,.7);border-radius:5px;background:rgba(20,6,10,.7);position:relative;overflow:hidden}#bossBar .b u{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff3b5c,#ff9a6e);transition:width .25s}#bossBar .b s{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}';
   document.head.appendChild(css);
-  const bar = document.createElement('div'); bar.id = 'bossBar'; bar.innerHTML = '<span></span><div class="b"><u></u><s style="left:33.3%"></s><s style="left:66.6%"></s></div>'; document.body.appendChild(bar);
+  const bar = document.createElement('div'); bar.id = 'bossBar'; bar.innerHTML = '<span></span><div class="b"><u></u><s style="left:33.3%"></s><s style="left:66.6%"></s></div>'; document.body.appendChild(bar); window.__bossBar = bar;
   let lair = null, lairSys = -1, lairPos = V(0, 0, 0), mark = null, L = null, guards = [], phase = 1, salvoT = 0, salvoHit = 0;
   const _fm = window.__featMap; window.__featMap = () => _fm().concat(mark ? [mark] : []);
   window.__bossDbg = () => ({ L, phase, lairPos, mark });
@@ -7479,6 +7479,77 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
       for (let i = 0; i < 5; i++) npcBeam(L.pos.clone().add(V(rand(-20, 20), rand(-10, 10), rand(-20, 20))), rig.position.clone().add(V(rand(-40, 40), rand(-40, 40), rand(-40, 40))), 0);
       if (vel.length() < 55 && d < 1300){ hurt(24 * (SYSC.dmg || 1)); burst(rig.position, 0xff8a50, 26, 60, 0.8); shake = 0.8; setBanner('SALVO İSABET', 'bad', 1.2); } else setBanner('SALVODAN KAÇTIN', 'ok', 1.2); }
   });
+}
+
+// ---- Kadim Bekçi (K25): ana görev Bölüm 6'nın doruğu. Son adım: Ankora'da Kadim Kapı'nın yanında bekleyen muhafızı yen.
+// Mevcut patron savaşıyla aynı düzen (3 aşama: takviye, roket salvosu, öfke). Ödül yalnız rozet; kredi, XP ya da parça yok (ekonomi değişmez).
+// save.boss'a yazılmaz (Filo zinciri "6 patron" şartı bozulmasın): ayrı bayrak save.bekci. Korsan dahil her tarafa düşman (n.gd).
+{
+  const GP = V(-600, 2400, -12500), bar = window.__bossBar;
+  let G = null, gg = [], gph = 1, gSalvoT = 0, gSalvoHit = 0;
+  const step = () => (window.__mqCur && window.__mqCur()) || null;
+  const active = () => curSys === 0 && !save.bekci && !!(step() && step().bekci);
+  const mk = (ty, pos) => { const g = spawnNpc(ty, pos, STATION); g.gd = true; g.state = 'attack'; g.tgt = 'player'; g.atkT = time; g.provoked = true; return g; };
+  function gSpawn(){
+    const dir = rig.position.clone().sub(GP).normalize(), p = GP.clone().addScaledVector(dir, 500);
+    G = mk('boss3', p); G.leader = true; G.boss = 6; G.name = '★ Kadim Bekçi'; G.hull = G.hullMax = Math.round(2600 * (SYSC.hull || 1));
+    gg = ['brute', 'raider', 'reaver'].map(ty => mk(ty, p.clone().add(V(rand(-120, 120), rand(-50, 50), rand(-120, 120)))));
+    gph = 1; gSalvoT = time + 8; gSalvoHit = 0; bar.querySelector('span').textContent = 'KADİM BEKÇİ'; bar.classList.add('on');
+    eco.radioT = -9; radio('Kadim Bekçi', 'Kapı yalnız hak edene açılır. Hak ettiğini göster, pilot.', '#c9a7ff'); toast('Kadim Kapı\'nın Bekçisi uyandı', 4200); sfxP('patron_giris', 1) || blip(180, 0.5); shake = 0.5;
+  }
+  function gClear(){ for (const n of [G, ...gg]){ const i = npcs.indexOf(n); if (i >= 0){ npcs.splice(i, 1); disposeNpc3(n); scene.remove(n.g); } } G = null; gg = []; bar.classList.remove('on'); }
+  function gWin(){
+    save.bekci = 1; persist(); sfxP('patron_olum', 1); shake = 1;
+    setTimeout(() => { toast('Kadim Bekçi düştü! Bekçi rozeti kazandın. Ödülünü istasyonda Görevler\'den al.', 6500); eco.radioT = -9; radio('Kadim Bekçi', 'Kapı seni tanıdı. Yıldızlar artık sana emanet.', '#c9a7ff'); }, 900);
+  }
+  EXTRA.push(dt => {
+    if (window.__hjOn || docked || paused) return;
+    if (G && curSys !== 0){ G = null; gg = []; bar.classList.remove('on'); return; }
+    if (!active()){ if (G) gClear(); return; }
+    const dl = rig.position.distanceTo(GP);
+    if (!G){ if (dl < 1800) gSpawn(); return; }
+    if (npcs.indexOf(G) < 0){ const dead = G.hull <= 0; G = null; gg = []; bar.classList.remove('on'); if (dead) gWin(); return; }
+    if (dl > 6500){ gClear(); toast('Bekçi kapının yanına çekildi. Geri döndüğünde seni bekliyor olacak.', 3400); return; }
+    const hf = clamp(G.hull / G.hullMax, 0, 1), d = G.pos.distanceTo(rig.position); bar.querySelector('u').style.width = (hf * 100).toFixed(1) + '%';
+    if (gph === 1 && hf <= 0.66){ gph = 2; setBanner('TAKVİYE GELİYOR', 'bad', 2); radio('Kadim Bekçi', 'Kapının yankıları, bana!', '#c9a7ff'); sfxP('patron_faz', 0.9);
+      for (const ty of ['raider', 'reaver']) gg.push(mk(ty, G.pos.clone().add(V(rand(-300, 300), rand(-100, 100), rand(-300, 300))))); }
+    if (gph === 2 && hf <= 0.33){ gph = 3; G.speed *= 1.3; setBanner('BEKÇİ ÖFKELENDİ', 'bad', 2); radio('Kadim Bekçi', 'Sayısız yıl bekledim. Seni geçirmeyeceğim!', '#c9a7ff'); sfxP('patron_faz', 1); shake = 0.6; }
+    if (gph === 3 && G.fireT > 0.28) G.fireT = 0.28;
+    G.atkT = time; G.state = 'attack'; G.tgt = 'player';
+    if (gph >= 2 && !gSalvoHit && time > gSalvoT && d < 1100){ gSalvoHit = time + 1.5; setBanner('ROKET SALVOSU · HAREKET ET!', 'bad', 1.5); sfxP('salvo', 0.9) || sfxP('agir_atis', 0.9); }
+    if (gSalvoHit && time > gSalvoHit){ gSalvoHit = 0; gSalvoT = time + (gph === 3 ? 5 : 8);
+      for (let i = 0; i < 5; i++) npcBeam(G.pos.clone().add(V(rand(-20, 20), rand(-10, 10), rand(-20, 20))), rig.position.clone().add(V(rand(-40, 40), rand(-40, 40), rand(-40, 40))), 0);
+      if (vel.length() < 55 && d < 1300){ hurt(24 * (SYSC.dmg || 1)); burst(rig.position, 0xc9a7ff, 26, 60, 0.8); shake = 0.8; setBanner('SALVO İSABET', 'bad', 1.2); } else setBanner('SALVODAN KAÇTIN', 'ok', 1.2); }
+  });
+  if (TESTM) window.__bekciDbg = () => ({ G, gph, active: active(), n: gg.length, GP });
+}
+
+// ---- Pilot Kütüğü (B-05): mevcut sayaçlardan türeyen rozetler, Görevler sekmesinin sonunda. Ödülü yok (kozmetik); yeni sayaç ya da ekonomi değişikliği yok.
+{
+  const KD = () => (window.__kadimCount ? window.__kadimCount() : 0), ST = k => ((save.st && save.st[k]) || 0);
+  const TIER = ['Bronz', 'Gümüş', 'Altın'], TCOL = ['#c98a5a', '#c5d2e2', '#ffc94d'];
+  const BG = [
+    { ad: 'Madenci', d: 'birim cevher sat', f: () => ST('sell'), t: [50, 300, 1000] },
+    { ad: 'Avcı', d: 'düşman gemi düşür', f: () => ST('kill'), t: [10, 50, 150] },
+    { ad: 'Devriye avcısı', d: 'devriye ya da avcı düşür', f: () => ST('avci'), t: [3, 10, 30] },
+    { ad: 'Kaçakçı', d: 'birim kaçak mal sat', f: () => ST('kacak'), t: [10, 50, 150] },
+    { ad: 'Siparişçi', d: 'acil sipariş yetiştir', f: () => ST('sip'), t: [2, 8, 20] },
+    { ad: 'Patron avcısı', d: 'korsan reisi yen', f: () => (save.boss || []).length, t: [1, 3, 6] },
+    { ad: 'Kadim dinleyici', d: 'kalıntı yankısı bul', f: KD, t: [4, 12, 16] },
+    { ad: 'Gezgin', d: 'sistem ziyaret et', f: () => (save.seen || []).length, t: [2, 4, 6] },
+    { ad: 'Üs kurucu', d: 'üs seviyesi', f: () => (save.base ? save.base.lv || 1 : 0), t: [1, 2, 3] },
+    { ad: 'Kapı Bekçisi', d: 'Kadim Bekçi\'yi yen', f: () => (save.bekci ? 1 : 0), t: [1, 1, 1], tek: 1 }
+  ];
+  const level = b => { const v = b.f() || 0; let n = 0; for (let i = 0; i < 3; i++) if (v >= b.t[i]) n = i + 1; return { v, n }; };
+  window.__kutuk = () => BG.map(b => Object.assign({ ad: b.ad }, level(b)));
+  const _rc3 = renderCt; renderCt = function(){
+    _rc3(); const box = $('ctBox'); if (!box) return;
+    let tot = 0, h = '';
+    for (const b of BG){ const { v, n } = level(b); tot += b.tek ? (n ? 3 : 0) : n; const nx = b.t[Math.min(n, 2)];
+      const tag = n === 0 ? '<i style="color:#6f7d99">kilitli</i>' : b.tek ? '<i style="color:' + TCOL[2] + '">kazanıldı</i>' : '<i style="color:' + TCOL[n - 1] + '">' + TIER[n - 1] + '</i>';
+      h += '<div class="line"><span>' + b.ad + ' ' + tag + '<span class="dim"><br>' + (b.tek ? b.d : (n >= 3 ? v + ' ' + b.d + ' · en üst kademe' : v + ' / ' + nx + ' ' + b.d)) + '</span></span></div>'; }
+    box.insertAdjacentHTML('beforeend', '<div class="sect">Pilot Kütüğü · ' + tot + '/30</div>' + h);
+  };
 }
 
 // ---- görüntü kalitesi: değiştirme ve kasarsa otomatik düşürme
@@ -9319,7 +9390,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   if (!save.lq || typeof save.lq !== 'object') save.lq = {};
   const US_LV = CH.us.lv;
   const chains = () => Object.keys(CH).filter(k => (!CH[k].side || CH[k].side === save.side) && (!CH[k].lv || lvl() >= CH[k].lv || save.base));
-  const rwTxt = r => [r.k ? r.k + ' kredi' : '', r.x ? r.x + ' XP' : '', r.f ? 'itibar +' + r.f[1] : '', r.sp ? '1 yetenek puanı' : ''].filter(Boolean).join(' · ');
+  const rwTxt = r => [r.k ? r.k + ' kredi' : '', r.x ? r.x + ' XP' : '', r.f ? 'itibar +' + r.f[1] : '', r.sp ? '1 yetenek puanı' : '', r.rozet ? 'Bekçi rozeti' : ''].filter(Boolean).join(' · ');
   // ---- ANA GÖREV: tek, sıralı hikâye zinciri. Bölüm sonları yeni sistemlerin kapılarını açar (zorunlu ilerleme).
   //      Taraf zinciri, Kadim Yankılar ve Kendi Üssün adımları bu hikâyenin içine yerleşir. Panodaki görevler YAN görevdir (isteğe bağlı).
   if (!Array.isArray(save.seen)) save.seen = [window.__homeSys ? window.__homeSys() : 0];
@@ -9350,7 +9421,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       K(3),
       { t: 'Ankora\'daki Kadim Kapı\'dan geç', f: () => save.kadimDone ? 1 : 0, n: 1, r: { x: 1000, sp: 1 } },
       F(4) ] },
-    { b: 'Yıldız Bekçisi', col: '#ffc477', steps: () => [ U(1), U(2), U(3), F(5), U(4), U(5) ] }
+    { b: 'Yıldız Bekçisi', col: '#ffc477', steps: () => [ U(1), U(2), U(3), F(5), U(4), U(5),
+      { t: 'Kadim Kapı\'nın Bekçisini yen (Ankora, kapının yanında)', f: () => save.bekci ? 1 : 0, n: 1, r: { rozet: 1 }, bekci: 1 } ] }
   ];
   const flat = () => { const o = []; MQ.forEach((B, bi) => B.steps().forEach((S, si) => o.push(Object.assign({ bi, si, B }, S)))); return o; };
   if (!save.mq || typeof save.mq !== 'object') save.mq = { i: 0 };
@@ -9362,7 +9434,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // kapı i'yi açan adım tamamlandı mı?
   window.__mqGate = dn => { if (!(dn >= 1 && dn <= 3) || save.mqFree.includes(dn) || TESTM) return { ok: true }; const L = flat(), j = L.findIndex(S => S.opens === dn); if (j < 0 || save.mq.i > j) return { ok: true };
     return { ok: false, why: 'Ana görev: «' + L[j].B.b + '» bölümünü bitir' }; };
-  window.__mqCur = () => cur();
+  window.__mqCur = () => cur(); if (TESTM) window.__mqLen = () => flat().length;
   window.__mqLine = () => { const S = cur(); if (!S) return ''; const v = Math.min(S.n, Math.floor(S.f() || 0)); return S.t + (S.n > 1 ? ' · ' + v + '/' + S.n : '') + (v >= S.n ? ' · ödül hazır' : ''); };
   const baseOk = () => { const L = flat(), j = L.findIndex(S => S.src && S.src[0] === 'us' && S.src[1] === 0); return save.mq.i >= j; };
   window.__mqBase = baseOk;
@@ -10425,7 +10497,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   //  Filo: korsanlar düşman, devriyeler yardıma gelir. Lonca: korsanlar düşman, ticaret ve siparişler.
   //  Korsan: Birlik gemileri (Kurt, Akbaba, Yağmacı) müttefik ve vurulmaz; Filo devriyeleri ve avcıları düşman; tüccar ve madenciler av.
   (function(){
-    const KS = () => save.side === 'korsan', ally = n => n && n.role === 'pirate' && !n.hunter;
+    const KS = () => save.side === 'korsan', ally = n => n && n.role === 'pirate' && !n.hunter && !n.gd;
     const addXp = x => { try { window.__addXp && window.__addXp(x); } catch (e) {} };
     // korsan oyuncuya yanlış ceza ve uyarı yazıları gösterilmez
     { const _t = toast; toast = function(msg, ms){ if (KS() && /^(Sivil gemiyi vurdun|Meşru müdafaa|Dost gemiye ateş ettin|Korsan gemisi düştü)/.test(String(msg))) return; return _t.apply(this, arguments); }; }
@@ -10604,7 +10676,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
-    rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
+    kill: n => killNpc(n, 'player'), rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
     get time(){ return time; }, get hp(){ return Object.assign({}, hp); },
     tp: (v, dz) => { rig.position.copy(v).add(V(0, 0, dz || 0)); }, stop: () => vel.set(0, 0, 0), speed: v => vel.set(0, 0, -(v || 0)).applyQuaternion(rig.quaternion),
     hg: () => ({ id: hgId, mem: hgR ? Object.assign({}, hgR.info.memory) : null }), hgSet: id => hgSet(id), hgOpen: () => { try { hgStart(); } catch (e) { return String(e); } return !!hgS; },
