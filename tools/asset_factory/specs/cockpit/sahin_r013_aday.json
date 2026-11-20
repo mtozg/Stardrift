@@ -250,7 +250,7 @@
   "uv_pack": "CONVEX",
   "_note": "Kaşif dersleri: GPU ≤ 40 MB → base 2048², ORM ve normal 1024² (~33,6 MB); göz noktaları pilotun baş hareket aralığı",
   "ao_distance": 0.3,
-  "ao_into_base": 0.55
+  "ao_into_base": 0.35
  },
  "material_overrides": {
   "sahin_paint": {
@@ -260,7 +260,12 @@
    "wear": 1.6,
    "chips": 1.4,
    "grime": 0.6,
-   "streaks": 0.5
+   "streaks": 0.5,
+   "base": [
+    0.52,
+    0.54,
+    0.57
+   ]
   },
   "sahin_mid": {
    "panels": 0.9,

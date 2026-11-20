@@ -180,15 +180,15 @@ def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, s
     add('seat_rail_cross', geo.bm_box((0, -0.05, pz - 0.09), (0.30, 0.05, 0.04)), 'gunmetal')
     if A.get('seat_visible'):      # r013 adayı: pilot görüşünde görünen spor/avcı koltuğu (yüksek sırt, ince yan kanatlar, kırmızı kemer); Kaşif'te alt orta bölgede koltuk belli oluyor
         sy = 0.555
-        add('seat_headrest_v', soft_box((0, sy, -0.520), (0.23, 0.08, 0.21), bev=0.022, level=1), 'sahin_seat', smooth=60)
-        add('seat_back_v', soft_box((0, sy + 0.015, -0.700), (0.30, 0.07, 0.16), bev=0.02, level=1), 'sahin_seat', smooth=60)
+        add('seat_headrest_v', soft_box((0, sy, -0.565), (0.23, 0.08, 0.21), bev=0.022, level=1), 'sahin_seat', smooth=60)
+        add('seat_back_v', soft_box((0, sy + 0.015, -0.745), (0.30, 0.07, 0.16), bev=0.02, level=1), 'sahin_seat', smooth=60)
         for s_ in (-1, 1):
             nm = 'L' if s_ < 0 else 'R'
-            add('seat_wing_v_' + nm, soft_box((s_ * 0.165, sy - 0.020, -0.600), (0.045, 0.11, 0.20), bev=0.016, level=1), 'sahin_seat', smooth=60)
-            add('seat_strap_v_' + nm, geo.bm_box((s_ * 0.070, sy - 0.0405, -0.610), (0.034, 0.006, 0.26)), 'sahin_red')
-            add('seat_seam_w_' + nm, geo.bm_box((s_ * 0.100, sy - 0.0405, -0.540), (0.005, 0.004, 0.15)), 'seat_thread')
-        add('seat_seam_h', geo.bm_box((0, sy - 0.0405, -0.480), (0.19, 0.004, 0.005)), 'seat_thread')
-        add('seat_buckle_v', geo.bm_box((0, sy - 0.0445, -0.660), (0.048, 0.008, 0.030)), 'gunmetal')
+            add('seat_wing_v_' + nm, soft_box((s_ * 0.165, sy - 0.020, -0.645), (0.045, 0.11, 0.20), bev=0.016, level=1), 'sahin_seat', smooth=60)
+            add('seat_strap_v_' + nm, geo.bm_box((s_ * 0.070, sy - 0.0405, -0.655), (0.034, 0.006, 0.26)), 'sahin_red')
+            add('seat_seam_w_' + nm, geo.bm_box((s_ * 0.100, sy - 0.0405, -0.585), (0.005, 0.004, 0.15)), 'seat_thread')
+        add('seat_seam_h', geo.bm_box((0, sy - 0.0405, -0.525), (0.19, 0.004, 0.005)), 'seat_thread')
+        add('seat_buckle_v', geo.bm_box((0, sy - 0.0445, -0.705), (0.048, 0.008, 0.030)), 'gunmetal')
 
 
 def detail_pass2(A, add, D, vtop, surf, sl):
