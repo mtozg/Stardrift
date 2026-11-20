@@ -1,0 +1,475 @@
+{
+ "version": 1,
+ "assets": {
+  "test_box": {
+   "state": "delivered",
+   "rev": 2,
+   "history": [
+    {
+     "t": "2026-11-15T18:33:36+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-15T18:33:53+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: L1 kontrol listesi geçti; alt dik görünüşte arka plan rengi kozmetik",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T18:36:46+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-15T18:37:30+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (63 PASS, 2 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-15T18:50:21+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: QC 0 FAIL; 2 WARN raporda açıklandı",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T18:50:21+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/test_box/r001"
+    },
+    {
+     "t": "2026-11-15T19:57:32+00:00",
+     "from": "delivered",
+     "to": "draft",
+     "reason": "yeni revizyon r002: soket yönü düzeltmesi (glTF yerel eksen dönüşümü) + soket yönü QC testi"
+    },
+    {
+     "t": "2026-11-15T20:02:40+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-15T20:02:40+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: r002: geometri r001 ile aynı (hash eşit olmalı), soket düzeltmesi",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T20:05:42+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-15T20:06:26+00:00",
+     "from": "prepared",
+     "to": "qc_fail",
+     "reason": "QC FAIL (63 PASS, 3 WARN, 1 FAIL)"
+    },
+    {
+     "t": "2026-11-15T20:07:24+00:00",
+     "from": "qc_fail",
+     "to": "qc_pass",
+     "reason": "QC WARN (65 PASS, 2 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-15T20:07:34+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: r002: 0 FAIL; 2 WARN raporda açıklandı",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)"
+    },
+    {
+     "t": "2026-11-15T20:07:35+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/test_box/r002"
+    }
+   ],
+   "timings": {
+    "model": 297.8,
+    "prepare": 176.7,
+    "qc": 43.5
+   },
+   "approvals": [
+    {
+     "t": "2026-11-15T18:33:53+00:00",
+     "gate": "visual",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "L1 kontrol listesi geçti; alt dik görünüşte arka plan rengi kozmetik",
+     "accept_warn": []
+    },
+    {
+     "t": "2026-11-15T18:50:21+00:00",
+     "gate": "tech",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "QC 0 FAIL; 2 WARN raporda açıklandı",
+     "accept_warn": [
+      "pbr.base_metal",
+      "gltf.validator_warnings"
+     ]
+    },
+    {
+     "t": "2026-11-15T20:02:40+00:00",
+     "gate": "visual",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "r002: geometri r001 ile aynı (hash eşit olmalı), soket düzeltmesi",
+     "accept_warn": []
+    },
+    {
+     "t": "2026-11-15T20:07:34+00:00",
+     "gate": "tech",
+     "by": "claude (Faz 0 test nesnesi; kullanıcı talimatı 2026-11-15)",
+     "note": "r002: 0 FAIL; 2 WARN raporda açıklandı",
+     "accept_warn": [
+      "pbr.base_metal",
+      "gltf.validator_warnings"
+     ]
+    }
+   ],
+   "geometry_hash": "4f5b25b31f5b1c1a2b10073ceb4cfaa1279eb5662845677402e1cc803f6c0e74",
+   "spec_hash": "af4e7443170a651d098ba29f4dc8da3f0292651bc41052c2acce005af6af2fe6",
+   "fast": false,
+   "perf_baseline": {
+    "masaüstü 1200×750|1": 7.3,
+    "masaüstü 1200×750|12": 45.4,
+    "masaüstü 1200×750|40": 110.1,
+    "iPad Pro 11 landscape|1": 9.3,
+    "iPad Pro 11 landscape|12": 43.6,
+    "iPad Pro 11 landscape|40": 115,
+    "iPhone 13 landscape|1": 10.5,
+    "iPhone 13 landscape|12": 49,
+    "iPhone 13 landscape|40": 113,
+    "Pixel 7 landscape|1": 10.5,
+    "Pixel 7 landscape|12": 50.2,
+    "Pixel 7 landscape|40": 116
+   }
+  },
+  "sahin_cockpit": {
+   "state": "integrated",
+   "rev": 12,
+   "history": [
+    {
+     "t": "2026-11-16T03:31:01+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:31:36+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r002: PREVIEW ölçüm düzeltmeleri: kamera kaydırma birimi, solidify yönü (ekran örtülmesi)"
+    },
+    {
+     "t": "2026-11-16T03:35:24+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:36:02+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r003: PREVIEW: çerçeve çıkıntısı, yan duvar konumu, konsol üst eğimi (ölçüm bulguları)"
+    },
+    {
+     "t": "2026-11-16T03:40:00+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:40:20+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r004: PREVIEW: ekranlar konsol yüzeyini izler (alt köşe örtülmesi)"
+    },
+    {
+     "t": "2026-11-16T03:44:18+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:46:08+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r005: PREVIEW: geriye yatık kemer (şemaya sayısal uyum), eğimli yan eşik, gaz kolu ölçüsü"
+    },
+    {
+     "t": "2026-11-16T03:49:59+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:50:29+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r006: PREVIEW: boru burulması (paralel taşıma), konsol alt yüzü orta gri, iç dolgu ışığı"
+    },
+    {
+     "t": "2026-11-16T03:54:27+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T03:54:52+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r007: PREVIEW: koltuk görünüş kamerası, baş desteği konumu"
+    },
+    {
+     "t": "2026-11-16T03:59:01+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T04:40:46+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r008: Kullanıcı geri bildirimi: ekranlar daha yakın, büyük ve yüksek; konsol üst kenarı ve göz kalkanı birlikte"
+    },
+    {
+     "t": "2026-11-16T04:44:42+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T04:55:05+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: PREVIEW r008 onaylandı (konsept A, ekranlar yakın/büyük/yüksek)",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Onaylıyorum')"
+    },
+    {
+     "t": "2026-11-16T04:58:51+00:00",
+     "from": "visual_approved",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r009 (Kapı 1 onaylı r008 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-16T05:15:08+00:00",
+     "from": "visual_approved",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r010 (Kapı 1 onaylı r009 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-16T05:33:56+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-16T05:34:35+00:00",
+     "from": "prepared",
+     "to": "qc_fail",
+     "reason": "QC FAIL (56 PASS, 1 WARN, 4 FAIL)"
+    },
+    {
+     "t": "2026-11-16T05:36:22+00:00",
+     "from": "qc_fail",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r011 (Kapı 1 onaylı r010 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-16T05:55:15+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-16T05:55:31+00:00",
+     "from": "prepared",
+     "to": "qc_fail",
+     "reason": "QC FAIL (58 PASS, 1 WARN, 3 FAIL)"
+    },
+    {
+     "t": "2026-11-16T05:57:44+00:00",
+     "from": "qc_fail",
+     "to": "qc_pass",
+     "reason": "QC WARN (61 PASS, 1 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-16T06:23:34+00:00",
+     "from": "qc_pass",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r012 (Kapı 1 onaylı r011 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-16T06:45:41+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-16T06:45:58+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (61 PASS, 1 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-16T10:17:52+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: Yalnız Asset Factory teslim paketi için teknik onay; entegrasyon/main/Kaşif değişikliği değil. Tangent uyarısı kabul (runtime tangent + normal map entegrasyonda kontrol). RADAR 1,56:1 korunur. Emülatör 19-21 ms yalnız referans; gerçek cihaz testi sonra.",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Şahin r012 için Kapı 2 teknik onayını veriyorum')"
+    },
+    {
+     "t": "2026-11-16T10:18:09+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/sahin_cockpit/r012"
+    },
+    {
+     "t": "2026-11-16T12:16:03+00:00",
+     "from": "delivered",
+     "to": "integrated",
+     "reason": "Kapı 3: kullanıcı onayı (sohbet 2026-11-16: 'Onaylıyorum ama ... model engellenme gibi bir durum olmasın'); çizim kokpitine dönüş kaldırıldı, sessiz yeniden deneme; oyun 1.54.0, dal claude/awesome-cannon-qb1ro2 (main'e aktarım ayrı karar)"
+    }
+   ],
+   "timings": {
+    "model": 1061.0,
+    "prepare": 265.3,
+    "qc": 15.8
+   },
+   "approvals": [
+    {
+     "t": "2026-11-16T04:55:05+00:00",
+     "gate": "visual",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Onaylıyorum')",
+     "note": "PREVIEW r008 onaylandı (konsept A, ekranlar yakın/büyük/yüksek)",
+     "accept_warn": []
+    },
+    {
+     "t": "2026-11-16T10:17:52+00:00",
+     "gate": "tech",
+     "by": "kullanıcı (sohbet, 2026-11-16: 'Şahin r012 için Kapı 2 teknik onayını veriyorum')",
+     "note": "Yalnız Asset Factory teslim paketi için teknik onay; entegrasyon/main/Kaşif değişikliği değil. Tangent uyarısı kabul (runtime tangent + normal map entegrasyonda kontrol). RADAR 1,56:1 korunur. Emülatör 19-21 ms yalnız referans; gerçek cihaz testi sonra.",
+     "accept_warn": [
+      "gltf.validator_warnings"
+     ]
+    }
+   ],
+   "geometry_hash": "1bd5cd58dcb9e0626c4cf1d7b5d40dc3ea39ebf12621518671b29659b99d7323",
+   "spec_hash": "f5cf3b68c3933a42d19a8c1e5d24e0120f5fb251cf0280e943cb64ae6f564e63",
+   "fast": false,
+   "perf_baseline": {
+    "masaüstü 1200×750|1": 13.6,
+    "iPad Pro 11 landscape|1": 13.5,
+    "iPhone 13 landscape|1": 16.4,
+    "Pixel 7 landscape|1": 13.9
+   },
+   "frozen": {
+    "rev": 12,
+    "tarih": "2026-11-16",
+    "kaynak": "kullanıcı (sohbet)",
+    "not": "r012 görsel olarak onaylandı ve donduruldu (kullanıcı, sohbet 2026-11-16). Daha fazla aşınma/koyulaştırma yok; açık gri, temiz ama kullanılmış avcı karakteri korunur; Kaşif'in yıpranmış koyu metali kopyalanmaz."
+   }
+  },
+  "yuk_cockpit": {
+   "state": "modeled",
+   "rev": 7,
+   "history": [
+    {
+     "t": "2026-11-16T10:45:12+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T10:46:05+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r002: r001 ölçümleri: HUD %11,8, kıskaç görünmüyor, konsol kabin dışına taşıyor"
+    },
+    {
+     "t": "2026-11-16T10:52:12+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T10:52:30+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r003: r002: burun plakası kıskaç görüşünü kesiyordu"
+    },
+    {
+     "t": "2026-11-16T10:58:22+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T10:58:48+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r004: r003: kıskaç çene camında okunmuyor"
+    },
+    {
+     "t": "2026-11-16T11:04:45+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T11:05:23+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r005: r004: çeneler yukarıdan kenardan görünüyor; yana açılan kerpeten"
+    },
+    {
+     "t": "2026-11-16T11:11:32+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T11:12:06+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r006: r005: çeneler çerçeve altında, kol boyunca kısalıyor"
+    },
+    {
+     "t": "2026-11-16T11:18:01+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-16T11:18:10+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r007: r006: bağlantı kutusu görünüyor"
+    },
+    {
+     "t": "2026-11-16T11:44:15+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    }
+   ],
+   "timings": {
+    "model": 1564.8
+   },
+   "approvals": [],
+   "geometry_hash": "f5032de428ae3d351b6ad2c744e37eb2f8771124b2d7c125da07eabceb6ee1ca",
+   "spec_hash": "47d6ac74b5f2250085ec6cf666bd6f8a562ca59b7402d01b313dee815e3adba7",
+   "fast": false,
+   "perf_baseline": null
+  }
+ }
+}

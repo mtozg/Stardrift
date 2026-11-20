@@ -1,0 +1,275 @@
+{
+ "spec": {
+  "id": "sahin_cockpit",
+  "family": "cockpit",
+  "class": "cockpit",
+  "seed": 4500,
+  "profile": "PRODUCTION",
+  "concept": "A · Damla Fanus (kullanıcı seçimi 2026-11-16)",
+  "_note": "Şahin kokpiti. Kaynak: onaylı konsept A şeması (docs/sahin_kokpit.html#a). Eski 2B kokpit çizimleri kullanılmaz (STANDARDS §0.1).",
+  "materials": [
+   "sahin_paint",
+   "sahin_red",
+   "sahin_dark",
+   "antiglare",
+   "seat_textile",
+   "screen_placeholder",
+   "emit_red",
+   "sahin_mid",
+   "gunmetal"
+  ],
+  "texture_mode": "unique",
+  "texture_size": 2048,
+  "lods": [
+   1.0
+  ],
+  "reference": {
+   "concept": "tools/asset_factory/docs/sahin_kokpit.html#a"
+  },
+  "params": {
+   "console_depth": 0.92,
+   "console_wrap": 0.3,
+   "deck_depth": 0.28,
+   "glare_depth": 0.895,
+   "radar_depth": 0.905,
+   "screens": {
+    "radar": [
+     [
+      660,
+      404
+     ],
+     [
+      940,
+      404
+     ],
+     [
+      940,
+      584
+     ],
+     [
+      660,
+      584
+     ]
+    ],
+    "sys": [
+     [
+      390,
+      432
+     ],
+     [
+      620,
+      420
+     ],
+     [
+      626,
+      560
+     ],
+     [
+      400,
+      582
+     ]
+    ],
+    "hull": [
+     [
+      980,
+      420
+     ],
+     [
+      1210,
+      432
+     ],
+     [
+      1200,
+      582
+     ],
+     [
+      974,
+      560
+     ]
+    ],
+    "_r007": "kullanıcı geri bildirimi 2026-11-16: ekranlar uzak, küçük, aşağıda → yaklaştırıldı (boşluk 214→34 px), büyütüldü, yükseltildi"
+   },
+   "hoop": {
+    "a": 1.26,
+    "b": 0.75,
+    "y0": -0.28,
+    "depth": 0.75,
+    "side_depth": 0.25,
+    "r": 0.022,
+    "_fit": "şema kenar yüksekliğine sayısal uyum: u=0 → v=104,6 (şema ≈105)"
+   },
+   "seat": {
+    "pan_z": -0.62,
+    "recline_deg": 16
+   },
+   "deck_drop": 0.07,
+   "bezel_protrude": 0.008,
+   "fascia_lean": 0.05,
+   "sill": {
+    "x": 1.26,
+    "y_front": 1.0,
+    "z_front": -0.452,
+    "y_mid": 0.687,
+    "z_mid": -0.124,
+    "y_back": -0.55
+   },
+   "console_top": {
+    "shoulder_u": 250,
+    "shoulder": 420,
+    "center": 384,
+    "edge": 520,
+    "_r007": "shoulder 436, center 396"
+   },
+   "glare": {
+    "half": 170,
+    "top_c": 372,
+    "top_e": 416,
+    "bot_c": 402,
+    "bot_e": 418,
+    "_r007": "half 240, top 376→436, bottom 398→452"
+   },
+   "detail": {
+    "seams_u": [
+     175,
+     520,
+     1080,
+     1425
+    ],
+    "switch_u_left": [
+     218,
+     256,
+     294,
+     332
+    ],
+    "switch_v": [
+     532,
+     584
+    ],
+    "stick_top_z": -0.43,
+    "rear_hoop_y": -0.62,
+    "_note": "uçuş kolu r008'e göre 3 cm alçak (topuz RADAR çerçevesine biniyordu)",
+    "_r009": "anahtar panelleri küçültüldü ve raydan uzaklaştırıldı",
+    "pass": 2,
+    "lower_plate_v": [
+     612,
+     700
+    ],
+    "lower_plates": [
+     [
+      372,
+      634
+     ],
+     [
+      668,
+      932
+     ],
+     [
+      966,
+      1228
+     ]
+    ],
+    "grilles_u": [
+     [
+      690,
+      776
+     ],
+     [
+      824,
+      910
+     ]
+    ],
+    "grille_v": [
+     616,
+     650
+    ],
+    "cable_u": [
+     430,
+     420,
+     405,
+     392
+    ],
+    "handle_u": [
+     118,
+     176
+    ],
+    "handle_v": [
+     470,
+     452
+    ],
+    "_r012": "Kapı 2 kararı: ayrıntı ve malzeme geçişi; derzler anahtar panellerinin dışına (r011 çentiği), yan çıtalar yerine ızgara (r011 kaması)"
+   },
+   "console_cols": 121
+  },
+  "_gate1": "Kapı 1: PREVIEW r008 kullanıcı tarafından onaylandı (2026-11-16)",
+  "prepare": {
+   "cull": "interior",
+   "eyes": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0.07,
+     0,
+     0
+    ],
+    [
+     -0.07,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0.05
+    ],
+    [
+     0,
+     0,
+     -0.04
+    ],
+    [
+     0,
+     0.05,
+     0
+    ],
+    [
+     0,
+     -0.05,
+     0
+    ]
+   ],
+   "tex": {
+    "base": 2048,
+    "orm": 1024,
+    "normal": 1024
+   },
+   "uv_pack": "CONVEX",
+   "_note": "Kaşif dersleri: GPU ≤ 40 MB → base 2048², ORM ve normal 1024² (~33,6 MB); göz noktaları pilotun baş hareket aralığı"
+  },
+  "frozen": {
+   "rev": 12,
+   "tarih": "2026-11-16",
+   "not": "r012 görsel olarak onaylandı ve donduruldu (kullanıcı, sohbet 2026-11-16). Daha fazla aşınma/koyulaştırma yok; açık gri, temiz ama kullanılmış avcı karakteri korunur; Kaşif'in yıpranmış koyu metali kopyalanmaz.",
+   "kural": "Görsel değişiklik yeni kullanıcı onayı olmadan yapılmaz (factory revise + Kapı 1)."
+  }
+ },
+ "seed": 4500,
+ "spec_hash": "4d3a7ad6c6272ad73d14cdfcf6a5e8a4a0cbbfd6309fa98d19e78707b0a4a941",
+ "geometry_hash": "1bd5cd58dcb9e0626c4cf1d7b5d40dc3ea39ebf12621518671b29659b99d7323",
+ "factory_commit": "7a9367d",
+ "blender": "5.3.0",
+ "library_materials": [
+  "sahin_paint",
+  "sahin_red",
+  "sahin_dark",
+  "antiglare",
+  "seat_textile",
+  "screen_placeholder",
+  "emit_red",
+  "sahin_mid",
+  "gunmetal"
+ ],
+ "rebuild": "python factory.py model sahin_cockpit && python factory.py prepare sahin_cockpit"
+}

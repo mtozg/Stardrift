@@ -1,0 +1,494 @@
+"""Kokpit ailesi — PREVIEW blokajı (kaba kütleler). İlk tarif: Şahin, konsept A "Damla Fanus".
+
+Kamera sözleşmesi (oyunun ortak pilot kamerası; Kaşif GLB ile aynı, kod yeniden yazıldı, kopyalanmadı):
+  göz orijinde, ileri = oyun −Z (Blender +Y), dikey FOV 74°, asal nokta (800, 239,5) / 1600×656, odak 435,27 px.
+Konsept şemasındaki piksel (u, v) ve bir derinlik d, P(u, v, d) ile 3B noktaya çevrilir; böylece blokaj onaylı şemayla hizalı kurulur.
+Ekran sözleşmesi: SCR_SYS / SCR_RADAR / SCR_HULL dörtgenleri, köşe sırası TL, TR, BR, BL; UV TL=(0,1) … (oyun ekranları ada göre bağlar).
+Bu dosya YALNIZCA PREVIEW blokajı içindir: ayrıntı, UV, bake ve GLB PRODUCTION aşamasındadır."""
+import bpy, bmesh, math, os, json
+from mathutils import Vector, Matrix
+from core import geo, render as R
+
+F, CX, CY, W, H = 435.2707, 800.0, 239.5, 1600, 656
+
+
+def P(u, v, d):
+    return Vector(((u - CX) / F * d, d, -(v - CY) / F * d))
+
+
+def to_px(p):
+    """Blender noktası → pilot görüntüsü pikseli (1600×656)."""
+    return (CX + F * p.x / p.y, CY - F * p.z / p.y)
+
+
+def face_eye(bm):
+    """Göze dönük yüzler: normali gözden uzaklaşan yüzü çevir (pilotun gördüğü taraf ön yüz olsun)."""
+    bm.normal_update()
+    for f in bm.faces:
+        if f.normal.dot(f.calc_center_median()) > 0:
+            f.normal_flip()
+    return bm
+
+
+def grid(rows, close=False):
+    bm = bmesh.new()
+    V = [[bm.verts.new(p) for p in row] for row in rows]
+    for r in range(len(V) - 1):
+        for c in range(len(V[r]) - 1):
+            bm.faces.new((V[r][c], V[r][c + 1], V[r + 1][c + 1], V[r + 1][c]))
+    return bm
+
+
+def tube(points, r, seg=10):
+    bm = bmesh.new()
+    rings = []
+    a_prev = None
+    for i, p in enumerate(points):
+        t = (points[min(i + 1, len(points) - 1)] - points[max(i - 1, 0)]).normalized()
+        # paralel taşıma: önceki kesit eksenini yeni teğete dik düzleme izdüşür (r005'teki burulmanın düzeltmesi)
+        a = t.orthogonal().normalized() if a_prev is None else (a_prev - t * a_prev.dot(t)).normalized()
+        a_prev = a
+        b = t.cross(a).normalized()
+        rings.append([bm.verts.new(p + (a * math.cos(2 * math.pi * k / seg) + b * math.sin(2 * math.pi * k / seg)) * r) for k in range(seg)])
+    for i in range(len(rings) - 1):
+        for k in range(seg):
+            bm.faces.new((rings[i][k], rings[i][(k + 1) % seg], rings[i + 1][(k + 1) % seg], rings[i + 1][k]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
+
+
+def lin(a, b, n):
+    return [a + (b - a) * i / (n - 1) for i in range(n)]
+
+
+def _rot(bm, pivot, deg):
+    t = bm.bm if isinstance(bm, Soft) else bm
+    bmesh.ops.rotate(t, cent=Vector(pivot), matrix=Matrix.Rotation(math.radians(-deg), 3, 'X'), verts=t.verts)
+    return bm
+
+
+class Soft:
+    """Yumuşak minder tarifi: düz kutu + belirlenimli değiştiriciler (Bevel + Subdivision Surface).
+    r010 bulgusu: bmesh ızgara dolgulu bölme köşe/yüz SIRASINI her çalıştırmada farklı üretiyordu (tekrar üretilebilirlik FAIL)."""
+    def __init__(self, bm, bev, level):
+        self.bm, self.bev, self.level = bm, bev, level
+
+
+def soft_box(center, size, bev=0.02, level=2):
+    return Soft(geo.bm_box(center, size), bev, level)
+
+
+def production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, sl, rail):
+    """PRODUCTION ayrıntıları (Kapı 1 onaylı r008 düzeni korunur). Kaşif'in ayrıntı yoğunluğu hedeflenir; tasarım Şahin'e özgü."""
+    D = A.get('detail', {})
+    toward = lambda p: (-p).normalized()      # göze doğru
+    # --- panel derzleri: konsol yüzünde ince koyu çizgiler
+    for k, u in enumerate(D.get('seams_u', [])):
+        rows = []
+        for v in lin(vtop(u) + 1, 760, 14):
+            d = surf(u, v) - 0.0015
+            w = 0.0025 / d * F
+            rows.append([P(u - w, v, d), P(u + w, v, d)])
+        add('seam_%d' % k, grid([[r[0] for r in rows], [r[1] for r in rows]]), 'sahin_dark', eye=True)
+    # --- perçinler: üst panel bandında, ekranların dışında
+    boxes = [(min(x for x, y in q) - 25, max(x for x, y in q) + 25) for q in (sc['radar'], sc['sys'], sc['hull'])]
+    rv = 0
+    for u in lin(230, W - 230, 27):
+        if any(a <= u <= b for a, b in boxes):
+            continue
+        p = P(u, vtop(u) + 20, surf(u, vtop(u) + 20) - 0.001)
+        add('rivet_%d' % rv, geo.bm_cylinder(tuple(p), tuple(p + toward(p) * 0.003), 0.0045, 8), 'gunmetal', smooth=60)
+        rv += 1
+    # --- ekran çerçevesi vidaları (dış köşeler)
+    for nm, q in (('radar', sc['radar']), ('sys', sc['sys']), ('hull', sc['hull'])):
+        cu = sum(x for x, y in q) / 4
+        cv = sum(y for x, y in q) / 4
+        for k, (u, v) in enumerate(q):
+            du, dv = u - cu, v - cv
+            l = math.hypot(du, dv)
+            uu, vv = u + du / l * 9, v + dv / l * 9
+            d = (min(A['radar_depth'], surf(uu, vv)) if nm == 'radar' else surf(uu, vv)) - 0.010 - A['bezel_protrude']
+            p = P(uu, vv, d)
+            add('screw_%s_%d' % (nm, k), geo.bm_cylinder(tuple(p), tuple(p + toward(p) * 0.002), 0.0035, 8), 'gunmetal', smooth=60)
+    # --- yan anahtar panelleri (sol ve sağ, simetrik)
+    for side, us in (('L', D.get('switch_u_left', [180, 230, 280, 330])), ('R', [W - u for u in D.get('switch_u_left', [180, 230, 280, 330])])):
+        u0, u1 = min(us) - 22, max(us) + 22
+        v0, v1 = D.get('switch_v', [505, 600])[0] - 36, D.get('switch_v', [505, 600])[1] + 22
+        plate = grid([[P(u, v, surf(u, v) - 0.004) for u in lin(u0, u1, 12)] for v in lin(v0, v1, 4)])      # r011 çentiği: yüzeyi sık izle
+        add('switch_plate_%s' % side, plate, 'sahin_dark', eye=True)
+        for r, v in enumerate(D.get('switch_v', [505, 600])):
+            for c, u in enumerate(us):
+                p = P(u, v, surf(u, v) - 0.003)
+                n = toward(p)
+                add('toggle_base_%s%d%d' % (side, r, c), geo.bm_cylinder(tuple(p), tuple(p + n * 0.006), 0.007, 10), 'gunmetal', smooth=60)
+                tip = p + n * 0.006 + Vector((0, -0.004, 0.018))
+                add('toggle_lever_%s%d%d' % (side, r, c), geo.bm_cylinder(tuple(p + n * 0.006), tuple(tip), 0.0024, 6, radius1=0.0018), 'gunmetal', smooth=60)
+                lp = P(u, v - 26, surf(u, v - 26) - 0.003)
+                add('indicator_%s%d%d' % (side, r, c), geo.bm_box(tuple(lp + toward(lp) * 0.001), (0.006, 0.003, 0.004)), 'emit_red', role='emit_live')
+    # --- göz kalkanı dudağı (yuvarlatılmış alt kenar)
+    gl = A['glare']
+    UG = lin(800 - gl['half'], 800 + gl['half'], 25)
+    lip = [P(u, gl['bot_c'] - 6 + (gl['bot_e'] - gl['bot_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth'] - 0.002) for u in UG]
+    add('glare_lip', tube(lip, 0.004, 8), 'antiglare', smooth=60)      # r009: RADAR üst köşelerini örtüyordu → 6 px yukarı, 4 mm
+    # --- kemer ayak braketleri, arka kemer, kanopi açma kolu, yan havalandırmalar
+    for p in (hoop[0], hoop[-1]):
+        add('hoop_bracket_%s' % ('R' if p.x > 0 else 'L'), geo.bm_box((p.x, p.y, p.z - 0.01), (0.09, 0.11, 0.07)), 'gunmetal')
+    zr = sl['z_mid']
+    rear = [Vector((hc['a'] * math.cos(t), D.get('rear_hoop_y', -0.62), zr + (ztop - 0.08 - zr) * math.sin(t))) for t in lin(0.0, math.pi, 33)]
+    add('canopy_hoop_rear', tube(rear, 0.02, 10), 'sahin_dark', smooth=60)
+    hx = sl['x'] - 0.06
+    add('canopy_release', tube([Vector((hx, 0.22, zr + 0.02)), Vector((hx - 0.05, 0.24, zr + 0.03)), Vector((hx - 0.05, 0.38, zr + 0.03)), Vector((hx, 0.40, zr + 0.02))], 0.008, 8), 'sahin_red', smooth=60)
+    if D.get('pass', 1) < 2:      # 2. geçişte yerine çerçeveli ızgara (r011'deki "kama" görüntüsü bu çıtalardı)
+        for s in (-1, 1):
+            for k in range(6):
+                z = -0.62 + k * 0.03
+                add('vent_%s%d' % ('L' if s < 0 else 'R', k), geo.bm_box((s * (sl['x'] - 0.035), 0.86, z), (0.012, 0.20, 0.010)), 'gunmetal')
+    else:
+        detail_pass2(A, add, D, vtop, surf, sl)
+    # --- uçuş kolu (alçaltılmış), körük, tetik
+    sz = D.get('stick_top_z', -0.40)
+    add('stick_boot', geo.bm_cylinder((0, 0.40, -0.83), (0, 0.405, -0.72), 0.06, 16, radius1=0.022), 'seat_textile', smooth=60)
+    add('stick_shaft', geo.bm_cylinder((0, 0.40, -0.75), (0, 0.44, sz - 0.08), 0.014, 12), 'gunmetal', smooth=60)
+    add('stick_grip', soft_box((0, 0.443, sz - 0.04), (0.042, 0.040, 0.085), bev=0.012, level=1), 'sahin_dark', smooth=60)
+    add('stick_trigger', geo.bm_box((0, 0.468, sz - 0.03), (0.012, 0.012, 0.022)), 'gunmetal')
+    add('stick_button', geo.bm_cylinder((0, 0.446, sz + 0.002), (0, 0.447, sz + 0.010), 0.008, 10), 'sahin_red', smooth=60)
+    # --- gaz kolu: yuvalı taban, ince kol, kırmızı başlıklı tutamak
+    tx, ty = -0.30, 0.52
+    add('throttle_plate_a', geo.bm_box((tx - 0.028, ty, -0.505), (0.03, 0.14, 0.012)), 'gunmetal')
+    add('throttle_plate_b', geo.bm_box((tx + 0.028, ty, -0.505), (0.03, 0.14, 0.012)), 'gunmetal')
+    add('throttle_lever', geo.bm_cylinder((tx, ty - 0.01, -0.50), (tx, ty + 0.01, -0.45), 0.007, 10), 'gunmetal', smooth=60)
+    add('throttle_grip', soft_box((tx, ty + 0.012, -0.44), (0.034, 0.030, 0.034), bev=0.008, level=1), 'sahin_dark', smooth=60)
+    add('throttle_cap', geo.bm_box((tx, ty + 0.012, -0.421), (0.026, 0.022, 0.006)), 'sahin_red')
+    # --- koltuk: kabuk + yumuşak minderler + kemerler + fırlatma tutamağı + ray
+    st = A['seat']
+    pz, piv = st['pan_z'], (0, -0.27, st['pan_z'] + 0.02)
+    add('seat_shell_pan', geo.bm_box((0, 0.02, pz - 0.035), (0.50, 0.48, 0.05)), 'sahin_dark')
+    add('seat_shell_back', _rot(geo.bm_box((0, -0.335, pz + 0.42), (0.50, 0.04, 0.86)), piv, st['recline_deg']), 'sahin_dark')
+    add('seat_cushion_pan', soft_box((0, 0.03, pz + 0.025), (0.42, 0.42, 0.07), bev=0.025), 'seat_textile', smooth=60)
+    add('seat_cushion_back', _rot(soft_box((0, -0.29, pz + 0.38), (0.38, 0.07, 0.62), bev=0.025), piv, st['recline_deg']), 'seat_textile', smooth=60)
+    add('seat_headrest', _rot(soft_box((0, -0.30, pz + 0.83), (0.24, 0.08, 0.15), bev=0.03), piv, st['recline_deg']), 'seat_textile', smooth=60)
+    for s in (-1, 1):
+        add('seat_bolster_%s' % ('L' if s < 0 else 'R'), _rot(soft_box((s * 0.225, -0.27, pz + 0.30), (0.07, 0.12, 0.50), bev=0.025), piv, st['recline_deg']), 'seat_textile', smooth=60)
+        add('seat_thigh_%s' % ('L' if s < 0 else 'R'), soft_box((s * 0.215, 0.04, pz + 0.05), (0.07, 0.40, 0.07), bev=0.02), 'seat_textile', smooth=60)
+        add('harness_%s' % ('L' if s < 0 else 'R'), _rot(geo.bm_box((s * 0.09, -0.245, pz + 0.42), (0.045, 0.006, 0.58)), piv, st['recline_deg']), 'sahin_red')
+    add('harness_lap', geo.bm_box((0, 0.10, pz + 0.07), (0.40, 0.04, 0.006)), 'sahin_red')
+    add('harness_buckle', geo.bm_box((0, 0.10, pz + 0.075), (0.05, 0.045, 0.012)), 'gunmetal')
+    hz = pz + 0.98
+    add('seat_eject_handle', _rot(tube([Vector((-0.07, -0.30, hz - 0.03)), Vector((-0.07, -0.25, hz + 0.02)), Vector((0.07, -0.25, hz + 0.02)), Vector((0.07, -0.30, hz - 0.03))], 0.009, 8), piv, st['recline_deg']), 'sahin_red', smooth=60)
+    for s in (-1, 1):
+        add('seat_rail_%s' % ('L' if s < 0 else 'R'), geo.bm_box((s * 0.13, -0.05, pz - 0.12), (0.035, 0.62, 0.10)), 'gunmetal')
+    add('seat_rail_cross', geo.bm_box((0, -0.05, pz - 0.09), (0.30, 0.05, 0.04)), 'gunmetal')
+
+
+def detail_pass2(A, add, D, vtop, surf, sl):
+    """2. ayrıntı geçişi (Kapı 2 kararı, 2026-11-16): pilotun gördüğü yüzeylerde katman, ızgara, kablo, profil, ışık."""
+    toward = lambda p: (-p).normalized()
+
+    def on(u, v, off):
+        return P(u, v, surf(u, v) - off)
+
+    def screw(name, u, v, off):
+        p = on(u, v, off)
+        add(name, geo.bm_cylinder(tuple(p), tuple(p + toward(p) * 0.002), 0.0032, 8), 'gunmetal', smooth=60)
+
+    # 1) ekranların altında katmanlı plakalar (4 mm kalın, vidalı)
+    v0, v1 = D['lower_plate_v']
+    for k, (u0, u1) in enumerate(D['lower_plates']):
+        rows = [[on(u, v, 0.005) for u in lin(u0, u1, 14)] for v in lin(v0, v1, 5)]
+        add('lower_plate_%d' % k, grid(rows), 'sahin_paint', eye=True, solid=0.004)
+        for j, (u, v) in enumerate(((u0 + 9, v0 + 8), (u1 - 9, v0 + 8), (u0 + 9, v1 - 8), (u1 - 9, v1 - 8))):
+            screw('plate_screw_%d_%d' % (k, j), u, v, 0.0055)
+    # 2) RADAR altında, uçuş kolunun iki yanında ızgaralı havalandırma
+    for k, (u0, u1) in enumerate(D['grilles_u']):
+        g0, g1 = D['grille_v']
+        add('grille_frame_%d' % k, grid([[on(u, v, 0.0062) for u in lin(u0, u1, 8)] for v in lin(g0, g1, 3)]), 'sahin_dark', eye=True)
+        for i, v in enumerate(lin(g0 + 5, g1 - 5, 5)):
+            add('grille_slat_%d_%d' % (k, i), grid([[on(u, v - 1.6, 0.0085) for u in lin(u0 + 4, u1 - 4, 8)], [on(u, v + 1.6, 0.0085) for u in lin(u0 + 4, u1 - 4, 8)]]), 'gunmetal', eye=True)
+    # 3) kablo kanalları (yan ekranların altından aşağı), klipsli
+    for side, us in (('L', D['cable_u']), ('R', [W - u for u in D['cable_u']])):
+        pts = [on(us[0], 606, 0.010), on(us[1], 640, 0.012), on(us[2], 700, 0.014), on(us[3], 780, 0.016)]
+        add('cable_%s' % side, tube(pts, 0.007, 10), 'sahin_dark', smooth=60)
+        for j, (u, v) in enumerate(((us[0] + (us[1] - us[0]) * 0.5, 623), (us[1] + (us[2] - us[1]) * 0.4, 664))):
+            p = on(u, v, 0.012)
+            add('cable_clip_%s%d' % (side, j), geo.bm_box(tuple(p), (0.024, 0.012, 0.012)), 'gunmetal')
+    # 4) konsol üst kenarında metal profil
+    ct = A['console_top']
+    add('top_trim', tube([on(u, vtop(u) + 1.5, 0.004) for u in lin(ct['shoulder_u'] - 120, W - ct['shoulder_u'] + 120, 49)], 0.0045, 8), 'gunmetal', smooth=60)
+    # 5) göz kalkanı önünde gösterge ışıkları
+    gl = A['glare']
+    for i, u in enumerate(lin(744, 856, 7)):
+        v = (gl['top_c'] + gl['bot_c']) / 2 + (gl['top_e'] - gl['top_c']) * ((u - 800) / gl['half']) ** 2 * 0.5
+        p = P(u, v, A['glare_depth'] - 0.003)
+        add('glare_led_%d' % i, geo.bm_box(tuple(p), (0.006, 0.003, 0.0035)), 'emit_red', role='emit_live')
+    # 6) konsol uçlarında tutunma kolları
+    for side, (ua, ub) in (('L', D['handle_u']), ('R', (W - D['handle_u'][0], W - D['handle_u'][1]))):
+        a, b = on(ua, D['handle_v'][0], 0.0), on(ub, D['handle_v'][1], 0.0)
+        na, nb = toward(a) * 0.035, toward(b) * 0.035
+        add('grab_handle_%s' % side, tube([a, a + na * 0.6, a + na + (b - a) * 0.15, b + nb + (a - b) * 0.15, b + nb * 0.6, b], 0.009, 10), 'gunmetal', smooth=60)
+    # 7) yan panellerde çerçeveli ızgara (eski çıtaların yerine)
+    for s in (-1, 1):
+        x = s * (sl['x'] - 0.004)
+        add('side_grille_frame_%s' % ('L' if s < 0 else 'R'), geo.bm_box((x, 0.80, -0.63), (0.008, 0.13, 0.15)), 'sahin_dark')
+        for k in range(6):
+            add('side_grille_slat_%s%d' % ('L' if s < 0 else 'R', k), geo.bm_box((s * (sl['x'] - 0.012), 0.80, -0.69 + k * 0.024), (0.006, 0.11, 0.008)), 'gunmetal')
+
+
+def build(spec, mats):
+    if spec['params'].get('layout') == 'yuk_b':      # Yük Devi (konsept B): ayrı tarif; Şahin tarifi değişmez
+        from families.cockpit import yuk_b
+        return yuk_b.build(spec, mats)
+    A = spec['params']
+    obs = []
+
+    def add(name, bm, mat, role='body', smooth=35, eye=False, solid=None, toward_eye=False):
+        sft = bm if isinstance(bm, Soft) else None
+        if sft:
+            bm = sft.bm
+        if eye:
+            face_eye(bm)
+        ob = geo.mesh_object(name, bm, mats[mat], coll='Asset', role=role)
+        if sft:
+            mb = ob.modifiers.new('bev', 'BEVEL')
+            mb.width = sft.bev
+            mb.segments = 2
+            mb.limit_method = 'NONE'
+            geo.apply_modifier(ob, mb)
+            ms = ob.modifiers.new('ss', 'SUBSURF')
+            ms.levels = sft.level
+            ms.render_levels = sft.level
+            geo.apply_modifier(ob, ms)
+        if solid:
+            m = ob.modifiers.new('sol', 'SOLIDIFY')
+            m.thickness = solid
+            m.offset = 1.0 if toward_eye else -1.0      # kalınlık gözden uzağa (PREVIEW r001'de göze doğruydu ve ekranları örttü)
+            geo.apply_modifier(ob, m)
+        geo.set_smooth_by_angle(ob, smooth)
+        obs.append(ob)
+        return ob
+
+    # ---- konsol "küvet": şemadaki üst kenar eğrisi (0,520)–(250,436)–Q(800,396)–(1350,436)–(1600,520)
+    ct = A['console_top']      # konsol üst kenarı (px): omuz, orta çukur, kenar
+
+    def vtop(u):
+        su, sv = ct['shoulder_u'], ct['shoulder']
+        if u < su:
+            return sv + (su - u) / su * (ct['edge'] - sv)
+        if u > W - su:
+            return sv + (u - (W - su)) / su * (ct['edge'] - sv)
+        return sv - (sv - ct['center']) * (1 - ((u - 800) / (800 - su)) ** 2)
+
+    def dep(u):
+        return max(0.36, A['console_depth'] - A['console_wrap'] * ((u - 800) / 800) ** 2)
+
+    U = lin(-700, 2300, A.get('console_cols', 61))
+    top = [P(u, vtop(u), dep(u)) for u in U]
+    mid = [P(u, vtop(u) + 40, dep(u) - 0.004) for u in U]
+    bot = [P(u, 900, dep(u) - A['fascia_lean']) for u in U]
+
+    def surf(u, v):
+        """Konsol ön yüzünün (u, v) pikselindeki derinliği (üst bant + pilota eğilen alt yüz)."""
+        vt = vtop(u)
+        if v <= vt + 40:
+            return dep(u) - 0.004 * (v - vt) / 40
+        return dep(u) - 0.004 - (A['fascia_lean'] - 0.004) * (v - vt - 40) / (900 - vt - 40)
+    add('console_panel', grid([top, mid]), 'sahin_paint', eye=True, solid=0.02)
+    add('console_fascia', grid([mid, bot]), 'sahin_mid', eye=True, solid=0.02)
+    deck = [p + Vector((0, A['deck_depth'], -A['deck_drop'])) for p in top]      # üst yüzey ileriye doğru alçalır: gözden ufka yükselmez (HUD bölgesi açık)
+    add('console_deck', grid([deck, top]), 'sahin_paint', eye=True, solid=0.015)
+    U2 = lin(ct['shoulder_u'] + 12, W - ct['shoulder_u'] - 12, 33)
+    add('console_stripe', grid([[P(u, vtop(u) + 6, dep(u) - 0.006) for u in U2], [P(u, vtop(u) + 13, dep(u) - 0.006) for u in U2]]), 'emit_red', role='emit_live', eye=True)
+
+    # ---- göz kalkanı (anti-glare): üst eğri 436→376→436, alt kenar 452→398→452
+    gl = A['glare']      # göz kalkanı (px): yarı genişlik, üst ve alt eğri (orta, uç)
+    UG = lin(800 - gl['half'], 800 + gl['half'], 25)
+    gt = [P(u, gl['top_c'] + (gl['top_e'] - gl['top_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth']) for u in UG]
+    gb = [P(u, gl['bot_c'] + (gl['bot_e'] - gl['bot_c']) * ((u - 800) / gl['half']) ** 2, A['glare_depth']) for u in UG]
+    add('glare_front', grid([gt, gb]), 'antiglare', eye=True, solid=0.012)
+    add('glare_top', grid([[p + Vector((0, 0.16, -0.035)) for p in gt], gt]), 'antiglare', eye=True, solid=0.012)
+
+    # ---- ekranlar + çerçeveler (şemadaki piksel dörtgenlerinden)
+    def screen(name, q, depth_fn, bezel_px=12):
+        pts = [P(u, v, depth_fn(u, v) - 0.012) for u, v in q]      # ekran, konsol yüzeyinin her noktada 12 mm önünde
+        bm = bmesh.new()
+        vs = [bm.verts.new(p) for p in pts]
+        f = bm.faces.new(vs)
+        uvl = bm.loops.layers.uv.new('UVMap')
+        for loop, uv in zip(f.loops, [(0, 1), (1, 1), (1, 0), (0, 0)]):
+            loop[uvl].uv = uv
+        face_eye(bm)
+        ob = geo.mesh_object(name, bm, mats['screen_placeholder'], coll='Asset', role='screen')
+        obs.append(ob)
+        cu = sum(u for u, v in q) / 4
+        cv = sum(v for u, v in q) / 4
+        outer = []
+        for u, v in q:
+            du, dv = u - cu, v - cv
+            l = math.hypot(du, dv)
+            outer.append((u + du / l * bezel_px * 1.4, v + dv / l * bezel_px * 1.4))
+        ring_in = [P(u, v, depth_fn(u, v) - 0.010) for u, v in q]
+        ring_out = [P(u, v, depth_fn(u, v) - 0.010) for u, v in outer]
+        bm2 = bmesh.new()
+        vi = [bm2.verts.new(p) for p in ring_in]
+        vo = [bm2.verts.new(p) for p in ring_out]
+        for k in range(4):
+            bm2.faces.new((vo[k], vo[(k + 1) % 4], vi[(k + 1) % 4], vi[k]))
+        add(name.replace('SCR_', 'bezel_').lower(), bm2, 'sahin_dark', eye=True, solid=A['bezel_protrude'], toward_eye=True)      # çıkıntı ≤ 8 mm: eğik bakışta ekran kenarını örtmesin
+        return ob
+
+    sc = A['screens']
+    screen('SCR_RADAR', sc['radar'], lambda u, v: min(A['radar_depth'], surf(u, v)))
+    screen('SCR_SYS', sc['sys'], surf)
+    screen('SCR_HULL', sc['hull'], surf)
+
+    # ---- kabarcık kanopi: tek ince ön kemer (elips yay) + tepeden geçen omurga + iç kırmızı şerit
+    hc = A['hoop']
+    th = lin(0.0, math.pi, 49)
+    # geriye yatık ön kemer: tepe önde (depth), ayaklar pilotun yanında (side_depth) → şemadaki gibi uçlar görüş alanının dışında
+    hoop = [Vector((hc['a'] * math.cos(t), hc['side_depth'] + (hc['depth'] - hc['side_depth']) * math.sin(t), hc['y0'] + hc['b'] * math.sin(t))) for t in th]
+    add('canopy_hoop', tube(hoop, hc['r'], 12), 'sahin_dark', smooth=60)
+    inner = [Vector((p.x * 0.985, p.y - 0.022, p.z - 0.018 * math.sin(t))) for p, t in zip(hoop, th)]
+    add('canopy_hoop_light', tube(inner[3:-3], 0.005, 6), 'emit_red', role='emit_live', smooth=60)
+    ztop = hc['y0'] + hc['b']
+    spine = [Vector((0, hc['depth'], ztop)), Vector((0, 0.45, ztop + 0.07)), Vector((0, 0.05, ztop + 0.11)), Vector((0, -0.35, ztop + 0.06)), Vector((0, -0.6, ztop - 0.08))]
+    add('canopy_spine', tube(spine, 0.016, 10), 'sahin_dark', smooth=60)
+
+    # ---- yan eşikler: kanopi rayı pilota doğru yükselir (şema: (250,436) → (0,318)); altında koyu yan panel; zemin
+    sl = A['sill']
+    rail = [Vector((0, y, sl['z_front'] + (sl['z_mid'] - sl['z_front']) * min(1.0, (sl['y_front'] - y) / (sl['y_front'] - sl['y_mid'])))) for y in lin(sl['y_front'], sl['y_back'], 17)]
+    for s in (-1, 1):
+        sx = s * sl['x']
+        top_r = [Vector((sx, p.y, p.z)) for p in rail]
+        add('sill_panel_%s' % ('L' if s < 0 else 'R'), grid([top_r, [Vector((sx, p.y, -0.85)) for p in rail]]), 'sahin_dark', eye=True, solid=0.03)
+        add('sill_rail_%s' % ('L' if s < 0 else 'R'), tube([Vector((sx - s * 0.02, p.y, p.z + 0.015)) for p in rail[2:]], 0.03, 10), 'sahin_paint', smooth=60)      # ön uç 13 cm kısa (r009: anahtar paneliyle çakışıyordu)
+    add('floor', geo.bm_box((0, 0.2, -0.87), (2.0 * sl['x'], 1.6, 0.04)), 'sahin_dark')
+
+    prod = spec.get('profile') == 'PRODUCTION'
+    if not prod:      # ---- PREVIEW blokajı (onaylı r008 ile aynı, yeniden üretilebilir)
+        # ---- uçuş kolu (orta) + gaz kolu (sol)
+        add('stick_shaft', geo.bm_cylinder((0, 0.40, -0.85), (0, 0.44, -0.44), 0.016, 12), 'sahin_dark', smooth=60)
+        add('stick_grip', geo.bm_cylinder((0, 0.44, -0.46), (0, 0.455, -0.37), 0.028, 14), 'sahin_dark', smooth=60)
+        add('stick_button', geo.bm_cylinder((0, 0.452, -0.375), (0, 0.456, -0.36), 0.009, 10), 'sahin_red', smooth=60)
+        add('throttle_base', geo.bm_box((-0.30, 0.52, -0.50), (0.09, 0.12, 0.04)), 'sahin_dark')
+        add('throttle_handle', geo.bm_box((-0.30, 0.52, -0.455), (0.035, 0.035, 0.05)), 'sahin_red')
+
+        # ---- yatık fırlatma koltuğu (pilot görüşünde görünmez; plan ve çapraz görünüşler için)
+        st = A['seat']
+        add('seat_pan', geo.bm_box((0, 0.02, st['pan_z']), (0.46, 0.46, 0.10)), 'seat_textile')
+        back = geo.bm_box((0, -0.27, st['pan_z'] + 0.40), (0.44, 0.10, 0.78))
+        bmesh.ops.rotate(back, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=back.verts)
+        add('seat_back', back, 'seat_textile')
+        for s in (-1, 1):
+            wing = geo.bm_box((s * 0.25, -0.24, st['pan_z'] + 0.32), (0.06, 0.16, 0.55))
+            bmesh.ops.rotate(wing, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=wing.verts)
+            add('seat_wing_%s' % ('L' if s < 0 else 'R'), wing, 'sahin_dark')
+        hr = geo.bm_box((0, -0.32, st['pan_z'] + 0.86), (0.26, 0.09, 0.18))      # sırtın üstüne oturur (r006'da ayrıktı)
+        bmesh.ops.rotate(hr, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=hr.verts)
+        add('seat_headrest', hr, 'seat_textile')
+        hd = geo.bm_box((0, -0.28, st['pan_z'] + 0.97), (0.16, 0.03, 0.05))
+        bmesh.ops.rotate(hd, cent=Vector((0, -0.27, st['pan_z'] + 0.02)), matrix=Matrix.Rotation(math.radians(-st['recline_deg']), 3, 'X'), verts=hd.verts)
+        add('seat_eject_handle', hd, 'sahin_red')
+        add('seat_rail', geo.bm_box((0, -0.05, st['pan_z'] - 0.12), (0.30, 0.6, 0.12)), 'sahin_dark')
+    else:
+        production_details(A, add, mats, obs, vtop, dep, surf, sc, hc, hoop, ztop, sl, rail)
+
+    return {'objects': obs, 'sockets': [{'name': 'SOCK_cam_0', 'loc': (0, 0, 0), 'dir': (0, 1, 0), 'extras': {'purpose': 'pilot gözü (kamera sözleşmesi)', 'fovy': 74}}]}
+
+
+# ------------------------------------------------------------------ PREVIEW render ve ölçümleri
+
+def _pilot_cam():
+    cd = bpy.data.cameras.new('Pilot')
+    cd.sensor_fit = 'VERTICAL'
+    cd.sensor_height = 24.0
+    cd.lens = 12.0 / math.tan(math.radians(37.0))
+    cd.shift_y = -(0.5 - CY / H)      # asal nokta 239,5/656; dikey sensör uyumunda shift birimi görüntü YÜKSEKLİĞİ (r001 ölçümü: 52 px hata = 0,0796 × 656)
+    cd.clip_start = 0.01
+    cd.clip_end = 100
+    ob = bpy.data.objects.new('Pilot', cd)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.location = (0, 0, 0)
+    ob.rotation_euler = (math.radians(90), 0, 0)
+    return ob
+
+
+def _lights():
+    R.clear_lights()
+    R.world_space(0.35)
+    R.light('SUN', (-3, 4, 6), 3.0, (1.0, 0.95, 0.88), 2.0, look=(0, 0, 0), name='Sun')
+    R.light('AREA', (0, 0.35, 0.9), 25, (0.75, 0.82, 1.0), 1.6, look=(0, 0.6, -0.5), name='Sky')
+    R.light('AREA', (0, 0.6, -0.25), 3.0, (0.30, 0.80, 1.0), 0.6, look=(0, 0.9, -0.5), name='ScreenGlow')
+    R.light('AREA', (0, 0.15, -0.30), 6.0, (0.9, 0.95, 1.0), 1.2, look=(0, 0.9, -0.45), name='Fill')
+
+
+def preview(spec, out, fast, obs, probe=False):
+    import numpy as np
+    sc = bpy.context.scene
+    _lights()
+    samples = 12 if probe else (32 if fast else 128)      # probe (BUDGET MODE): düşük örnek, tek küçük pilot görüşü
+    res = {}
+    pilot = _pilot_cam()
+    R.render(os.path.join(out, '01_pilot.png'), pilot, (800, 328) if probe else ((1600, 656) if not fast else (1200, 492)), samples)
+    views = [] if probe else [('02_capraz', (0.62, -0.30, 0.28), (-0.15, 0.85, -0.45), 70, (1200, 750)),
+             ('03_konsol', (0.30, 0.30, -0.18), (-0.05, 0.92, -0.42), 52, (1200, 750)),
+             ('04_koltuk', (0.45, 0.62, -0.05), (0.0, -0.22, -0.40), 62, (1200, 750)),
+             ('05_dis', (-2.2, 2.6, 1.5), (0, 0.25, -0.35), 38, (1200, 750))]
+    for name, loc, look, fov, rs in views:
+        c = R.camera(name, loc, look, fov)
+        R.render(os.path.join(out, name + '.png'), c, rs, samples)
+    if not probe:
+        plan = R.camera('Plan', (0, 0.2, 4.0), (0, 0.2, -0.5), ortho_scale=2.6)
+        R.render(os.path.join(out, '06_plan.png'), plan, (900, 900), samples)
+
+    # ölçüm 1: cam oranı ve orta (HUD) bölge engeli — pilot kamerasından alfa maskesi
+    R.render(os.path.join(out, '_mask.png'), pilot, (1600, 656), 1, transparent=True, denoise=False)
+    from PIL import Image
+    a = np.asarray(Image.open(os.path.join(out, '_mask.png')).convert('RGBA'))[..., 3] > 127
+    res['glass_ratio'] = round(float(1 - a.mean()) * 100, 1)
+    res['hud_zone_block'] = round(float(a[60:380, 560:1040].mean()) * 100, 1)
+    os.remove(os.path.join(out, '_mask.png'))
+
+    # ölçüm 2: ekran sözleşmesi — ad, çerçeve içinde mi, gözden görünür mü (merkez + %6 içeri köşeler)
+    dg = bpy.context.evaluated_depsgraph_get()
+    scr = {}
+    for nm in ('SCR_SYS', 'SCR_RADAR', 'SCR_HULL'):
+        o = bpy.data.objects.get(nm)
+        if not o:
+            scr[nm] = {'var': False}
+            continue
+        vs = [o.matrix_world @ v.co for v in o.data.vertices]
+        c = sum(vs, Vector()) / 4
+        pts = [c] + [c + (v - c) * 0.94 for v in vs]
+        vis = 0
+        for p in pts:
+            hit, loc, nor, idx, hob, mat = sc.ray_cast(dg, Vector((0, 0, 0)), p.normalized())
+            vis += int(hit and hob.name == nm)
+        px = [tuple(round(x) for x in to_px(v)) for v in vs]
+        inside = all(0 <= x <= W and 0 <= y <= H for x, y in px)
+        uv = [tuple(round(x, 2) for x in l.uv) for l in o.data.uv_layers[0].data]
+        scr[nm] = {'var': True, 'gorunur': '%d/5' % vis, 'cerceve_ici': inside, 'kose_px': px, 'uv': uv}
+    res['screens'] = scr
+    # ölçüm 3: kamera sözleşmesi — bilinen 3B noktaların render pikseline düştüğü yer (Blender'ın kendi izdüşümüyle)
+    from bpy_extras.object_utils import world_to_camera_view
+    sc.render.resolution_x, sc.render.resolution_y = W, H
+    errs = []
+    for u, v in ((800, 239.5), (200, 500), (1400, 120), (690, 452)):
+        q = world_to_camera_view(sc, pilot, P(u, v, 0.9))
+        errs.append(math.hypot(q.x * W - u, (1 - q.y) * H - v))
+    res['camera_contract_err_px'] = round(max(errs), 3)
+    if not fast and not probe and spec.get('profile') == 'PRODUCTION':      # yalnız PRODUCTION: nötr ışıklı altın referans (BUDGET MODE: PREVIEW'da gereksiz render yok) (L3: Three r128 ile aynı kamera ve eşdeğer ışık)
+        R.rig_neutral()
+        cams = []
+        def eye_cam(nm, dx, dz):      # kokpit GLB'si yalnızca pilot gözünden görülür: altın referans da göz aralığından
+            c = _pilot_cam()
+            c.name = nm
+            c.location = (dx, 0, dz)
+            return c
+        for name, cam, rs in (('N1_pilot', pilot, (800, 328)), ('N2_goz_sol', eye_cam('N2_goz_sol', -0.07, 0.0), (800, 328)), ('N3_goz_sag_alt', eye_cam('N3_goz_sag_alt', 0.07, -0.04), (800, 328))):
+            R.render(os.path.join(out, 'golden_%s.png' % name), cam, rs, 128, view='Standard', transparent=True, bounces=0)
+            j = R.camera_json(cam, rs)
+            j['name'] = name
+            cams.append(j)
+        from core.paths import save_json
+        save_json(os.path.join(out, 'cameras.json'), {'cameras': cams, 'neutral': R.NEUTRAL})
+    res['tris_by_object'] = {o.name: geo.tri_count([o]) for o in obs}
+    return res

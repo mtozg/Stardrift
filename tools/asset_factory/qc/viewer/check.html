@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><title>Asset Factory QC</title>
+<body style="margin:0;background:#0b0e16;color:#cfd6e4;font:13px system-ui">
+<script src="/vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.r128.js"></script>
+<script src="viewer.js"></script>
+<script>
+// Kullanım: check.html?cfg=<qc yapılandırma JSON yolu>  — Playwright (run_check.js) okur: window.__R
+(async () => {
+  try {
+    const cfg = await (await fetch(new URLSearchParams(location.search).get('cfg'))).json();
+    window.__R = await SDV.check(cfg);
+  } catch (e) { window.__R = { error: String(e && e.stack || e), done: 1 }; }
+})();
+</script>

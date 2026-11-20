@@ -1,0 +1,9 @@
+{
+ "kind": "emit",
+ "emission": [
+  0.25,
+  0.85,
+  1.0
+ ],
+ "_note": "ekran/\u015ferit camg\u00f6be\u011fi; renk \u2264 1, parlakl\u0131k oyunda bloom"
+}

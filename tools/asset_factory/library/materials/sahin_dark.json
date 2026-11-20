@@ -1,0 +1,24 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.055,
+  0.06,
+  0.07
+ ],
+ "rough": [
+  0.42,
+  0.68
+ ],
+ "scratch": 0.5,
+ "wear": 0.9,
+ "dirt": 0.3,
+ "bump": 0.03,
+ "_note": "Şahin koyu #23262d bölgesine yakın, PBR alt sınırına çekildi (dielektrik ≥ 30 sRGB)",
+ "chips": 0.5,
+ "chip_scale": 20.0,
+ "grime": 0.35,
+ "streaks": 0.2,
+ "wear_radius": 0.012,
+ "_r012": "ayrıntı ve malzeme geçişi (Kapı 2 kararı 2026-11-16): kırık, lekelenme, akıntı, belirgin aşınma"
+}

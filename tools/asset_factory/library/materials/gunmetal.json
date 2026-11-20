@@ -1,0 +1,26 @@
+{
+ "kind": "metal",
+ "metallic": 1.0,
+ "base": [
+  0.27,
+  0.28,
+  0.3
+ ],
+ "rough": [
+  0.24,
+  0.5
+ ],
+ "brush": 1.4,
+ "scratch": 1.1,
+ "wear": 1.3,
+ "wear_color": [
+  0.55,
+  0.56,
+  0.6
+ ],
+ "dirt": 0.4,
+ "bump": 0.05,
+ "_note": "Kaşif kokpitindeki gunmetal karakteri; dış yüzey için daha açık taban",
+ "_calibration": "2026-11-15: PBR metal taban aralığı (sRGB ≥120) için açıldı; kir 0.40–0.42 (Faz 0 QC bulgusu)",
+ "_r012": "ayrıntı ve malzeme geçişi (Kapı 2 kararı 2026-11-16): kırık, lekelenme, akıntı, belirgin aşınma"
+}

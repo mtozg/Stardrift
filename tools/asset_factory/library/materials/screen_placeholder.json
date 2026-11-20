@@ -1,0 +1,9 @@
+{
+ "kind": "emit",
+ "emission": [
+  0.03,
+  0.22,
+  0.3
+ ],
+ "_note": "PREVIEW: ekran yeri gösterimi; oyunda canlı ekran dokusu bağlanır"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "stardrift-asset-factory",
+  "private": true,
+  "description": "Asset Factory QC araçları (Node). Oyunun bağımlılığı değildir.",
+  "dependencies": {
+    "gltf-validator": "2.0.0-dev.3.10",
+    "three": "0.128.0"
+  }
+}

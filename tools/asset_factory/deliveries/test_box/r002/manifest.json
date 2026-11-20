@@ -1,0 +1,101 @@
+{
+ "id": "test_box",
+ "rev": 2,
+ "glb": "sd_test_box_r002.glb",
+ "glb_sha256": "c83e9ab69b91d4228399505f1b28c8a8030b5d93b06be5b0d4c77645108b1ffe",
+ "glb_bytes": 278772,
+ "class": "test",
+ "family": "test",
+ "test_asset": true,
+ "units": "m",
+ "forward": "-Z",
+ "up": "+Y",
+ "length_m": 1.781,
+ "bounds_min": [
+  -0.5551000237464905,
+  -0.3499999940395355,
+  -0.8159999847412109
+ ],
+ "bounds_max": [
+  0.5541999936103821,
+  0.6499999761581421,
+  0.9649999737739563
+ ],
+ "tris": [
+  1177,
+  540,
+  195
+ ],
+ "calls_lod0": 2,
+ "materials": [
+  "MAT_emit",
+  "MAT_body"
+ ],
+ "textures": [
+  "textures/sd_test_box_emit.webp",
+  "textures/sd_test_box_normal.webp",
+  "textures/sd_test_box_orm.webp",
+  "textures/sd_test_box_base.webp"
+ ],
+ "tex_gpu_bytes_est": 22369621,
+ "sockets": [
+  {
+   "name": "SOCK_engine_0",
+   "position": [
+    0,
+    0,
+    0.835
+   ],
+   "dir": [
+    0,
+    0,
+    1
+   ],
+   "extras": {
+    "name": "SOCK_engine_0",
+    "purpose": "motor alevi/izi; yön = egzoz",
+    "dir": [
+     0,
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "name": "SOCK_light_0",
+   "position": [
+    0.3,
+    0.66,
+    0.55
+   ],
+   "dir": [
+    0,
+    1,
+    0
+   ],
+   "extras": {
+    "name": "SOCK_light_0",
+    "purpose": "seyir ışığı",
+    "color": [
+     1,
+     0.15,
+     0.1
+    ],
+    "blink_hz": 1,
+    "dir": [
+     0,
+     1,
+     0
+    ]
+   }
+  }
+ ],
+ "qc": {
+  "verdict": "WARN",
+  "PASS": 65,
+  "WARN": 2,
+  "FAIL": 0,
+  "SKIP": 2
+ },
+ "contract": "GEÇİCİ — contracts/game_contract.md bekleniyor"
+}

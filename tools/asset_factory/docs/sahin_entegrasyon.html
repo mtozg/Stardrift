@@ -1,0 +1,102 @@
+<title>Şahin Kokpit Entegrasyonu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: tek sütun; oyun içi görüntüler, test sonuçları, Kaşif karşılaştırması, kod değişiklikleri, açık konular ve onay. */
+:root {
+  --bg: #f3f4f6; --surface: #ffffff; --ink: #1b1f27; --muted: #5b6372; --line: #dcdfe5;
+  --accent: #b8322a; --good: #237a4b; --good-soft: #e3f3ea; --warn: #9a6400; --warn-soft: #fbf0d8; --code-bg: #eceef2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1116; --surface: #161b22; --ink: #e1e5ec; --muted: #929bab; --line: #272e39;
+  --accent: #ff7a68; --good: #6fd6a0; --good-soft: #12301f; --warn: #f0b74a; --warn-soft: #3a2d10; --code-bg: #1b222c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e1116; --surface: #161b22; --ink: #e1e5ec; --muted: #929bab; --line: #272e39;
+  --accent: #ff7a68; --good: #6fd6a0; --good-soft: #12301f; --warn: #f0b74a; --warn-soft: #3a2d10; --code-bg: #1b222c; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 80px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 46px/1.05 var(--f-display); margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 28px/1.15 var(--f-display); margin: 48px 0 10px; text-wrap: balance }
+p, li { max-width: 76ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font: .86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px }
+figure { margin: 12px 0 18px } figure img { display: block; width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0a0d14 }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 5px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 10px 0 }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: nowrap }
+.pill { display: inline-block; font: 600 12px var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.p-ok { background: var(--good-soft); color: var(--good) } .p-warn { background: var(--warn-soft); color: var(--warn) }
+.gate { margin-top: 40px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 18px 20px }
+.gate h2 { margin-top: 0 } .gate ol { padding-left: 20px } .gate li { margin: 5px 0 }
+@media (max-width: 760px) { h1 { font-size: 36px } }
+</style>
+
+<main>
+<div class="eyebrow">Stardrift 1.54.0 · Kapı 3 entegrasyon</div>
+<h1>Şahin Kokpit Entegrasyonu</h1>
+<p class="lede">Şahin r012 GLB'si oyunun 3B kokpit sistemine bağlandı. Kokpit artık gemiye göre yükleniyor; Kaşif aynı kaldı. Değişiklikler <code>claude/awesome-cannon-qb1ro2</code> dalında, main'e henüz aktarılmadı.</p>
+
+<h2>Oyunda</h2>
+<figure><img src="img/sahin_entegrasyon/sahin_masaustu.webp" alt="Şahin 3B kokpiti oyunda, masaüstü"><figcaption>Masaüstü 1600×800. Canlı Sistem, Radar ve Gövde ekranları modeldeki ekranlara oturuyor; RADAR içeriği 1,56:1 oranında, gerilme yok. HUD halkası göz kalkanının üstünde bitiyor.</figcaption></figure>
+<div class="grid2">
+  <figure><img src="img/sahin_entegrasyon/sahin_iphone.webp" alt="iPhone 13 yatay"><figcaption>iPhone 13 yatay: telefon modeli (<code>cockpit_sahin_m.glb</code>).</figcaption></figure>
+  <figure><img src="img/sahin_entegrasyon/sahin_pixel.webp" alt="Pixel 7 yatay"><figcaption>Pixel 7 yatay: telefon modeli.</figcaption></figure>
+  <figure><img src="img/sahin_entegrasyon/sahin_ipad.webp" alt="iPad Pro 11 yatay"><figcaption>iPad Pro 11 yatay: masaüstü modeli.</figcaption></figure>
+</div>
+
+<h2>Oyun içi test</h2>
+<p>Playwright, yazılım WebGL (swiftshader). Her cihazda: Kaşif ile başla, Şahin'e geç, Kaşif'e dön. Test betiği: <code>tools/asset_factory/qc/ingame_cockpit.js</code>.</p>
+<div class="tbl"><table>
+<tr><th>Test</th><th>Masaüstü</th><th>iPad Pro 11</th><th>iPhone 13</th><th>Pixel 7</th><th></th></tr>
+<tr><td>Şahin modeli yüklendi</td><td>masaüstü dosyası</td><td>masaüstü dosyası</td><td>telefon dosyası</td><td>telefon dosyası</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Ekran hizası (model köşesi ↔ ekran, en kötü)</td><td class="num">0,04 px</td><td class="num">0,04 px</td><td class="num">0,02 px</td><td class="num">0,02 px</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>RADAR tuval oranı (hedef 1,556)</td><td class="num">1,557</td><td class="num">1,555</td><td class="num">1,557</td><td class="num">1,556</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Draw call · üçgen</td><td colspan="4">5 · 9.384 (Kaşif 15 · 56.362)</td><td><span class="pill p-ok">bilgi</span></td></tr>
+<tr><td>Gemi değişiminde bellek (GPU doku sayısı: Kaşif → Şahin → Kaşif)</td><td>71 → 52 → 75</td><td>61 → 42 → 65</td><td>53 → 34 → 57</td><td>65 → 46 → 69</td><td><span class="pill p-ok">eski model bırakılıyor</span></td></tr>
+<tr><td>Şahin'den Kaşif'e dönüş</td><td colspan="4">model yeniden yüklenir, hiza ve görünüm aynı</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Model ilk denemelerde gelmezse</td><td colspan="4">ilk 2 istek reddedildi → 3. denemede yüklendi; çizim kokpitine geçilmedi, bildirim yok (iPad Pro 11)</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Sayfa hatası</td><td colspan="4">yok</td><td><span class="pill p-ok">geçti</span></td></tr>
+</table></div>
+
+<h2>Kaşif korundu</h2>
+<div class="grid2">
+  <figure><img src="img/sahin_entegrasyon/kasif_main.webp" alt="Kaşif, main"><figcaption>main (1.53.1)</figcaption></figure>
+  <figure><img src="img/sahin_entegrasyon/kasif_dal.webp" alt="Kaşif, entegrasyon dalı"><figcaption>Entegrasyon dalı (1.54.0)</figcaption></figure>
+</div>
+<p>Aynı tohumla iki sürüm: kokpit bölgesinde ortalama piksel farkı <b>0,01/255</b>, draw call ve üçgen aynı (15 · 56.362). Kaşif'in model dosyaları, ekran katsayıları, HUD sırtı ve yükleme sırası değişmedi. Kaşif ekranlarının hizası model köşelerine göre 0,2–0,7 px.</p>
+
+<h2>Değişenler</h2>
+<div class="tbl"><table>
+<tr><th>Dosya</th><th>Değişiklik</th></tr>
+<tr><td><code>models/cockpit_sahin.glb</code></td><td>Asset Factory r012 teslim GLB'si, birebir (SHA256 manifestle aynı). 717 KB, GPU ~32 MB</td></tr>
+<tr><td><code>models/cockpit_sahin_m.glb</code></td><td>Telefon varyantı: yalnızca base doku 2048 → 1024; geometri ve malzemeler aynı. 611 KB, GPU ~16 MB (Kaşif telefon modeli: 2,4 MB). Kaşif'in iki dosyalı düzeninin karşılığı</td></tr>
+<tr><td><code>js/game.js</code></td><td><code>CK3</code>: gemi başına 3B kokpit tablosu (model, telefon modeli, ekran köşeleri, HUD maskesi sırtı). Yükleyici, hazırlık ekranı ve HUD maskesi bu tablodan okuyor. Gemi değişince eski model GPU'dan bırakılıyor. Şahin'in RADAR tuvali modeldeki ekran geometrisinden kuruluyor (1,56:1). Model gelmezse çizim kokpitine dönülmez, bildirim gösterilmez: yükleme 1,5 → 15 sn aralıkla sessizce yeniden denenir, bu sırada oyun HUD ile sürer (senin kararın, 2026-11-16). <code>__ckb</code>'ye salt okunur test kancaları</td></tr>
+<tr><td><code>index.html</code></td><td>Sürüm 1.53.1 → 1.54.0 (önbellek tazelenir)</td></tr>
+</table></div>
+<p>Yük Devi ve Hayalet eskisi gibi çizim kokpitiyle devam ediyor; kendi 3B kokpitleri hazır olunca <code>CK3</code>'e birer satır eklenecek.</p>
+
+<h2>Açık konular</h2>
+<ul>
+  <li><b>Normal map ve runtime tangent:</b> Kapı 2 kararı gereği kontrol edildi; yazılım WebGL'de dikiş veya ters aydınlanma görülmedi. Gerçek GPU'da bir göz kontrolü önerilir.</li>
+  <li><b>Gerçek cihaz performansı:</b> ölçülmedi (Kapı 2 kararı: sonra). Şahin, Kaşif'in üçte biri draw call ve altıda biri üçgenle çiziliyor.</li>
+  <li><b>main'e aktarım:</b> Benim yalnızca kendi dalıma yazma iznim var. Senin onayınla bir pull request açabilirim; birleştirme kararı senin.</li>
+</ul>
+
+<div class="gate">
+  <h2>Senin onayın</h2>
+  <ol>
+    <li><b>Onaylandı</b> (2026-11-16), yedek kokpit kaldırılarak. Şahin kayıtta "entegre". main için pull request senin kararınla açılır.</li>
+    <li><b>Düzeltme:</b> Oyunda değişmesini istediğin noktaları yaz.</li>
+  </ol>
+</div>
+</main>

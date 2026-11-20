@@ -1,0 +1,41 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asset Bench</title>
+<style>
+  :root { --bg:#0b0e16; --fg:#d7deeb; --mut:#8a95a8; --acc:#4cc8ff; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px system-ui; }
+  canvas { display:block; width:100vw; height:62vh; }
+  .p { padding:12px 16px; }
+  button { background:var(--acc); color:#001018; border:0; border-radius:6px; padding:10px 16px; font-weight:600; font-size:15px; }
+  pre { white-space:pre-wrap; word-break:break-all; background:#131a28; padding:10px; border-radius:6px; font-size:12px; }
+  .mut { color:var(--mut); }
+</style>
+<body>
+<canvas id="cv"></canvas>
+<div class="p">
+  <div class="mut">Gerçek cihaz ölçümü — Three r128 (oyunun kendi kopyası). Ekranı açık tutun, şarjdayken ölçün.</div>
+  <p><button id="go">Ölçümü başlat (≈ 30 sn)</button></p>
+  <pre id="out">glb: ?glb=… · örnek sayıları: ?n=1,12,40</pre>
+</div>
+<script src="/vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.r128.js"></script>
+<script src="viewer.js"></script>
+<script>
+// Kullanım: bench.html?glb=/tools/asset_factory/deliveries/<id>/r001/sd_<id>_r001.glb&n=1,12,40
+// Sonuç JSON'u kopyalanıp QC raporuna eklenir (qc_report.json → perf_device).
+const q = new URLSearchParams(location.search);
+document.getElementById('go').onclick = async () => {
+  const out = document.getElementById('out'); out.textContent = 'yükleniyor…';
+  const cv = document.getElementById('cv'); const w = cv.clientWidth * devicePixelRatio, h = cv.clientHeight * devicePixelRatio;
+  const r = SDV.renderer(w, h, cv);
+  const N = { ambient: [0.10, 0.105, 0.115], sun_strength: 3.2, sun_dir_game: [-0.45, -0.70, -0.55], sun_color: [1.0, 0.97, 0.92] };
+  const S = SDV.neutralScene(r, N);
+  const { gltf, ms } = await SDV.load(q.get('glb'));
+  const root = gltf.scene.children.find(o => o.name.startsWith('SD_'));
+  gltf.scene.userData.radius = (root && root.userData.radius) || 1.2;
+  const rad = gltf.scene.userData.radius;
+  const cam = new THREE.PerspectiveCamera(50, w / h, 0.05, 2000); cam.position.set(0, rad * 3, rad * 9); cam.lookAt(0, 0, -rad * 4);
+  const res = { ua: navigator.userAgent, dpr: devicePixelRatio, canvas: [w, h], glb: q.get('glb'), load_ms: +ms.toFixed(1), runs: [] };
+  for (const n of (q.get('n') || '1,12,40').split(',').map(Number)) { out.textContent = 'ölçülüyor: ' + n + ' örnek…'; res.runs.push(await SDV.perf(r, S, gltf, cam, n, 240)); }
+  out.textContent = JSON.stringify(res, null, 1);
+};
+</script>

@@ -1,0 +1,130 @@
+<title>Şahin Kokpit PREVIEW</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: tek sütun; üstte konsept ⟷ blokaj karşılaştırması, ardından görünüşler, ölçümler, yineleme kaydı, PRODUCTION planı ve Kapı 1 kararı. */
+:root {
+  --bg: #f3f4f6; --surface: #ffffff; --ink: #1b1f27; --muted: #5b6372; --line: #dcdfe5;
+  --accent: #b8322a; --accent-soft: #f8e3e1; --good: #237a4b; --good-soft: #e3f3ea; --warn: #9a6400; --warn-soft: #fbf0d8; --code-bg: #eceef2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1116; --surface: #161b22; --ink: #e1e5ec; --muted: #929bab; --line: #272e39;
+  --accent: #ff7a68; --accent-soft: #3a1a17; --good: #6fd6a0; --good-soft: #12301f; --warn: #f0b74a; --warn-soft: #3a2d10; --code-bg: #1b222c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e1116; --surface: #161b22; --ink: #e1e5ec; --muted: #929bab; --line: #272e39;
+  --accent: #ff7a68; --accent-soft: #3a1a17; --good: #6fd6a0; --good-soft: #12301f; --warn: #f0b74a; --warn-soft: #3a2d10; --code-bg: #1b222c; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 80px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 46px/1.05 var(--f-display); margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 28px/1.15 var(--f-display); margin: 48px 0 10px; text-wrap: balance }
+p, li { max-width: 76ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font: .86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px }
+figure { margin: 12px 0 18px } figure img { display: block; width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0a0d14 }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 5px }
+.pair figure { margin: 0 0 6px }
+.lbl { font: 600 13px var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 16px 0 }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px }
+.kpi b { display: block; font: 700 24px var(--f-display); font-variant-numeric: tabular-nums }
+.kpi span { font-size: 12.5px; color: var(--muted) }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 10px 0 }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: nowrap }
+.pill { display: inline-block; font: 600 12px var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.p-ok { background: var(--good-soft); color: var(--good) } .p-warn { background: var(--warn-soft); color: var(--warn) }
+.gate { margin-top: 40px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 18px 20px }
+.gate h2 { margin-top: 0 } .gate ol { padding-left: 20px } .gate li { margin: 5px 0 }
+@media (max-width: 760px) { h1 { font-size: 36px } }
+</style>
+
+<main>
+<div class="eyebrow">Asset Factory · Şahin · Kapı 1 görsel onay</div>
+<h1>Şahin Kokpit PREVIEW</h1>
+<p class="lede">Konsept A "Damla Fanus" blokajı (revizyon r008: ekranlar senin geri bildirimine göre yaklaştırıldı, büyütüldü ve yükseltildi). Kaba kütleler, Blender pilot kamerası, hızlı render. UV, doku, bake ve GLB yok; bunlar PRODUCTION'da ve bu sayfadaki onaya bağlı.</p>
+
+<div class="kpis">
+  <div class="kpi"><b>0,0 px</b><span>kamera sözleşmesi hatası</span></div>
+  <div class="kpi"><b>3 × 5/5</b><span>ekranlar gözden görünür</span></div>
+  <div class="kpi"><b>53,9 %</b><span>cam oranı (şema 57,6 · Kaşif 50,7)</span></div>
+  <div class="kpi"><b>1,2 %</b><span>HUD bölgesi engeli (Kaşif 9,3)</span></div>
+  <div class="kpi"><b>4 902</b><span>blokaj üçgeni</span></div>
+</div>
+
+<h2>r008: ekran düzeni değişikliği</h2>
+<figure><img src="img/once_sonra_r007_r008.webp" alt="r007 ve r008 pilot görüşü karşılaştırması"><figcaption>Üstte r007, altta r008. Ekranlar arası boşluk 214 → 34 px. RADAR 220×150 → 280×180 px, yan ekranlar ~160×110 → ~235×150 px. Ekran merkezleri yaklaşık 30–55 px yukarıda. Konsol üst kenarı ve göz kalkanı da birlikte yükseldi.</figcaption></figure>
+
+<h2>Konsept ⟷ blokaj, aynı pilot çerçevesi</h2>
+<div class="pair">
+  <div class="lbl">Onaylanan konsept A (şema)</div>
+  <figure><img src="img/konsept_a.webp" alt="Konsept A şeması, pilot görüşü"></figure>
+  <div class="lbl">PREVIEW r008: Blender, pilot kamerası (FOV 74°, göz orijinde)</div>
+  <figure><img src="img/01_pilot.webp" alt="Şahin kokpit blokajı, pilot görüşü"><figcaption>Ekranlardaki camgöbeği düz renk yer tutucudur; oyunda canlı Sistem, Radar ve Gövde ekranları bağlanır. Arka plan karanlık uzay; oyunda gökyüzü, istasyon ve HUD bu camın ardında görünür.</figcaption></figure>
+</div>
+<p>Blokaj şemadan türetildi: şemadaki her piksel noktası oyunun kamera sözleşmesiyle 3B'ye taşındı. Ekran köşeleri şemadaki piksellere birebir düşüyor. Ön kemer geriye yatık kuruldu (tepe önde, ayaklar pilotun yanında); böylece şemadaki gibi uçları görüş alanının dışında kalıyor. Kemerin kenar yüksekliği şemaya sayısal olarak uyduruldu: v = 104,6 px, şemada ≈ 105.</p>
+
+<h2>Diğer görünüşler</h2>
+<div class="grid2">
+  <figure><img src="img/02_capraz.webp" alt="Çapraz görünüş"><figcaption>Çapraz: küvet konsol, eşik rayları, kemer ve iç kırmızı ışık şeridi.</figcaption></figure>
+  <figure><img src="img/03_konsol.webp" alt="Konsol yakın plan"><figcaption>Konsol: göz kalkanı, RADAR yuvası, 8 mm'lik ekran çerçevesi, uçuş kolu.</figcaption></figure>
+  <figure><img src="img/04_koltuk.webp" alt="Koltuk"><figcaption>Yatık fırlatma koltuğu (16°): oturma, sırt, yan destekler. Blokaj düzeyinde, kutu biçimli.</figcaption></figure>
+  <figure><img src="img/05_dis.webp" alt="Dıştan"><figcaption>Dıştan: kemer, omurga, yan paneller, koltuk ve konsol yayı.</figcaption></figure>
+  <figure><img src="img/06_plan.webp" alt="Plan"><figcaption>Üstten plan: konsol yayı önde, eşikler yanda, koltuk ortada.</figcaption></figure>
+</div>
+
+<h2>Ölçümler</h2>
+<div class="tbl"><table>
+<tr><th>Test</th><th>Sonuç</th><th>Ölçüt</th><th></th></tr>
+<tr><td>Kamera sözleşmesi (4 nokta, Blender izdüşümü)</td><td class="num">0,0 px</td><td>Kaşif ile aynı pilot kamerası</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td><code>SCR_SYS</code> · <code>SCR_RADAR</code> · <code>SCR_HULL</code> görünürlüğü (merkez + 4 köşe ışını)</td><td class="num">5/5 · 5/5 · 5/5</td><td>göz → ekran önünde engel yok</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Ekran köşeleri (px)</td><td>SYS (390,432)…(400,582) · RADAR (660,404)…(660,584) · HULL (980,420)…(974,560)</td><td>r008 tarifindeki konumlar</td><td><span class="pill p-ok">birebir</span></td></tr>
+<tr><td>Ekran UV düzeni</td><td>TL (0,1) · TR (1,1) · BR (1,0) · BL (0,0)</td><td>Kaşif ekran sözleşmesi</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Cam oranı</td><td class="num">53,9 %</td><td>şema 57,6 % · Kaşif 50,7 %</td><td><span class="pill p-ok">uyumlu</span></td></tr>
+<tr><td>Orta (HUD) bölge engeli</td><td class="num">1,2 %</td><td>şema 0 % · Kaşif 9,3 %</td><td><span class="pill p-ok">uyumlu</span></td></tr>
+<tr><td>Blokaj üçgeni</td><td class="num">4 902</td><td>PRODUCTION bütçesi ≤ 60 000</td><td><span class="pill p-ok">bilgi</span></td></tr>
+<tr><td>Süre (PREVIEW, hızlı mod)</td><td class="num">~4 dk</td><td>6 render + ölçümler</td><td><span class="pill p-ok">bilgi</span></td></tr>
+</table></div>
+
+<h2>Ölçümlerin yakaladığı hatalar (r001 → r007)</h2>
+<div class="tbl"><table>
+<tr><th>Rev</th><th>Bulgu</th><th>Düzeltme</th></tr>
+<tr><td>r001</td><td>Kamera sözleşmesi hatası 52 px: Blender'ın kaydırma birimini görüntü genişliği sanmıştım</td><td>Dikey sensör uyumunda birim yükseklik (52,2 = 0,0796 × 656); hata 0 px</td></tr>
+<tr><td>r001</td><td>Üç ekran da gözden görünmüyordu (0/5)</td><td>Konsol kalınlığı göze doğru büyüyordu; gözden uzağa çevrildi</td></tr>
+<tr><td>r002</td><td>Ekran kenarlarını çerçeve ve yan duvarlar örtüyordu</td><td>Çerçeve çıkıntısı 25 → 8 mm; duvarlar konsolun önünde bitiyor</td></tr>
+<tr><td>r002</td><td>HUD bölgesi engeli %5,7: konsolun üst yüzü ufka yükseliyordu</td><td>Üst yüzler ileriye doğru alçalıyor; engel %0,8</td></tr>
+<tr><td>r003</td><td>Yan ekranların alt köşelerini konsol alt yüzü örtüyordu</td><td>Ekranlar konsol yüzeyini her noktada 12 mm önden izliyor</td></tr>
+<tr><td>r004</td><td>Görsel: kemer görüşün ortasına iniyordu, eşikler büyük ve açık renkteydi</td><td>Geriye yatık kemer (şemaya sayısal uyum), eğimli koyu yan eşik</td></tr>
+<tr><td>r005–r007</td><td>Ray borularında burulma; konsol alt yüzü fazla koyu; koltuk kamerası ve baş desteği</td><td>Paralel taşımalı boru kesiti, orta gri malzeme, yeni kamera ve konum</td></tr>
+<tr><td>r008</td><td>Senin geri bildirimin: ekranlar birbirinden uzak, küçük ve aşağıda</td><td>Ekranlar tek küme hâline getirildi (boşluk 34 px), büyütüldü, yükseltildi; konsol üst kenarı ve göz kalkanı birlikte ayarlandı. Değerler artık tarifte</td></tr>
+</table></div>
+
+<h2>Blokajda bilinçli olarak eksik olanlar (PRODUCTION'da yapılacak)</h2>
+<ul>
+  <li><b>Koltuk:</b> kutu biçimli. PRODUCTION'da Subsurf ile yumuşatılmış minderler, teknik dokuma, omuz kemeri, başlıkta kırmızı fırlatma tutamağı, ray ve braketler.</li>
+  <li><b>Konsol ayrıntısı:</b> yan konsollarda anahtar sıraları, panel derzleri, perçinler, havalandırma, kablo kanalları. Kaşif'in ayrıntı yoğunluğu hedefleniyor, ama tasarım Şahin'e özgü.</li>
+  <li><b>Kanopi arkası:</b> omurganın arka ucu ve arka kemer dıştan görünüşte açık. Pilot görüşünü etkilemiyor.</li>
+  <li><b>Gaz kolu:</b> konumu şemadaki gibi, ama göze yakın olduğu için iri görünüyor; PRODUCTION'da biçimi inceltilecek.</li>
+  <li><b>Uçuş kolu:</b> r008'de topuzu RADAR çerçevesinin alt kenarına biraz biniyor; PRODUCTION'da kol birkaç santim alçaltılacak.</li>
+  <li><b>Malzeme:</b> yalnızca kütüphane malzemeleri. Aşınma, kir, boya kenar aşınması ve kırmızı şerit emisyon ayarı PRODUCTION'da.</li>
+  <li><b>Teknik kurallar</b> (Kaşif analizinden): tek gövde malzemesi ve tek doku seti, ≤ 6 draw call, GPU ≤ 40 MB, emisyon ≤ 1, WebP, tek yüz.</li>
+</ul>
+
+<div class="gate">
+  <h2>Kapı 1: senin kararın</h2>
+  <ol>
+    <li><b>Onay:</b> Bu blokaj PRODUCTION'a geçer: ayrıntılı modelleme, UV, bake, GLB ve QC. Sonuç Kapı 2'de teknik onayına gelir.</li>
+    <li><b>Düzeltme:</b> Değiştirilecek noktaları yaz (oranlar, ekran boyutu, kemer kalınlığı, renk dağılımı, koltuk). Yeni bir PREVIEW revizyonu üretirim.</li>
+    <li><b>Ret:</b> Konsept B ya da C'ye döneriz.</li>
+  </ol>
+  <p style="color:var(--muted);font-size:14px">Oyuna entegrasyon her durumda ayrı bir onay ve ayrı bir aşama; bu sayfa onu kapsamıyor.</p>
+</div>
+</main>

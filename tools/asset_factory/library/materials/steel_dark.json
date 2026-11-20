@@ -1,0 +1,19 @@
+{
+ "kind": "metal",
+ "metallic": 1.0,
+ "base": [
+  0.25,
+  0.255,
+  0.265
+ ],
+ "rough": [
+  0.42,
+  0.6
+ ],
+ "brush": 0.6,
+ "scratch": 0.5,
+ "wear": 0.8,
+ "dirt": 0.42,
+ "bump": 0.035,
+ "_calibration": "2026-11-15: PBR metal taban aralığı (sRGB ≥120) için açıldı; kir 0.40–0.42 (Faz 0 QC bulgusu)"
+}

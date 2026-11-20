@@ -1,0 +1,50 @@
+{
+ "spec": {
+  "id": "test_box",
+  "family": "test",
+  "class": "test",
+  "seed": 1701,
+  "length_m": 1.78,
+  "test_asset": true,
+  "_note": "Faz 0 hattı doğrulama nesnesi. Gerçek oyun varlığı DEĞİLDİR; oyuna girmez.",
+  "materials": [
+   "hull_grey",
+   "gunmetal",
+   "steel_dark",
+   "emit_cyan",
+   "emit_amber"
+  ],
+  "texture_mode": "unique",
+  "texture_size": 1024,
+  "lods": [
+   1.0,
+   0.45,
+   0.15
+  ],
+  "params": {
+   "size": [
+    1.0,
+    1.6,
+    0.7
+   ],
+   "bevel": 0.035,
+   "greebles_per_side": 3,
+   "pipes": 2,
+   "antenna_h": 0.3
+  },
+  "reference": null
+ },
+ "seed": 1701,
+ "spec_hash": "af4e7443170a651d098ba29f4dc8da3f0292651bc41052c2acce005af6af2fe6",
+ "geometry_hash": "4f5b25b31f5b1c1a2b10073ceb4cfaa1279eb5662845677402e1cc803f6c0e74",
+ "factory_commit": "8343726",
+ "blender": "5.3.0",
+ "library_materials": [
+  "hull_grey",
+  "gunmetal",
+  "steel_dark",
+  "emit_cyan",
+  "emit_amber"
+ ],
+ "rebuild": "python factory.py model test_box && python factory.py prepare test_box"
+}

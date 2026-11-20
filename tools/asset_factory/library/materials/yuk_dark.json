@@ -1,0 +1,18 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.068,
+  0.058,
+  0.03
+ ],
+ "rough": [
+  0.45,
+  0.7
+ ],
+ "scratch": 0.5,
+ "wear": 0.9,
+ "dirt": 0.35,
+ "bump": 0.03,
+ "_note": "Yük Devi koyu haki çerçeve (#4a4430)"
+}

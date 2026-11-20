@@ -1,0 +1,707 @@
+{
+ "masaüstü": {
+  "kasif_ok": true,
+  "kasif": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      617,
+      278
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      1093,
+      313
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      617,
+      278
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.492,
+   "radarLogical": [
+    455,
+    130
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 2.8,
+   "texMem": 71,
+   "geoMem": 118,
+   "alignErrPx": {
+    "SCR_HULL": 0.65,
+    "SCR_RADAR": 0.55,
+    "SCR_SYS": 0.67
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 800,
+    "OY": 298.25256293204643,
+    "W": 1600,
+    "H": 800
+   }
+  },
+  "sahin_ok": true,
+  "sahin": {
+   "id": "sahin",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      671,
+      426
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      822,
+      528
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      671,
+      426
+     ]
+    }
+   ],
+   "radarCanvasAspect": 1.557,
+   "radarLogical": [
+    342,
+    220
+   ],
+   "calls": 5,
+   "tris": 9384,
+   "ms": 1.3,
+   "texMem": 52,
+   "geoMem": 108,
+   "alignErrPx": {
+    "SCR_HULL": 0.04,
+    "SCR_RADAR": 0.03,
+    "SCR_SYS": 0.04
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 800,
+    "OY": 290.81251539788127,
+    "W": 1600,
+    "H": 800
+   }
+  },
+  "back_ok": true,
+  "back": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      617,
+      278
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      1093,
+      313
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      617,
+      278
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.492,
+   "radarLogical": [
+    455,
+    130
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 4.3,
+   "texMem": 75,
+   "geoMem": 118,
+   "alignErrPx": {
+    "SCR_HULL": 0.65,
+    "SCR_RADAR": 0.55,
+    "SCR_SYS": 0.67
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 800,
+    "OY": 298.25256293204643,
+    "W": 1600,
+    "H": 800
+   }
+  },
+  "glbRequests": [
+   "cockpit_kasif.glb",
+   "cockpit_sahin.glb",
+   "cockpit_kasif.glb"
+  ],
+  "log": []
+ },
+ "iPad Pro 11 landscape": {
+  "kasif_ok": true,
+  "kasif": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      721,
+      324
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      1273,
+      365
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      718,
+      323
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.488,
+   "radarLogical": [
+    424,
+    122
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 2.4,
+   "texMem": 53,
+   "geoMem": 103,
+   "alignErrPx": {
+    "SCR_HULL": 0.61,
+    "SCR_RADAR": 0.51,
+    "SCR_SYS": 0.62
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 597,
+    "OY": 278.12051493413315,
+    "W": 1194,
+    "H": 746
+   }
+  },
+  "sahin_ok": true,
+  "sahin": {
+   "id": "sahin",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      782,
+      497
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      958,
+      616
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      782,
+      497
+     ]
+    }
+   ],
+   "radarCanvasAspect": 1.555,
+   "radarLogical": [
+    319,
+    205
+   ],
+   "calls": 5,
+   "tris": 9384,
+   "ms": 3.1,
+   "texMem": 34,
+   "geoMem": 93,
+   "alignErrPx": {
+    "SCR_HULL": 0.04,
+    "SCR_RADAR": 0.03,
+    "SCR_SYS": 0.04
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 597,
+    "OY": 271.1826706085242,
+    "W": 1194,
+    "H": 746
+   }
+  },
+  "back_ok": true,
+  "back": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      721,
+      324
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      1273,
+      365
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      718,
+      323
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.488,
+   "radarLogical": [
+    424,
+    122
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 2.6,
+   "texMem": 57,
+   "geoMem": 103,
+   "alignErrPx": {
+    "SCR_HULL": 0.61,
+    "SCR_RADAR": 0.51,
+    "SCR_SYS": 0.62
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 597,
+    "OY": 278.12051493413315,
+    "W": 1194,
+    "H": 746
+   }
+  },
+  "glbRequests": [
+   "cockpit_kasif.glb",
+   "cockpit_sahin.glb",
+   "cockpit_kasif.glb"
+  ],
+  "log": []
+ },
+ "iPhone 13 landscape": {
+  "kasif_ok": true,
+  "kasif": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      330,
+      148
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      584,
+      166
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      330,
+      148
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.518,
+   "radarLogical": [
+    337,
+    96
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 0.8,
+   "texMem": 66,
+   "geoMem": 161,
+   "alignErrPx": {
+    "SCR_HULL": 0.28,
+    "SCR_RADAR": 0.23,
+    "SCR_SYS": 0.29
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 375,
+    "OY": 127.50297065344984,
+    "W": 750,
+    "H": 342
+   }
+  },
+  "sahin_ok": true,
+  "sahin": {
+   "id": "sahin",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      359,
+      228
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      439,
+      282
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      359,
+      228
+     ]
+    }
+   ],
+   "radarCanvasAspect": 1.557,
+   "radarLogical": [
+    149,
+    96
+   ],
+   "calls": 5,
+   "tris": 9384,
+   "ms": 0.7,
+   "texMem": 47,
+   "geoMem": 151,
+   "alignErrPx": {
+    "SCR_HULL": 0.02,
+    "SCR_RADAR": 0.01,
+    "SCR_SYS": 0.02
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 375,
+    "OY": 124.32235033259425,
+    "W": 750,
+    "H": 342
+   }
+  },
+  "back_ok": true,
+  "back": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      330,
+      148
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      584,
+      166
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      330,
+      148
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.518,
+   "radarLogical": [
+    337,
+    96
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 1.4,
+   "texMem": 70,
+   "geoMem": 161,
+   "alignErrPx": {
+    "SCR_HULL": 0.28,
+    "SCR_RADAR": 0.23,
+    "SCR_SYS": 0.29
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 375,
+    "OY": 127.50297065344984,
+    "W": 750,
+    "H": 342
+   }
+  },
+  "glbRequests": [
+   "cockpit_kasif_m.glb",
+   "cockpit_sahin_m.glb",
+   "cockpit_kasif_m.glb"
+  ],
+  "log": []
+ },
+ "Pixel 7 landscape": {
+  "kasif_ok": true,
+  "kasif": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      348,
+      157
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      614,
+      177
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      348,
+      157
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.469,
+   "radarLogical": [
+    332,
+    96
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 0.7,
+   "texMem": 62,
+   "geoMem": 146,
+   "alignErrPx": {
+    "SCR_HULL": 0.29,
+    "SCR_RADAR": 0.25,
+    "SCR_SYS": 0.3
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 431.5,
+    "OY": 134.21365331942087,
+    "W": 863,
+    "H": 360
+   }
+  },
+  "sahin_ok": true,
+  "sahin": {
+   "id": "sahin",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      377,
+      240
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      462,
+      297
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      377,
+      240
+     ]
+    }
+   ],
+   "radarCanvasAspect": 1.556,
+   "radarLogical": [
+    154,
+    99
+   ],
+   "calls": 5,
+   "tris": 9384,
+   "ms": 0.8,
+   "texMem": 43,
+   "geoMem": 136,
+   "alignErrPx": {
+    "SCR_HULL": 0.02,
+    "SCR_RADAR": 0.01,
+    "SCR_SYS": 0.02
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 431.5,
+    "OY": 130.86563192904654,
+    "W": 863,
+    "H": 360
+   }
+  },
+  "back_ok": true,
+  "back": {
+   "id": "kasif",
+   "ready": true,
+   "failed": false,
+   "ck3on": true,
+   "scr": [
+    {
+     "kind": "hull",
+     "canvas": [
+      348,
+      157
+     ]
+    },
+    {
+     "kind": "map",
+     "canvas": [
+      614,
+      177
+     ]
+    },
+    {
+     "kind": "bars",
+     "canvas": [
+      348,
+      157
+     ]
+    }
+   ],
+   "radarCanvasAspect": 3.469,
+   "radarLogical": [
+    332,
+    96
+   ],
+   "calls": 15,
+   "tris": 56362,
+   "ms": 1.2,
+   "texMem": 66,
+   "geoMem": 146,
+   "alignErrPx": {
+    "SCR_HULL": 0.29,
+    "SCR_RADAR": 0.25,
+    "SCR_SYS": 0.3
+   },
+   "sway": [
+    0,
+    0
+   ],
+   "view": {
+    "OX": 431.5,
+    "OY": 134.21365331942087,
+    "W": 863,
+    "H": 360
+   }
+  },
+  "glbRequests": [
+   "cockpit_kasif_m.glb",
+   "cockpit_sahin_m.glb",
+   "cockpit_kasif_m.glb"
+  ],
+  "log": []
+ },
+ "retry": {
+  "ok": true,
+  "requests": 3,
+  "ready": true,
+  "tries": 2,
+  "ck3on": true,
+  "img2d": false,
+  "menuOn": false,
+  "log": [
+   "C kokpit yüklenemedi, yeniden denenecek ProgressEvent",
+   "C kokpit yüklenemedi, yeniden denenecek ProgressEvent"
+  ]
+ }
+}
