@@ -1712,12 +1712,15 @@ var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [25
 var CK3 = {
   kasif: { glb: 'models/cockpit_kasif.glb', glbM: 'models/cockpit_kasif_m.glb', ad: 'KAŞİF', top: 382, ridge: HUD_RIDGE,
     scrK: { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] } },
-  /* Şahin: Asset Factory teslimi r012 (tools/asset_factory/deliveries/sahin_cockpit/r012). Ekranlar GLB'deki gerçek köşeler: RADAR 280x180 (1,56:1), tuval bu oranda kurulur.
+  /* Şahin: Asset Factory teslimi r014 (tools/asset_factory/deliveries/sahin_cockpit/r014, Kapı 1 onaylı; ekran köşeleri ve sırt r012 ile aynı). Ekranlar GLB'deki gerçek köşeler: RADAR 280x180 (1,56:1), tuval bu oranda kurulur.
      Sırt: r012 pilot görüşü alfa maskesinden (cam kalkanı ortada 366 px). */
   sahin: { glb: 'models/cockpit_sahin.glb', glbM: 'models/cockpit_sahin_m.glb', ad: 'ŞAHİN', top: 366, scrK: {},
     q: [[[390, 432], [620, 420], [626, 560], [400, 582]], [[660, 404], [940, 404], [940, 584], [660, 584]], [[980, 420], [1210, 432], [1200, 582], [974, 560]]],
     ridge: [[-400, 300], [0, 300], [50, 304], [100, 326], [150, 388], [200, 412], [250, 414], [300, 410], [350, 404], [400, 400], [450, 394], [500, 390], [550, 386], [600, 382], [650, 380], [700, 378], [750, 370], [800, 366],
-      [850, 370], [900, 378], [950, 380], [1000, 382], [1050, 386], [1100, 390], [1150, 394], [1200, 400], [1250, 406], [1300, 412], [1350, 414], [1400, 412], [1450, 388], [1500, 326], [1550, 304], [1600, 300], [2000, 300]] }
+      [850, 370], [900, 378], [950, 380], [1000, 382], [1050, 386], [1100, 390], [1150, 394], [1200, 400], [1250, 406], [1300, 412], [1350, 414], [1400, 412], [1450, 388], [1500, 326], [1550, 304], [1600, 300], [2000, 300]] },  /* Yük Devi: Asset Factory teslimi r015 (tools/asset_factory/deliveries/yuk_cockpit/r015, Kapı 1 onaylı). RADAR 276x160 (1,73:1). Orta dikme yok; sırt r015 pilot görüşü alfa maskesinden. Kıskaç ART_claw_* hiyerarşisi modelde (şimdilik statik). */
+  yuk: { glb: 'models/cockpit_yuk.glb', glbM: 'models/cockpit_yuk_m.glb', ad: 'YÜK DEVİ', top: 372, scrK: {},
+    q: [[[316, 404], [586, 388], [594, 540], [332, 566]], [[662, 378], [938, 378], [938, 538], [662, 538]], [[1014, 388], [1284, 404], [1268, 566], [1006, 540]]],
+    ridge: [[-400, 525], [0, 525], [50, 510], [100, 495], [150, 481], [200, 427], [250, 451], [300, 406], [350, 402], [400, 399], [450, 386], [500, 381], [550, 381], [600, 381], [650, 372], [700, 372], [750, 372], [800, 372], [850, 372], [900, 372], [950, 372], [1000, 381], [1050, 381], [1100, 381], [1150, 386], [1200, 389], [1250, 392], [1300, 395], [1350, 451], [1400, 427], [1450, 481], [1500, 496], [1550, 510], [1600, 525], [2000, 525]] }
 };
 function ck3Of(id){ return CK3[id || save.ship] || null; }   /* 3B kokpitli gemi çizim kokpitine hiç dönmez: model gelene kadar yükleme yeniden denenir */
 function ck3dSet(){ return !!ck3Of(); }
