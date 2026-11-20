@@ -1,0 +1,8 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [0.045, 0.030, 0.020],
+ "rough": [0.6, 0.8],
+ "bump": 0.01,
+ "_note": "Yük koltuk dikiş ipi: koyu kahve-siyah (r015); açık şeritler metal çubuk gibi okunuyordu"
+}

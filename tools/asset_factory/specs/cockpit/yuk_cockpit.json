@@ -20,7 +20,8 @@
   "yuk_pale",
   "yuk_steel",
   "yuk_bare",
-  "yuk_leather"
+  "yuk_leather",
+  "yuk_thread"
  ],
  "texture_mode": "unique",
  "texture_size": 2048,

@@ -564,10 +564,10 @@ def build(spec, mats):
             nm_ = 'L' if s_ < 0 else 'R'
             add('seat_wing_v_' + nm_, soft_box((s_ * 0.235, sy - 0.012, -0.585), (0.10, 0.11, 0.25), 0.022, 1), 'yuk_leather')
             add('seat_strap_v_' + nm_, geo.bm_box((s_ * 0.085, sy - 0.0525, -0.50), (0.026, 0.006, 0.26)), 'yuk_black')
-            add('seat_seam_c_' + nm_, geo.bm_box((s_ * 0.150, sy - 0.0515, -0.50), (0.004, 0.003, 0.22)), 'yuk_pale')
-            add('seat_seam_w_' + nm_, geo.bm_box((s_ * 0.235, sy - 0.0625, -0.50), (0.004, 0.003, 0.20)), 'yuk_pale')
+            add('seat_seam_c_' + nm_, geo.bm_box((s_ * 0.150, sy - 0.0515, -0.50), (0.004, 0.003, 0.22)), 'yuk_thread')
+            add('seat_seam_w_' + nm_, geo.bm_box((s_ * 0.235, sy - 0.0625, -0.50), (0.004, 0.003, 0.20)), 'yuk_thread')
         fy_ = sy - 0.0515
-        add('seat_seam_h1', geo.bm_box((0, fy_, -0.405), (0.30, 0.003, 0.004)), 'yuk_pale')
+        add('seat_seam_h1', geo.bm_box((0, fy_, -0.405), (0.30, 0.003, 0.004)), 'yuk_thread')
         add('seat_buckle_v', geo.bm_box((0, sy - 0.0535, -0.46), (0.070, 0.012, 0.050)), 'yuk_steel')
         add('seat_buckle_tongue', geo.bm_box((0, sy - 0.0585, -0.46), (0.030, 0.004, 0.026)), 'yuk_bare')
 
