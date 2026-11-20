@@ -124,23 +124,24 @@
   "chin": {
    "quad": [
     [
-     624,
-     566
+     704,
+     590
     ],
     [
-     976,
-     566
+     896,
+     590
     ],
     [
-     1030,
+     928,
      656
     ],
     [
-     570,
+     672,
      656
     ]
    ],
-   "tunnel": 1.55
+   "tunnel": 1.55,
+   "_r011": "çene camı daraltıldı (624..976 → 704..896 üstte): orta konsol panellerine yer; kıskaç hâlâ görünür (Mehmet: orta bölge boş)"
   },
   "claw": {
    "root": [

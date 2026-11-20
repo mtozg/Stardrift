@@ -196,7 +196,7 @@ def build(defn):
             bk = _n(nt, 'ShaderNodeTexBrick')
             bk.offset = 0.0
             bk.inputs['Scale'].default_value = d['panel_scale']
-            bk.inputs['Mortar Size'].default_value = 0.022
+            bk.inputs['Mortar Size'].default_value = 0.05
             bk.inputs['Mortar Smooth'].default_value = 0.15
             bk.inputs['Bias'].default_value = 0.0
             bk.inputs['Brick Width'].default_value = 1.0
@@ -223,7 +223,7 @@ def build(defn):
     if chips is not None:
         col = _mix(nt, 'MIX', col, d['chip_color'], chips)
     if seam is not None:
-        col = _mix(nt, 'MULTIPLY', col, _range(nt, seam, 0.0, 1.0, 1.0, 1.0 - 0.62 * d['panels']))
+        col = _mix(nt, 'MULTIPLY', col, _range(nt, seam, 0.0, 1.0, 1.0, 1.0 - 0.78 * d['panels']))
     nt.links.new(col, bsdf.inputs['Base Color'])
 
     if d['kind'] == 'metal' and d['dirt'] > 0:

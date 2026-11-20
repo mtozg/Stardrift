@@ -2,9 +2,9 @@
  "kind": "dielectric",
  "metallic": 0.0,
  "base": [
-  0.745,
-  0.434,
-  0.014
+  0.392,
+  0.25,
+  0.025
  ],
  "rough": [
   0.4,
@@ -27,5 +27,6 @@
   0.8,
   1.15
  ],
- "_r010": "sarı şerit: aşınmış"
+ "_r010": "sarı şerit: aşınmış",
+ "_r011": "sarı daha mat/soluk (doygunluk düşürüldü)"
 }

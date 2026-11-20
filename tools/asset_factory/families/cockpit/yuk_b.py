@@ -168,11 +168,12 @@ def build(spec, mats):
     add('chin_tunnel', bm, 'yuk_dark', eye=True, solid=0.02)
     add('chin_glass_edge', tube([p * 1.002 for p in ring_in] + [ring_in[0] * 1.002], 0.006, 6), 'yuk_glass_edge', smooth=60)
     bm = bmesh.new()
-    for u in lin(cq[0][0] + 10, cq[1][0] - 10, 11):
+    for u in ([] if prod else lin(cq[0][0] + 10, cq[1][0] - 10, 11)):
         v0, v1 = cv0 - 34, cv0 - 18
         q = [bm.verts.new(P(uu, vv, fd(vv) - 0.006)) for uu, vv in ((u - 8, v0), (u + 6, v0), (u - 2, v1), (u - 16, v1))]
         bm.faces.new(q)
-    add('chin_hazard', bm, 'yuk_hazard', eye=True, solid=0.004, toward_eye=True)
+    if not prod:
+        add('chin_hazard', bm, 'yuk_hazard', eye=True, solid=0.004, toward_eye=True)
 
     # ---- ekranlar: braketli kasalar, panelden yükseltilmiş (C'deki gibi)
     sc = A['screens']
@@ -238,7 +239,7 @@ def build(spec, mats):
 
     # ---- kıskaç kumanda kolları (çene camının iki yanında)
     lv = A['levers']
-    for u in lv['u']:
+    for u in ([] if prod else lv['u']):
         x = (u - CX) / F * lv['depth']
         add('lever_shaft_%d' % u, geo.bm_cylinder((x, 0.62, -0.75), (x, 0.58, -0.52), 0.014, 12), 'gunmetal', smooth=60)
         add('lever_grip_%d' % u, geo.bm_cylinder((x, 0.58, -0.52), (x, 0.575, -0.46), 0.03, 14), 'yuk_hazard', smooth=60)
@@ -307,56 +308,156 @@ def build(spec, mats):
             pp = onF(u, cv0 - 13, 0.0)
             rivets.cyl((pp.x, pp.y - 0.003, pp.z), (pp.x, pp.y - 0.0115, pp.z), 0.0062, 6)
 
-        # ---- r010 (Mehmet: Şahin r012 düzeyinde ayrıntı ve malzeme çeşitliliği) ----
+        # ---- r011: gerçekçi kumanda kitaplığı + orta konsol (Mehmet: oyuncak düğmeler, boş orta bölge) ----
+        # Kural: ana tonlar boyalı haki / koyu çelik / mat metal / kauçuk; sarı-turuncu yalnız küçük vurgu (uç, nokta, tek tek parça).
         def plate(u0, v0, u1, v1, acc, off=0.0075, depth=0.010):
             pa, pb = onF(u0, v0, 0.0), onF(u1, v1, 0.0)
             acc.box(((pa.x + pb.x) / 2, pa.y - off, (pa.z + pb.z) / 2), (abs(pb.x - pa.x), depth, abs(pa.z - pb.z)))
 
-        def frame(u0, v0, u1, v1, acc, th=5, off=0.0085):
-            plate(u0, v0, u1, v0 + th, acc, off, 0.012); plate(u0, v1 - th, u1, v1, acc, off, 0.012)
-            plate(u0, v0, u0 + th, v1, acc, off, 0.012); plate(u1 - th, v0, u1, v1, acc, off, 0.012)
-        caps = (hazard_d, rust_d, pale_d)
-        caps = (hazard_d, rust_d, pale_d)
-        PD = 0.03      # kanat kutusu çıkıntısı (m)
-        onP = lambda u, v, off=0.0: onF(u, v, off + PD)
-        # sol kanat: kıskaç kumanda grubu (büyük basma düğmeleri + anahtar bankası), sağ kanat: göstergeler ve sürgüler
-        for sd, (u0, u1) in ((-1, (330, 522)), (1, (1078, 1270))):
-            plate(u0, 572, u1, 650, dark_d, PD / 2, PD)
-            frame(u0, 572, u1, 650, rust_d, 5, PD + 0.003)
-            plate(u0 + 10, 642, u1 - 10, 647, pale_d, PD + 0.002, 0.004)      # etiket şeridi
-            for k_, u_ in enumerate(lin(u0 + 22, u1 - 22, 6)):      # ikaz lambaları
-                pc = onP(u_, 583, 0.0)
-                lamps_d.cyl((pc.x, pc.y - 0.012, pc.z), (pc.x, pc.y - 0.022, pc.z), 0.0062, 6)
+        def frame(u0, v0, u1, v1, acc, th=3, off=0.0085, depth=0.010):
+            plate(u0, v0, u1, v0 + th, acc, off, depth); plate(u0, v1 - th, u1, v1, acc, off, depth)
+            plate(u0, v0, u0 + th, v1, acc, off, depth); plate(u1 - th, v0, u1, v1, acc, off, depth)
+
+        def label(pc, w, h, n=5, seed=0):      # etiket plakası + baskı çizgileri
+            pale_d.box((pc.x, pc.y - 0.0035, pc.z), (w, 0.0035, h))
+            x0 = pc.x - w / 2 + 0.004
+            for k in range(n):
+                bw = 0.004 + 0.009 * (((k + seed) * 7) % 5) / 4
+                if x0 + bw > pc.x + w / 2 - 0.003:
+                    break
+                black_d.box((x0 + bw / 2, pc.y - 0.0058, pc.z), (bw, 0.0016, h * 0.42))
+                x0 += bw + 0.004
+
+        def toggle(pc, guarded=False, accent=False):      # mandal anahtar: taban plakası, kovan halkası, ince çelik mandal, kauçuk uç, isteğe bağlı menteşeli koruma kapağı
+            dark_d.box((pc.x, pc.y - 0.004, pc.z), (0.024, 0.008, 0.026))
+            steel_d.cyl((pc.x, pc.y - 0.007, pc.z), (pc.x, pc.y - 0.0135, pc.z), 0.0085, 8)
+            tip = (pc.x, pc.y - 0.034, pc.z + 0.007)
+            steel_d.cyl((pc.x, pc.y - 0.0135, pc.z), tip, 0.0032, 5)
+            (rust_d if accent else black_d).cyl(tip, (tip[0], tip[1] - 0.007, tip[2] + 0.002), 0.0052, 6)
+            if guarded:
+                dark_d.box((pc.x, pc.y - 0.027, pc.z + 0.002), (0.022, 0.003, 0.024))
+                steel_d.cyl((pc.x - 0.011, pc.y - 0.027, pc.z + 0.0155), (pc.x + 0.011, pc.y - 0.027, pc.z + 0.0155), 0.0028, 5)
+
+        def knob(pc, r=0.0105, ticks=True):      # ribli döner düğme: çelik etek, kauçuk gövde, 8 rib, işaret çizgisi, kadran tikleri
+            steel_d.cyl((pc.x, pc.y - 0.002, pc.z), (pc.x, pc.y - 0.007, pc.z), r * 1.55, 10)
+            black_d.cyl((pc.x, pc.y - 0.007, pc.z), (pc.x, pc.y - 0.022, pc.z), r, 8)
+            for k in range(8):
+                a_ = k * math.pi / 4
+                black_d.box((pc.x + (r + 0.0011) * math.cos(a_), pc.y - 0.0145, pc.z + (r + 0.0011) * math.sin(a_)), (0.0032, 0.013, 0.0032))
+            pale_d.box((pc.x, pc.y - 0.0228, pc.z + r * 0.45), (0.0022, 0.0016, r * 0.8))
+            if ticks:
+                for k in range(9):
+                    a_ = math.radians(-125 + k * 31)
+                    pale_d.box((pc.x + 1.9 * r * math.sin(a_), pc.y - 0.0045, pc.z + 1.9 * r * math.cos(a_)), (0.0024, 0.0016, 0.0055))
+
+        def pbutton(pc, accent=False):      # çerçeveli basma düğmesi + koruma kafesi
+            steel_d.box((pc.x, pc.y - 0.004, pc.z), (0.034, 0.008, 0.034))
+            black_d.cyl((pc.x, pc.y - 0.008, pc.z), (pc.x, pc.y - 0.019, pc.z), 0.0105, 8)
+            (rust_d if accent else pale_d).cyl((pc.x, pc.y - 0.019, pc.z), (pc.x, pc.y - 0.0205, pc.z), 0.0072, 8)
+            for dx_, dz_ in ((-0.0145, -0.0145), (0.0145, -0.0145), (-0.0145, 0.0145), (0.0145, 0.0145)):
+                steel_d.cyl((pc.x + dx_, pc.y - 0.008, pc.z + dz_), (pc.x + dx_, pc.y - 0.027, pc.z + dz_), 0.0019, 4)
+            for dz_ in (-0.0145, 0.0145):
+                steel_d.box((pc.x, pc.y - 0.027, pc.z + dz_), (0.031, 0.0035, 0.0035))
+            for dx_ in (-0.0145, 0.0145):
+                steel_d.box((pc.x + dx_, pc.y - 0.027, pc.z), (0.0035, 0.0035, 0.031))
+
+        def gauge(pc, r=0.03):      # gösterge: çelik halka, kadran, 11 tik, ibre, cam kenarı
+            steel_d.cyl((pc.x, pc.y - 0.004, pc.z), (pc.x, pc.y - 0.0175, pc.z), r + 0.005, 12)
+            black_d.cyl((pc.x, pc.y - 0.0175, pc.z), (pc.x, pc.y - 0.0205, pc.z), r, 12)
+            for k in range(11):
+                a_ = math.radians(-120 + k * 24)
+                pale_d.box((pc.x + 0.82 * r * math.sin(a_), pc.y - 0.0215, pc.z + 0.82 * r * math.cos(a_)), (0.0022, 0.0014, 0.0065))
+            pale_d.box((pc.x + 0.004, pc.y - 0.0225, pc.z + 0.008), (0.0024, 0.0014, 0.02), rot_z=0.0, skew=0.35)
+            steel_d.cyl((pc.x, pc.y - 0.0225, pc.z), (pc.x, pc.y - 0.026, pc.z), 0.0042, 6)
+
+        def relay(pc, seed=0):      # röle/sigorta modülü: gövde, etiket şeridi, iki LED
+            dark_d.box((pc.x, pc.y - 0.007, pc.z), (0.019, 0.014, 0.024))
+            pale_d.box((pc.x, pc.y - 0.0145, pc.z + 0.004), (0.014, 0.0016, 0.007))
+            lamps_d.cyl((pc.x - 0.005, pc.y - 0.0145, pc.z - 0.007), (pc.x - 0.005, pc.y - 0.0185, pc.z - 0.007), 0.0021, 5)
+            steel_d.cyl((pc.x + 0.004, pc.y - 0.014, pc.z - 0.007), (pc.x + 0.004, pc.y - 0.0185, pc.z - 0.007), 0.0036, 6)
+
+        def vent(u0, v0, u1, v1, n=6):
+            plate(u0, v0, u1, v1, dark_d, 0.008, 0.012)
+            pa, pb = onF(u0, v0, 0.0), onF(u1, v1, 0.0)
+            for k in range(n):
+                zc_ = pa.z + (pb.z - pa.z) * (k + 0.5) / n
+                black_d.box(((pa.x + pb.x) / 2, pa.y - 0.0105, zc_), (abs(pb.x - pa.x) * 0.82, 0.006, abs(pa.z - pb.z) / n * 0.5))
+            frame(u0, v0, u1, v1, steel_d, 2, 0.0095, 0.006)
+
+        def bundle(pts, r=0.0065, n=3):      # kablo demeti: paralel kauçuk borular + çelik kelepçeler
+            for i_ in range(n):
+                off = (i_ - (n - 1) / 2) * r * 1.9
+                for (x1, y1, z1), (x2, y2, z2) in zip(pts[:-1], pts[1:]):
+                    black_d.cyl((x1 + off, y1, z1), (x2 + off, y2, z2), r, 6)
+            for (x1, y1, z1) in pts[1:-1]:
+                steel_d.box((x1, y1, z1), (n * r * 2.1 + 0.006, 0.014, 0.012))
+
+        # --- A: radarın altındaki şerit (çene camının üstü): röle/sigorta paneli, kablo demeti, etiketler
+        pA = [onF(u, 560, 0.0) for u in (650, 950)]
+        plate(646, 543, 954, 580, dark_d, 0.0065, 0.009)
+        frame(646, 543, 954, 580, steel_d, 2, 0.0075, 0.006)
+        for k_, u_ in enumerate(lin(668, 932, 12)):
+            pc = onF(u_, 556, 0.0)
+            relay(pc, k_)
+        for k_, u_ in enumerate(lin(668, 932, 6)):      # ikinci sıra: küçük gösterge lambaları + etiketler
+            pc = onF(u_, 572, 0.0)
+            label(pc, 0.034, 0.011, 4, k_)
+            lamps_d.cyl((pc.x + 0.024, pc.y - 0.006, pc.z), (pc.x + 0.024, pc.y - 0.012, pc.z), 0.0026, 5)
+        # --- B/C: çene camının iki yanındaki orta paneller
+        for sd, (u0, u1) in ((-1, (578, 676)), (1, (924, 1022))):
+            plate(u0, 586, u1, 654, dark_d, 0.0065, 0.009)
+            frame(u0, 586, u1, 654, steel_d, 2, 0.0075, 0.006)
             if sd < 0:
-                for k_, u_ in enumerate(lin(u0 + 30, u1 - 30, 4)):      # kıskaç kumanda grubu: dört büyük basma düğmesi
-                    pc = onP(u_, 601, 0.0)
-                    steel_d.cyl((pc.x, pc.y - 0.010, pc.z), (pc.x, pc.y - 0.020, pc.z), 0.0155, 8)
-                    caps[k_ % 3].cyl((pc.x, pc.y - 0.020, pc.z), (pc.x, pc.y - 0.034, pc.z), 0.0115, 8)
-                for r_, v_ in enumerate((622, 636)):      # anahtar sıraları
-                    for k_, u_ in enumerate(lin(u0 + 22, u1 - 22, 6)):
-                        pc = onP(u_, v_, 0.0)
-                        black_d.box((pc.x, pc.y - 0.014, pc.z), (0.021, 0.014, 0.012))
-                        steel_d.cyl((pc.x, pc.y - 0.020, pc.z), (pc.x + (0.006 if (k_ + r_) % 2 else -0.006), pc.y - 0.040, pc.z + (0.004 if (k_ + r_) % 2 else -0.004)), 0.0048, 6)
-                        caps[(k_ + r_) % 3].cyl((pc.x + (0.006 if (k_ + r_) % 2 else -0.006), pc.y - 0.040, pc.z + (0.004 if (k_ + r_) % 2 else -0.004)),
-                                                (pc.x + (0.0075 if (k_ + r_) % 2 else -0.0075), pc.y - 0.050, pc.z + (0.005 if (k_ + r_) % 2 else -0.005)), 0.0078, 6)
+                vent(u0 + 8, 594, u1 - 8, 616, 7)
+                for u_ in (u0 + 26, u1 - 26):
+                    knob(onF(u_, 634, 0.0))
+                label(onF((u0 + u1) / 2, 648, 0.0), 0.075, 0.012, 6, 1)
             else:
-                for k_, u_ in enumerate(lin(u0 + 38, u1 - 38, 3)):      # göstergeler
-                    pc = onP(u_, 606, 0.0)
-                    steel_d.cyl((pc.x, pc.y - 0.006, pc.z), (pc.x, pc.y - 0.020, pc.z), 0.034, 12)
-                    black_d.cyl((pc.x, pc.y - 0.020, pc.z), (pc.x, pc.y - 0.0235, pc.z), 0.027, 12)
-                    pale_d.box((pc.x + 0.007 * (k_ - 1), pc.y - 0.026, pc.z + 0.007), (0.0035, 0.003, 0.021), rot_z=0.0)
-                for r_, v_ in enumerate((628, 638)):      # sürgüler
-                    for k_, u_ in enumerate(lin(u0 + 30, u1 - 30, 3)):
-                        pc = onP(u_, v_, 0.0)
-                        black_d.box((pc.x, pc.y - 0.011, pc.z), (0.075, 0.010, 0.006))
-                        caps[(k_ + r_) % 3].box((pc.x + 0.015 * (k_ - 1 + r_ * 0.4), pc.y - 0.020, pc.z), (0.014, 0.014, 0.016))
-        # kumanda kollarına turuncu koruma halkası (yatay çember) ve çelik tabla
+                for r_, v_ in enumerate((602, 626)):
+                    for k_, u_ in enumerate(lin(u0 + 18, u1 - 18, 3)):
+                        toggle(onF(u_, v_, 0.0), guarded=(k_ + r_) % 2 == 0, accent=(k_ == 1 and r_ == 0))
+                label(onF((u0 + u1) / 2, 646, 0.0), 0.075, 0.012, 6, 3)
+                for u_ in lin(u0 + 12, u1 - 12, 4):
+                    lamps_d.cyl((onF(u_, 591, 0.0).x, onF(u_, 591, 0.0).y - 0.004, onF(u_, 591, 0.0).z), (onF(u_, 591, 0.0).x, onF(u_, 591, 0.0).y - 0.009, onF(u_, 591, 0.0).z), 0.0028, 5)
+        # kablo demetleri: şeridin altından çene camı kenarlarına
+        for sd, u_ in ((-1, 676), (1, 924)):
+            p1, p2, p3 = onF(u_, 580, 0.012), onF(u_ + sd * -10, 600, 0.012), onF(u_ + sd * -22, 640, 0.012)
+            bundle([(p1.x, p1.y, p1.z), (p2.x, p2.y, p2.z), (p3.x, p3.y, p3.z)])
+        # --- D: sol/sağ kanat (kıskaç kumanda grubu ve göstergeler)
+        for sd, (u0, u1) in ((-1, (330, 522)), (1, (1078, 1270))):
+            plate(u0, 572, u1, 650, dark_d, 0.006, 0.009)
+            frame(u0, 572, u1, 650, steel_d, 2, 0.0075, 0.006)
+            plate(u0 + 4, 572, u1 - 4, 575, rust_d, 0.0085, 0.004)      # tek ince turuncu vurgu çizgisi
+            for u_ in lin(u0 + 20, u1 - 20, 7):
+                pc = onF(u_, 582, 0.0)
+                lamps_d.cyl((pc.x, pc.y - 0.004, pc.z), (pc.x, pc.y - 0.009, pc.z), 0.0028, 5)
+            if sd < 0:      # kıskaç kumanda grubu
+                for k_, u_ in enumerate(lin(u0 + 30, u1 - 30, 4)):
+                    pbutton(onF(u_, 604, 0.0), accent=(k_ == 0))
+                for r_, v_ in enumerate((630,)):
+                    for k_, u_ in enumerate(lin(u0 + 22, u1 - 22, 6)):
+                        toggle(onF(u_, v_, 0.0), guarded=(k_ % 3 == 0), accent=(k_ == 5))
+                label(onF((u0 + u1) / 2, 645, 0.0), 0.11, 0.011, 7, 5)
+            else:
+                for k_, u_ in enumerate(lin(u0 + 38, u1 - 38, 3)):
+                    gauge(onF(u_, 606, 0.0), 0.029)
+                for k_, u_ in enumerate(lin(u0 + 22, u1 - 22, 6)):
+                    toggle(onF(u_, 634, 0.0), guarded=(k_ % 2 == 1), accent=(k_ == 0))
+                label(onF((u0 + u1) / 2, 646, 0.0), 0.11, 0.011, 7, 2)
+        # --- E: kumanda kolları: kauçuk körük, çelik bilezik, kauçuk kaplı ribli tutamak, etiketli başlık, tek küçük vurgu düğmesi
         for u in lv['u']:
             lx = (u - CX) / F * lv['depth']
-            ring = [(lx + 0.046 * math.cos(a_), lv['depth'] + 0.02 + 0.046 * math.sin(a_)) for a_ in lin(0, 2 * math.pi, 13)]
-            for (x1, y1), (x2, y2) in zip(ring[:-1], ring[1:]):
-                rust_d.cyl((x1, y1, -0.505), (x2, y2, -0.505), 0.0058, 6)
-            steel_d.cyl((lx, lv['depth'] + 0.02, -0.545), (lx, lv['depth'] + 0.02, -0.52), 0.05, 12)
+            ly = lv['depth'] + 0.02
+            steel_d.cyl((lx, ly + 0.02, -0.62), (lx, ly, -0.50), 0.0075, 8)
+            for k_, (z0, z1, r_) in enumerate(((-0.575, -0.545, 0.030), (-0.545, -0.52, 0.024), (-0.52, -0.498, 0.019))):
+                black_d.cyl((lx, ly, z0), (lx, ly, z1), r_, 10)      # körük halkaları
+            steel_d.cyl((lx, ly, -0.498), (lx, ly, -0.490), 0.024, 10)      # bilezik
+            black_d.cyl((lx, ly, -0.490), (lx, ly, -0.425), 0.0165, 9)      # kauçuk tutamak
+            for z_ in lin(-0.480, -0.440, 5):
+                steel_d.cyl((lx, ly, z_ - 0.0015), (lx, ly, z_ + 0.0015), 0.0172, 9)      # ribler
+            black_d.cyl((lx, ly, -0.425), (lx, ly, -0.414), 0.0145, 9)
+            pale_d.box((lx, ly - 0.0136, -0.4195), (0.012, 0.0014, 0.006))      # başlık etiketi
+            rust_d.cyl((lx + 0.0105, ly - 0.0165, -0.455), (lx + 0.0105, ly - 0.0215, -0.455), 0.0055, 6)      # başparmak düğmesi (tek küçük vurgu)
         # güverte: derz şeritleri, turuncu plakalar, uyarı bandı
         for y_ in (0.80, 0.90, 0.99):
             black_d.box((0, y_, ez + 0.003), (2 * xw(y_) * 0.92, 0.007, 0.004))

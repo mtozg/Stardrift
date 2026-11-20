@@ -428,6 +428,9 @@ def preview(spec, out, fast, obs, probe=False):
     res = {}
     pilot = _pilot_cam()
     R.render(os.path.join(out, '01_pilot.png'), pilot, (800, 328) if probe else ((1600, 656) if not fast else (1200, 492)), samples)
+    if probe:      # probe: pilotun gözünden orta konsola yakın görüntü (BUDGET MODE, yön kontrolü)
+        c = R.camera('06_orta', (0, 0, 0), (0, 0.9, -0.43), 38)
+        R.render(os.path.join(out, '06_orta.png'), c, (1000, 500), 20)
     views = [] if probe else [('02_capraz', (0.62, -0.30, 0.28), (-0.15, 0.85, -0.45), 70, (1200, 750)),
              ('03_konsol', (0.30, 0.30, -0.18), (-0.05, 0.92, -0.42), 52, (1200, 750)),
              ('04_koltuk', (0.45, 0.62, -0.05), (0.0, -0.22, -0.40), 62, (1200, 750)),

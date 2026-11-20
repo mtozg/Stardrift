@@ -380,8 +380,8 @@
    }
   },
   "yuk_cockpit": {
-   "state": "modeled",
-   "rev": 10,
+   "state": "draft",
+   "rev": 11,
    "history": [
     {
      "t": "2026-11-16T10:45:12+00:00",
@@ -534,11 +534,16 @@
      "from": "draft",
      "to": "modeled",
      "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-20T14:15:29+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r011: Mehmet r010 ret: orta konsol boş, kumandalar oyuncak gibi, doygunluk; r011"
     }
    ],
    "timings": {
-    "probe": 15.2,
-    "model": 382.4
+    "probe": 45.3
    },
    "approvals": [
     {
@@ -568,7 +573,12 @@
     "iPhone 13 landscape|1": 13.4,
     "Pixel 7 landscape|1": 13.1
    },
-   "notes": [],
+   "notes": [
+    {
+     "t": "2026-11-20T14:15:29+00:00",
+     "text": "r011: orta konsol (radar altı) doldur; kumandalar küçük katmanlı gerçekçi; sarı/turuncu yalnız küçük vurgu; aşınma/derz pilot ölçeğinde okunur; HUD/ekran/ART/kamera aynı"
+    }
+   ],
    "notes_applied": [
     {
      "rev": 9,
