@@ -1,0 +1,86 @@
+# Stardrift — Denetim ve Analiz Raporları (özet arşivi)
+
+QA Engineer ve Game Designer oturumlarının raporlarının özeti. 2026-11-20 ekip değişikliğiyle (K16) bu işler Lead Developer'a geçti.
+Satır numaraları `js/game.js` 1.53.1 içindir; sonraki sürümlerde kayabilir.
+
+## 1. QA ilk denetimi (1.53.1, statik inceleme)
+
+### Kanıtlı hatalar
+| Öncelik | Bulgu | Konum | Durum |
+|---|---|---|---|
+| P1 | Bekçi, güncelleme 3,5 sn durursa ve ekran yataysa `paused=false` yapıyor; `__menuOn`'u DOM sezgisiyle sıfırlıyor. Bilinçli duraklatma bozulabilir. | 10431-10441 | S1-03 |
+| P1 | Hangar `hgSet` eski modeli çıkarıyor ama dispose etmiyor | 4014-4016 | S1-03 |
+| P1 | Aynı anda en fazla 4 WebGL bağlamı (ana, hgR, XR, R3), forceContextLoss yok; iOS bellek riski | 28, 4112, 4260, 6645, 9609 | S1-03 |
+| P1 | Kargo kayda yazılmıyor | 1092 civarı | S1-13 (K9 onaylı) |
+| P1 | Eski "Claude hesabı" bulut yüklemesi SAVEKEY yerine sabit `kayip-yildizlar` anahtarına yazıyor | 5976 | S1-04 |
+| P1 | İki zaman damgası (`save.ts` / `save._t`) ayrı güncelleniyor; bulut çakışma kararı tutarsız | 5970, 10178 | S1-04 |
+| P1 | `saveWorld` yalnız curSys 0'da; stokta yalnız demir/buz/kristal | 2969-2974 | Backlog |
+| P2 | Hangar sürükleme tick'i durmayan rAF döngüsü | 6422 | Backlog |
+| P2 | Bekçi her saniye body çocuklarında getComputedStyle | 10432 | S1-03 |
+| P2 | Kare hızına bağlı animasyonlar (120 Hz'de iki kat hızlı) | 4021, 6422 | Backlog |
+| P2 | dt 0,05 sınırı; 20 FPS altında oyun zamanı yavaşlıyor | 7968 | Backlog |
+| P2 | Ham "Hata: …" toast'ları oyuncuya gösteriliyor | 7965 | Backlog |
+| P3 | README eski bilgiler (Kokpit görünümü ayarı, 4/6 evren) | README | Kısmen düzeldi (PR #30) |
+| P3 | Her kare `$('bDock')` / `$('bLock')` DOM sorgusu | 7978 | Backlog |
+| P3 | Sürüme 5 dokunuş test modunu açıyor (999.999 kredi, ayrı kayıt) | 7038 | Bilgi |
+
+### Riskler / doğrulanacaklar
+- Kayıt şeması sürümsüz; kayıt kodu düz JSON+base64; Firestore `codes` anonim yazma, kurallar repoda yok (T2, T3). B-08.
+- Eski yerel hesaplar: SHA-256, tuz yalnız kullanıcı adı (T4).
+- `renderExtras`, `renderDock`, `killNpc` 10'ar kez, `dockLayout` 9 kez sarılmış; test/CI yok (T1). B-07, B-09.
+- Ziyaretçi tüccar "Yükünü sat" canSell/repMul/stok mantığını atlıyor (G4, bilgi).
+- Ödül avcısı `__skA` katlanması: S1-06 ölçümüyle **sorun yok** (tek çarpan, en çok ×1,45).
+
+## 2. QA PR #28 incelemeleri
+- S1-01 (statik): koşullu PASS. `__ckb.swap` ekonomi baypası (P1) ve dropB dispose (P2) → S1-02a (bc5ba4a) ile düzeltildi.
+- S1-01c (statik): bc5ba4a ve 53dfdf6 PASS. Kaşif hiza farkı ölçüm referansı yuvarlaması, gerileme değil.
+- S1-01c (Playwright, masaüstü 1600×800 + iPhone 13): **PASS**. K→Ş→K→Ş→K doku Δ0, gerçek kayıtta `__ckb.swap` tanımsız, hata yok. GLB engellenince ~30 sn hazırlık ekranı, sonra mesajsız HUD modu (K14, S1-17).
+- Açık: GLB'ler `offline.json`'da yok (S1-10).
+- Kurulum: `git archive` ile geçici klasör, `python3 -m http.server`, Playwright Chromium (swiftshader), service worker kapalı, test anahtarı `kayip-yildizlar:test`.
+
+## 3. QA diğer doğrulamalar
+- **S1-01b Morr erişimi:** PASS. Filo oyuncusu Ankora ücra kapısıyla (0→5, 400 kr) gidebilir. Riskler: Kara Liman korsan ≤ −60'ta yanaşmayı reddeder; ücra kapı 3,2 km'ye girmeden haritada görünmez; zincirde ipucu yok → S1-11.
+- **S1-14 üste kaçak satışı:** KANITLI. Üste gümrük yok (8668), satış 150 kr ile açık (8669-8685). Devriyesiz sefer birim başı +60 kr. Kara Liman'daki oyuncu üssü kara pazar gibi davranıyor olabilir → K13, S1-15.
+- **PR #30:** PASS (merge sonrası). README'de 2 saatlik bekleme süresi eksik (P3).
+- **K9 kargo kaydı test senaryoları (S1-13 kabul kriterleri):** A kalıcılık (yenileme, pagehide, hiperatlama, gemi değişiminde kapasite aşımı); B kopya (sat→yenile, gümrük el koyma, ziyaretçi tüccar, yerdeki cevherin yeniden doğması, korsan düşürmesi); C bulut çakışması; D kayıt kodu (eski kod, bozuk değerleri 0..cargoCap'e sınırlama); E kaçak gizli bölme; F test modu ve QuotaExceeded. Geçme koşulu: kargo + kredi toplam değeri hiçbir senaryoda artmaz.
+
+## 4. Game Designer ilk raporu
+- Döngü: kalk → maden/av/sinyal → topla → sat → XP + kredi → yetenek → ana görev → kapı → yeni evren.
+- Güçlü: evrene özgü cevher, tutarlı risk/ödül, 3 taraf gerçekten farklı, düzenli sinyaller.
+- Zayıf: başlangıç kargosu 12 birim (sefer ≈ 240 kr); erken oyunda savaş ve madencilik kopuk; Bölüm 6 doruksuz; hikâye sonrası hedef yok; Efsane seviyeleri duvar gibi (3450 XP/seviye).
+- Öneriler: (1) üs pasif gelir sınırı → S1-06 ölçümü: zaten tavanlı, değişiklik gerekmiyor; (2) yan görev ödülleri evrene göre → S1-06: av görevleri zaten tehlike çarpanlı; (3) yetenek sıfırlama (B-06); (4) Bölüm 6 final patronu (B-04); (5) Pilot Kütüğü + başarımlar (B-05).
+
+## 5. Game Designer S1-07 denge analizi (K6, K7)
+- Kaçakçılık bugün Korsan için zarar ettiriyor (Ankora'da sefer başı ≈ −340 kr); Korsan Bölüm 1 "5 birim kaçak sat" adımı zorunlu.
+- K6: −50 öneri (−60 eşiğine 10 puan pay; devriye saldırısı, Ankora yanaşma ve ceza ödeme bu eşiğe bağlı). Onaylandı.
+- K7a: gümrük %25 yalnız Korsan. Onaylandı. K7b: tarama %25. Onaylandı.
+- K7c: 6 XP/birim → 500-900 XP/saat, üs + Kaçakçı yeteneğiyle ≈ 1.440 XP/saat; Usta Pilot'a ≈ 2 saat. Üs açığı yüzünden ertelendi.
+
+## 6. Developer analizleri
+- **Taraf mekanikleri (Aşama 1 önerisi):** A bölge tablosu, B `foe()` yalnız hedef rengi, C devriye karar mantığı (tespit → çağrı → tarama → takip → durdurma → saldırı; rüşvet; tüccar kaçışı), D taraf unvanları (rütbe + zincirden türetilir, RANKS değişmez). K12: Mehmet ayrı ayrı karar verecek.
+- **S1-06 ölçümü:** Üs geliri tavanlı (500/1200/2500, 13-16 dk'da dolar, sonra durur). Av görevi ödülleri tehlikeye göre (Buzul 132-396, Kızıl 374-1122). `__skA` tek çarpan, en çok ×1,45; Filo itibarı bonusu da çarpana giriyor (bilgi). Değişiklik önerilmedi.
+
+## 7. Asset Factory ölçümü (S1-02b)
+- bc5ba4a'da kokpit payı Kaşif 28 doku / Şahin 7 doku, döngü başına Δ0. Daha önce görülen +4, açılıştan sonraki ilk ~40 sn'deki tembel yüklemeden geliyor. Bellek testlerinde taban çizgisi ≥ 40 sn sonra alınır (67efa36).
+- Masaüstünde gemi değiştirmeden de 'diğer' dokular yavaşça artıyor (157 sn'de +8) → S1-03'te araştırılacak.
+
+## 8. Devir notları (2026-11-20, K16)
+
+### Game Designer
+- **Bölüm 6 final patronu (B-04):** Bölüm 6'nın 6 adımının beşi üs adımı, doruk yok. Mevcut BOSS sistemiyle (3 aşama) Kadim Kapı ötesi bir "Bekçi" muhafızı; üs adımları Bölüm 5-6'ya yayılır. Dikkat: Filo zinciri `save.boss.length ≥ 6` istiyor; yeni patron ayrı bayrak kullanmalı.
+- **Pilot Kütüğü (B-05):** `save.st`, `save.boss`, `kadim.n`, `expPct()` hazır; yalnız arayüz. Ödül kozmetik rozet (Asset Factory: 20-30 rozet, 160×160 webp). Ekonomi etkisi yok.
+- **Efsane seviye duvarı:** Rütbeye dokunmadan, hikâye sonrası "Derin Sinyaller" içerik katmanı (derin kuşaklarda daha tehlikeli sinyaller).
+- **Erken oyun kargosu 12 birim:** Başlangıç 16-18 ya da ilk ana görev ödülüne 1 "Sıkı istif" puanı. **Ekonomi etkisi var, onay gerekir.**
+- **Diğer onay gerektiren öneriler:** ücretli yetenek sıfırlama; ölüm cezası (kredinin %10'u) üst sınırı; kozmetik mağaza (oyun sonu kredi harcaması). Üs geliri ve yan görev çarpanı S1-06 ile gereksiz bulundu.
+- **Küçük içerik:** Pano şablonlarına taşıma/eskort/keşif; taraf zincirlerinin 2. adımına telsiz sahnesi; Filo Bülteni (P3).
+
+### QA
+- Playwright betiği: `tools/qa/qa_pr28.js`. Kurulum: test edilecek commit `git archive` ile ayrı klasöre, `python3 -m http.server 8766`, `node tools/qa/qa_pr28.js <çıktı> 8766` (~8 dk). Açılış akışı, ölçüm kancaları ve referans değerler betiğin başında.
+- QA'nın iletmediği yeni bulgu yok.
+
+### Developer
+- Oturum 5 saatlik kullanım sınırına takıldı; devir notu gelmedi. `claude/bold-bardeen-oqf73o` dalında PR #30 sonrası push edilmiş yeni iş yok (9d93a58). S1-13 sıfırdan başlar.
+
+### Asset Factory
+- PR #28 main ile birleştirildi (fd6a7c5, sürüm 1.54.0, çakışma çözüldü, iPhone 13 testi geçti). Birleştirme Mehmet'te.
+- Yük Devi PRODUCTION, fabrikanın Kapı 1 kaydını bekliyor: `cd tools/asset_factory && python3 factory.py approve yuk_cockpit --gate visual --by "Mehmet" --note "PREVIEW r007 onayı"` (Asset Factory oturumunda Mehmet'in izni gerekir).
