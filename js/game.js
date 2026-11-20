@@ -7065,10 +7065,39 @@ window.__xpal = {
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
       + line('Giriş hikâyesi', 'Kadim Kapı ve üç tarafın hikâyesi', '<button class="act" data-set="story">İzle</button>')
       + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
+      + '<div class="sect">Kayıt</div>'
+      + line('Oyunu sıfırla', 'Tüm ilerlemeni (kredi, rütbe, gemiler, görevler) siler ve baştan başlatır. Hesabın açık kalır; giriş yaptıysan buluttaki kayıt da silinir.', '<button class="act" data-set="reset" style="color:#ff8a8a">Sıfırla</button>')
       + '<div class="sver">Sürüm <button data-set="ver">' + (window.SD_VERSION || '?') + '</button></div>'
       + '</div>';
   }
   let verTap = 0;
+  /* 1.63.3: Oyunu sıfırla. İki adım: açıklama + "SIFIRLA" yazmak. Yerel kaydı siler; hesap açıksa buluttaki kaydı da siler (silinemezse yeni yerel kayıt daha yeni olduğu için buluta yazılır). Hesap oturumu ve ayarlar (ses, kalite) kalır. */
+  function resetAsk(){
+    if (document.getElementById('resetBox')) return;
+    const w = document.createElement('div'); w.id = 'resetBox'; w.className = 'cb';
+    w.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(2,6,14,.82)';
+    w.innerHTML = '<div style="width:min(92vw,360px);background:#0c1626;border:1px solid #5a2430;border-radius:12px;padding:18px;color:#dbe8f8;font:14px/1.45 Barlow,system-ui,sans-serif"><b style="letter-spacing:.12em;color:#ff8a8a">OYUNU SIFIRLA</b>'
+      + '<p style="margin:10px 0">Bu cihazdaki <b>tüm ilerlemen silinecek</b>: kredi, rütbe, gemiler, görevler, başarımlar. Giriş yaptıysan buluttaki kaydın da silinir. Bu geri alınamaz.</p>'
+      + '<p style="margin:6px 0;opacity:.8">Devam etmek için kutuya <b>SIFIRLA</b> yaz.</p>'
+      + '<input id="rsI" autocomplete="off" autocapitalize="characters" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #33465f;background:#08111e;color:#fff;font-size:16px">'
+      + '<div id="rsE" style="min-height:18px;margin:6px 0;color:#ff8a8a;font-size:12px"></div>'
+      + '<div style="display:flex;gap:10px"><button id="rsX" style="flex:1;padding:12px;border-radius:8px;border:1px solid #33465f;background:#12202f;color:#dbe8f8;font-size:15px">Vazgeç</button><button id="rsGo" style="flex:1;padding:12px;border-radius:8px;border:1px solid #8a2f3d;background:#4a1620;color:#ffd0d0;font-size:15px">Sıfırla</button></div></div>';
+    document.body.appendChild(w);
+    for (const ev of ['keydown', 'keyup', 'keypress', 'pointerdown', 'touchstart']) w.addEventListener(ev, e => e.stopPropagation());
+    const kapat = () => w.remove();
+    w.querySelector('#rsX').onclick = kapat;
+    w.addEventListener('click', e => { if (e.target === w) kapat(); });
+    w.querySelector('#rsGo').onclick = async () => {
+      const v = (w.querySelector('#rsI').value || '').trim().toLocaleUpperCase('tr-TR').replace(/İ/g, 'I');
+      if (v !== 'SIFIRLA'){ w.querySelector('#rsE').textContent = 'Devam etmek için SIFIRLA yazman gerekiyor.'; return; }
+      const g = w.querySelector('#rsGo'); g.disabled = true; g.textContent = 'Siliniyor…';
+      try { if (window.__cloudReset) await Promise.race([window.__cloudReset(), new Promise(r => setTimeout(r, 6000))]); } catch (e) {}
+      window.__noPersist = true; persist = function(){};
+      try { localStorage.removeItem(SAVEKEY); } catch (e) {}
+      location.reload();
+    };
+    setTimeout(() => { const i = w.querySelector('#rsI'); i && i.focus(); }, 50);
+  }
   const BSV = [0.8, 0.9, 1, 1.12, 1.25], BSN = ['Çok küçük', 'Küçük', 'Normal', 'Büyük', 'Çok büyük'];
   const BSI = () => { try { const v = localStorage.getItem('sd_bs'); return v == null ? 2 : Math.max(0, Math.min(BSV.length - 1, +v)); } catch (e) { return 2; } };
   const bsSt = document.createElement('style'); document.head.appendChild(bsSt);
@@ -7090,6 +7119,7 @@ window.__xpal = {
     else if (a === 'story'){ close(); if (window.__story) window.__story(); }
     else if (a === 'ver'){ verTap++; if (verTap >= 5 && !TESTVIS()){ try { localStorage.setItem('sd_testvis', '1'); } catch (e) {} toast('Test ayarı açıldı', 2000); render(); } }
     else if (a === 'test'){ persist(); try { if (TESTM){ localStorage.setItem('sd-key', localStorage.getItem('sd-key-prev') || 'kayip-yildizlar'); } else { localStorage.setItem('sd-key-prev', SAVEKEY); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); } } catch (e) {} location.reload(); }
+    else if (a === 'reset'){ resetAsk(); }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
   });
   for (const ev of ['keydown', 'keyup']) P.addEventListener(ev, e => e.stopPropagation());
@@ -10438,6 +10468,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         return { ok: false, error: 'Bilinmeyen işlem' };
       } catch (e) { return err(e); } }
     window.__cloudCall = call;
+    window.__cloudReset = async () => { try { const u = acct(); if (!u) return false; const fb = await loadFB(); await fb.firestore().collection('saves').doc(u.uid).delete(); return true; } catch (e) { return false; } };   /* oyunu sıfırla: buluttaki kaydı siler */
     // oturum açıksa kütüphaneyi açılışta yükle (eşitleme için); değilse yalnızca hesap ekranı açılınca
     try { if (localStorage.getItem('sd-cloud')) loadFB().then(fb => fb.auth().onAuthStateChanged(() => { if (!acct()) { /* oturum düştü */ } try { refreshRow(); } catch (e) {} })).catch(() => {}); } catch (e) {}
     // kayıt zaman damgası: her persist'te güncellenir (hangi cihazın kaydı daha yeni, anlamak için)
@@ -10492,7 +10523,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     window.__cloudAccount = account;
     // ---- eşitleme
     let lastPut = '', lastPutT = 0, syncing = false;
-    async function push(force){ const c = getC(); if (!c || syncing || !acct()) return;   /* oturum henüz hazır değilse bekle; çıkış sayma */ const d = raw(); if (!force && d === lastPut) return; syncing = true;
+    async function push(force){ if (window.__noPersist) return;   /* sıfırlama ya da kayıt yükleme sırasında eski durumu buluta yazma */ const c = getC(); if (!c || syncing || !acct()) return;   /* oturum henüz hazır değilse bekle; çıkış sayma */ const d = raw(); if (!force && d === lastPut) return; syncing = true;
       const r = await call('PUT', '/save', { data: d }); syncing = false;
       if (r.ok){ lastPut = d; lastPutT = Date.now(); c.t = r.t; setC(c); } else if (r.status === 401){ setC(null); refreshRow(); toast('Bulut oturumu sona erdi. Yeniden giriş yap.', 3200); } }
     window.__cloudPush = push;

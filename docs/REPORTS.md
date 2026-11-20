@@ -193,3 +193,9 @@ Not: gerçek ana görev düğmesinden tetiklenme (kanca `S.src` kullanır) otoma
 |---|---|
 | hesap_kayit (taklit Firebase sunucusu): doğrulama e-postası bağlantı adresi yüzünden reddedilince önce adresli, sonra adressiz gönderilir ve kayıt "hesabı etkinleştir" ekranına geçer. Düzeltme öncesi aynı test "Bir sorun oldu: auth/unauthorized-continue-uri" ile FAIL | PASS |
 Not: gerçek Firebase sunucusu, Google girişi (iOS PWA'da açılır pencere sorunu olabilir) ve e-postanın gerçekten gelmesi test edilmedi. Authorized domains ayarı Firebase konsolunda kontrol edilmeli (mtozg.github.io).
+
+## 21. Sürüm 1.63.3 test özeti
+| Test | Sonuç |
+|---|---|
+| sifirla: Ayarlar'da Kayıt bölümünde düğme; yanlış yazıda hata ve kayıt duruyor; "sıfırla" yazınca kayıt silinir, oyun yeniden açılır ve eski pilot yok | PASS |
+Not: bulut silme gerçek Firebase'e karşı denenmedi (silme başarısız olursa yeni yerel kayıt daha yeni olduğu için buluta yazılır); gerçek cihaz test edilmedi. Arayüz ekran görüntüsüyle kontrol edildi.

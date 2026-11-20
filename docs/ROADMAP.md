@@ -58,7 +58,7 @@ Lead Developer işleri tek dalda (`claude/stardrift-hod-system-np3akq`) sırayla
 ## Açık PR
 | PR | İçerik | Durum |
 |---|---|---|
-| #40 (1.63.2, K40-K42) | İstasyon bülteni, zincir telsiz sahnesi, hesap açma hatası düzeltmesi, test listesi ve onay notları | PR açılacak/açık; Mehmet incelemesi bekliyor |
+| #40 (1.63.3, K40-K43) | İstasyon bülteni, zincir telsiz sahnesi, hesap açma hatası düzeltmesi, Oyunu sıfırla, test listesi ve onay notları | PR açılacak/açık; Mehmet incelemesi bekliyor |
 
 ## Tamamlananlar (main 1.62.3 ve öncesi)
 Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet, taraf unvanları), K13 kaçak kapatma, K9 kargo kaydı, Kadim Bekçi (B-04), Başarımlar (B-05), regresyon seti (B-07), kokpit cam hissi (K29), K36 yeni pano görevleri, K37 Kadim yankı (450-750), K38 ölüm bedeli sınırı 2000 (hepsi Mehmet onaylı, PR #39), unvan görevleri 2. kademe (K32), başlangıç kargosu 16 (K30), kaçak XP (K31), bildirimler (K34), yetenek sıfırlama (B-06: zaten vardı, değişiklik gerekmedi).
