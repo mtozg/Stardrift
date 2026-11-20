@@ -16,7 +16,8 @@
   "yuk_glass_edge",
   "seat_textile",
   "screen_placeholder",
-  "gunmetal"
+  "gunmetal",
+  "yuk_pale"
  ],
  "texture_mode": "unique",
  "texture_size": 2048,

@@ -380,8 +380,8 @@
    }
   },
   "yuk_cockpit": {
-   "state": "delivered",
-   "rev": 9,
+   "state": "draft",
+   "rev": 10,
    "history": [
     {
      "t": "2026-11-16T10:45:12+00:00",
@@ -522,12 +522,16 @@
      "from": "tech_approved",
      "to": "delivered",
      "reason": "teslim paketi: deliveries/yuk_cockpit/r009"
+    },
+    {
+     "t": "2026-11-20T13:12:36+00:00",
+     "from": "delivered",
+     "to": "draft",
+     "reason": "yeni revizyon r010: Mehmet görsel ret (r009 oyun içi): konsol/duvar/dikme ayrıntısı ve malzeme çeşitliliği Şahin r012 düzeyinde değil"
     }
    ],
    "timings": {
-    "model": 1285.9,
-    "prepare": 346.3,
-    "qc": 15.2
+    "probe": 32.2
    },
    "approvals": [
     {

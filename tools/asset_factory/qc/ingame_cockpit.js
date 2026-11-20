@@ -5,6 +5,7 @@
 // Şahin modeli ilk denemelerde gelmezse çizim kokpitine dönmeden yeniden deneme. Kaşif davranışı aynı kalmalı.
 const { chromium, devices } = require('playwright'); const fs = require('fs');
 const OUT = process.argv[2] || '/tmp'; fs.mkdirSync(OUT, { recursive: true });
+const PORT = process.env.PORT || 8765, SHIP2 = process.env.SHIP2 || 'sahin';      // SHIP2: Kaşif'ten sonra geçilen gemi (sahin, yuk, ...); PORT: oyun sunucusu
 const DEV = { 'masaüstü': { viewport: { width: 1600, height: 800 } }, 'iPad Pro 11 landscape': devices['iPad Pro 11 landscape'], 'iPhone 13 landscape': devices['iPhone 13 landscape'], 'Pixel 7 landscape': devices['Pixel 7 landscape'] };
 async function boot(b, dev, block){
   const ctx = await b.newContext({ ...DEV[dev], serviceWorkers: 'block' });
@@ -12,7 +13,7 @@ async function boot(b, dev, block){
   const p = await ctx.newPage(); const log = []; p.on('pageerror', e => log.push('PE ' + e.message.slice(0, 200))); p.on('console', m => { if (/kokpit|hata|Error/i.test(m.text())) log.push('C ' + m.text().slice(0, 160)); });
   const glb = []; p.on('request', r => { if (/\.glb/.test(r.url())) glb.push(r.url().replace(/^.*\/models\//, '').replace(/\?.*$/, '')); });
   if (block) await p.route(block, r => r.abort());
-  await p.goto('http://localhost:8765/'); await p.waitForTimeout(2500);
+  await p.goto('http://localhost:' + PORT + '/'); await p.waitForTimeout(2500);
   await p.evaluate(() => document.getElementById('titleGo').click()); await p.waitForTimeout(1500);
   await p.evaluate(() => { const i = document.getElementById('ssName'); if (i) i.value = 'Test'; const k = document.querySelector('#sideSel .c[data-k="filo"] .pk'); k && k.click(); }); await p.waitForTimeout(1200);
   /* kontrol yöntemi menüsü (masaüstü/tablet) başlıktan sonra gelir: menü kalmayana dek Devam */
@@ -46,7 +47,7 @@ const still = p => p.evaluate(() => { try { window.__ckb.sway.x = 0; window.__ck
   let leak = false; for (const dev of Object.keys(DEV).filter(d => !only || d === only)){
     const { ctx, p, log, glb } = await boot(b, dev, null); const R = {};
     R.kasif_ok = await waitReady(p, 'kasif', 60000); await p.waitForTimeout(BASE); await still(p); await p.waitForTimeout(300); R.kasif = await measure(p, 'kasif'); await p.screenshot({ path: OUT + '/kasif_' + dev.replace(/\s+/g, '_') + '.png' });
-    await setShip(p, 'sahin'); R.sahin_ok = await waitReady(p, 'sahin', 60000); await p.waitForTimeout(1500); await still(p); await p.waitForTimeout(300); R.sahin = await measure(p, 'sahin'); await p.screenshot({ path: OUT + '/sahin_' + dev.replace(/\s+/g, '_') + '.png' });
+    await setShip(p, SHIP2); R.sahin_ok = await waitReady(p, SHIP2, 60000); await p.waitForTimeout(1500); await still(p); await p.waitForTimeout(300); R.sahin = await measure(p, 'sahin'); await p.screenshot({ path: OUT + '/' + SHIP2 + '_' + dev.replace(/\s+/g, '_') + '.png' });
     await setShip(p, 'kasif'); R.back_ok = await waitReady(p, 'kasif', 60000); await p.waitForTimeout(1000); R.back = await measure(p, 'kasif');
     R.glbRequests = glb; R.log = log.slice(0, 8); res[dev] = R;
     R.mem = { kokpitPayiSabit: R.back.ckTex === R.kasif.ckTex && R.back.ckGeo === R.kasif.ckGeo, kasif: [R.kasif.ckTex, R.kasif.ckGeo], sahin: [R.sahin.ckTex, R.sahin.ckGeo], geri: [R.back.ckTex, R.back.ckGeo],
@@ -56,8 +57,8 @@ const still = p => p.evaluate(() => { try { window.__ckb.sway.x = 0; window.__ck
     await ctx.close(); }
   // yeniden deneme: Şahin modelinin ilk 2 isteği reddedilir → çizim kokpitine dönülmez, oyun yeniden dener ve modeli yükler
   if (!only) { let n = 0; const { ctx, p, log } = await boot(b, 'iPad Pro 11 landscape', null);
-    await p.route('**/models/cockpit_sahin*.glb*', r => (n++ < 2 ? r.abort() : r.continue()));
-    await waitReady(p, 'kasif', 60000); await setShip(p, 'sahin'); const ok = await waitReady(p, 'sahin', 90000);
+    await p.route('**/models/cockpit_' + SHIP2 + '*.glb*', r => (n++ < 2 ? r.abort() : r.continue()));
+    await waitReady(p, 'kasif', 60000); await setShip(p, SHIP2); const ok = await waitReady(p, SHIP2, 90000);
     const r = await p.evaluate(() => ({ ready: window.__ckb.ready, tries: window.__ckb.tries, ck3on: !!window.__ck3on, img2d: /ck_sahin/.test(window.__ckb.img2d), menuOn: !!window.__menuOn }));
     res.retry = { ok, requests: n, ...r, log: log.slice(0, 5) }; console.log('yeniden_deneme', JSON.stringify(res.retry)); await p.screenshot({ path: OUT + '/sahin_retry.png' }); await ctx.close(); }
   fs.writeFileSync(OUT + '/ingame_result.json', JSON.stringify(res, null, 1)); await b.close(); if (leak){ console.log('BELLEK: kokpit payı gemi döngüsünde geri gelmedi (sızıntı şüphesi)'); process.exitCode = 1; } })();

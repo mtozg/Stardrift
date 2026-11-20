@@ -1,0 +1,31 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.597,
+  0.565,
+  0.381
+ ],
+ "rough": [
+  0.45,
+  0.7
+ ],
+ "scratch": 0.6,
+ "wear": 1.2,
+ "dirt": 0.55,
+ "bump": 0.02,
+ "tone_var": [
+  0.75,
+  1.15
+ ],
+ "chips": 0.8,
+ "chip_scale": 12.0,
+ "chip_color": [
+  0.42,
+  0.42,
+  0.4
+ ],
+ "grime": 0.6,
+ "streaks": 0.4,
+ "_note": "açık etiket/uyarı plakası (#cbc6a6): koyu ve haki yüzeylerde kontrast"
+}

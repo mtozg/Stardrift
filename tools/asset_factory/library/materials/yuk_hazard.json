@@ -11,8 +11,21 @@
   0.62
  ],
  "scratch": 0.5,
- "wear": 0.8,
+ "wear": 1.2,
  "dirt": 0.3,
  "bump": 0.02,
- "_note": "uyarı sarısı (#e0b020)"
+ "_note": "uyarı sarısı (#e0b020)",
+ "chips": 0.9,
+ "chip_scale": 10.0,
+ "chip_color": [
+  0.42,
+  0.4,
+  0.34
+ ],
+ "grime": 0.55,
+ "tone_var": [
+  0.8,
+  1.15
+ ],
+ "_r010": "sarı şerit: aşınmış"
 }

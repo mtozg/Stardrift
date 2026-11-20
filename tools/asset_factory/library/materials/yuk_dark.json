@@ -10,9 +10,28 @@
   0.45,
   0.7
  ],
- "scratch": 0.5,
- "wear": 0.9,
+ "scratch": 0.9,
+ "wear": 1.3,
  "dirt": 0.35,
  "bump": 0.03,
- "_note": "Yük Devi koyu haki çerçeve (#4a4430)"
+ "_note": "Yük Devi koyu haki çerçeve (#4a4430)",
+ "tone_var": [
+  0.7,
+  1.25
+ ],
+ "chips": 0.9,
+ "chip_scale": 14.0,
+ "chip_color": [
+  0.34,
+  0.34,
+  0.33
+ ],
+ "grime": 0.6,
+ "streaks": 0.4,
+ "wear_color": [
+  0.32,
+  0.32,
+  0.3
+ ],
+ "_r010": "koyu çelik: kırık ve çizik okunur"
 }

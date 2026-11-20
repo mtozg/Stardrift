@@ -11,19 +11,30 @@
   0.66
  ],
  "brush": 0.1,
- "scratch": 0.6,
- "wear": 1.2,
+ "scratch": 0.9,
+ "wear": 1.5,
  "wear_color": [
-  0.42,
-  0.41,
-  0.36
+  0.55,
+  0.54,
+  0.46
  ],
- "dirt": 0.45,
+ "dirt": 0.6,
  "bump": 0.04,
- "chips": 0.8,
- "chip_scale": 14.0,
- "grime": 0.5,
- "streaks": 0.35,
+ "chips": 1.25,
+ "chip_scale": 11.0,
+ "grime": 0.75,
+ "streaks": 0.6,
  "wear_radius": 0.02,
- "_note": "Yük Devi haki boyalı çelik (#8f8a5c, dış çizimlerden). PREVIEW değerleri; PRODUCTION malzeme geçişinde ayarlanır"
+ "_note": "Yük Devi haki boyalı çelik (#8f8a5c, dış çizimlerden). PREVIEW değerleri; PRODUCTION malzeme geçişinde ayarlanır",
+ "tone_var": [
+  0.66,
+  1.22
+ ],
+ "cloud_scale": 2.2,
+ "chip_color": [
+  0.5,
+  0.5,
+  0.48
+ ],
+ "_r010": "Mehmet: düz haki → belirgin leke, boya kırığı (çıplak çelik), akıntı"
 }
