@@ -8685,7 +8685,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     if (t !== lastW){ lastW = t; wEl.innerHTML = t; wEl.style.display = t ? 'block' : 'none'; }
     if (save.side === 'korsan' && save.grace === undefined){ save.grace = (save.xp || 0) < 300 ? 600 : 0; if (save.grace) toast('Çaylak koruması: 10 dakika boyunca ödül avcıları ve devriyeler peşine düşmez.', 4200); }
     if (docked || paused) return;
-    if (save.grace > 0){ save.grace -= dt; if (save.grace <= 0){ save.grace = 0; persist(); toast('Çaylak koruman bitti. Artık devriyeler seni görünce ateş açar.', 3600); } }
+    if (save.grace > 0){ save.grace -= dt; if (save.grace <= 0){ save.grace = 0; persist(); toast('Çaylak koruman bitti. Artık Filo devriyeleri seni durdurup tarayabilir; arandıkça ya da Filo ile aran bozuldukça ateş açarlar.', 3600); } }
     // zamanla unutulur
     decT += dt; if (decT > 30){ decT = 0; if (save.wanted > 0 && time - crimeT > 180){ save.wanted = Math.max(0, save.wanted - 0.25); persist(); } }
     // ödül avcıları (Kara Liman'da yok)
@@ -8719,11 +8719,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const bribeP = () => Math.max(150, Math.round((save.kacak || 0) * 45 + Math.floor(save.wanted || 0) * 120));
   let HL = null, hailCd = 0;   /* hailCd: bir çağrı bitince 30 sn yeni çağrı yok (art arda aranma artışını önler) */
   const hb = document.createElement('div'); hb.id = 'hailBox'; document.body.appendChild(hb);
-  { const st = document.createElement('style'); st.textContent = '#hailBox{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 16%);transform:translateX(-50%);z-index:30;display:none;min-width:min(420px,86vw);padding:10px 14px;background:rgba(6,14,30,.86);border:1px solid rgba(127,216,255,.45);border-left:3px solid #7fd8ff;border-radius:6px;color:#e8f4ff;font:500 13px/1.35 var(--font,sans-serif);text-align:center}#hailBox b{display:block;letter-spacing:.18em;font-size:11px;color:#7fd8ff;margin-bottom:3px}#hailBox .r{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}#hailBox button{font:700 12.5px var(--font,sans-serif);padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;cursor:pointer}#hailBox button.y{border-color:#7be0a4;color:#7be0a4}#hailBox button.n{border-color:#ff6e87;color:#ff8ea2}#hailBox button.k{border-color:#ffb454;color:#ffc477}#hailBox button:disabled{opacity:.45}#hailBox .dim{color:#9fb3c8;font-size:11.5px}'; document.head.appendChild(st); }
-  function hailUI(){ if (!HL){ hb.style.display = 'none'; return; } const q = HL.q, ks = save.side === 'korsan', bp = bribeP();
-    if (HL.ph === 'hail'){ const left = Math.max(0, Math.ceil(8 - (time - HL.t)));
-      hb.innerHTML = '<b>DEVRİYE ÇAĞRISI</b>' + q.name + ': "Motorunu kes, tarama yapacağız."<div class="dim">Yavaşla ve dur (' + left + ' sn). Kaçarsan aranma +1.</div><div class="r"><button class="y" data-h="uy">Uy</button><button class="n" data-h="kac">Kaç</button>' + (ks ? '<button class="k" data-h="rs" ' + (save.kredi < bp ? 'disabled' : '') + '>Rüşvet · ' + bp + ' kredi</button>' : '') + '</div>'; }
-    else hb.innerHTML = '<b>TARAMA</b>' + q.name + ' tarıyor… kıpırdama.<div class="dim">' + Math.max(0, Math.ceil(3 - (time - HL.t))) + ' sn</div>';
+  { const st = document.createElement('style'); st.textContent = '#hailBox{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 16%);transform:translateX(-50%);z-index:30;display:none;min-width:min(420px,86vw);padding:10px 14px;background:rgba(6,14,30,.86);border:1px solid rgba(127,216,255,.45);border-left:3px solid #7fd8ff;border-radius:6px;color:#e8f4ff;font:500 13px/1.35 var(--font,sans-serif);text-align:center}#hailBox b{display:block;letter-spacing:.18em;font-size:11px;color:#7fd8ff;margin-bottom:3px}#hailBox .r{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}#hailBox button{font:700 13px var(--font,sans-serif);padding:11px 18px;min-height:42px;touch-action:manipulation;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#fff;cursor:pointer}#hailBox button.y{border-color:#7be0a4;color:#7be0a4}#hailBox button.n{border-color:#ff6e87;color:#ff8ea2}#hailBox button.k{border-color:#ffb454;color:#ffc477}#hailBox button:disabled{opacity:.45}#hailBox .dim{color:#9fb3c8;font-size:11.5px}'; document.head.appendChild(st); }
+  /* kutu her aşamada bir kez kurulur; sonra yalnız sayaç ve rüşvet düğmesinin durumu güncellenir (dokunuş sırasında düğme yeniden oluşturulmaz) */
+  function hailUI(){ if (!HL){ hb.style.display = 'none'; hb.dataset.ph = ''; return; } const q = HL.q, ks = save.side === 'korsan', bp = bribeP();
+    if (hb.dataset.ph !== HL.ph){ hb.dataset.ph = HL.ph;
+      if (HL.ph === 'hail') hb.innerHTML = '<b>DEVRİYE ÇAĞRISI</b>' + q.name + ': "Motorunu kes, tarama yapacağız."<div class="dim">Yavaşla ve dur (<span class="cd"></span> sn). Kaçarsan aranma +1.</div><div class="r"><button class="y" data-h="uy">Uy</button><button class="n" data-h="kac">Kaç</button>' + (ks ? '<button class="k" data-h="rs"></button>' : '') + '</div>';
+      else hb.innerHTML = '<b>TARAMA</b>' + q.name + ' tarıyor… kıpırdama.<div class="dim"><span class="cd"></span> sn</div>'; }
+    const cd = hb.querySelector('.cd'); if (cd) cd.textContent = Math.max(0, Math.ceil((HL.ph === 'hail' ? 8 : 3) - (time - HL.t)));
+    const rb = hb.querySelector('button[data-h="rs"]'); if (rb){ rb.textContent = 'Rüşvet · ' + bp + ' kredi'; rb.disabled = save.kredi < bp; }
     hb.style.display = 'block'; }
   function startHail(q){ HL = { q, t: time, ph: 'hail' }; q.hailT = time + 90; eco.radioT = -9; radio(q.name, 'Motorunu kes pilot, tarama yapacağız.', '#7fd8ff'); try { blip(520, 0.12); } catch (e) {} hailUI(); }
   function endHail(){ HL = null; hailCd = time + 30; hailUI(); }
@@ -8733,8 +8736,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     else { eco.radioT = -9; radio(q.name, save.wanted >= 1 ? 'Kaydın var pilot, bu sefer gözümüz üstünde. Devam et.' : 'Tarama temiz. Devam edebilirsin.', '#7fd8ff'); } }
   function hailBribe(){ if (!HL || save.side !== 'korsan') return; const p = bribeP(); if (save.kredi < p) return; const q = HL.q; save.kredi -= p; persist(); endHail();
     toast('Rüşvet verildi: −' + p + ' kredi', 2400); eco.radioT = -9; radio(q.name, 'Hiçbir şey görmedim. Kaybol.', '#c49bff'); }
-  hb.addEventListener('click', e => { const b = e.target.closest('button[data-h]'); if (!b || b.disabled || !HL) return; const a = b.dataset.h;
-    if (a === 'uy'){ vel.setLength(Math.min(vel.length(), 15)); thrustOn = false; boostBtn = false; try { $('bThrust').classList.remove('on'); } catch (er) {} }
+  /* uçuş düğmeleri gibi pointerdown: dokunmatikte anında çalışır, alttaki uçuş alanına geçmez */
+  hb.addEventListener('pointerdown', e => { e.stopPropagation(); const b = e.target.closest('button[data-h]'); if (!b || b.disabled || !HL) return; e.preventDefault(); const a = b.dataset.h;
+    if (a === 'uy'){ HL.uy = true; vel.setLength(Math.min(vel.length(), 15)); thrustOn = false; boostBtn = false; try { $('bThrust').classList.remove('on'); } catch (er) {} }
     else if (a === 'kac') hailFlee(); else if (a === 'rs') hailBribe(); });
   let hT = 0;
   EXTRA.push(dt => {
@@ -8744,7 +8748,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     if (!HL) return; const q = HL.q;
     if (npcs.indexOf(q) < 0 || q.rev > time || docked || window.__dead){ endHail(); return; }
     const sp = vel.length(), d = q.pos.distanceTo(rig.position);
-    if (HL.ph === 'hail'){ if (sp < 40 && time - HL.t > 1){ HL.ph = 'scan'; HL.t = time; radio(q.name, 'Tarama başladı, kıpırdama.', '#7fd8ff'); } else if (time - HL.t > 8 || d > 1500){ hailFlee(); return; } }
+    if (HL.ph === 'hail'){ if (sp < 40 && (HL.uy || time - HL.t > 3)){   /* seçim için en az 3 sn: duran oyuncu da rüşvet/kaç seçeneğini görür */ HL.ph = 'scan'; HL.t = time; radio(q.name, 'Tarama başladı, kıpırdama.', '#7fd8ff'); } else if (time - HL.t > 8 || d > 1500){ hailFlee(); return; } }
     else if (HL.ph === 'scan'){ if (sp > 60){ hailFlee(); return; } if (time - HL.t > 3){ hailScan(); return; } }
     hT -= dt; if (hT <= 0){ hT = 0.25; hailUI(); }
   });
@@ -10457,10 +10461,11 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (best){ n.state = 'attack'; n.tgt = best; n.atkT = time; }
       else if (n.state === 'attack' && n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; }
     };
-    // Filo devriyeleri korsanı görünce ateş açar (çaylak koruması ve Kara Liman hariç)
+    // Filo devriyeleri korsanı görünce ateş açar (çaylak koruması ve Kara Liman hariç); 1.56.0'dan beri bölge kararına bağlı
     let acc = 0, warned = -99;
     EXTRA.push(dt => { acc += dt; if (acc < 1) return; acc = 0; if (!KS() || docked || curSys === 5 || save.grace > 0 || window.__dead) return;
-      for (const q of npcs){ if (q.role !== 'patrol' || q.rev > time || q.pos.distanceTo(rig.position) > 800) continue; q.rev = time + 30;
+      /* 1.56.0 (K20): korsana doğrudan ateş yalnız devriye kararı 'attack' ise (★3+, Filo itibarı ≤ −60, bölge); temiz korsan önce çağrılır ya da rahat bırakılır */
+      for (const q of npcs){ if (q.role !== 'patrol' || q.rev > time || q.pos.distanceTo(rig.position) > 800 || (window.__pDec && window.__pDec(q) !== 'attack')) continue; q.rev = time + 30;
         if (time - warned > 40){ warned = time; eco.radioT = -9; radio(q.name, 'Birlik gemisi tespit edildi! Ateş serbest!', '#ff5a6e'); } } });
     // yan görevler: korsan için "korsan avı" yerine Filo ve tüccar avı
     { const _g = ctGen; ctGen = function(){ _g(); try { if (KS()){ for (const c of save.ct.offers) if (c.type === 'av' && !c.ks){ c.ks = 1; c.txt = c.n + ' Filo ya da tüccar gemisi düşür'; } persist(); } } catch (e) {} }; }
@@ -10600,7 +10605,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
     rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
-    get time(){ return time; },
+    get time(){ return time; }, get hp(){ return Object.assign({}, hp); },
     tp: (v, dz) => { rig.position.copy(v).add(V(0, 0, dz || 0)); }, stop: () => vel.set(0, 0, 0), speed: v => vel.set(0, 0, -(v || 0)).applyQuaternion(rig.quaternion),
     hg: () => ({ id: hgId, mem: hgR ? Object.assign({}, hgR.info.memory) : null }), hgSet: id => hgSet(id), hgOpen: () => { try { hgStart(); } catch (e) { return String(e); } return !!hgS; },
     dockAt: st => { if (docked) undock(); rig.position.copy(st.pos).add(V(0, 0, (st.r || 40) + 30)); vel.set(0, 0, 0); tryDock(); return docked && curSt === st; } };
