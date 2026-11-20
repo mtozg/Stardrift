@@ -64,7 +64,7 @@ Lead Developer işleri tek dalda (`claude/stardrift-hod-system-np3akq`) sırayla
 |---|---|---|
 | B-01a | Aşama 1-A bölge tablosu + 1-B hedef renkleri | İnceleme (PR #33) |
 | B-01c | Aşama 1-C devriye karar mantığı + rüşvet + tüccar kaçışı + korsan selamı | İnceleme (PR #33, 1.56.0), K20 |
-| B-01d | Aşama 1-D taraf unvanları | C sonrası |
+| B-01d | Aşama 1-D taraf unvanları | İnceleme (Sprint 3, 1.59.0); tarafa özel görev kilidi sonraya |
 | B-03 | Hayalet kokpiti | Yük Devi'den sonra |
 | B-04 | Bölüm 6 final patronu: Kadim Bekçi | İnceleme (K25); ödül yalnız rozet |
 | B-05 | Pilot Kütüğü ve rozetler | İnceleme (Sprint 2): 10 rozet, kademeli, ödülsüz; rozet çizimleri Asset Factory'ye sonra |
