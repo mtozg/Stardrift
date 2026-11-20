@@ -8618,7 +8618,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   tryDock = function(){
     if (!docked && nearStation()){ const st = stationInRange(), f = KEEP[curSys];
       if (st === STATIONS[0] && f && save.fac[f] <= -60){ const ad = { filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' }[f];
-        toast(st.ad + ' kapılarını sana kapattı: ' + ad + ' seni düşman sayıyor.', 3600); eco.radioT = -9; radio(st.ad, 'Yanaşma reddedildi. Uzak dur.', '#ff5a6e'); return; } }
+        const out = curSys === 5 ? ' Çıkış: haritanın uzak köşesindeki ücra kapı, Lonca Pazarı\'na açılır (' + Math.round(400 * (window.__skG || 1)) + ' kredi).' : '';
+        toast(st.ad + ' kapılarını sana kapattı: ' + ad + ' seni düşman sayıyor.' + out, out ? 6000 : 3600); eco.radioT = -9; radio(st.ad, 'Yanaşma reddedildi. Uzak dur.', '#ff5a6e');
+        if (out && window.__rgReveal) window.__rgReveal(); return; } }
     return _td.apply(this, arguments);
   };
 }
@@ -8733,13 +8735,18 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const disc = new THREE.Mesh(new THREE.CircleGeometry(136, 48), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); g.add(disc);
   const glw = sprite(glowTexture(255, 90, 80), 700, 0.35); g.add(glw);
   let R = null, mark = null, cool = 0, asked = false;
+  // 1.55.0 (S1-11): Filo oyuncusu 3 patronu yendikten sonra, Morr yenilene kadar Ankora'nın ücra kapısı (Kara Liman'a) keşfedilmeden de haritada ve ekranda görünür
+  const hintOn = () => curSys === 0 && save.side === 'filo' && Array.isArray(save.boss) && save.boss.length >= 3 && !save.boss.includes(5);
+  const known = () => !!(save.rgate[curSys] || hintOn());
   const fm = window.__featMap; window.__featMap = () => (fm ? fm() : []).concat(mark ? [mark] : []);
   function place(){ R = REMOTE[curSys] || null; g.visible = !!R; mark = null; if (!R) return; g.position.set(...R.at); g.lookAt(STATION.pos); disc.material.map = eT(R.to); disc.material.needsUpdate = true;
-    if (save.rgate[curSys]) mark = { kind: 'ruin', i: 8, gate: true, found: true, r: 160, ad: 'Ücra kapı', label: 'Ücra kapı → ' + SYS[R.to].ad, pos: g.position.clone(), group: { position: g.position } }; }
+    if (known()) mark = { kind: 'ruin', i: 8, gate: true, found: true, r: 160, ad: 'Ücra kapı', label: 'Ücra kapı → ' + SYS[R.to].ad, pos: g.position.clone(), group: { position: g.position } }; }
   { const _aw = applyWorld; applyWorld = function(k){ _aw(k); try { place(); } catch (e) { console.warn(e); } }; }
   place();
+  // Kara Liman reddedince çıkış kapısını göstermek için (S1-11)
+  window.__rgReveal = () => { if (REMOTE[curSys] && !save.rgate[curSys]){ save.rgate[curSys] = 1; persist(); place(); } };
   EXTRA.push(dt => {
-    if (!R) return; g.rotation.z += dt * 0.05; disc.rotation.z -= dt * 0.6; cool -= dt;
+    if (!R) return; if (!mark && known()) place(); g.rotation.z += dt * 0.05; disc.rotation.z -= dt * 0.6; cool -= dt;
     if (docked || paused) return; const d = rig.position.distanceTo(g.position);
     if (d < 3200 && !save.rgate[curSys]){ save.rgate[curSys] = 1; persist(); place(); eco.radioT = -9; radio('Tarayıcı', 'Ücra bir kapı sinyali! Yön: ' + SYS[R.to].ad + '. Düşman toprağına açılıyor.', '#ff6b8a'); toast('Ücra kapı keşfedildi → ' + SYS[R.to].ad, 3600); }
     if (d < 170 && cool <= 0 && !asked && window.__gateAsk){ asked = true; const to = R.to;
@@ -8753,7 +8760,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (pp) pp.innerHTML = 'Ücra kapı: <b>düşman toprağına</b> açılır. Kaçak geçiş ücreti <b>' + FEEf() + ' kredi</b>.';
       if (yb){ yb.disabled = save.kredi < FEEf(); yb.style.opacity = save.kredi < FEEf() ? '.45' : ''; yb.textContent = save.kredi < FEEf() ? 'Kredi yetersiz' : 'Geç · ' + FEEf() + ' kredi'; } }
   });
-  { const _dh = drawHud; drawHud = function(){ _dh(); try { if (R && save.rgate[curSys] && !docked) drawMarker(hctx, g.position, '#ff6b8a', 'Ücra kapı → ' + SYS[R.to].ad, rig.position.distanceTo(g.position), 5000); } catch (e) {} }; }
+  { const _dh = drawHud; drawHud = function(){ _dh(); try { if (R && known() && !docked) drawMarker(hctx, g.position, '#ff6b8a', 'Ücra kapı → ' + SYS[R.to].ad, rig.position.distanceTo(g.position), save.rgate[curSys] ? 5000 : 0); } catch (e) {} }; }
 }
 
 // ---------- toplama netliği: çekim ışını, "+1 Demir" yazıları, yakındaki cevher işaretleri ----------
@@ -9197,7 +9204,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       ['25 korsan gemisi düşür', () => save.st.kill, 25, { k: 1800, x: 400, f: ['filo', 8] }],
       ['3 patronu yen', () => save.boss.length, 3, { k: 3000, x: 600, f: ['filo', 10] }],
       ['70 korsan gemisi düşür', () => save.st.kill, 70, { k: 4500, x: 900, f: ['filo', 10] }],
-      ['Bütün patronları yen (6)', () => save.boss.length, 6, { k: 8000, x: 1500, sp: 1 }] ] },
+      ['Bütün patronları yen (6) · Morr: Ankora\'nın uzak köşesindeki ücra kapıdan Kara Liman\'a geç', () => save.boss.length, 6, { k: 8000, x: 1500, sp: 1 }] ] },
     lonca: { ad: 'Lonca sözleşmesi', col: '#ffc477', side: 'lonca', steps: [
       ['40 birim cevher sat', () => save.st.sell, 40, { k: 500, x: 150, f: ['lonca', 5] }],
       ['2 acil siparişi yetiştir', () => save.st.sip, 2, { k: 1200, x: 300, f: ['lonca', 8] }],
