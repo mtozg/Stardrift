@@ -243,15 +243,24 @@ def cmd_qc(a):
     from qc import visual
     from PIL import Image
     tvg, th = {}, rules['three_vs_golden']
+    tc = rules.get('three_vs_golden_cockpit') if spec['family'] == 'cockpit' else None      # kokpit: 1 px toleranslı siluet ölçütü (QC.md §4)
     for c in cams['cameras']:
         k = c['name']
         g, t = os.path.join(mdir, 'golden_%s.png' % k), os.path.join(qdir, 'three_%s.png' % k)
         dpath = os.path.join(qdir, 'diff_%s.png' % k)
         m = visual.compare(g, t, dpath)
         tvg[k] = m
-        ok = m['lum_diff'] <= th['lum_diff_fail'] and m['deltaE_mean'] <= th['deltaE_fail'] and m['silhouette_diff'] <= th['silhouette_fail']
-        add('three.fidelity.%s' % k, 'L3', 'PASS' if ok else 'FAIL', {'lum': m['lum_diff'], 'dE': m['deltaE_mean'], 'sil': m['silhouette_diff']},
-            {'lum': th['lum_diff_fail'], 'dE': th['deltaE_fail'], 'sil': th['silhouette_fail']}, 'Cycles nötr ⟷ Three r128')
+        if tc:
+            bad = m['lum_diff'] > tc['lum_diff_fail'] or m['deltaE_mean'] > tc['deltaE_fail'] or m['silhouette_tol'] > tc['silhouette_tol_fail']
+            warn = m['silhouette_tol'] > tc['silhouette_tol_warn']
+            add('three.fidelity.%s' % k, 'L3', 'FAIL' if bad else ('WARN' if warn else 'PASS'),
+                {'lum': m['lum_diff'], 'dE': m['deltaE_mean'], 'sil_tol': m['silhouette_tol'], 'sil_xor_bilgi': m['silhouette_diff']},
+                {'lum': tc['lum_diff_fail'], 'dE': tc['deltaE_fail'], 'sil_tol': tc['silhouette_tol_fail']},
+                'Cycles nötr ⟷ Three r128; siluet 1 px toleranslı (eski XOR/alan ölçütü yalnız bilgi)')
+        else:
+            ok = m['lum_diff'] <= th['lum_diff_fail'] and m['deltaE_mean'] <= th['deltaE_fail'] and m['silhouette_diff'] <= th['silhouette_fail']
+            add('three.fidelity.%s' % k, 'L3', 'PASS' if ok else 'FAIL', {'lum': m['lum_diff'], 'dE': m['deltaE_mean'], 'sil': m['silhouette_diff']},
+                {'lum': th['lum_diff_fail'], 'dE': th['deltaE_fail'], 'sil': th['silhouette_fail']}, 'Cycles nötr ⟷ Three r128')
         sheet = Image.new('RGB', (c['width'] * 3, c['height']), (20, 22, 30))
         for i, pth in enumerate((g, t)):
             im = Image.open(pth).convert('RGBA')

@@ -45,7 +45,7 @@ pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; f
 <main>
 <div class="eyebrow">Asset Factory · Yük Devi · PRODUCTION r009 · Kapı 2</div>
 <h1>Yük Devi Kokpit Kapı 2</h1>
-<p class="lede">Onaylı PREVIEW r007 tasarımı ayrıntılandırıldı: perçin sıraları, plakalar, havalandırma ızgaraları, anahtar panelleri, kadranlar, ekran bulonları, yumuşak koltuk ve kıskaç ayrıntısı. GLB, doku ve QC hazır. <b>r009:</b> Mehmet'in isteğiyle sağ ve sol dikmeler belirgin biçimde incelti. <b>Bu paket henüz teslim adayı değil:</b> tam QC'de bir ölçüt sınırı aştı (aşağıda), karar bekliyor. Oyuna entegre edilmedi.</p>
+<p class="lede">Onaylı PREVIEW r007 tasarımı ayrıntılandırıldı: perçin sıraları, plakalar, havalandırma ızgaraları, anahtar panelleri, kadranlar, ekran bulonları, yumuşak koltuk ve kıskaç ayrıntısı. GLB, doku ve QC hazır. <b>r009:</b> Mehmet'in isteğiyle sağ ve sol dikmeler belirgin biçimde incelti. Tam QC, kokpit için 1 piksel toleranslı siluet ölçütüyle <b>66 PASS · 2 WARN · 0 FAIL</b>. Bu bir <b>teslim adayıdır</b>: teknik onay (Kapı 2) kaydı sende; oyuna entegre edilmedi.</p>
 
 <h2>Önce / sonra: dikmeler</h2>
 <figure><img src="img/yuk_prod/once_sonra_r008_r009.webp" alt="r008 ve r009 pilot görüşü"><figcaption>Üstte r008, altta r009. Dış dikmeler yaklaşık yarı genişliğe indi (köşe 67 → 40 mm, yan 77 → 34 mm, kalınlık 70 → 34 mm), bağlantı plakaları dikmeye göre küçüldü. Kıskaç, ekranlar, malzeme ve kamera aynı. Cam oranı %46 → %53,5.</figcaption></figure>
@@ -62,9 +62,10 @@ pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; f
 
 <h2>Karar bekleyen konular</h2>
 <ul>
-  <li><b>Tam QC'de 1 başarısız ölçüt:</b> Blender ⟷ Three siluet farkı sol göz noktasında <b>%1,028</b> (sınır %1,0; r008'de %0,72, diğer iki kamera %0,80 ve %0,98). Geometri hatası değil. Ölçüt, uyuşmayan kenar piksellerini "kapalı alana" bölüyor; dikmeler incelince kapalı alan küçüldü (%53 → %46), aynı kenar gürültüsü daha büyük oran verdi. 1 piksel toleranslı ölçümde r008 ve r009 benzer (%0,10–0,15 ve %0,11–0,18); Şahin %0,003. Yük Devi'nin çok sayıdaki küçük parçası (perçin, bulon) kenar gürültüsünü artırıyor. <b>QC ölçütünü ve eşiği senin onayın olmadan değiştirmedim.</b> Durum "qc_fail", bu yüzden teslim adayı çıkarılmadı.</li>
-  <li><b>HUD bölgesi engeli %10,1</b> (r008'de %10,5; sınır %10, Kaşif %9,3; uyarı). Probe ölçümü %8,0.</li>
+  <li><b>QC ölçütü değişti (Lead Developer kararı, QC.md §4'e işlendi):</b> kokpit siluet farkı artık 1 piksel toleranslı ölçülüyor. Eski ölçüt (XOR / kapalı alan) dikmeler incelince kapalı alan küçüldüğü için aynı kenar gürültüsünü daha büyük gösterdi (r008 %0,72 → r009 %1,03, gerçek fark aynı). Yeni ölçütün eşiği (FAIL > %0,4, WARN > %0,25) tek revizyona göre değil dört ölçümle kalibre edildi: Kaşif %0,000, Şahin %0,002–0,003, Yük Devi r008 %0,10–0,15, r009 %0,11–0,19. Duyarlılık: 2 px kayma %1,68, ince çubuk eksik %0,70. Kaşif ve Şahin yeni ölçütle de temiz. Eski ölçüt raporda "bilgi" olarak duruyor.</li>
+  <li><b>HUD bölgesi engeli %10,1</b> (r008'de %10,5; sınır %10, Kaşif %9,3; uyarı).</li>
   <li><b>Tangent uyarısı</b> (7 × <code>MESH_PRIMITIVE_GENERATED_TANGENT_SPACE</code>): Şahin ve Kaşif'te de aynı.</li>
+  <li><b>Orta dikme:</b> bu sürümde 30 mm (orijinal 36 mm). 36 mm seçeneği ikisi yan yana Lead Developer üzerinden sunulacak; o seçilirse yeni model gerekir (≈ 28 dk).</li>
 </ul>
 
 <h2>Ölçümler</h2>
@@ -80,13 +81,13 @@ pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; f
 <tr><td>RADAR oranı</td><td class="num">1,73:1</td><td class="num">1,56:1</td><td class="num">3:1</td><td>canvas bu orana göre</td><td><span class="pill p-ok">bilgi</span></td></tr>
 <tr><td>Ters yüz görünürlüğü</td><td class="num">%0,07</td><td></td><td></td><td>≤ %0,5</td><td><span class="pill p-ok">geçti</span></td></tr>
 <tr><td>Kaşif sözleşme uyumu</td><td class="num">18 PASS · 0 FAIL · 3 bilgi</td><td class="num">aynı</td><td></td><td></td><td><span class="pill p-ok">geçti</span></td></tr>
-<tr><td>Tam QC</td><td class="num">65 PASS · 2 WARN · 1 FAIL</td><td class="num">61 · 1 · 0</td><td></td><td></td><td><span class="pill p-warn">1 başarısız</span></td></tr>
-<tr><td>Kare süresi (emülatör, n=1)</td><td class="num">14,9–18,8 ms</td><td class="num">18,7–20,8 ms</td><td></td><td>yalnız referans</td><td><span class="pill p-ok">bilgi</span></td></tr>
+<tr><td>Tam QC</td><td class="num">66 PASS · 2 WARN · 0 FAIL</td><td class="num">61 · 1 · 0</td><td></td><td></td><td><span class="pill p-warn">2 uyarı</span></td></tr>
+<tr><td>Kare süresi (emülatör, n=1)</td><td class="num">14,6–17,4 ms</td><td class="num">18,7–20,8 ms</td><td></td><td>yalnız referans</td><td><span class="pill p-ok">bilgi</span></td></tr>
 </table></div>
 <p>Üçgen sayısı kaynak modelin %43'ü: pilotun hiçbir göz noktasından görünmeyen yüzler (yaklaşık 6.300 üçgen) temizlendi. Kıskaç parçaları temizlikten muaf tutuldu, animasyon eklenirse tam geometri gerekir.</p>
 
 <h2>Blender ⟷ Three.js r128 (nötr ışık)</h2>
-<figure><img src="img/yuk_prod/cmp_pilot_r009.webp" alt="Blender, Three ve fark"><figcaption>Soldan sağa: Blender altın referans, Three r128, fark. Parlaklık farkı %2,1–2,7, ΔE ≈ 3,4–3,5 (görüntü r009).</figcaption></figure>
+<figure><img src="img/yuk_prod/cmp_pilot_r009.webp" alt="Blender, Three ve fark"><figcaption>Soldan sağa: Blender altın referans, Three r128, fark. Parlaklık farkı %2,1–2,7, ΔE ≈ 3,4–3,5, siluet (1 px toleranslı) %0,11–0,19 (görüntü r009).</figcaption></figure>
 
 <h2>Kıskaç hiyerarşisi (statik, animasyona hazır)</h2>
 <pre class="tree">LOD0
@@ -100,12 +101,11 @@ SOCK_claw_grip   ART_claw_wrist altında (kavrama noktası)</pre>
 <p>Her eklem için tek mesh (<code>ART_*_geo</code>, eklem uzayında, birim dönüşümlü), eksen bilgisi düğüm extras'ında. QC bu yapıyı doğruladı: hiyerarşi, eksen, pivotun geometriye yakınlığı (≤ 15 cm), birim dönüşüm, soketin eklemle birlikte hareketi (5/5 PASS). Hazırlık hattı artık eklemli parçaları birleştirmiyor; bu Şahin ve Kaşif paketlerini etkilemez.</p>
 
 <div class="gate">
-  <h2>Karar</h2>
+  <h2>Kapı 2: senin kararın</h2>
   <ol>
-    <li><b>Dikmeler:</b> Beğendin mi, daha da ince ya da daha kalın ister misin? Orta dikme değişikliği kalsın mı?</li>
-    <li><b>Siluet ölçütü:</b> (A) Kokpit için ölçütü 1 piksel toleranslı biçime çevirelim ve eşiği Şahin ile Yük Devi'yi birlikte kalibre ederek belirleyelim (gerçek hatayı yakalar, kenar gürültüsünü saymaz), ya da (B) geometriyi değiştirerek sınırın altına inmeyi deneyelim (≈ 28 dakika, sonuç garanti değil). Ölçüt değişikliği QC standardı olduğu için onayın gerekir. Önerim A.</li>
-    <li>Sonra: HUD ve tangent uyarılarının kabulü ve teknik onay (Kapı 2).</li>
+    <li><b>Onay:</b> HUD ve tangent uyarıları kabul edilir; nihai paket ve telefon varyantı çıkarılır, SHA256 ve manifest korunur. Entegrasyon (Kapı 3) Lead Developer ile ayrıca onaylanır.</li>
+    <li><b>Düzeltme:</b> görsel ya da ölçü isteklerini yaz (dikme kalınlığı, orta dikme 30 ya da 36 mm, ayrıntı yoğunluğu, renk). Notları biriktirip tek revizyonda uygularım.</li>
   </ol>
-  <p style="color:var(--muted);font-size:14px">Dal <code>claude/asset-factory-budget-mode</code>. Gerçek cihaz testi yapılmadı.</p>
+  <p style="color:var(--muted);font-size:14px">Paket: <code>tools/asset_factory/deliveries/yuk_cockpit/r009_aday/</code> (dal <code>claude/asset-factory-budget-mode</code>). Gerçek cihaz testi yapılmadı.</p>
 </div>
 </main>

@@ -62,7 +62,11 @@ Test sayfası `qc/viewer/check.html`. Kaşif'in `glb_check.html` sayfasından ge
 2. **Görüntü sadakati**: aynı kamera açılarıyla Three render'ı alınır ve altın referansla karşılaştırılır:
    - ortalama parlaklık farkı ≤ %8
    - renk farkı (ΔE ortalaması) ≤ 6
-   - silüet farkı ≤ %1
+   - silüet farkı ≤ %1 (dış varlıklar: XOR / birleşim alanı)
+   - **kokpit ailesi (2026-11-20, Lead Developer kararı):** silüet **1 px toleranslı** ölçülür (`qc/visual.py silhouette_tol`: bir maskenin diğerinin 1 piksel genişletilmişinin dışına taşan pikseller / birleşim alanı). FAIL > %0,4, WARN > %0,25 (`rules.json three_vs_golden_cockpit`). Eski ölçüt (XOR/alan) raporda **bilgi** olarak kalır.
+     *Gerekçe:* XOR/alan, kenar yumuşatma farkını (Cycles ⟷ Three, ≤ 1 px) kenar uzunluğu ve kapalı alanla ölçeklenen bir gürültü olarak sayar; dikmeleri incelen ya da çok küçük parçalı bir kokpitte, geometri aynı kalsa da oran değişir (Yük Devi r008 → r009: aynı gerçek fark, %0,72 → %1,03). 1 px toleranslı ölçüt gerçek eksik ya da yanlış yerleşmiş geometriyi sayar.
+     *Kalibrasyon (eşik tek revizyona göre seçilmedi):* Kaşif %0,000 · Şahin r012 %0,002–0,003 · Yük Devi r008 %0,100–0,147 · r009 %0,114–0,185 (en kötü %0,185). Duyarlılık (Yük Devi r009, pilot kamerası): 2 px kayma %1,68; 12×100 px ince çubuk eksik %0,70; 12×20 px küçük parça eksik %0,155. FAIL eşiği %0,4: en kötü referansın 2,2 katı, ince çubuk kusurunun 0,57 katı.
+     *Yeniden doğrulama:* Kaşif ve Şahin yeni ölçütle FAIL/WARN vermez (yalnız hesap; Şahin'in dondurulmuş kayıtları ve teslim paketi değiştirilmedi). Kaşif referansı `qc/silhouette_ref.py` ile salt okunur üretildi.
    Bu test, bake sırasında ya da glTF dönüşümünde kaybolan malzemeleri yakalar (örnek: emisyonun sönmesi, metalikliğin yanlış çıkması).
 3. **Normal yönü**: FrontSide ile DoubleSide render'ları arasındaki piksel farkı ≤ %0,5 (Kaşif testindeki yöntem). Kenar yumuşatma tek piksellik kenar çizgileri ürettiğinden fark maskesi 3×3 erozyondan sonra sayılır (gerçek delik ve ters yüz leke oluşturur); ham değer de raporlanır.
 4. **Işık senaryoları**: oyunun ışık düzeni (GEÇİCİ: game_contract'tan alınacak) ile gündüz, gece ve patlama flaşı. Aşırı parlama ya da tamamen siyah bölge olmamalı.

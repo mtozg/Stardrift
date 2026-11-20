@@ -100,7 +100,7 @@ Soketler eklemle birlikte hareket eder (ör. `SOCK_claw_grip` → `ART_claw_wris
 
     # ---------- teslim_raporu.md ----------
     tex_rows = '\n'.join('| %s | %s | %s KB |' % (k, '×'.join(map(str, v['size'])), _p(v['kb'])) for k, v in st['textures'].items())
-    cmp_rows = '\n'.join('| %s | %s %% | %s / %s | %s %% |' % (c, _p(v['lum_diff'] * 100), _p(v['deltaE_mean']), _p(v['deltaE_p95']), _p(v['silhouette_diff'] * 100, 2))
+    cmp_rows = '\n'.join('| %s | %s %% | %s / %s | %s %% (1 px toleranslı) · eski XOR %s %% |' % (c, _p(v['lum_diff'] * 100), _p(v['deltaE_mean']), _p(v['deltaE_p95']), _p(v.get('silhouette_tol', v['silhouette_diff']) * 100, 3), _p(v['silhouette_diff'] * 100, 2))
                          for c, v in R['three_vs_golden'].items())
     perf_rows = '\n'.join('| %s | %s ms |' % (k.split('.')[1], _p(v['value'])) for k, v in items.items()
                           if k.startswith('perf.') and k.endswith('.n1') and v.get('value') is not None)

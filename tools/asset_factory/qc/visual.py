@@ -21,6 +21,22 @@ def _lab(rgb):
     return np.stack([116 * f[..., 1] - 16, 500 * (f[..., 0] - f[..., 1]), 200 * (f[..., 1] - f[..., 2])], -1)
 
 
+def _dil(m, k=1):
+    """k piksellik (8 komşuluk) genişletme."""
+    o = m.copy()
+    for _ in range(k):
+        p = np.pad(o, 1)
+        o = (p[1:-1, 1:-1] | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:] | p[:-2, :-2] | p[:-2, 2:] | p[2:, :-2] | p[2:, 2:])
+    return o
+
+
+def silhouette_tol(gm, tm, k=1):
+    """1 px toleranslı siluet uyuşmazlığı (birleşim alanına oran): bir maskenin diğerinin k piksel genişletilmişinin DIŞINA taştığı pikseller.
+    Cycles ⟷ Three kenar yumuşatma/örnekleme farkı (≤ 1 px) sayılmaz; eksik/yanlış yerleşmiş geometri sayılır. Kenar uzunluğundan ve kapalı alandan büyük ölçüde bağımsızdır."""
+    union = (gm | tm).sum()
+    return float(((gm & ~_dil(tm, k)) | (tm & ~_dil(gm, k))).sum() / max(union, 1))
+
+
 def compare(golden, test, diff_out=None):
     g, ga = _load(golden)
     t, ta = _load(test)
@@ -41,5 +57,5 @@ def compare(golden, test, diff_out=None):
         img[..., 1] = np.where(both, 0.15 * (1 - h), 0)
         img[..., 2] = np.where(gm ^ tm, 1.0, 0)
         Image.fromarray((img * 255).astype(np.uint8)).save(diff_out)
-    return {'silhouette_diff': round(sil, 5), 'lum_golden': round(float(lg), 4), 'lum_three': round(float(lt), 4),
+    return {'silhouette_diff': round(sil, 5), 'silhouette_tol': round(silhouette_tol(gm, tm), 5), 'lum_golden': round(float(lg), 4), 'lum_three': round(float(lt), 4),
             'lum_diff': round(lum_diff, 4), 'deltaE_mean': round(de_mean, 2), 'deltaE_p95': round(de_p95, 2)}

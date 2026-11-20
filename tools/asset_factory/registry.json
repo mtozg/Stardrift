@@ -380,7 +380,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "qc_fail",
+   "state": "qc_pass",
    "rev": 9,
    "history": [
     {
@@ -503,12 +503,18 @@
      "from": "prepared",
      "to": "qc_fail",
      "reason": "QC FAIL (65 PASS, 2 WARN, 1 FAIL)"
+    },
+    {
+     "t": "2026-11-20T11:09:48+00:00",
+     "from": "qc_fail",
+     "to": "qc_pass",
+     "reason": "QC WARN (66 PASS, 2 WARN, 0 FAIL)"
     }
    ],
    "timings": {
     "model": 1285.9,
     "prepare": 346.3,
-    "qc": 16.5
+    "qc": 15.2
    },
    "approvals": [
     {
