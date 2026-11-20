@@ -115,3 +115,11 @@ Test edilmeyenler: gerçek iPhone/iPad, bulut kaydında iki cihaz çakışması,
 | Sayfa hatası | Hiçbiri |
 
 Not: test ortamında (swiftshader) oyun saati gerçek zamanın yaklaşık 1/8'i hızında akıyor; zamanlı adımlar oyun saatine göre beklendi. Korsan selamı (itibar ≥ 60) ayrıca test edilmedi.
+
+### iPhone 13 boyutunda oyun testi (dokunmatik, 750×342)
+Senaryo: Korsan kaydı → Kara Liman'da dokunarak 10 kaçak al → Ankora → devriyenin yanına git → çağrı kutusu → dokunarak rüşvet.
+Bulunan ve düzeltilen hatalar:
+1. **Eski kural korsana koşulsuz ateş ettiriyordu** (`js/game.js` "Filo devriyeleri korsanı görünce ateş açar"): temiz korsan Ankora'ya girer girmez 800 m içindeki devriyeler saldırıyor, gemi ~10 sn'de parçalanıyordu. K6 (−50) ve K20 tablosunu geçersiz kılıyordu; önceki testler çaylak korumasıyla çalıştığı için görünmedi. Artık devriye kararına bağlı.
+2. **Duran oyuncu seçim yapamıyordu:** çağrı 1 sn sonra kendiliğinden taramaya geçiyordu. Artık "Uy" ya da 3 sn yavaş kalma gerekir.
+3. **Düğmeler her 0,25 sn yeniden oluşturuluyordu:** dokunuş kaybolabiliyordu. Kutu artık aşama başına bir kez kurulur; düğmeler `pointerdown` ile (uçuş düğmeleri gibi) çalışır, 42 px yüksekliğinde.
+Sonuç: çağrı kutusu iPhone ekranında okunaklı; dokunarak rüşvet −450 kredi, tarama yok, kaçak korundu; hata yok.
