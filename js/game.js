@@ -295,13 +295,14 @@ const ruins = [];
 
 // ---------- Cevher ve asteroitler ----------
 // oyuncuya düşman mı? Korsan tarafında korsanlar müttefik, Filo gemileri düşman
-function foe(n){ if (!n) return false; if (n.kind !== 'npc') return !!n.hostile; if (save.side === 'korsan') return n.role === 'patrol' || !!n.hunter || n.rev > time; return !!n.hostile || n.rev > time; }
+// 1.55.0 (Aşama 1-B): Korsan oyuncu için devriye ancak gerçekten çatışmadaysa (sana saldırıyor, kışkırtılmış ya da avcı) düşman sayılır; değilse 'tetikte' (mor)
+function foe(n){ if (!n) return false; if (n.kind !== 'npc') return !!n.hostile; if (save.side === 'korsan') return !!n.hunter || n.rev > time || (n.role === 'patrol' && n.state === 'attack' && n.tgt === 'player'); return !!n.hostile || n.rev > time; }
 // lazer bu gemiye vurur mu? Korsan için: Birlik gemileri hariç her şey. Diğerleri için: korsanlar ve sana saldıran.
 function shootable(n){ if (!n || n.kind !== 'npc') return false; if (save.side === 'korsan') return n.role !== 'pirate' || !!n.hunter; return !!n.hostile || n.rev > time; }
 /* ilişki (taraf mantığının tek kaynağı): 'foe' = düşman (kırmızı), 'prey' = av (kehribar; yalnızca Korsan'da kargo/madenci), 'ally' = dost ya da tarafsız (mavi).
    Filo / Lonca: korsanlar düşman; devriye, kargo, madenci dost. Korsan: devriye ve Filo avcıları düşman; korsanlar dost; kargo ve madenciler av. */
-function rel(n){ if (!n) return 'ally'; if (n.kind !== 'npc') return n.hostile ? 'foe' : 'ally'; if (foe(n)) return 'foe'; if (save.side === 'korsan' && shootable(n)) return 'prey'; return 'ally'; }
-const REL_COL = { foe: '#ff5a6e', prey: '#ffb454', ally: '#6cc4ff' };
+function rel(n){ if (!n) return 'ally'; if (n.kind !== 'npc') return n.hostile ? 'foe' : 'ally'; if (foe(n)) return 'foe'; if (save.side === 'korsan' && n.role === 'patrol') return 'wary'; if (save.side === 'korsan' && shootable(n)) return 'prey'; return 'ally'; }
+const REL_COL = { foe: '#ff5a6e', prey: '#ffb454', ally: '#6cc4ff', wary: '#c49bff' };
 const aimInfo = a => ORE[a.type] || { css: REL_COL[rel(a)], ad: a.name || 'Gemi' };
 window.OREI = {"demir": "assets/img/orei_demir.webp", "buz": "assets/img/orei_buz.webp", "kristal": "assets/img/orei_kristal.webp"};
 window.DEVI = ["assets/img/devi_0.webp", "assets/img/devi_1.webp", "assets/img/devi_2.webp", "assets/img/devi_3.webp"];
@@ -1634,7 +1635,7 @@ function drawNpcTags(c){
     const d = rig.position.distanceTo(n.pos); if (d > 650 && n !== lock) continue;
     const p = proj(n.pos); if (p.behind || p.x < VIEW.l + 8 || p.x > VIEW.r - 8 || p.y < VIEW.t + 8 || p.y > VIEW.b - 8) continue;
     const sz = clamp(n.r / (d * Math.tan(camera.fov * Math.PI / 360)) * H / 2, 5, 60), y = p.y - sz - 8;
-    c.fillStyle = REL_COL[rl]; c.strokeStyle = rl === 'prey' ? 'rgba(255,180,84,0.7)' : 'rgba(108,196,255,0.7)'; c.lineWidth = 1;
+    c.fillStyle = REL_COL[rl]; c.strokeStyle = rl === 'prey' ? 'rgba(255,180,84,0.7)' : rl === 'wary' ? 'rgba(196,155,255,0.7)' : 'rgba(108,196,255,0.7)'; c.lineWidth = 1;
     c.beginPath(); c.moveTo(p.x - 4, y + 5); c.lineTo(p.x + 4, y + 5); c.lineTo(p.x, y + 10); c.closePath(); c.fill();
     c.fillText(n.name + ' · ' + (d > 1000 ? (d / 1000).toFixed(1) + ' km' : Math.round(d) + ' m'), p.x, y);
   }
@@ -1681,6 +1682,7 @@ function drawRadar(c, cx, cy, rr){
     const rl = rel(n);
     if (rl === 'foe'){ c.fillStyle = REL_COL.foe; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 4.5); c.lineTo(cx + q.px - 3.5, cy + q.py + 3); c.lineTo(cx + q.px + 3.5, cy + q.py + 3); c.closePath(); c.fill(); }
     else if (rl === 'prey'){ c.fillStyle = REL_COL.prey; c.beginPath(); c.moveTo(cx + q.px, cy + q.py - 3.6); c.lineTo(cx + q.px + 3.6, cy + q.py); c.lineTo(cx + q.px, cy + q.py + 3.6); c.lineTo(cx + q.px - 3.6, cy + q.py); c.closePath(); c.fill(); }
+    else if (rl === 'wary'){ c.fillStyle = REL_COL.wary; c.beginPath(); c.arc(cx + q.px, cy + q.py, 3, 0, TAU); c.fill(); }
     else if (d < rr * 0.75){ c.fillStyle = '#6cc4ff'; c.beginPath(); c.arc(cx + q.px, cy + q.py, 2.6, 0, TAU); c.fill(); }
   }
   // seçili hedef ve nişandaki hedef: halka
@@ -3097,6 +3099,11 @@ const SYS = [
   { ad: 'Zümrüt Sis', not: 'Kristalin tek yurdu, ama düşmanlar çok tehlikeli. Zorluk ★★★ · Düşman gemileri 2,2 kat dayanıklı, %50 daha sert vurur · Kayaları kırmak 2,4 kat zor · Cevher satış fiyatları 2,2 kat, korsan ödülleri 2,8 kat yüksek', names: { st: ['Yosun İstasyonu', 'Filiz Üssü', 'Çiğ Durağı', 'Zümrüt Kapısı'], pl: ['Verdan', 'Silva', 'Miren', 'Orbis'], moon: 'Pınar' }, tint: [0.8, 1.35, 0.95], sky: [0.95, 1.4, 1.1], kr: 2.4, ice: 0.8, danger: 1.0, px: { kristal: 2.2, demir: 1.2, buz: 1.1 }, rock: 2.4, pay: 2.2, hull: 2.2, bounty: 2.8, dmg: 1.5, intro: 'Yeşil bir sis içindesin. Kristaller parlıyor.' }
 ];
 const GATE_TO = [1, 2, 3, 0, 0, 0], JC0 = 150;
+// 1.55.0 (Aşama 1-A): bölge tablosu. Her sistemin denetimi ve güvenlik düzeyi; sıçrama mesajında gösterilir, devriye mantığı (Aşama 1-C) için temel veri.
+// tip: 'guvenli' Filo denetimi · 'tarafsiz' ticaret bölgesi · 'cekismeli' Filo ile korsanlar çekişir · 'kanunsuz' denetim yok · 'korsan' Birlik bölgesi
+const ZONE = { 0: { tip: 'guvenli', ad: 'Filo bölgesi · güvenli' }, 1: { tip: 'cekismeli', ad: 'Çekişmeli bölge' }, 2: { tip: 'cekismeli', ad: 'Çekişmeli bölge' },
+  3: { tip: 'kanunsuz', ad: 'Kanunsuz bölge' }, 4: { tip: 'tarafsiz', ad: 'Lonca bölgesi · tarafsız ticaret' }, 5: { tip: 'korsan', ad: 'Korsan bölgesi' } };
+window.__zone = k => ZONE[k === undefined ? curSys : k] || null;
 const JCf = () => Math.round(JC0 * (window.__skG || 1));
 const LORE_S = {
   1: ['Duvarda kurum: "Ocaklar sönmeden son kuşak burada yandı."', 'Pas dolu cephanelik. Not: "Ateş, korkunun mimarıdır."', 'Eriyik bir çekirdek. Not: "Kızıl yıldız bizi tavlayıp güçlendirdi."', 'Haritanın kenarında: "Geçit sadece geri dönenlere açılır."'],
@@ -3202,7 +3209,7 @@ function enterSystem(k){
   save.base = (save.bases && save.bases[k]) || null; attachBase();
   curSt = STATION; docked = true; scrFlash = 1; persist();
   renderDock();
-  if (!window.__quietJump){ toast('Sıçrama tamamlandı: ' + SYS[k].ad, 4200); blip(300, 0.3); setTimeout(() => blip(700, 0.4), 200);
+  if (!window.__quietJump){ toast('Sıçrama tamamlandı: ' + SYS[k].ad + (ZONE[k] ? ' · ' + ZONE[k].ad : ''), 4200); blip(300, 0.3); setTimeout(() => blip(700, 0.4), 200);
   liveSay('Sıçrama', SYS[k].ad + '. ' + SYS[k].intro, '#7fd8ff'); }
 }
 {
