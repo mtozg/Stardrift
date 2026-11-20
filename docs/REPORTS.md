@@ -223,3 +223,12 @@ Not: swiftshader; gerçek cihaz test edilmedi. Teslimdeki HUD sırtı sağ kenar
 | kutuk (Başarımlar listesi, 9/30, kademeler) ve ekran görüntüsü: ikonlar kademe rengiyle, kilitliler soluk | PASS |
 | offline.json: 30 rozet ve 8 kokpit GLB'si (Hayalet dahil) listede | Doğrulandı |
 Not: 1.64.1'deki `offline.json` Hayalet GLB'lerini içermiyordu; bu sürümde düzeltildi. Gerçek cihaz test edilmedi.
+
+## 25. Sürüm 1.65.1 test özeti (Hayalet r003)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (3ce380c2 / 55f4cee1) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (71/110, 50/100, 50/106, 50/100), sayfa hatası yok | PASS |
+| offline.json: 8 kokpit GLB'si (git add sonrası üretildi) | Doğrulandı |
+| Oyun içi görsel: ekranlar büyük ve çerçeveli, HUD doğru, ortada dikme yok | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi.

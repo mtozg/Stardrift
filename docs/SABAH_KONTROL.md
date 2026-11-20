@@ -9,6 +9,8 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 | 2 | Hayalet 3B kokpit r001 (Asset Factory production → oyuna `CK3.hayalet`) | Hazır, oyunda; Kapı 1 görsel kararın bekliyor | b58af28 | `git revert b58af28` |
 | 3 | Başarım rozet çizimleri (10 rozet × 3 kademe) oyunda; çevrimdışı paket düzeltmesi | Hazır | 1a43723 | `git revert 1a43723` (not: çevrimdışı düzeltmesi de bu commit'te; geri alınırsa Hayalet GLB'leri çevrimdışı pakette olmaz) |
 
+| 4 | Hayalet r003 (derinlik + büyük ekranlar; Mehmet'in geri bildirimi) | Hazır; r001'in yerine | R3SHA | `git revert R3SHA` (r001'e döner) |
+
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
 - Aşama 2 ve 3: Hazır olunca bu tabloya işlenecek.
@@ -29,3 +31,11 @@ Görseller: `docs/sabah/asama3_basarimlar.webp` (oyundaki liste), `docs/sabah/as
 - **Zayıf:** Gezgin (halkalı gezegen) küçükte göz gibi okunabiliyor. Düzeltilebilir.
 - **Kod:** yalnız `js/game.js` içinde Başarımlar listesine ikon (`r` anahtarı ve `<img>`); veri, sayaç ve ekonomi değişmedi.
 - **Hata düzeltmesi (bu commit'te):** 1.64.1'de `offline.json` Hayalet GLB'lerini içermiyordu (yeni dosyalar `git add`'den önce listelenmişti). Şimdi Hayalet ve 30 rozet dahil (364 dosya, 43,4 MB). Çevrimdışı oyunda Hayalet kokpiti bunsuz yüklenemezdi.
+
+## Aşama 4: Hayalet r003 (Mehmet'in geri bildirimine göre)
+Görsel: `docs/sabah/asama4_hayalet_r003_kiyas.webp` (üstte Kaşif, altta Hayalet r003).
+- **İstenen:** sorunları çöz, derinlik hissi, ekran yerleşimini değiştir.
+- **Olan:** Ekranlar belirgin büyüdü ve çerçeveli yuvalara oturdu, yan ekranlar içe açılı; konsol 3 kademeli; direkler/kemerler oluklu; altıgen güverte koyu; HUD payı %7,5 (r001'de %9,0); koltuk ~140 px. 4 kokpit döngüsünde bellek sabit (71/110, 50/100, 50/106, 50/100).
+- **Dürüst eksikler (Asset Factory'nin de söylediği):** altıgen hâlâ orta gri; yastıklar hafif ayrık blok; alt kademeler büyük koyu yüz. Ekranlar çok geniş, neredeyse kenardan kenara (televizyon gibi) görünebilir. Derinlik r001'e göre belirgin ama Kaşif kadar katmanlı değil.
+- **Tur hakkı:** Hayalet için r001, r002 (küçük), r003 üretildi; Mehmet kararıyla hak genişletilmişti, r003 son tur. Yeni istek olursa Mehmet onayı gerekir.
+- **Not:** Bu commit PR #42'de DEĞİL, yeni PR'da (#42 yalnız aşama 1 ile birleşmişti).
