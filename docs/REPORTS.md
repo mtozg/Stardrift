@@ -181,3 +181,9 @@ Not: `evW` ve `feeT` yalnızca `:test` kaydında dışarı verilir. Gerçek ciha
 |---|---|
 | bulten: Filo, Lonca ve Korsan oyuncusu yanaşınca kendi önekli bülten satırı çıkar, `{u}` yer tutucusu kalmaz, sayfa hatası yok | PASS |
 Not: seçim rastgele; her koşul satırı tek tek otomatik doğrulanmadı. Başlık yanındaki yerleşim ekran görüntüsüyle kontrol edildi.
+
+## 19. Sürüm 1.63.1 test özeti
+| Test | Sonuç |
+|---|---|
+| zincir_telsiz: `__chainSay` korsan 1. ve Filo 3. adımda telsiz satırı verir, çift adımda (Lonca 2) vermez, sayfa hatası yok | PASS |
+Not: gerçek ana görev düğmesinden tetiklenme (kanca `S.src` kullanır) otomatik testte uçtan uca denenmedi; kanca tek satır ve `try/catch` içinde.

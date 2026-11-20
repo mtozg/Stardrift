@@ -7585,6 +7585,11 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     lonca: [null, 'Pazar Ustası! Fiyatlar seni dinlemeye başladı.', 'Sözleşme Lideri. İmzan artık Lonca\'da bir şey ifade ediyor.', 'Ticaret Lideri. Pazarlar senin adınla açılıyor.'],
     korsan: [null, 'Akıncı! Birlik\'ten biri daha göğüs gerdi.', 'Çete Reisi. Adamların seni takip ediyor.', 'Korsan Lordu. Kara Liman\'ın kapıları sana açık.'] };
   const UWHO = { filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' };
+  /* 1.63.1: taraf zincirinin tek numaralı adımlarında (1, 3, 5) kısa telsiz sahnesi; çift adımlar zaten unvan mesajı verir. Yalnız metin, ödül yok. */
+  const CLINES = { filo: { 1: 'Ana karargah: İlk raporun alındı. Filo seni artık ismen tanıyor.', 3: 'Ana karargah: Raporların komuta masasında dolaşıyor. Dikkat çekiyorsun, pilot.', 5: 'Ana karargah: Son adım yakın. Komuta seni bekliyor.' },
+    lonca: { 1: 'Lonca masası: İlk sözleşmen kayda geçti. Kapılar yavaş yavaş aralanıyor.', 3: 'Lonca masası: Sicilin temiz ve kârlı. Meclis bunu konuşuyor.', 5: 'Lonca masası: Meclis oylamaya hazırlanıyor. Bir adım kaldı.' },
+    korsan: { 1: 'Kara Liman: İşin sessiz ve temiz geçti. Adın ağızdan ağıza dolaşıyor.', 3: 'Kara Liman: Reis senden bahsetti. İyiye işaret, belki.', 5: 'Kara Liman: Koltuk boşalmak üzere. Son hamle senin.' } };
+  window.__chainSay = (side, n) => { try { const t = CLINES[side] && CLINES[side][n]; if (!t) return; setTimeout(() => { eco.radioT = -9; radio(UWHO[side], t, (window.__SIDE && window.__SIDE[side] && window.__SIDE[side].col) || '#7fd8ff'); }, 2600); } catch (e) {} };
   let kz0 = Date.now(), kzT = 0, kzNext = 0;
   const kzSay = (msg, ms, snd) => { const at = Math.max(Date.now(), kzNext); kzNext = at + 2800; setTimeout(() => { toast(msg, ms); try { sfxP('rutbe', snd); } catch (e) {} }, at - Date.now()); };   /* aynı anda gelen bildirimler birbirinin üstüne yazılmaz */
   EXTRA.push(() => { const now = Date.now(); if (now - kzT < 2000 || now - kz0 < 8000) return; kzT = now;
@@ -9517,6 +9522,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     save.mq.i++; if (S.src) save.lq[S.src[0]] = Math.max(save.lq[S.src[0]] || 0, S.src[1] + 1);
     if (r.k) save.kredi += r.k; if (r.sp) save.sp = (save.sp || 0) + 1; persist(); if (r.x && window.__addXp) window.__addXp(r.x); if (r.f && window.__fac) window.__fac(r.f[0], r.f[1]);
     const N = cur(); toast('Ana görev tamam: ' + S.t + ' · ' + rwTxt(r) + (S.opens ? ' · ' + SYS[S.opens].ad + ' kapısı açıldı!' : '') + (N && N.bi !== S.bi ? ' · Yeni bölüm: ' + N.B.b : ''), 5200);
+    try { S.src && window.__chainSay && window.__chainSay(S.src[0], S.src[1] + 1); } catch (er) {}
     try { sfxP('gorev_tamam', 0.8); } catch (er) {} renderLq(); try { renderDock(); } catch (er) {} try { window.__drawTrack && window.__drawTrack(); } catch (er) {} });
   // uçarken: ana görev adımı bitince haber ver
   { let acc = 0; const told = {}; EXTRA.push(dt => { acc += dt; if (acc < 3 || docked) return; acc = 0; const S = cur(); if (!S) return; const key = save.mq.i; if (!told[key] && (S.f() || 0) >= S.n){ told[key] = 1; toast('Ana görev hazır: ' + S.t + ' · ödülü istasyonda Görevler\'den al.', 4600); try { window.__drawTrack && window.__drawTrack(); } catch (er) {} } }); }

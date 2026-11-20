@@ -58,7 +58,7 @@ Lead Developer işleri tek dalda (`claude/stardrift-hod-system-np3akq`) sırayla
 ## Açık PR
 | PR | İçerik | Durum |
 |---|---|---|
-| (1.63.0, K40) | İstasyon bülteni (Game Designer P3) ve onay notları | PR açılacak/açık; Mehmet incelemesi bekliyor |
+| #40 (1.63.1, K40-K41) | İstasyon bülteni, zincir telsiz sahnesi ve onay notları | PR açılacak/açık; Mehmet incelemesi bekliyor |
 
 ## Tamamlananlar (main 1.62.3 ve öncesi)
 Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet, taraf unvanları), K13 kaçak kapatma, K9 kargo kaydı, Kadim Bekçi (B-04), Başarımlar (B-05), regresyon seti (B-07), kokpit cam hissi (K29), K36 yeni pano görevleri, K37 Kadim yankı (450-750), K38 ölüm bedeli sınırı 2000 (hepsi Mehmet onaylı, PR #39), unvan görevleri 2. kademe (K32), başlangıç kargosu 16 (K30), kaçak XP (K31), bildirimler (K34), yetenek sıfırlama (B-06: zaten vardı, değişiklik gerekmedi).
@@ -72,7 +72,7 @@ Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet
 | B-05b | Başarım rozet çizimleri (10 rozet × 3 kademe) | Asset Factory, sonra |
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | Mehmet'in konsol ekran görüntüsü gerekli |
 | B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |
-| B-10 | Game Designer içerikleri | Filo Bülteni tamam (1.63.0); taşıma/eskort şablonları ve taraf zincirinin 2. adımına telsiz sahnesi sırada |
+| B-10 | Game Designer içerikleri | Filo Bülteni (1.63.0) ve zincir telsiz sahnesi (1.63.1) tamam; taşıma/eskort şablonları sırada |
 | B-11 | Ölüm ekranı açıkken sayfa yenilenirse bedel alınmıyor (önceden var) | Düşük öncelik; ayrı karar |
 
 ## Gerçek cihaz testleri (iPhone / iPad; henüz yapılmadı)

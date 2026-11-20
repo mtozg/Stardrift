@@ -28,6 +28,7 @@ BEKLE = {
  'bildirim': [('baseline', True), ('acilistaToast', 0), ('toasts.0', 'Başarım: Madenci · Bronz'), ('toasts.1', 'Yeni unvan: Devriye Subayı'), ('errs', [])],
  'pano_yeni': [('sablon.kesif.0', 'kesif'), ('sablon.kesif.1', True), ('sablon.kesif.2', True), ('sablon.doldur.0', 'doldur'), ('sablon.doldur.1', 100), ('sablon.doldur.2', True), ('doldurBitti', True), ('errs', [])],
  'derin_kural': [('uzak14k', 2), ('orta7k', 0), ('yakin3k', 0), ('sinirAlti', 0), ('sinirUstu', 2), ('lonca14k', 2), ('korsan14k', 0), ('baskasiEtkilenmedi', '0:0'), ('errs', [])],
+ 'zincir_telsiz': [('korsan1', True), ('filo3', True), ('cift', True), ('errs', [])],
  'bulten': [('filo.onek', True), ('filo.bos', False), ('lonca.onek', True), ('lonca.bos', False), ('korsan.onek', True), ('korsan.bos', False), ('errs', [])],
  'olum_hesap': [('k0', 0), ('k30', 30), ('k50', 50), ('k200', 50), ('k500', 50), ('k600', 60), ('k1000', 100), ('k8000', 800), ('k19999', 2000), ('k25000', 2000), ('k999999', 2000), ('errs', [])],
  'olum_siniri': [('ucret', 2000), ('errs', [])],
