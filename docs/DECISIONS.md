@@ -94,6 +94,13 @@ Mehmet: "Evet ayarla, sonra da diğer işlere devam et." Değerler Lead Develope
 | K33 | **"Pilot Kütüğü" → "Başarımlar"** olarak yeniden adlandırıldı (Mehmet: "kütük nedir ya"). Başarımlar bölümü gizlenmez, varsayılan kapalı kalır. Yeni oyuncuda **yan görev panosu ilk ana görev adımı alınana kadar kapalı** gelir. Köşe izleyicisi zaten yalnız ana görev adımını ve aktif yan görevleri gösteriyor (değişiklik gerekmedi). | Ekonomiye dokunmaz. | Lead Developer |
 | — | **Yetenek sıfırlama zaten var** (300 kredi + harcanan puan başına 100). Game Designer'ın "sıfırlama yok" bulgusu yanlıştı; yeni iş yok. | — | — |
 
+## 2026-11-20 (10)
+
+| ID | Karar | Kapsam / kısıt | Ajan |
+|---|---|---|---|
+| K34 | **Başarım ve unvan bildirimleri** (Lead Developer, onay gerektirmeyen): rozet kazanılınca toast + ses; unvan atlayınca toast + tarafın kısa telsiz mesajı. Bildirimler sıraya konur. | Açılıştan 8 sn sonra mevcut seviyeler sessizce kaydedilir (eski oyunculara bildirim yağmaz). Ekonomi yok. | Lead Developer |
+| K35 | Unvan görevleri **3. ve 4. kademe ertelendi**: eskort mevcut sinyal sistemiyle, patron avı mevcut patron ödülüyle çakışıyor (yeni gelir kapısı riski). QA'nın bulut zaman damgası ve `saveWorld` bulguları yeniden değerlendirildi: gerçek ilerleme kaybı riski düşük, düzeltme yapılmadı. | Gerekirse sonra, Mehmet onayıyla. | Lead Developer |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
