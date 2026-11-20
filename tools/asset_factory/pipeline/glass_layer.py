@@ -24,8 +24,9 @@ RIDGE = [[-400, 300], [0, 300], [50, 304], [100, 326], [150, 388], [200, 412], [
 SCREENS = [[[390, 432], [620, 420], [626, 560], [400, 582]], [[660, 404], [940, 404], [940, 584], [660, 584]], [[980, 420], [1210, 432], [1200, 582], [974, 560]]]
 U0, U1, V0 = -160, 1760, -140      # cam kapsamı (sallanma payı: kenarlarda 160 px, üstte 140 px)
 VARIANTS = {
-    'hafif':    dict(a_center=0.16, a_edge=0.55, t_clear=0.42, ghost=0.55, scratch=0.0, dust=0.0, rim=False, tint=(0.62, 0.80, 0.78)),
-    'belirgin': dict(a_center=0.22, a_edge=0.75, t_clear=0.46, ghost=0.85, scratch=1.0, dust=1.0, rim=True, tint=(0.58, 0.78, 0.76)),
+    # tint = doku taban rengi; tepe rengi merkezde (c0) koyu, kenarda (c1) açık: orta %5-10 koyulaşma, kenarlarda fresnel yansıma. Uzay koyu olduğundan açık tonlu cam sis ekler (ilk deneme hatası)
+    'hafif':    dict(a_center=0.20, a_edge=0.55, t_clear=0.50, ghost=0.70, scratch=0.0, dust=0.0, rim=False, tint=(0.31, 0.38, 0.38)),
+    'belirgin': dict(a_center=0.26, a_edge=0.75, t_clear=0.55, ghost=1.00, scratch=1.0, dust=1.0, rim=True, tint=(0.31, 0.38, 0.38)),
 }
 
 
@@ -67,7 +68,9 @@ def build_mesh(var, nu=48, nv=16):
             verts.append(p)
             norms.append(n)
             uvs.append(((u - U0) / (U1 - U0), (v - V0) / (480 - V0)))
-            cols.append((1.0, 1.0, 1.0, alpha))
+            c0, c1 = np.array([0.50, 0.55, 0.55]), np.array([1.0, 1.0, 1.0])
+            rgb = c0 + (c1 - c0) * f
+            cols.append((float(rgb[0]), float(rgb[1]), float(rgb[2]), alpha))
             row.append(len(verts) - 1)
         rows.append(row)
     idx = []

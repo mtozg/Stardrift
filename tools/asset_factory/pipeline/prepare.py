@@ -85,7 +85,17 @@ info['uv'] = uv.stats(body, size)
 info['tex_sizes'] = tex
 t0 = tick('uv', t0)
 
-imgs = bake.bake(body, tex, samples=8 if fast else 24, ao_samples=24 if fast else 128)
+imgs = bake.bake(body, tex, samples=8 if fast else 24, ao_samples=24 if fast else 128, ao_distance=PC.get('ao_distance'))
+if PC.get('ao_into_base'):      # pişirilmiş AO'yu albedoya da çarp: Three'de aoMap yalnız dolaylı ışığı etkiler; derinlik her ışıkta görünsün (Kaşif yaklaşımı)
+    _s = float(PC['ao_into_base'])
+    _b, _a = bake.pixels(imgs['base']), bake.pixels(imgs['ao'])
+    if _b.shape[:2] != _a.shape[:2]:
+        from PIL import Image as _I
+        _a = np.asarray(_I.fromarray((np.clip(_a[..., 0], 0, 1) * 255).astype(np.uint8)).resize((_b.shape[1], _b.shape[0]), _I.BILINEAR), np.float32)[..., None] / 255.0
+        _a = np.repeat(_a, 4, axis=2)
+    _b[..., :3] *= ((1.0 - _s) + _s * np.clip(_a[..., :1], 0, 1))
+    imgs['base'].pixels = _b.ravel().tolist()
+    info['ao_into_base'] = _s
 t0 = tick('bake', t0)
 
 orm = bake.compose_orm(imgs, tex['orm'])

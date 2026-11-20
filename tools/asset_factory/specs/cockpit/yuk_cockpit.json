@@ -225,7 +225,10 @@
    "orm": 1024,
    "normal": 1024
   },
-  "uv_pack": "CONVEX"
+  "uv_pack": "CONVEX",
+  "ao_distance": 0.3,
+  "ao_into_base": 0.7,
+  "_ao": "r012: Lead Developer/Mehmet: yüzey derinliği; AO albedoya çarpılır (Kaşif yaklaşımı)"
  },
  "articulation": {
   "joints": {

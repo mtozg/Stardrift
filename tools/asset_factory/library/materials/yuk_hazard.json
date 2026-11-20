@@ -12,7 +12,7 @@
  ],
  "scratch": 0.5,
  "wear": 1.2,
- "dirt": 0.3,
+ "dirt": 0.75,
  "bump": 0.02,
  "_note": "uyarı sarısı (#e0b020)",
  "chips": 0.9,
@@ -28,5 +28,6 @@
   1.15
  ],
  "_r010": "sarı şerit: aşınmış",
- "_r011": "sarı daha mat/soluk (doygunluk düşürüldü)"
+ "_r011": "sarı daha mat/soluk (doygunluk düşürüldü)",
+ "dirt_distance": 0.1
 }

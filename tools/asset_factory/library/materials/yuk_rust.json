@@ -12,7 +12,7 @@
  ],
  "scratch": 0.7,
  "wear": 1.7,
- "dirt": 0.4,
+ "dirt": 0.75,
  "bump": 0.04,
  "_note": "pas turuncu boyalı çelik (kıskaç, detay; #b8652a)",
  "tone_var": [
@@ -36,5 +36,6 @@
  "_r010": "turuncu boyalı panel: çıplak çelik kırıkları",
  "panels": 0.85,
  "panel_scale": 3.4,
- "_r011": "turuncu daha mat/kahverengimsi"
+ "_r011": "turuncu daha mat/kahverengimsi",
+ "dirt_distance": 0.1
 }

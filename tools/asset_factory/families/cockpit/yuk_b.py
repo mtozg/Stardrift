@@ -72,10 +72,11 @@ def build(spec, mats):
             mb.segments = 2
             mb.limit_method = 'NONE'
             geo.apply_modifier(ob, mb)
-            ms = ob.modifiers.new('ss', 'SUBSURF')
-            ms.levels = sft.level
-            ms.render_levels = sft.level
-            geo.apply_modifier(ob, ms)
+            if sft.level > 0:
+                ms = ob.modifiers.new('ss', 'SUBSURF')
+                ms.levels = sft.level
+                ms.render_levels = sft.level
+                geo.apply_modifier(ob, ms)
         if solid:
             m = ob.modifiers.new('sol', 'SOLIDIFY')
             m.thickness = solid
@@ -96,7 +97,11 @@ def build(spec, mats):
     add('header_front', wall_box((-fh, fy), (fh, fy), zh, zc, 0.08), 'yuk_dark')
     add('glass_edge_front', wall_box((-fh, fy - 0.004), (fh, fy - 0.004), zh - 0.016, zh, 0.01), 'yuk_glass_edge')
     add('sill_front', wall_box((-fh, fy), (fh, fy), -0.62, zs, 0.06), 'yuk_paint')
-    add('post_center', geo.bm_box((0, fy + 0.03, (zs + zh) / 2), (cb.get('post_w', 0.058), 0.06, zh - zs)), 'yuk_dark')
+    if not prod:
+        add('post_center', geo.bm_box((0, fy + 0.03, (zs + zh) / 2), (cb.get('post_w', 0.058), 0.06, zh - zs)), 'yuk_dark')
+    else:      # r012: orta dikme iki ray + basamaklar (merdiven); HUD engelini de azaltır
+        for sg in (-1, 1):
+            add('post_center_rail_%d' % sg, geo.bm_box((sg * (cb.get('post_w', 0.03) / 2 - 0.004), fy + 0.03, (zs + zh) / 2), (0.008, 0.06, zh - zs)), 'yuk_dark')
     for s in (-1, 1):
         sd = 'L' if s < 0 else 'R'
         c0, c1 = side_pt(s, 0), side_pt(s, 1)
@@ -106,9 +111,16 @@ def build(spec, mats):
         Ls = math.hypot(sb[0] - fh, sb[1] - fy)      # eğik yan duvarın uzunluğu (t parametresi → metre)
         cw, sw_, pt_ = cb.get('post_corner_w', 0.0676), cb.get('post_side_w', 0.0772), cb.get('post_t', 0.07)      # dikme genişliği (duvar boyunca) ve kalınlığı (dışa) — r009: Mehmet 'dikmeler çok kalın'
         tc = 0.005
-        add('post_corner_' + sd, wall_box(side_pt(s, tc - cw / 2 / Ls), side_pt(s, tc + cw / 2 / Ls), zs, zh, pt_), 'yuk_dark')
         t = cb['side_post_t']
-        add('post_side_' + sd, wall_box(side_pt(s, t - sw_ / 2 / Ls), side_pt(s, t + sw_ / 2 / Ls), zs, zh, pt_), 'yuk_dark')
+        if not prod:
+            add('post_corner_' + sd, wall_box(side_pt(s, tc - cw / 2 / Ls), side_pt(s, tc + cw / 2 / Ls), zs, zh, pt_), 'yuk_dark')
+            add('post_side_' + sd, wall_box(side_pt(s, t - sw_ / 2 / Ls), side_pt(s, t + sw_ / 2 / Ls), zs, zh, pt_), 'yuk_dark')
+        else:      # r012: kafesli dikme (iki ray + X çaprazlar + bağlantı plakaları); toplam genişlik ve kalınlık aynı (Mehmet: dikme inceltmesi korunur)
+            rw = 0.009
+            for nm_, t0_, w_ in (('corner', tc, cw), ('side', t, sw_)):
+                for sg in (-1, 1):
+                    tr = t0_ + sg * (w_ / 2 - rw / 2) / Ls
+                    add('post_%s_rail_%s%d' % (nm_, sd, sg), wall_box(side_pt(s, tr - rw / 2 / Ls), side_pt(s, tr + rw / 2 / Ls), zs, zh, pt_), 'yuk_dark')
         add('wall_side_' + sd, wall_box((s * sb[0], sb[1]), (s * sb[0], -0.9), -0.92, zc, 0.06), 'yuk_paint')
         add('lamp_housing_' + sd, geo.bm_box((s * 0.80, 0.585, -0.33), (0.034, 0.012, 0.022)), 'yuk_dark')
         add('lamp_side_' + sd, geo.bm_box((s * 0.80, 0.578, -0.33), (0.012, 0.006, 0.007)), 'emit_amber', role='emit_live')
@@ -492,10 +504,10 @@ def build(spec, mats):
                 nn = -nn
             return a2, b2, dd, -nn, (b2 - a2).length
 
-        def wbox(acc, sd, t, z, along, h, thick, off=0.0):
+        def wbox(acc, sd, t, z, along, h, thick, off=0.0, skew=0.0):
             a2, b2, dd, inw, L_ = wl(sd)
             pp = a2 + (b2 - a2) * t + inw * (off + thick / 2)
-            acc.box((pp.x, pp.y, z), (along, thick, h), rot_z=math.atan2(dd.y, dd.x))
+            acc.box((pp.x, pp.y, z), (along, thick, h), rot_z=math.atan2(dd.y, dd.x), skew=skew)
         for sd in (-1, 1):
             a2, b2, dd, inw, Lw = wl(sd)
             wbox(dark_d, sd, 0.5, -0.70, 0.94 * Lw, 0.34, 0.010)      # alt yarı koyu çelik
@@ -529,9 +541,22 @@ def build(spec, mats):
                 black_d.cyl((p0.x, p0.y, zs - 0.40 + r_), (p1.x, p1.y, zs - 0.40 + r_), 0.0105, 7)
             for t_ in (0.12, 0.35, 0.58, 0.81):
                 wbox(steel_d, sd, t_, zs - 0.40, 0.022, 0.044, 0.030)
-            for t_, pw_ in ((0.0, cb.get('post_corner_w', 0.0676)), (cb['side_post_t'], cb.get('post_side_w', 0.0772))):      # dikme tabanlarında sarı-siyah kelepçe bantları
+            for t_, pw_ in ((0.005, cb.get('post_corner_w', 0.0676)), (cb['side_post_t'], cb.get('post_side_w', 0.0772))):      # dikme tabanlarında kelepçe bantları + kafes çaprazları
                 for z_, mt_, h_ in ((zs + 0.014, bare_d, 0.010), (zs + 0.030, hazard_d, 0.008), (zs + 0.046, bare_d, 0.010)):
                     wbox(mt_, sd, t_, z_, pw_ + 0.012, h_, 0.010)
+                gap = pw_ - 2 * 0.009
+                nseg = 6
+                zz = lin(zs + 0.06, zh - 0.02, nseg + 1)
+                for k_ in range(nseg):
+                    dz = zz[k_ + 1] - zz[k_]
+                    wbox(dark_d, sd, t_, (zz[k_] + zz[k_ + 1]) / 2, 0.0045, dz, 0.016, 0.0, skew=(1 if k_ % 2 == 0 else -1) * gap / dz)      # X çapraz (zikzak)
+                    wbox(bare_d, sd, t_, zz[k_], pw_ + 0.010, 0.008, 0.020)      # bağlantı plakası
+                    for dx_ in (-1, 1):
+                        a_, b_, d_, in_, L_ = wl(sd)
+                        pq = a2 + (b2 - a2) * (t_ + dx_ * (pw_ / 2 - 0.0045) / Lw) + inw * 0.021
+                        rivets.cyl((pq.x, pq.y, zz[k_]), (pq.x + inw.x * 0.005, pq.y + inw.y * 0.005, zz[k_]), 0.0032, 5)
+        for z_ in lin(zs + 0.04, zh - 0.04, 14):      # orta dikme basamakları
+            dark_d.box((0, fy + 0.03, z_), (cb.get('post_w', 0.03) - 0.012, 0.012, 0.005))
         # orta dikme: kelepçe halkaları ve sarı bantlar
         for z_ in lin(zs + 0.06, zh - 0.06, 6):
             steel_d.box((0, fy - 0.0035, z_), (cb.get('post_w', 0.036) + 0.012, 0.007, 0.012))
@@ -646,7 +671,7 @@ def build(spec, mats):
                                   ('detail_rust', rust_d, 'yuk_rust', 'body'), ('detail_hazard', hazard_d, 'yuk_hazard', 'body'), ('detail_pale', pale_d, 'yuk_pale', 'body'),
                                   ('detail_steel', steel_d, 'yuk_steel', 'body'), ('detail_bare', bare_d, 'yuk_bare', 'body'), ('detail_lamps', lamps_d, 'emit_amber', 'emit_live')):
             if not acc.empty():
-                add(nm, acc.bm, mt, role=role, smooth=60)
+                add(nm, Soft(acc.bm, 0.0022, 0) if nm in ('detail_plates', 'detail_pale', 'detail_rust', 'detail_bare') else acc.bm, mt, role=role, smooth=60)      # küçük pah: kenar parlaması ve aşınma (curvature)
 
     socks = [{'name': 'SOCK_cam_0', 'loc': (0, 0, 0), 'dir': (0, 1, 0), 'extras': {'purpose': 'pilot gözü (kamera sözleşmesi)', 'fovy': 74}},
              {'name': 'SOCK_claw_grip', 'loc': tuple(c + Vector((0, R, 0))), 'dir': (0, 1, 0), 'extras': {'purpose': 'kıskaç kavrama noktası', 'parent': 'ART_claw_wrist'}}]

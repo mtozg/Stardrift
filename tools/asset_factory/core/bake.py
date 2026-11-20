@@ -74,7 +74,7 @@ def _unroute(undo):
 SIZE_GROUP = {'base': 'base', 'emit': 'base', 'normal': 'normal', 'ao': 'orm', 'rough': 'orm', 'metal': 'orm'}
 
 
-def bake(ob, size, samples=32, ao_samples=96, margin=12, log=print):
+def bake(ob, size, samples=32, ao_samples=96, margin=12, log=print, ao_distance=None):
     """size: tek sayı ya da {'base','orm','normal'} sözlüğü (ORM kanalları aynı boyutta pişer)."""
     sizes = size if isinstance(size, dict) else {'base': size, 'orm': size, 'normal': size}
     sc = bpy.context.scene
@@ -96,6 +96,8 @@ def bake(ob, size, samples=32, ao_samples=96, margin=12, log=print):
         _target(mats, img)
         with bpy.context.temp_override(active_object=ob, object=ob, selected_objects=[ob], selected_editable_objects=[ob]):
             if key == 'ao':
+                if ao_distance:      # ayrıntı ölçekli AO (köşe/birleşim gölgesi); varsayılan dünya mesafesi (10 m) yalnız genel kapalılığı verir
+                    sc.world.light_settings.distance = ao_distance
                 sc.cycles.samples = ao_samples
                 bpy.ops.object.bake(type='AO')
             elif key == 'normal':
