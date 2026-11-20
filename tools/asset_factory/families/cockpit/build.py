@@ -420,23 +420,24 @@ def _lights():
     R.light('AREA', (0, 0.15, -0.30), 6.0, (0.9, 0.95, 1.0), 1.2, look=(0, 0.9, -0.45), name='Fill')
 
 
-def preview(spec, out, fast, obs):
+def preview(spec, out, fast, obs, probe=False):
     import numpy as np
     sc = bpy.context.scene
     _lights()
-    samples = 32 if fast else 128
+    samples = 12 if probe else (32 if fast else 128)      # probe (BUDGET MODE): düşük örnek, tek küçük pilot görüşü
     res = {}
     pilot = _pilot_cam()
-    R.render(os.path.join(out, '01_pilot.png'), pilot, (1600, 656) if not fast else (1200, 492), samples)
-    views = [('02_capraz', (0.62, -0.30, 0.28), (-0.15, 0.85, -0.45), 70, (1200, 750)),
+    R.render(os.path.join(out, '01_pilot.png'), pilot, (800, 328) if probe else ((1600, 656) if not fast else (1200, 492)), samples)
+    views = [] if probe else [('02_capraz', (0.62, -0.30, 0.28), (-0.15, 0.85, -0.45), 70, (1200, 750)),
              ('03_konsol', (0.30, 0.30, -0.18), (-0.05, 0.92, -0.42), 52, (1200, 750)),
              ('04_koltuk', (0.45, 0.62, -0.05), (0.0, -0.22, -0.40), 62, (1200, 750)),
              ('05_dis', (-2.2, 2.6, 1.5), (0, 0.25, -0.35), 38, (1200, 750))]
     for name, loc, look, fov, rs in views:
         c = R.camera(name, loc, look, fov)
         R.render(os.path.join(out, name + '.png'), c, rs, samples)
-    plan = R.camera('Plan', (0, 0.2, 4.0), (0, 0.2, -0.5), ortho_scale=2.6)
-    R.render(os.path.join(out, '06_plan.png'), plan, (900, 900), samples)
+    if not probe:
+        plan = R.camera('Plan', (0, 0.2, 4.0), (0, 0.2, -0.5), ortho_scale=2.6)
+        R.render(os.path.join(out, '06_plan.png'), plan, (900, 900), samples)
 
     # ölçüm 1: cam oranı ve orta (HUD) bölge engeli — pilot kamerasından alfa maskesi
     R.render(os.path.join(out, '_mask.png'), pilot, (1600, 656), 1, transparent=True, denoise=False)
@@ -474,7 +475,7 @@ def preview(spec, out, fast, obs):
         q = world_to_camera_view(sc, pilot, P(u, v, 0.9))
         errs.append(math.hypot(q.x * W - u, (1 - q.y) * H - v))
     res['camera_contract_err_px'] = round(max(errs), 3)
-    if not fast:      # PRODUCTION: nötr ışıklı altın referans (L3: Three r128 ile aynı kamera ve eşdeğer ışık)
+    if not fast and not probe and spec.get('profile') == 'PRODUCTION':      # yalnız PRODUCTION: nötr ışıklı altın referans (BUDGET MODE: PREVIEW'da gereksiz render yok) (L3: Three r128 ile aynı kamera ve eşdeğer ışık)
         R.rig_neutral()
         cams = []
         def eye_cam(nm, dx, dz):      # kokpit GLB'si yalnızca pilot gözünden görülür: altın referans da göz aralığından

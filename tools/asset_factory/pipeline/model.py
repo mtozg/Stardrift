@@ -11,7 +11,8 @@ from PIL import Image
 t_start = time.time()
 args = sys.argv[1:]
 asset_id, rev = args[0], int(args[1])
-fast = '--fast' in args
+probe = '--probe' in args
+fast = '--fast' in args or probe
 hash_only = args[args.index('--hash-only') + 1] if '--hash-only' in args else None
 spec = load_spec(asset_id)
 T = {}
@@ -40,7 +41,7 @@ if hash_only:
     print('RESULT', json.dumps({'geometry_hash': ghash}))
     sys.exit(0)
 
-out = work_dir(asset_id, rev, 'model')
+out = work_dir(asset_id, rev, 'probe' if probe else 'model')
 lo, hi = geo.bounds(obs)
 center = (lo + hi) / 2
 radius = (hi - lo).length / 2
@@ -48,14 +49,22 @@ tris = geo.tri_count(obs)
 emit_area = sum(p.area for o in obs for p in o.data.polygons if o.data.materials[0].get('sd_def', '').startswith('emit'))
 total_area = sum(p.area for o in obs for p in o.data.polygons)
 
+if probe and not hasattr(fam, 'preview'):      # BUDGET MODE probe: aile ölçüm/preview tanımlamıyorsa yalnız geometri özeti (render yok)
+    res = {'asset_id': asset_id, 'rev': rev, 'probe': True, 'geometry_hash': ghash, 'tris_source': tris, 'radius': round(radius, 4),
+           'bounds_min': [round(x, 4) for x in lo], 'bounds_max': [round(x, 4) for x in hi], 'seconds': round(time.time() - t_start, 1)}
+    save_json(os.path.join(out, 'meta.json'), res)
+    print('RESULT', json.dumps(res))
+    sys.exit(0)
+
 # ---- aileye özel PREVIEW (ör. kokpit: pilot kamerası, cam/ekran ölçümleri). Aile kendi render ve ölçümlerini yapar.
 if hasattr(fam, 'preview'):
     T['build_extra'] = 0
     t0 = time.time()
-    extra = fam.preview(spec, out, fast, obs)
+    extra = fam.preview(spec, out, fast, obs, probe=True) if probe else fam.preview(spec, out, fast, obs)
     T['preview'] = round(time.time() - t0, 2)
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, 'model.blend'), compress=True)
-    meta = {'asset_id': asset_id, 'rev': rev, 'fast': fast, 'profile': 'PREVIEW', 'geometry_hash': ghash, 'spec_hash': json_hash(spec),
+    if not probe:
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, 'model.blend'), compress=True)
+    meta = {'asset_id': asset_id, 'rev': rev, 'fast': fast, 'profile': 'PREVIEW', 'probe': probe, 'geometry_hash': ghash, 'spec_hash': json_hash(spec),
             'objects': len(obs), 'tris_source': tris, 'radius': round(radius, 4),
             'emit_area_ratio': round(emit_area / total_area, 4), 'timings': T, 'seconds': round(time.time() - t_start, 1),
             'blender': bpy.app.version_string, **extra}

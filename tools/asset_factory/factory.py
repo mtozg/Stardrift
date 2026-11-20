@@ -8,13 +8,14 @@
   python factory.py qc       <id>                 E: teknik doğrulama (L2–L4)
   python factory.py deliver  <id>                 F: teslim paketi (Kapı 2 onayı gerekir)
   python factory.py status
+BUDGET MODE (BUDGET.md): brief | model <id> --probe | note <id> "<geri bildirim>" | notes <id> | verify <id> [--delivery] | diff <id> <revA> <revB> | cost
 
 Kurallar: oyun dosyalarına yazılmaz (yalnızca okunur); onaylar registry.json'a kaydedilir; gerçek varlıklar yalnızca
 kullanıcı onayıyla kapıdan geçer (Claude yalnızca spec'inde test_asset=true olan Faz 0 test nesnelerini onaylayabilir)."""
 import argparse, datetime, glob, json, os, shutil, socket, subprocess, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from core import registry
-from core.paths import FACTORY, GAME_ROOT, DELIVERIES, QC, load_json, save_json, load_spec, work_dir, file_hash, json_hash
+from core.paths import FACTORY, GAME_ROOT, DELIVERIES, QC, WORK as WORK_ROOT, load_json, save_json, load_spec, work_dir, file_hash, json_hash
 
 PY = sys.executable
 
@@ -54,10 +55,27 @@ def check_forbidden_refs(spec):
         raise SystemExit('RED: tarif eski kokpit kaynaklarına referans veriyor %s (STANDARDS.md §0.1)' % bad)
 
 
+def frozen_guard(reg, what, asset_id):
+    """BUDGET MODE kuralı 8: onaylı ve dondurulmuş (ya da entegre) varlık yeniden üretilmez/değiştirilmez."""
+    fz = reg.get('frozen') or {}
+    if (fz and fz.get('rev') == reg['rev']) or reg['state'] == 'integrated':
+        raise SystemExit('DONDURULMUŞ: %s r%03d onaylı ve dondurulmuş (%s); %s yapılamaz. Değişiklik için kullanıcıdan yeni revizyon onayı gerekir: '
+                         'factory.py revise %s --reason "..." --user-approved "<kullanıcının sözü>"' % (asset_id, reg['rev'], reg['state'], what, asset_id))
+
+
 def cmd_model(a):
     spec = load_spec(a.id)
     check_forbidden_refs(spec)
     reg = registry.get(a.id, create=True)
+    frozen_guard(reg, 'model/probe', a.id)
+    if a.probe:      # probe: yalnız geometri + ölçümler + tek küçük render; kayıt durumu ve revizyon değişmez, çıktı work/<id>/rNNN/probe/
+        rev = reg['rev']
+        res, dt = sh([PY, 'pipeline/model.py', a.id, str(rev), '--probe'], os.path.join(work_dir(a.id, rev), 'factory.log'))
+        registry.record_timing(a.id, 'probe', dt)
+        scr = {k: v.get('gorunur') for k, v in (res.get('screens') or {}).items()}
+        print('PROBE r%03d %.0f s | üçgen %s | cam %s%% | HUD %s%% | ekran %s | kamera %s px' % (rev, dt, res.get('tris_source'), res.get('glass_ratio'), res.get('hud_zone_block'), scr or '-', res.get('camera_contract_err_px')))
+        print('RESULT', json.dumps({'stage': 'probe', 'seconds': round(dt, 1), **res}, ensure_ascii=False))
+        return
     production = spec.get('profile') == 'PRODUCTION' and reg['state'] in ('visual_approved', 'prepared', 'qc_fail', 'qc_pass')
     if production:
         # PRODUCTION ayrıntı modeli: Kapı 1 onayına dayanır; onaylı PREVIEW revizyonu korunur, yeni revizyon açılır, onay durumu kalır
@@ -72,6 +90,8 @@ def cmd_model(a):
     res, dt = sh([PY, 'pipeline/model.py', a.id, str(rev)] + (['--fast'] if a.fast else []), log)
     registry.record_timing(a.id, 'model', dt)
     registry.update(a.id, geometry_hash=res['geometry_hash'], spec_hash=json_hash(spec), fast=bool(a.fast))
+    if reg.get('notes'):      # biriken geri bildirimler bu revizyonda uygulandı sayılır (kuyruk boşalır, geçmişe yazılır)
+        registry.update(a.id, notes=[], notes_applied=(reg.get('notes_applied') or []) + [{'rev': rev, 'notes': reg['notes']}])
     if reg['state'] == 'draft':
         registry.transition(a.id, 'modeled', 'model + lookdev render')
     print('MODEL tamam: %.1f s, %d üçgen (kaynak), hash %s…' % (dt, res['tris_source'], res['geometry_hash'][:12]))
@@ -103,6 +123,7 @@ def cmd_approve(a):
 
 def cmd_prepare(a):
     reg = registry.require(a.id, 'visual_approved', 'prepared', 'qc_fail', 'qc_pass')
+    frozen_guard(reg, 'prepare', a.id)
     rev = reg['rev']
     log = os.path.join(work_dir(a.id, rev), 'factory.log')
     res, dt = sh([PY, 'pipeline/prepare.py', a.id, str(rev)] + (['--fast'] if a.fast else []), log)
@@ -294,6 +315,8 @@ def cmd_deliver(a):
     mdir, pdir, qdir = (work_dir(a.id, rev, s) for s in ('model', 'prepare', 'qc'))
     R = load_json(os.path.join(qdir, 'qc_report.json'))
     pmeta = load_json(os.path.join(pdir, 'meta.json'))
+    if os.path.getmtime(os.path.join(qdir, 'qc_report.json')) < os.path.getmtime(pmeta['glb']):
+        raise SystemExit('KAPI: teslimden önce TAM QC gerekir; qc_report.json hazırlanan GLB\'den eski. Önce: python factory.py qc %s' % a.id)
     out = os.path.join(DELIVERIES, a.id, 'r%03d' % rev + ('_aday' if getattr(a, 'candidate', False) else ''))
     if os.path.exists(out):
         shutil.rmtree(out)
@@ -414,9 +437,106 @@ def cmd_revise(a):
     reg = registry.get(a.id)
     if reg is None:
         raise SystemExit('kayıt yok: ' + a.id)
+    fz = reg.get('frozen') or {}
+    if ((fz and fz.get('rev') == reg['rev']) or reg['state'] == 'integrated') and not a.user_approved:
+        frozen_guard(reg, 'revise', a.id)
     registry.update(a.id, rev=reg['rev'] + 1, timings={}, perf_baseline=reg.get('perf_baseline'))
-    registry.transition(a.id, 'draft', 'yeni revizyon r%03d: %s' % (reg['rev'] + 1, a.reason))
+    registry.transition(a.id, 'draft', 'yeni revizyon r%03d: %s%s' % (reg['rev'] + 1, a.reason, (' [kullanıcı onayı: %s]' % a.user_approved) if a.user_approved else ''))
     print('RESULT', json.dumps({'id': a.id, 'rev': reg['rev'] + 1}))
+
+
+NEXT = {'draft': 'model (ya da model --probe)', 'modeled': 'Kapı 1: kullanıcı görsel onayı bekleniyor', 'visual_approved': 'PRODUCTION/prepare için kullanıcı onayı gerekir',
+        'prepared': 'qc (tam)', 'qc_fail': 'düzelt, prepare, qc', 'qc_pass': 'Kapı 2: kullanıcı teknik onayı bekleniyor', 'tech_approved': 'deliver',
+        'delivered': 'Kapı 3: entegrasyon, kullanıcı onayı gerekir', 'integrated': 'tamam (dondurulmuş)'}
+
+
+def cmd_brief(a):
+    """Görev başında belgeleri baştan okumak yerine: tek ekranda güncel durum (BRIEF.md kuralları + kayıt defteri)."""
+    print('Kurallar ve yollar: tools/asset_factory/BRIEF.md | BUDGET MODE: BUDGET.md | ayrıntı gerekirse yalnız ilgili bölüm: STANDARDS/QC/ARCHITECTURE/INVENTORY')
+    for k, v in registry.load()['assets'].items():
+        fz = v.get('frozen')
+        print('%-16s r%03d %-15s %s%s' % (k, v['rev'], v['state'], ('DONDURULMUŞ r%s | ' % fz.get('rev')) if fz else '', 'sıradaki: ' + NEXT.get(v['state'], '?')))
+        for n in v.get('notes') or []:
+            print('    bekleyen not: %s' % n['text'])
+
+
+def cmd_note(a):
+    reg = registry.get(a.id)
+    if reg is None:
+        raise SystemExit('kayıt yok: ' + a.id)
+    registry.update(a.id, notes=(reg.get('notes') or []) + [{'t': registry._now(), 'text': a.text}])
+    print('Not kuyruğa eklendi (%d bekliyor). Yeni PREVIEW üretilmez; notlar bir sonraki revizyonda birlikte uygulanır.' % (len(reg.get('notes') or []) + 1))
+
+
+def cmd_notes(a):
+    reg = registry.get(a.id) or {}
+    for i, n in enumerate(reg.get('notes') or [], 1):
+        print('%d. %s  (%s)' % (i, n['text'], n['t']))
+    if not reg.get('notes'):
+        print('bekleyen not yok')
+
+
+def cmd_verify(a):
+    """Hızlı doğrulama (saniyeler, Blender yok). Tam QC'nin yerine geçmez; teslim öncesi `qc` şart."""
+    from qc import verify
+    reg = registry.get(a.id)
+    if reg is None:
+        raise SystemExit('kayıt yok: ' + a.id)
+    spec = load_spec(a.id)
+    rev = reg['rev']
+    if a.delivery:
+        d = os.path.join(DELIVERIES, a.id, 'r%03d' % rev)
+        mf = load_json(os.path.join(d, 'manifest.json'))
+        glb, manifest = os.path.join(d, mf['glb']), mf
+    else:
+        glb, manifest = load_json(os.path.join(work_dir(a.id, rev, 'prepare'), 'meta.json'))['glb'], None
+    items, f = verify.main(glb, spec['class'], None, a.validator) if manifest is None else verify.main(glb, spec['class'], os.path.join(DELIVERIES, a.id, 'r%03d' % rev, 'manifest.json'), a.validator)
+    save_json(os.path.join(work_dir(a.id, rev, 'qc'), 'verify.json'), {'time': registry._now(), 'glb': os.path.basename(glb), 'items': items})
+    if f:
+        raise SystemExit('verify: %d başarısız kontrol' % f)
+
+
+def cmd_diff(a):
+    def meta(rev):
+        for sub in ('model', 'probe'):
+            p = os.path.join(WORK_ROOT, a.id, 'r%03d' % rev, sub, 'meta.json')
+            if os.path.exists(p):
+                return load_json(p)
+        raise SystemExit('r%03d için meta yok' % rev)
+    A, B = meta(a.rev_a), meta(a.rev_b)
+    keys = ['tris_source', 'glass_ratio', 'hud_zone_block', 'camera_contract_err_px', 'geometry_hash', 'spec_hash', 'radius', 'emit_area_ratio']
+    n = 0
+    for k in keys:
+        if A.get(k) != B.get(k):
+            n += 1
+            print('%-24s %s -> %s' % (k, str(A.get(k))[:14], str(B.get(k))[:14]))
+    for nm in sorted(set((A.get('screens') or {}).keys()) | set((B.get('screens') or {}).keys())):
+        sa, sb = (A.get('screens') or {}).get(nm, {}), (B.get('screens') or {}).get(nm, {})
+        for k in ('gorunur', 'kose_px'):
+            if sa.get(k) != sb.get(k):
+                n += 1
+                print('%-24s %s -> %s' % (nm + '.' + k, sa.get(k), sb.get(k)))
+    print('fark yok' if not n else '%d değişiklik' % n)
+
+
+def cmd_cost(a):
+    """Ölçülen maliyet: komut sayısı ve süre (gerçek, yerel saat). Claude token/kullanım verisi buradan ÖLÇÜLEMEZ; o ayrı ve tahmindir."""
+    p = os.path.join(WORK_ROOT, '_cost.jsonl')
+    if not os.path.exists(p):
+        print('kayıt yok')
+        return
+    rows = [json.loads(l) for l in open(p, encoding='utf-8') if l.strip()]
+    if a.since:
+        rows = [r for r in rows if r['t'] >= a.since]
+    agg = {}
+    for r in rows:
+        k = r['cmd'] + (' --probe' if r.get('probe') else '')
+        c = agg.setdefault(k, [0, 0.0])
+        c[0] += 1
+        c[1] += r['seconds']
+    for k, (n, sec) in sorted(agg.items(), key=lambda x: -x[1][1]):
+        print('%-18s %3d çalıştırma  %7.0f s' % (k, n, sec))
+    print('toplam %d komut, %.0f s (yerel işlem süresi; token kullanımı değil)' % (sum(v[0] for v in agg.values()), sum(v[1] for v in agg.values())))
 
 
 def cmd_status(a):
@@ -433,6 +553,8 @@ def main():
         p.add_argument('id')
         if n in ('model', 'prepare'):
             p.add_argument('--fast', action='store_true')
+        if n == 'model':
+            p.add_argument('--probe', action='store_true', help='BUDGET MODE: yalnız geometri + ölçümler + tek küçük render; revizyon ve durum değişmez')
         if n == 'deliver':
             p.add_argument('--candidate', action='store_true', help='Kapı 2 onayı beklenirken aday paket (durum değişmez)')
     p = sp.add_parser('approve')
@@ -444,9 +566,38 @@ def main():
     p = sp.add_parser('revise')
     p.add_argument('id')
     p.add_argument('--reason', required=True)
+    p.add_argument('--user-approved', help='dondurulmuş/entegre varlıkta yeni revizyon için kullanıcının açık sözü (yalnız kullanıcı isterse)')
     sp.add_parser('status')
+    sp.add_parser('brief')
+    p = sp.add_parser('note')
+    p.add_argument('id')
+    p.add_argument('text')
+    p = sp.add_parser('notes')
+    p.add_argument('id')
+    p = sp.add_parser('verify')
+    p.add_argument('id')
+    p.add_argument('--delivery', action='store_true', help='teslim paketini manifestiyle doğrula')
+    p.add_argument('--validator', action='store_true', help='Khronos doğrulayıcısını da çalıştır')
+    p = sp.add_parser('diff')
+    p.add_argument('id')
+    p.add_argument('rev_a', type=int)
+    p.add_argument('rev_b', type=int)
+    p = sp.add_parser('cost')
+    p.add_argument('--since', help='YYYY-MM-DD')
     a = ap.parse_args()
-    globals()['cmd_' + a.cmd](a)
+    t0, ok = time.time(), False
+    try:
+        globals()['cmd_' + a.cmd](a)
+        ok = True
+    finally:      # maliyet kaydı: komut, varlık, süre (work/_cost.jsonl; yerel, git dışı)
+        if a.cmd != 'cost':
+            try:
+                os.makedirs(WORK_ROOT, exist_ok=True)
+                with open(os.path.join(WORK_ROOT, '_cost.jsonl'), 'a', encoding='utf-8') as f:
+                    f.write(json.dumps({'t': datetime.datetime.now().isoformat(timespec='seconds'), 'cmd': a.cmd, 'id': getattr(a, 'id', None), 'seconds': round(time.time() - t0, 1),
+                                        'probe': bool(getattr(a, 'probe', False)), 'ok': ok}) + '\n')
+            except OSError:
+                pass
 
 
 if __name__ == '__main__':

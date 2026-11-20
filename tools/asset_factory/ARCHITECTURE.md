@@ -2,6 +2,8 @@
 
 Bu klasör yalnızca tasarım içerir; kod yok, varlık üretilmedi, oyunun hiçbir dosyası değişmedi.
 
+> **Çalışma sistemi:** görev başında bu belgeyi baştan okumak yerine `BRIEF.md` ve `python factory.py brief` kullanılır; tasarruflu iş akışı için `BUDGET.md` (BUDGET MODE, 2026-11-20). Mimari ve kapılar değişmedi.
+
 | Belge | İçerik |
 |---|---|
 | `ARCHITECTURE.md` (bu) | Amaç, kapsam, klasör yapısı, üretim hattı, Claude ile yönetim, fazlar |
