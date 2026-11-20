@@ -277,7 +277,7 @@ def build(spec, mats):
         for sd in (-1, 1):
             uu = (lambda a_, b_: (a_, b_)) if sd < 0 else (lambda a_, b_: (W - b_, W - a_))
             nm = 'L' if sd < 0 else 'R'
-            ua, ub = uu(205, 300); tier(ua, 430, ub, 560, 0.028, 0.045, 'shoulder_' + nm)
+            ua, ub = uu(185, 272); tier(ua, 436, ub, 556, 0.022, 0.04, 'shoulder_' + nm)      # ekran sol kenarına (u≈290) binmez: ekran içeriği örtülmesin
             for k_ in range(8):
                 v_ = 450 + k_ * 12
                 plate(ua + 8, v_, ub - 8, v_ + 3.5, dark_d, 0.052, 0.004)
