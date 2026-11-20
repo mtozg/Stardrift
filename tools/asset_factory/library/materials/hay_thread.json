@@ -1,0 +1,15 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.1,
+  0.035,
+  0.22
+ ],
+ "rough": [
+  0.6,
+  0.8
+ ],
+ "bump": 0.01,
+ "_note": "Hayalet: mor diki\u015f ipi (emisyonsuz)"
+}

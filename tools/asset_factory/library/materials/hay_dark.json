@@ -1,0 +1,29 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.028,
+  0.028,
+  0.034
+ ],
+ "rough": [
+  0.4,
+  0.7
+ ],
+ "scratch": 0.5,
+ "wear": 0.9,
+ "wear_color": [
+  0.25,
+  0.25,
+  0.3
+ ],
+ "dirt": 0.3,
+ "bump": 0.03,
+ "chips": 0.7,
+ "chip_scale": 18.0,
+ "grime": 0.3,
+ "wear_radius": 0.012,
+ "panels": 0.5,
+ "panel_scale": 3.0,
+ "_note": "Hayalet: koyu grafit çerçeve/kasa"
+}

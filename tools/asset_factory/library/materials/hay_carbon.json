@@ -1,0 +1,41 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.05,
+  0.05,
+  0.058
+ ],
+ "rough": [
+  0.3,
+  0.58
+ ],
+ "brush": 0.1,
+ "scratch": 0.5,
+ "wear": 1.1,
+ "wear_color": [
+  0.3,
+  0.3,
+  0.34
+ ],
+ "dirt": 0.3,
+ "bump": 0.04,
+ "chips": 1.0,
+ "chip_scale": 16.0,
+ "chip_color": [
+  0.32,
+  0.32,
+  0.36
+ ],
+ "grime": 0.35,
+ "streaks": 0.25,
+ "wear_radius": 0.016,
+ "tone_var": [
+  0.8,
+  1.15
+ ],
+ "panels": 0.55,
+ "panel_scale": 3.0,
+ "dirt_distance": 0.1,
+ "_note": "Hayalet: mat karbon-siyah gövde (r001)"
+}

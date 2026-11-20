@@ -262,6 +262,9 @@ def detail_pass2(A, add, D, vtop, surf, sl):
 
 
 def build(spec, mats):
+    if spec['params'].get('layout') == 'hayalet_b':      # Hayalet: ayrı tarif
+        from families.cockpit import hayalet_b
+        return hayalet_b.build(spec, mats)
     if spec['params'].get('layout') == 'yuk_b':      # Yük Devi (konsept B): ayrı tarif; Şahin tarifi değişmez
         from families.cockpit import yuk_b
         return yuk_b.build(spec, mats)
