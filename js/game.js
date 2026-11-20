@@ -7057,7 +7057,6 @@ window.__xpal = {
       + '<div id="ctlSet"></div>'
       + '<div class="sect">Grafik</div>'
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
-      + line('Kokpit camı', 'Pencerede hafif pus perdesi ve güneş ışıması (3B kokpitli gemilerde)', '<button class="act" data-set="cam">' + (window.__camOn ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
@@ -7082,7 +7081,6 @@ window.__xpal = {
     const b = e.target.closest('button[data-set]'); if (!b) return; const a = b.dataset.set;
     if (a === 'close') close();
     else if (a === 'mute'){ soundOn = !soundOn; save.mute = !soundOn; persist(); b.textContent = soundOn ? 'Açık' : 'Kapalı'; $('snd').classList.toggle('off', !soundOn); }
-    else if (a === 'cam'){ window.__camOn = !window.__camOn; try { localStorage.setItem('sd_cam', window.__camOn ? '1' : '0'); } catch (e) {} b.textContent = window.__camOn ? 'Açık' : 'Kapalı'; }
     else if (a === 'bloom'){ window.__bloomPref = !window.__bloomPref; try { localStorage.setItem('sd_bloom', window.__bloomPref ? '1' : '0'); } catch (e) {} b.textContent = window.__bloomPref ? 'Açık' : 'Kapalı'; }
     else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
