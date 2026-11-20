@@ -1,7 +1,7 @@
 # Stardrift — Yol Haritası ve Görev Kaydı
 
 Sahibi: HOD (Head of Development). Proje sahibi: Mehmet.
-Son güncelleme: 2026-11-20 · Temel sürüm: `main` 1.53.1 (bdda9b9)
+Son güncelleme: 2026-11-20 · `main` 1.61.0 (a963370) · açık PR #39 (1.62.3: K36, K37, K38; Mehmet kararı bekliyor)
 
 Kararlar için: [DECISIONS.md](DECISIONS.md)
 
@@ -33,43 +33,54 @@ Backlog · Planlandı · Devam · İnceleme · Test · Tamam · Bloke
 | S1-02b | PR #28 doku sızıntısı ölçümü | Asset Factory | P1 | S1-02a | Tamam: kokpit payı Δ=0 | Ölçüm raporu |
 | S1-02c | PR #28: main ile birleştirme, index.html sürüm çakışması (1.54.0) | Asset Factory | P1 | PR #30 | Tamam (fd6a7c5) | Merge commit SHA |
 | S1-02 | PR #28 birleştirme | Mehmet | P1 | S1-02c; QA Playwright PASS | Tamam (8eef9d7, 1.54.0) | `main` 1.54.0 |
-| S1-03 | Bekçi otomatik duraklatma/menü sıfırlaması, hangar `hgSet` dispose, WebGL bağlam temizliği | Lead Developer | P1 | S1-02 | İnceleme (PR #33) | PR + QA |
-| S1-04 | Kayıt sağlamlığı: şema sürümü, zaman damgası birliği, eski bulut anahtarı | Lead Developer | P1 | S1-12 | İnceleme (PR #33) | PR + QA |
+| S1-03 | Bekçi otomatik duraklatma/menü sıfırlaması, hangar `hgSet` dispose, WebGL bağlam temizliği | Lead Developer | P1 | S1-02 | Tamam (PR #32/#33 birleşti) | PR + QA |
+| S1-04 | Kayıt sağlamlığı: şema sürümü, zaman damgası birliği, eski bulut anahtarı | Lead Developer | P1 | S1-12 | Tamam (PR #32/#33 birleşti) | PR + QA |
 | S1-06 | Ölçüm (K10): üs pasif geliri, yan görev ödülleri, ödül avcısı katlanması | Lead Developer | P1 | — | Tamam: değişiklik gerekmiyor | Ölçüm raporu, kod değişikliği yok |
 | S1-07 | Denge analizi (K6–K7): korsan itibarı, gümrük riski, yol taraması, kaçak satış XP | Lead Developer | P2 | — | Tamam (Game Designer) | Ayrı ayrı değerlendirme |
-| S1-08 | BUDGET MODE (Asset Factory süreç iyileştirmesi) | Asset Factory | P3 | — | Devam (53dfdf6 PR #28 içinde; sonrası `claude/asset-factory-budget-mode`) | `tools/asset_factory` değişiklikleri |
+| S1-08 | BUDGET MODE (Asset Factory süreç iyileştirmesi) | Asset Factory | P3 | — | Devam (BUDGET MODE; yeni çalışma kuralı: tek plan, üretim sınırı, kısa rapor) | `tools/asset_factory` değişiklikleri |
 | S1-09 | ROADMAP, karar günlüğü, rapor arşivi | Lead Developer | P2 | K11 | Tamam (PR #29) | Bu dosya |
-| S1-10 | Kokpit GLB'lerinin offline paketine eklenmesi | Lead Developer | P1 | S1-02 | İnceleme (PR #33) | PR + QA |
-| S1-11 | Morr erişimi: zincir ipucu, ücra kapının görev aktifken haritada işaretlenmesi, Kara Liman ret mesajında çıkış kapısı | Lead Developer | P1 | — | İnceleme (PR #33) | PR + QA |
+| S1-10 | Kokpit GLB'lerinin offline paketine eklenmesi | Lead Developer | P1 | S1-02 | Tamam (PR #32/#33 birleşti) | PR + QA |
+| S1-11 | Morr erişimi: zincir ipucu, ücra kapının görev aktifken haritada işaretlenmesi, Kara Liman ret mesajında çıkış kapısı | Lead Developer | P1 | — | Tamam (PR #32/#33 birleşti) | PR + QA |
 | S1-12 | Taraf değiştirme metni "Usta Pilot rütbesi" → "1200 XP" (K8) + README düzeltmesi | Lead Developer | P2 | — | Tamam (PR #30 birleşti, QA PASS) | PR + QA |
 | S1-14 | Üste gümrüksüz kaçak satışı doğrulaması | Lead Developer | P1 | — | Tamam: kanıtlı | QA raporu |
-| S1-15 | K13: üste kaçak satışı kapatma, kara pazar yalnız Kara Liman ana istasyonu | Lead Developer | P1 | S1-13 | İnceleme (PR #33) | PR + QA |
-| S1-16 | K6, K7a, K7b: Korsan itibarı −50 (+ metin, tek seferlik göç), gümrük %25, tarama %25 | Lead Developer | P2 | S1-11 | İnceleme (PR #33) | PR + QA |
-| S1-17 | K14: kokpit modeli yüklenemezse durum satırı | Lead Developer | P2 | S1-02 | İnceleme (PR #33) | PR + QA |
-| S1-18 | Yük Devi kokpiti PRODUCTION (K15) | Asset Factory | P2 | — | **r010 revizyonu: görsel detay (K22)**; oyuna ekleme geri alındı | Kapı 2 teslim paketi |
+| S1-15 | K13: üste kaçak satışı kapatma, kara pazar yalnız Kara Liman ana istasyonu | Lead Developer | P1 | S1-13 | Tamam (PR #32/#33 birleşti) | PR + QA |
+| S1-16 | K6, K7a, K7b: Korsan itibarı −50 (+ metin, tek seferlik göç), gümrük %25, tarama %25 | Lead Developer | P2 | S1-11 | Tamam (PR #32/#33 birleşti) | PR + QA |
+| S1-17 | K14: kokpit modeli yüklenemezse durum satırı | Lead Developer | P2 | S1-02 | Tamam (PR #32/#33 birleşti) | PR + QA |
+| S1-18 | Yük Devi kokpiti PRODUCTION (K15) | Asset Factory | P2 | — | r012 oyundan geri alındı (K22); r013 Asset Factory'de (sütunsuz, koltuklu, açık ton); Kapı 1/2 Mehmet'te | Kapı 2 teslim paketi |
 | S1-13 | Kargo kaydı (K9): yenileme/yeniden girişte korunur, kopya kargo/ödül yok | Lead Developer | P1 | S1-12 | Tamam (PR #31) | PR + QA |
 
-### Açık kalanlar (Sprint 2 adayı)
-- WebGL bağlam sayısı (ana, hangar, XR, R3; QA P1): gerçek iPhone/iPad ölçümü olmadan değiştirilmedi.
-- Bekçi: `paused` yalnız ekran yönünden geliyor (bilinçli duraklatma yok), otomatik düzeltme bu yüzden doğru; `__menuOn` sezgisi cihazda gözlenmeli.
-- Masaüstünde gemi değişmeden "diğer" doku sayısının yavaş artışı (S1-02b gözlemi).
+### Açık kalanlar (gerçek cihaz bekleyenler aşağıdaki ayrı bölümde)
+- Masaüstünde gemi değişmeden "diğer" doku sayısının yavaş artışı (S1-02b gözlemi): çözülmedi, gözlem.
+- Bekçi `paused`: yalnız ekran yönünden geliyor, otomatik düzeltme doğru; `__menuOn` sezgisi cihazda gözlenecek.
 
-### `js/game.js` birleşme sırası
-S1-12 (PR #30, birleşti) → PR #28 → S1-13 → S1-15 → S1-11 → S1-16 → S1-10 → S1-17 → S1-03 → S1-04
+Lead Developer işleri tek dalda (`claude/stardrift-hod-system-np3akq`) sırayla yürütür; aynı anda tek açık kod PR'ı. Sprint 1 birleşme sırası tamamlandı (PR #28-#33). Kokpit kodu (`CK3`, `__ckb`) yalnızca yeni kokpit entegrasyonu PR'ında değişir.
 
-Lead Developer işleri tek dalda (`claude/stardrift-hod-system-np3akq`) sırayla yürütür; aynı anda tek açık kod PR'ı. Kokpit bölgelerine (`CK3`, kokpit yükleyici, `__ckb`) PR #28 birleşene kadar dokunulmaz.
+## Açık PR
+| PR | İçerik | Durum |
+|---|---|---|
+| #39 (1.62.3) | K36 yeni pano görevleri (Keşif, Kargoyu doldur), K37 Kadim yankı derin sinyali, K38 ölüm bedeli üst sınırı 2000; cam her zaman açık | **Mehmet kararı bekliyor.** K37 ödülü (450-750) analiz edildi, değişmedi (K39 notu). K38: 2000 korunuyor. Birleştirme Mehmet'te |
+
+## Tamamlananlar (main 1.61.0 ve öncesi)
+Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet, taraf unvanları), K13 kaçak kapatma, K9 kargo kaydı, Kadim Bekçi (B-04), Başarımlar (B-05), regresyon seti (B-07), kokpit cam hissi (K29), unvan görevleri 2. kademe (K32), başlangıç kargosu 16 (K30), kaçak XP (K31), bildirimler (K34), yetenek sıfırlama (B-06: zaten vardı, değişiklik gerekmedi).
 
 ## Backlog (onay bekleyen ya da sonraki sprint)
-| ID | Konu | Not |
+| ID | Konu | Durum |
 |---|---|---|
-| B-01a | Aşama 1-A bölge tablosu + 1-B hedef renkleri | İnceleme (PR #33) |
-| B-01c | Aşama 1-C devriye karar mantığı + rüşvet + tüccar kaçışı + korsan selamı | İnceleme (PR #33, 1.56.0), K20 |
-| B-01e | Unvanla açılan tarafa özel görevler | 2. kademe tamam (1.60.0, K32); 3. ve 4. kademe sırada. Tasarım: [DESIGN_UNVAN_GOREVLERI.md](DESIGN_UNVAN_GOREVLERI.md) |
-| B-01d | Aşama 1-D taraf unvanları | İnceleme (Sprint 3, 1.59.0); tarafa özel görev kilidi sonraya |
-| B-03 | Hayalet kokpiti | Yük Devi'den sonra |
-| B-04 | Bölüm 6 final patronu: Kadim Bekçi | İnceleme (K25); ödül yalnız rozet |
-| B-05 | Başarımlar (eski adı Pilot Kütüğü) ve rozetler | İnceleme (Sprint 2): 10 rozet, kademeli, ödülsüz; rozet çizimleri Asset Factory'ye sonra |
-| B-06 | Yetenek sıfırlama | Ücret Mehmet onayına bağlı |
-| B-07 | Playwright regresyon seti | Tamam: `tools/qa/` (`bash tools/qa/run.sh`) |
-| B-08 | Firebase kuralları ve kayıt kodu güvenliği | QA incelemesi |
+| B-01e | Unvan görevleri 3. ve 4. kademe | Ertelendi (K35): eskort ve patron avı mevcut sistemlerle çakışıyor; çift gelir olmayacak şekilde yeniden tasarım gerekir |
+| B-02 | Yük Devi (r013) ve Şahin (r013) kokpitleri | Asset Factory; Kapı 1/2 onayları Mehmet'te; oyuna ekleme ayrı PR |
+| B-03 | Hayalet kokpiti | Yük/Şahin'den sonra; Kaşif referanslı |
+| B-05b | Başarım rozet çizimleri (10 rozet × 3 kademe) | Asset Factory, sonra |
+| B-08 | Firebase kuralları ve kayıt kodu güvenliği | Mehmet'in konsol ekran görüntüsü gerekli |
 | B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |
+| B-10 | Game Designer içerikleri: Filo Bülteni, taşıma/eskort şablonları | Ekonomiye dokunmayan sürüm sonra |
+| B-11 | Ölüm ekranı açıkken sayfa yenilenirse bedel alınmıyor (önceden var) | Düşük öncelik; ayrı karar |
+
+## Gerçek cihaz testleri (iPhone / iPad; henüz yapılmadı)
+Plan: WebGL bağlam sayısı ve hangar↔oyun geçişi, bellek (arka plana atma, 30 sn sonra dönüş), 3B kokpit (Kaşif, Şahin), dokunmatik kontroller (devriye çağrı düğmeleri dahil), iPad 120 Hz hangar animasyonu, 15-30 dk oyun oturumu (ısınma, kare hızı, pil). Test edilmemiş sayılır: bütün performans ve bellek bilgisi swiftshader emülasyonundan.
+
+## Ekonomi kararları (bekleyen)
+| Madde | Değer | Durum |
+|---|---|---|
+| K37 Kadim yankı ödülü | 450-750 kredi + parça | Analiz sunuldu (DECISIONS K39); Mehmet nihai değeri onaylayacak |
+| K38 ölüm bedeli | %10, en az 50, en fazla 2000 | Mehmet onayı bekliyor; 2000 korunuyor |
+| K36 Keşif / Kargoyu doldur ödülleri | 7×N kredi (+3×N XP) / 100 kredi + 40 XP | Mehmet onayı bekliyor |

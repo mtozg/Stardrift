@@ -33,6 +33,7 @@ Gemini istasyondan kaldır, asteroit kır, kargonu sat, gemini geliştir ve dör
 - Taraf unvanı: tarafın görev zincirindeki ilerlemene göre değişir (Filo: Er → Devriye Subayı → Operasyon Lideri → Filo Komutanı; Lonca: Küçük Tüccar → Pazar Ustası → Sözleşme Lideri → Ticaret Lideri; Korsan: Kaçakçı → Akıncı → Çete Reisi → Korsan Lordu). Görevler sekmesindeki taraf satırında görünür; rütbeden ve ekonomiden bağımsızdır.
 - Unvanla açılan özel görevler: 2. unvana ulaşınca panoya tarafına özgü bir teklif gelir (Filo: Uzak devriye, Korsan: Pusu, Lonca: Toplu sipariş). Ödül formülleri diğer görevlerle aynıdır.
 - Başlangıç kargo kapasitesi 16 birim; kaçak mal satışı birim başına 5 XP verir.
+- Yeni pano görevleri: "Keşif" (bu sistemde yeni bölge kareleri aç) ve "Kargoyu doldur". Derin kuşakta (üsten 12,6 km ötede) "Kadim yankı" sinyali çıkabilir: 5 muhafızlı, yüksek riskli, yüksek ganimetli bir savaş.
 - Başarım ve unvan bildirimleri: rozet kazandığında ya da unvan atladığında ekranda bildirim çıkar; unvan atlayınca tarafın kısa bir telsiz mesajı gelir.
 - Başarımlar: istasyonda Görevler sekmesinin sonunda 10 rozet (Madenci, Avcı, Devriye avcısı, Kaçakçı, Siparişçi, Patron avcısı, Kadim dinleyici, Gezgin, Üs kurucu, Kapı Bekçisi), Bronz / Gümüş / Altın kademeli. Mevcut sayaçlardan hesaplanır; ödülü yoktur.
 - Kokpit camı hissi: 3B kokpitte pencere alanında hafif soğuk pus perdesi, güneşe bakınca ışıma. Kapatmak için adrese `?cam=0`, geri açmak için `?cam=1` eklenir.

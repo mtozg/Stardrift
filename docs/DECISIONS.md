@@ -101,6 +101,17 @@ Mehmet: "Evet ayarla, sonra da diğer işlere devam et." Değerler Lead Develope
 | K34 | **Başarım ve unvan bildirimleri** (Lead Developer, onay gerektirmeyen): rozet kazanılınca toast + ses; unvan atlayınca toast + tarafın kısa telsiz mesajı. Bildirimler sıraya konur. | Açılıştan 8 sn sonra mevcut seviyeler sessizce kaydedilir (eski oyunculara bildirim yağmaz). Ekonomi yok. | Lead Developer |
 | K35 | Unvan görevleri **3. ve 4. kademe ertelendi**: eskort mevcut sinyal sistemiyle, patron avı mevcut patron ödülüyle çakışıyor (yeni gelir kapısı riski). QA'nın bulut zaman damgası ve `saveWorld` bulguları yeniden değerlendirildi: gerçek ilerleme kaybı riski düşük, düzeltme yapılmadı. | Gerekirse sonra, Mehmet onayıyla. | Lead Developer |
 
+## 2026-11-20 (11) — "Onay gerektirenleri de yap, ben kontrol edip onaylarım"
+
+Mehmet blanket izin verdi; ekonomiye dokunan her madde PR'da kırmızı uyarıyla işaretlenir, onay PR incelemesinde.
+
+| ID | Karar | Değer / kısıt | Ajan |
+|---|---|---|---|
+| K36 | **Yeni pano görev türleri** (Game Designer önerisi): "Keşif" (bu sistemde N yeni bölge karesi, N = 25-45, ödül 7 × N kredi, 3 × N XP) ve "Kargoyu doldur" (100 kredi, 40 XP). Teklif sayısı değişmez; 'kaya' ya da 'ziyaret' teklifinin yerine %60 olasılıkla geçer. | Ödüller mevcut aralıkta (150-450 / 100); **yeni gelir değil, yer değiştirme**. Yeni sayaç yok (mevcut keşif ve kargo). | Lead Developer |
+| K37 | **Derin sinyal "Kadim yankı"** (Designer: hikâye sonrası hedef). Yalnız derin kuşakta (üsten > 12,6 km) çıkan sinyal: 5 muhafız (2 brute, 2 reaver, 1 raider). Ödül: **450-750 kredi** (× sistem ödül çarpanı) + 3 levha + 2 devre kartı + 1 enerji hücresi + 12 cevher. | **EKONOMİ ETKİSİ VAR.** Karşılaştırma: Korsan kampı 300-520 kredi + 2 levha + 1 devre. Derin sinyal ≈ 1,5 kat; riski de yüksek. Ağırlık 2 (kamp ile aynı). Rütbe ve XP formülleri değişmedi. | Lead Developer |
+| K38 | **Ölüm bedeli üst sınırı (EKONOMİ, Mehmet incelemesi bekliyor).** Bedel kredinin %10'u, en az 50; artık **en fazla 2000** (eskiden sınırsız: 500k kredide 50k kayıp). | Önerildi (PR #39); üst sınır 2000 korunuyor |
+| K39 | **K37 toplam kazanç analizi (değer DEĞİŞMEDİ).** 5 muhafızın öldürme ödülleri sistem çarpanıyla ölçeklenir (korsan başına 90-160 × bounty; Filo itibarı bonusu ayrıca). Toplam ortalama kredi: Ankora ≈ 1225 (görev 600 + gemiler 625), Kızıl ≈ 1845, Buzul ≈ 1547, Zümrüt ≈ 2806. Karşılaştırma: Ankora'da 5 gemilik "av" görevi ≈ 1175. Mehmet'in ön önerisi 350-600 ortalama toplamı Ankora'da ≈ 1100'e çeker (av görevinin altına). Nihai değer Mehmet'te | Analiz sunuldu |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
