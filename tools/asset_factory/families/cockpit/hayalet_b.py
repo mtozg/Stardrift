@@ -110,8 +110,37 @@ def build(spec, mats):
     screen('SCR_RADAR', sc['radar'], 9, 'radar')
     screen('SCR_SYS', sc['sys'], 11, 'sys')
     screen('SCR_HULL', sc['hull'], 11, 'hull')
+
+    def raised_frame(q, bz, lbl, h=0.04):
+        """r003: kabartma çerçeveli ekran yuvası: dış pah (konsol yüzünden öne), üst yüz, iç duvar (ekran düzlemine) → gerçek oyuk/derinlik."""
+        cu = sum(u for u, v in q) / 4
+        cv = sum(v for u, v in q) / 4
+
+        def ring(exp, off):
+            out = []
+            for (u, v) in q:
+                du, dv = u - cu, v - cv
+                l = math.hypot(du, dv)
+                out.append(P(u + du / l * exp, v + dv / l * exp, fd(v) - off))
+            return out
+        A_ = ring(bz * 2.3, 0.0)         # dış (konsol yüzünde)
+        B_ = ring(bz * 1.7, h)           # dış ön kenar (pahın üstü)
+        C_ = ring(bz * 0.45, h)          # iç ön kenar
+        D_ = ring(0.0, 0.016)            # ekran düzlemi
+        bm = bmesh.new()
+        rs = [[bm.verts.new(p) for p in r_] for r_ in (A_, B_, C_, D_)]
+        for r0, r1 in ((0, 1), (1, 2), (2, 3)):
+            for k in range(4):
+                bm.faces.new((rs[r0][k], rs[r0][(k + 1) % 4], rs[r1][(k + 1) % 4], rs[r1][k]))
+        add('frame3_' + lbl, bm, 'hay_carbon', eye=True)
+        for k in range(4):      # ön kenarda ince mor çizgi yalnız alt kenar (tek neon, az)
+            if k == 2:
+                lamps_d.cyl(C_[2] * 1.0 - C_[2].normalized() * 0.002, C_[3] * 1.0 - C_[3].normalized() * 0.002, 0.0028, 5)
+    if A.get('r003'):
+        for q_, bz_, l_ in ((sc['radar'], 9, 'radar'), (sc['sys'], 11, 'sys'), (sc['hull'], 11, 'hull')):
+            raised_frame(q_, bz_, l_)
     # ekranlar arası dikey bölme panelleri + orta kama sırt (radar üstü)
-    for k, (ua, ub) in enumerate(((606, 622), (978, 994))):
+    for k, (ua, ub) in enumerate(A.get('dividers', ((606, 622), (978, 994)))):
         add('divider_%d' % k, grid([[P(u, v, fd(v) - 0.012) for u in lin(ua, ub, 3)] for v in lin(vtop(ua) + 6, 520, 5)]), 'hay_mid', eye=True, solid=0.014, toward_eye=True)
     add('radar_cap', grid([[P(u, v, fd(v) - 0.02) for u in lin(620, 980, 10)] for v in lin(vtop(800) - 6, vtop(800) + 3, 3)]), 'hay_carbon', eye=True, solid=0.02, toward_eye=True)
 
@@ -150,18 +179,21 @@ def build(spec, mats):
     for sd in (-1, 1):
         uu = (lambda u: u) if sd < 0 else (lambda u: W - u)
         nm = 'L' if sd < 0 else 'R'
-        pil = [(uu(385 + 180 * t), 40 + 295 * t) for t in lin(0, 1.13, 13)]
+        pil = [(uu(385 + (A['canopy'].get('pil_dx', 180)) * t), 40 + 295 * t) for t in lin(0, 1.13, 13)]
         ribbon(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, 'pillar_' + nm, 0.022)
         # iç kenar neonu (dar ışık çizgisi, kanat yüzünde)
         seg = [P(uu(395 + 158 * t + (11 + 8 * t) - 4), 70 + 230 * t, dC - 0.25 * t - 0.014) for t in lin(0.0, 1, 8)]
         lamps_d.cyl(seg[1], seg[-2], 0.0035, 5)
         # dış kemer (yan pencere çerçevesi)
         arc = [(uu(u), v) for u, v in ((330, 18), (270, 38), (225, 60), (170, 100), (120, 150), (80, 200), (45, 255), (20, 305), (2, 350))]
-        ribbon(arc, 10, dC + 0.05, 'arc_' + nm, 0.02)
+        ribbon(arc, 10, dC + 0.05, 'arc_' + nm, 0.045 if A.get('r003') else 0.02)
+        if A.get('r003'):      # oluklu kemer/direk: yan yüzde koyu oluk (gölge çizgisi)
+            ribbon(arc, 2.5, dC + 0.05 - 0.03, 'arc_groove_' + nm, 0.006)
+            ribbon(pil, 2.5, lambda t: dC - 0.25 * t * 1.13 - 0.02, 'pillar_groove_' + nm, 0.006)
         lamps_d.cyl(P(uu(300), 26, dC - 0.015), P(uu(250), 44, dC - 0.015), 0.0045, 5)
         lamps_d.cyl(P(uu(60), 230, dC + 0.02), P(uu(18), 320, dC + 0.02), 0.0045, 5)
         # yan güverte kenarı: konsol omzundan yan kenara inen profil + neon çizgi
-        rim = [(uu(u), v) for u, v in ((330, 408), (200, 468), (90, 520), (0, 570))]
+        rim = [(uu(u), v) for u, v in (((270, 436), (190, 476), (90, 524), (0, 570)) if A.get('r003') else ((330, 408), (200, 468), (90, 520), (0, 570)))]
         ribbon(rim, 6, lambda t: fd(480) - 0.012, 'deck_rim_' + nm, 0.014)
         lamps_d.cyl(P(uu(250), 600, fd(600) - 0.012), P(uu(110), 640, fd(640) - 0.012), 0.0042, 5)
 
@@ -220,6 +252,35 @@ def build(spec, mats):
                 else:
                     hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - 0.0035), 0.0082, 6)
             r_ += 1
+
+    if A.get('r003'):      # r003: kademeli konsol yüzü (ekran bandı → orta basamak → alt şerit), yan panel kasaları, oluklu kemerler
+        def tier(u0, v0, u1, v1, off, th, name, acc=None, mat='hay_carbon'):
+            pa, pb = onF(u0, v0), onF(u1, v1)
+            c = ((pa.x + pb.x) / 2, pa.y - off, (pa.z + pb.z) / 2)
+            add(name, soft_box(c, (abs(pb.x - pa.x), th, abs(pa.z - pb.z)), 0.006, 0), mat, smooth=60)
+        for sd in (-1, 1):
+            uu = (lambda a_, b_: (a_, b_)) if sd < 0 else (lambda a_, b_: (W - b_, W - a_))
+            nm = 'L' if sd < 0 else 'R'
+            ua, ub = uu(235, 562); tier(ua, 566, ub, 614, 0.026, 0.05, 'tierB_' + nm)
+            ua, ub = uu(190, 540); tier(ua, 618, ub, 662, 0.052, 0.07, 'tierC_' + nm)
+            # orta basamak: havalandırma ızgarası + kablo kanalı + bulonlar
+            ga, gb = uu(300, 470)
+            for k_ in range(7):
+                v_ = 574 + k_ * 5.6
+                plate(ga, v_, gb, v_ + 2.2, dark_d, 0.0555, 0.004)
+            duct = [P(uu(250, 540)[0] + (uu(250, 540)[1] - uu(250, 540)[0]) * t, 620 + 3 * math.sin(t * 7), fd(620) - 0.062) for t in lin(0, 1, 14)]
+            add('duct3_' + nm, tube(duct, 0.0065, 8), 'hay_dark', smooth=60)
+            bolts([(uu(250, 530)[0], 640), (uu(250, 530)[1], 640), (uu(250, 530)[0], 576), (uu(250, 530)[1], 576)], 0.0545)
+            ea, eb = uu(560, 566)      # tier kenarında ince mor çizgi
+            lamps_d.cyl(P(uu(235, 540)[0], 614, fd(614) - 0.0535), P(uu(235, 540)[1], 614, fd(614) - 0.0535), 0.003, 5)
+        # üst gövde: ekran bandının üstünde omuz kalınlığı (yan panel kasası): ekran kasalarının dışında basamaklı omuz bloğu
+        for sd in (-1, 1):
+            uu = (lambda a_, b_: (a_, b_)) if sd < 0 else (lambda a_, b_: (W - b_, W - a_))
+            nm = 'L' if sd < 0 else 'R'
+            ua, ub = uu(205, 300); tier(ua, 430, ub, 560, 0.028, 0.045, 'shoulder_' + nm)
+            for k_ in range(8):
+                v_ = 450 + k_ * 12
+                plate(ua + 8, v_, ub - 8, v_ + 3.5, dark_d, 0.052, 0.004)
 
     # ---- koltuk: kapitone siyah deri (Kaşif ayak izi); radar alt kenarı yüksek → geniş görünür alan
     sy = 0.555

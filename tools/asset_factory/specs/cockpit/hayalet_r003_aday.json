@@ -1,0 +1,217 @@
+{
+ "id": "hayalet_r003_aday",
+ "family": "cockpit",
+ "class": "cockpit",
+ "seed": 6000,
+ "profile": "PRODUCTION",
+ "concept": "Hayalet r003 adayı: büyük ekranlar, kabartma çerçeveli yuvalar, kademeli konsol, oluklu kemerler (Mehmet geri bildirimi)",
+ "materials": [
+  "hay_carbon",
+  "hay_dark",
+  "hay_mid",
+  "hay_leather",
+  "hay_thread",
+  "emit_violet",
+  "screen_placeholder",
+  "hay_hex"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 2048,
+ "lods": [
+  1.0
+ ],
+ "reference": {
+  "concept": "tools/asset_factory/docs/hayalet_konsept.html"
+ },
+ "params": {
+  "layout": "hayalet_b",
+  "console": {
+   "d0": 0.86,
+   "slope": 0.00055,
+   "v0": 380,
+   "emblem_v": 512,
+   "top": [
+    [
+     0,
+     572
+    ],
+    [
+     90,
+     520
+    ],
+    [
+     200,
+     468
+    ],
+    [
+     330,
+     410
+    ],
+    [
+     376,
+     384
+    ],
+    [
+     600,
+     372
+    ],
+    [
+     640,
+     364
+    ],
+    [
+     960,
+     364
+    ],
+    [
+     1000,
+     372
+    ],
+    [
+     1224,
+     384
+    ],
+    [
+     1270,
+     410
+    ],
+    [
+     1400,
+     468
+    ],
+    [
+     1510,
+     520
+    ],
+    [
+     1600,
+     572
+    ]
+   ]
+  },
+  "screens": {
+   "radar": [
+    [
+     620,
+     366
+    ],
+    [
+     980,
+     366
+    ],
+    [
+     994,
+     506
+    ],
+    [
+     606,
+     506
+    ]
+   ],
+   "sys": [
+    [
+     300,
+     388
+    ],
+    [
+     590,
+     372
+    ],
+    [
+     590,
+     514
+    ],
+    [
+     290,
+     552
+    ]
+   ],
+   "hull": [
+    [
+     1010,
+     372
+    ],
+    [
+     1300,
+     388
+    ],
+    [
+     1310,
+     552
+    ],
+    [
+     1010,
+     514
+    ]
+   ]
+  },
+  "canopy": {
+   "depth": 1.25,
+   "pillar_r": 0.03,
+   "pil_dx": 160
+  },
+  "seat": {
+   "top_z": -0.35
+  },
+  "r002": true,
+  "r003": true,
+  "dividers": [
+   [
+    592,
+    604
+   ],
+   [
+    996,
+    1008
+   ]
+  ]
+ },
+ "prepare": {
+  "cull": "interior",
+  "eyes": [
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    0.07,
+    0,
+    0
+   ],
+   [
+    -0.07,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0.05
+   ],
+   [
+    0,
+    0,
+    -0.04
+   ],
+   [
+    0,
+    0.05,
+    0
+   ],
+   [
+    0,
+    -0.05,
+    0
+   ]
+  ],
+  "tex": {
+   "base": 2048,
+   "orm": 1024,
+   "normal": 1024
+  },
+  "uv_pack": "CONVEX",
+  "ao_distance": 0.3,
+  "ao_into_base": 0.35
+ }
+}
