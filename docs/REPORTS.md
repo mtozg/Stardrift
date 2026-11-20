@@ -199,3 +199,12 @@ Not: gerçek Firebase sunucusu, Google girişi (iOS PWA'da açılır pencere sor
 |---|---|
 | sifirla: Ayarlar'da Kayıt bölümünde düğme; yanlış yazıda hata ve kayıt duruyor; "sıfırla" yazınca kayıt silinir, oyun yeniden açılır ve eski pilot yok | PASS |
 Not: bulut silme gerçek Firebase'e karşı denenmedi (silme başarısız olursa yeni yerel kayıt daha yeni olduğu için buluta yazılır); gerçek cihaz test edilmedi. Arayüz ekran görüntüsüyle kontrol edildi.
+
+## 22. Sürüm 1.64.0 test özeti (Şahin r014 + Yük r015 kokpitleri)
+| Test | Sonuç |
+|---|---|
+| GLB sağlama: oyundaki 4 dosyanın SHA256 öneki teslim paketiyle aynı (Şahin d1305121 / 4a3626bb, Yük 590744a1 / 82517d0f) | Eşleşti |
+| Kaşif → Şahin → Yük döngüsü ×4 (masaüstü): doku/geometri tur boyunca sabit (76/123, 55/113, 55/119), sayfa hatası yok | PASS |
+| `qa_pr28.js` (Kaşif↔Şahin ×5 masaüstü ve iPhone 13 yatay boyutu): doku sabit (77→56→77→56→77; 62→41→62→41→62), engelli GLB'de toparlanma 10,4 sn, gerçek kayıtta `__ckb.swap` tanımsız | PASS |
+| Oyun içi görsel kontrol (Kaşif / Şahin r014 / Yük r015): ekranlar köşelere oturuyor, HUD sırtı doğru, orta dikme yok | Ekran görüntüsüyle |
+Not: swiftshader sayıları gerçek GPU'dan farklı olabilir; gerçek cihaz (iPhone/iPad) test edilmedi. Yük'te kıskaç statik. Resmî Kapı 2 kaydı (`factory.py approve/deliver`) Mehmet'in açık izni bekliyor.

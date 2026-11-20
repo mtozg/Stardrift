@@ -46,7 +46,7 @@ Backlog · Planlandı · Devam · İnceleme · Test · Tamam · Bloke
 | S1-15 | K13: üste kaçak satışı kapatma, kara pazar yalnız Kara Liman ana istasyonu | Lead Developer | P1 | S1-13 | Tamam (PR #32/#33 birleşti) | PR + QA |
 | S1-16 | K6, K7a, K7b: Korsan itibarı −50 (+ metin, tek seferlik göç), gümrük %25, tarama %25 | Lead Developer | P2 | S1-11 | Tamam (PR #32/#33 birleşti) | PR + QA |
 | S1-17 | K14: kokpit modeli yüklenemezse durum satırı | Lead Developer | P2 | S1-02 | Tamam (PR #32/#33 birleşti) | PR + QA |
-| S1-18 | Yük Devi kokpiti PRODUCTION (K15) | Asset Factory | P2 | — | r012 oyundan geri alındı (K22); r013 Asset Factory'de (sütunsuz, koltuklu, açık ton); Kapı 1/2 Mehmet'te | Kapı 2 teslim paketi |
+| S1-18 | Yük Devi kokpiti PRODUCTION (K15) | Asset Factory | P2 | — | Tamam: Yük Devi r015 oyunda (1.64.0), Kapı 1 Mehmet onaylı | Kapı 2 teslim paketi |
 | S1-13 | Kargo kaydı (K9): yenileme/yeniden girişte korunur, kopya kargo/ödül yok | Lead Developer | P1 | S1-12 | Tamam (PR #31) | PR + QA |
 
 ### Açık kalanlar (gerçek cihaz bekleyenler aşağıdaki ayrı bölümde)
@@ -67,8 +67,8 @@ Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet
 | ID | Konu | Durum |
 |---|---|---|
 | B-01e | Unvan görevleri 3. ve 4. kademe | Ertelendi (K35): eskort ve patron avı mevcut sistemlerle çakışıyor; çift gelir olmayacak şekilde yeniden tasarım gerekir |
-| B-02 | Yük Devi (r013) ve Şahin (r013) kokpitleri | Asset Factory; Kapı 1/2 onayları Mehmet'te; oyuna ekleme ayrı PR |
-| B-03 | Hayalet kokpiti | Yük/Şahin'den sonra; Kaşif referanslı |
+| B-02 | Yük Devi r015 ve Şahin r014 kokpitleri | Tamam: oyunda (1.64.0, PR bekliyor). Resmî Kapı 2 kaydı (`factory.py approve/deliver`) Mehmet'in açık izni bekliyor |
+| B-03 | Hayalet kokpiti | Konsept ve önizleme (r001) Mehmet onaylı; Asset Factory production'da (tek derleme, max 2 tur); oyuna ekleme (`CK3.hayalet`) sonra |
 | B-05b | Başarım rozet çizimleri (10 rozet × 3 kademe) | Asset Factory, sonra |
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | Mehmet'in konsol ekran görüntüsü gerekli |
 | B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |
