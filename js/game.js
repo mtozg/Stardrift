@@ -8688,12 +8688,16 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // istasyonda: Ticaret sekmesinde kaçak pazar ve kayıt silme
   const box = document.createElement('div'); box.id = 'kacakBox'; box.dataset.tab = 'trade';
   const BUY = 90, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 185 : 150);
+  // 1.54.2 (K13): kara pazar yalnız Kara Liman ana istasyonunda; oyuncu üssünde kaçak satılmaz (üste gümrük yok, satış açık olunca risksiz kâr kapısıydı)
+  const isPir = () => curSys === 5 && curSt === STATIONS[0], onBase = () => !!(curSt && curSt.isBase);
   function renderK(){
     const dc = $('dcont'); if (!dc) return; if (box.parentNode !== dc) dc.appendChild(box);
-    const pir = curSys === 5, free = HOLD() - save.kacak; let h = '<div class="sect">' + (pir ? 'Kaçak pazar' : 'Kaçak mal') + '</div>';
+    const pir = isPir(), free = HOLD() - save.kacak; let h = '<div class="sect">' + (pir ? 'Kaçak pazar' : 'Kaçak mal') + '</div>';
     if (pir){
       h += '<div class="line"><span>Kaçak mal al<span class="dim"><br>Birimi ' + BUY + ' kredi · Kara Liman dışında 150, Lonca Pazarı\'nda 185 kredi eder. Gizli bölme ' + save.kacak + '/' + HOLD() + '. Yakalanırsan birim başı 60 kredi ceza.</span></span><span style="display:flex;gap:6px"><button class="act" data-kc="b1" ' + (save.kredi < BUY || free < 1 ? 'disabled' : '') + '>Al 1</button><button class="act go" data-kc="b5" ' + (save.kredi < BUY * 5 || free < 5 ? 'disabled' : '') + '>Al 5</button></span></div>';
       if (save.wanted > 0) h += '<div class="line"><span>Kayıtlarını sildir<span class="dim"><br>Aranma seviyen: ' + STARS(save.wanted) + '</span></span><button class="act go" data-kc="clr" ' + (save.kredi < bounty() ? 'disabled' : '') + '>Sil · ' + bounty() + ' kredi</button></div>';
+    } else if (onBase()){
+      if (save.kacak) h += '<div class="line"><span>Kaçak mal · gizli bölme ' + save.kacak + '/' + HOLD() + '<span class="dim"><br>Kendi üssünde kaçak mal satılmaz. Bir istasyona götür; yanaşırken gümrük taraması riski var.</span></span></div>';
     } else {
       h += '<div class="line"><span>Kaçak mal sat · gizli bölme ' + save.kacak + '/' + HOLD() + '<span class="dim"><br>Birimi ' + sellP() + ' kredi. Kargondan ayrı taşınır; her yanaşmada gümrük taraması riski var.</span></span><button class="act go" data-kc="s" ' + (save.kacak ? '' : 'disabled') + '>Hepsini sat</button></div>';
       if (save.wanted > 0 && curSt === STATIONS[0] && curSys === 0 && save.fac.filo > -60) h += '<div class="line"><span>Cezanı öde<span class="dim"><br>Filo kaydını temizler.</span></span><button class="act" data-kc="fine" ' + (save.kredi < Math.round(bounty() * 1.5) ? 'disabled' : '') + '>Öde · ' + Math.round(bounty() * 1.5) + ' kredi</button></div>';
@@ -8702,6 +8706,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     box.innerHTML = h;
   }
   box.addEventListener('click', e => { const b = e.target.closest('button[data-kc]'); if (!b || b.disabled) return; const a = b.dataset.kc;
+    if ((a === 'b1' || a === 'b5' || a === 'clr') && !isPir()) return;
+    if (a === 's' && (isPir() || onBase())) return;
     if (a === 'b1' || a === 'b5'){ const n = a === 'b1' ? 1 : 5; if (save.kredi < BUY * n || HOLD() - save.kacak < n) return; save.kredi -= BUY * n; save.kacak += n; toast(n + ' birim kaçak mal yüklendi.', 1800); }
     else if (a === 's'){ const v = save.kacak * sellP(); (save.st || (save.st = {})).kacak = (save.st.kacak || 0) + save.kacak; save.kredi += v; save.kacak = 0; toast('Kaçak mal satıldı: +' + v + ' kredi', 2400); window.__fac && window.__fac('korsan', 3); }
     else if (a === 'clr'){ save.kredi -= bounty(); save.wanted = 0; toast('Kayıtların silindi. Artık aranmıyorsun.', 2600); }
@@ -10503,5 +10509,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   })();
   requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('sd-ready')));   // açılış perdesi kalkar (index.html)
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
-  if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap() };
+  if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
+    get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
+    dockAt: st => { if (docked) undock(); rig.position.copy(st.pos).add(V(0, 0, (st.r || 40) + 30)); vel.set(0, 0, 0); tryDock(); return docked && curSt === st; } };
 })();

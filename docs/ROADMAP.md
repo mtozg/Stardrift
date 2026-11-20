@@ -43,11 +43,11 @@ Backlog · Planlandı · Devam · İnceleme · Test · Tamam · Bloke
 | S1-11 | Morr erişimi: zincir ipucu, ücra kapının görev aktifken haritada işaretlenmesi, Kara Liman ret mesajında çıkış kapısı | Lead Developer | P1 | — | Planlandı | PR + QA |
 | S1-12 | Taraf değiştirme metni "Usta Pilot rütbesi" → "1200 XP" (K8) + README düzeltmesi | Lead Developer | P2 | — | Tamam (PR #30 birleşti, QA PASS) | PR + QA |
 | S1-14 | Üste gümrüksüz kaçak satışı doğrulaması | Lead Developer | P1 | — | Tamam: kanıtlı | QA raporu |
-| S1-15 | K13: üste kaçak satışı kapatma, kara pazar yalnız Kara Liman ana istasyonu | Lead Developer | P1 | S1-13 | Planlandı | PR + QA |
+| S1-15 | K13: üste kaçak satışı kapatma, kara pazar yalnız Kara Liman ana istasyonu | Lead Developer | P1 | S1-13 | İnceleme (1.54.2) | PR + QA |
 | S1-16 | K6, K7a, K7b: Korsan itibarı −50 (+ metin, tek seferlik göç), gümrük %25, tarama %25 | Lead Developer | P2 | S1-11 | Planlandı | PR + QA |
 | S1-17 | K14: kokpit modeli yüklenemezse durum satırı | Lead Developer | P2 | S1-02 | Planlandı | PR + QA |
 | S1-18 | Yük Devi kokpiti PRODUCTION (K15) | Asset Factory | P2 | — | Devam (Kapı 1 kaydı geçti) | Kapı 2 teslim paketi |
-| S1-13 | Kargo kaydı (K9): yenileme/yeniden girişte korunur, kopya kargo/ödül yok | Lead Developer | P1 | S1-12 | İnceleme (1.54.1) | PR + QA |
+| S1-13 | Kargo kaydı (K9): yenileme/yeniden girişte korunur, kopya kargo/ödül yok | Lead Developer | P1 | S1-12 | Tamam (PR #31) | PR + QA |
 
 ### `js/game.js` birleşme sırası
 S1-12 (PR #30, birleşti) → PR #28 → S1-13 → S1-15 → S1-11 → S1-16 → S1-10 → S1-17 → S1-03 → S1-04
