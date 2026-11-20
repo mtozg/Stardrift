@@ -1077,6 +1077,9 @@ const SAVEKEY = (() => { try { return localStorage.getItem('sd-key') || 'kayip-y
 let save = { kredi: 0, lv: { lazer: 0, kargo: 0, motor: 0 } };
 try { const s = JSON.parse(localStorage.getItem(SAVEKEY) || 'null'); if (s && s.lv) save = s; } catch (e) {}
 if (!save.ruin) save.ruin = [];
+// 1.55.0 (S1-04): kayıt şema sürümü ve temel doğrulama. Bozuk sayısal alanlar sıfırlanır (değerler değişmez, yalnız NaN/sonsuz/negatif temizlenir).
+save.sv = 1;
+for (const k of ['kredi', 'xp']) if (k in save && !(Number.isFinite(save[k]) && save[k] >= 0)) save[k] = 0;
 if (typeof save.ammo !== 'number') save.ammo = AMMO_MAX;
 if (typeof save.ammoD !== 'number') save.ammoD = 12;
 ruins.forEach((r, i) => { r.found = save.ruin.includes(i); });
@@ -6002,7 +6005,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
     c.innerHTML = '<div style="width:min(340px,86vw);padding:16px;border:1px solid #7fd8ff;border-radius:12px;background:#08101e;color:#e8edff;font:600 14px/1.4 var(--font)"><b style="display:block;margin-bottom:6px;color:#7fd8ff">Bulutta kayıt bulundu</b>Claude hesabına bağlı kayıt daha yeni (' + new Date(d.t).toLocaleString('tr-TR') + '). Yüklensin mi?<div style="display:flex;gap:8px;margin-top:12px"><button data-y style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--amber);background:rgba(255,180,84,.18);color:var(--amber);font:700 13px var(--font)">Yükle</button><button data-n style="flex:1;padding:9px;border-radius:8px;border:1px solid #667;background:none;color:#aab;font:700 13px var(--font)">Kalsın</button></div></div>';
     document.body.appendChild(c);
     c.querySelector('[data-n]').onclick = () => { c.remove(); push(); };
-    c.querySelector('[data-y]').onclick = async () => { try { localStorage.setItem('kayip-yildizlar', await dec(d)); location.reload(); } catch (e) { c.remove(); setInfo('Yükleme başarısız.'); } };
+    c.querySelector('[data-y]').onclick = async () => { try { localStorage.setItem(SAVEKEY, await dec(d)); location.reload(); } catch (e) { c.remove(); setInfo('Yükleme başarısız.'); } };
   };
   document.addEventListener('click', async e => {
     const b = e.target.closest && e.target.closest('button[data-cl]'); if (!b) return;
