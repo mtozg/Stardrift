@@ -67,6 +67,13 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 | K24 | Model politikası: varsayılan Sonnet; Opus yalnız Mehmet onayıyla. **PR "hazır" denince birleştirilir; hazır denen PR'a commit eklenmez.** **Bir model oyuna girmeden önce Kaşif ve Şahin ile yan yana ekran görüntüsüne bakılır ve Mehmet'e gösterilir** (yalnız ölçüm yetmez). | — | Tüm ekip |
 | K25 | **Sprint 2 başladı.** Ana görev Bölüm 6'ya yeni son adım: **Kadim Kapı'nın Bekçisi** (Ankora). Ödül yalnızca rozet; kredi, XP, parça yok. Mevcut öldürme ödülü (normal düşman bounty'si) geçerli. `save.boss`'a yazılmaz, ayrı bayrak `save.bekci`. Korsan dahil herkese düşman. | Ekonomi değerleri değişmedi. | Lead Developer |
 
+## 2026-11-20 (7)
+
+| ID | Karar | Kapsam / kısıt | Ajan |
+|---|---|---|---|
+| K26 | **Ana görsel referans artık Kaşif** (oyun içi onaylı 3B kokpit). Yük Devi r012 ve **Şahin r013** (yeni revizyon) Kaşif düzeyine çekilecek: pişirilmiş AO, kir, aşınma, derin panel yüzeyi. | Şahin r012 donmuş ve oyunda; r013 ayrı aday, Mehmet'in görsel onayına kadar oyundaki dosyalara dokunulmaz. Yük Devi r010 ve r011 görsel olarak reddedildi. | Asset Factory |
+| K27 | Kokpit **cam denemesi**: Şahin kopyasında 3 varyant (camsız, hafif, belirgin), yalnız görsel kıyas. | Oyuna girmez; beğenilirse yayma ayrı onay. | Asset Factory |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
