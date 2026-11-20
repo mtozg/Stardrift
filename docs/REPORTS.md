@@ -175,3 +175,9 @@ Not: "yalnız derin kuşakta çıkar" kuralı (ağırlık fonksiyonu) otomatik t
 | olum_hesap: ölüm bedeli 0→0, 30→30, 50→50, 200→50, 500→50, 600→60, 1000→100, 8000→800, 19999→2000, 25000→2000, 999999→2000 | PASS |
 | derin_sinyal, olum_siniri, pano_yeni, bildirim, ozel_ekonomi, kutuk (olay seçicisi `evW` işlevine ayrıldı; davranış aynı) | PASS |
 Not: `evW` ve `feeT` yalnızca `:test` kaydında dışarı verilir. Gerçek cihaz ve K37'nin gerçek oynanış dengesi test edilmedi.
+
+## 18. Sürüm 1.63.0 test özeti
+| Test | Sonuç |
+|---|---|
+| bulten: Filo, Lonca ve Korsan oyuncusu yanaşınca kendi önekli bülten satırı çıkar, `{u}` yer tutucusu kalmaz, sayfa hatası yok | PASS |
+Not: seçim rastgele; her koşul satırı tek tek otomatik doğrulanmadı. Başlık yanındaki yerleşim ekran görüntüsüyle kontrol edildi.
