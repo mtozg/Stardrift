@@ -1,0 +1,102 @@
+{
+ "id": "yuk_cockpit",
+ "rev": 9,
+ "glb": "sd_yuk_cockpit_r009.glb",
+ "glb_sha256": "826cd3a0cd6c833bb2767a245f0b51d345e221cb9f295987af9c222a88ef240b",
+ "glb_bytes": 714080,
+ "class": "cockpit",
+ "family": "cockpit",
+ "test_asset": false,
+ "units": "m",
+ "forward": "-Z",
+ "up": "+Y",
+ "length_m": 2.03,
+ "bounds_min": [
+  -1.1746000051498413,
+  -0.967199981212616,
+  -1.1299999952316284
+ ],
+ "bounds_max": [
+  1.1746000051498413,
+  0.6200000047683716,
+  0.8999999761581421
+ ],
+ "tris": [
+  4746
+ ],
+ "calls_lod0": 8,
+ "materials": [
+  "MAT_body",
+  "MAT_emit",
+  "MAT_screen"
+ ],
+ "textures": [
+  "textures/sd_yuk_cockpit_normal.webp",
+  "textures/sd_yuk_cockpit_orm.webp",
+  "textures/sd_yuk_cockpit_base.webp"
+ ],
+ "tex_gpu_bytes_est": 33554432,
+ "sockets": [
+  {
+   "name": "SOCK_claw_grip",
+   "position": [
+    0,
+    -1.3,
+    -1.6916
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "extras": {
+    "name": "SOCK_claw_grip",
+    "purpose": "kıskaç kavrama noktası",
+    "parent": "ART_claw_wrist",
+    "dir": [
+     0,
+     0,
+     -1
+    ]
+   }
+  },
+  {
+   "name": "SOCK_cam_0",
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "extras": {
+    "name": "SOCK_cam_0",
+    "purpose": "pilot gözü (kamera sözleşmesi)",
+    "fovy": 74,
+    "dir": [
+     0,
+     0,
+     -1
+    ]
+   }
+  }
+ ],
+ "qc": {
+  "verdict": "WARN",
+  "PASS": 66,
+  "WARN": 2,
+  "FAIL": 0,
+  "SKIP": 2
+ },
+ "contract": "GEÇİCİ — contracts/game_contract.md bekleniyor",
+ "draw_calls_three": 11,
+ "frozen": false,
+ "kasif_uyumluluk": {
+  "PASS": 18,
+  "FAIL": 0,
+  "INFO": 3
+ }
+}

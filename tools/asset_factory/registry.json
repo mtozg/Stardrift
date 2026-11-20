@@ -380,7 +380,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "qc_pass",
+   "state": "delivered",
    "rev": 9,
    "history": [
     {
@@ -509,6 +509,19 @@
      "from": "qc_fail",
      "to": "qc_pass",
      "reason": "QC WARN (66 PASS, 2 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-20T11:31:22+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: Yük Devi r009 teknik onayı; orta dikme 30 mm kalır. Tangent ve HUD (%10,1) uyarıları kabul. Kapsam: yalnız Asset Factory teslim paketi; entegrasyon Lead Developer'da.",
+     "by": "Mehmet (sohbet 2026-11-20: 'factory.py approve komutuna izin veriyorum, Yük Devi r009 teknik onayımı kaydet'; 'Yük Devi'ni onaylıyorum' HOD/Lead Developer oturumu üzerinden de iletildi)"
+    },
+    {
+     "t": "2026-11-20T11:31:33+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/yuk_cockpit/r009"
     }
    ],
    "timings": {
@@ -523,6 +536,16 @@
      "by": "Mehmet (sohbet 2026-11-20: onay + Bash izni verildi; K3/K15 HOD üzerinden iletildi)",
      "note": "PREVIEW r007 görsel onayı (konsept B + yükseltilmiş ekranlar). PRODUCTION: K15 ile Mehmet başlattı.",
      "accept_warn": []
+    },
+    {
+     "t": "2026-11-20T11:31:22+00:00",
+     "gate": "tech",
+     "by": "Mehmet (sohbet 2026-11-20: 'factory.py approve komutuna izin veriyorum, Yük Devi r009 teknik onayımı kaydet'; 'Yük Devi'ni onaylıyorum' HOD/Lead Developer oturumu üzerinden de iletildi)",
+     "note": "Yük Devi r009 teknik onayı; orta dikme 30 mm kalır. Tangent ve HUD (%10,1) uyarıları kabul. Kapsam: yalnız Asset Factory teslim paketi; entegrasyon Lead Developer'da.",
+     "accept_warn": [
+      "gltf.validator_warnings",
+      "cockpit.hud_zone_block"
+     ]
     }
    ],
    "geometry_hash": "2dc789d61300a144d03d5de59d435099a35658ea1853611120a580d1767f3670",
