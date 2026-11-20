@@ -10541,6 +10541,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
+    rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
     hg: () => ({ id: hgId, mem: hgR ? Object.assign({}, hgR.info.memory) : null }), hgSet: id => hgSet(id), hgOpen: () => { try { hgStart(); } catch (e) { return String(e); } return !!hgS; },
     dockAt: st => { if (docked) undock(); rig.position.copy(st.pos).add(V(0, 0, (st.r || 40) + 30)); vel.set(0, 0, 0); tryDock(); return docked && curSt === st; } };
 })();
