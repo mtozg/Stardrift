@@ -4033,8 +4033,15 @@ function mkShip(id){
   }
   return g;
 }
+// 1.55.0 (S1-03): hangarda gemi değişince eski model GPU'dan bırakılır. Ortak dokular (artTex önbelleği, boş doku, hangar ortam haritası) korunur.
+function hgFree(root){
+  const keep = new Set(Object.values(artTex)); if (blankTex) keep.add(blankTex); if (hgEnv) keep.add(hgEnv);
+  const seen = new Set(), free = x => { if (x && !seen.has(x) && !keep.has(x)){ seen.add(x); try { x.dispose(); } catch (e) {} } };
+  root.traverse(o => { if (o.geometry) free(o.geometry); const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of ms){ for (const k in m){ const v = m[k]; if (v && v.isTexture) free(v); } if (m.uniforms) for (const k in m.uniforms){ const v = m.uniforms[k] && m.uniforms[k].value; if (v && v.isTexture) free(v); } free(m); } });
+}
 function hgSet(id){
-  if (!hgS || hgId === id) return; hgId = id; if (hgM) hgS.remove(hgM);
+  if (!hgS || hgId === id) return; hgId = id; if (hgM){ hgS.remove(hgM); try { hgFree(hgM); } catch (e) { console.warn(e); } }
   hgM = mkShip(id); hgS.add(hgM);
 }
 function hgLoop(){
@@ -10524,5 +10531,6 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
+    hg: () => ({ id: hgId, mem: hgR ? Object.assign({}, hgR.info.memory) : null }), hgSet: id => hgSet(id), hgOpen: () => { try { hgStart(); } catch (e) { return String(e); } return !!hgS; },
     dockAt: st => { if (docked) undock(); rig.position.copy(st.pos).add(V(0, 0, (st.r || 40) + 30)); vel.set(0, 0, 0); tryDock(); return docked && curSt === st; } };
 })();
