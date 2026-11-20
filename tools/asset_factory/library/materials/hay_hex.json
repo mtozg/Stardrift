@@ -1,0 +1,17 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.016,
+  0.016,
+  0.022
+ ],
+ "rough": [
+  0.65,
+  0.88
+ ],
+ "bump": 0.02,
+ "wear": 0.2,
+ "dirt": 0.2,
+ "_note": "Hayalet r002: koyu, mat altıgen güverte (parlak petek yok)"
+}

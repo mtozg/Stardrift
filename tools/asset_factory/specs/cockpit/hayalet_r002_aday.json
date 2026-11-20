@@ -1,0 +1,205 @@
+{
+ "id": "hayalet_r002_aday",
+ "family": "cockpit",
+ "class": "cockpit",
+ "seed": 6000,
+ "profile": "PRODUCTION",
+ "concept": "Hayalet: karbon-siyah, tek mor neon, ince X/V A-direkleri (ortada dikme yok), kama konsol, kapitone deri koltuk (konsept Kapı 1 onaylı 2026-11-20) · PRODUCTION r002 · r002 adayı: koyu alçak altıgen, bitişik kapitone",
+ "materials": [
+  "hay_carbon",
+  "hay_dark",
+  "hay_mid",
+  "hay_leather",
+  "hay_thread",
+  "emit_violet",
+  "screen_placeholder",
+  "hay_hex"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 2048,
+ "lods": [
+  1.0
+ ],
+ "reference": {
+  "concept": "tools/asset_factory/docs/hayalet_konsept.html"
+ },
+ "params": {
+  "layout": "hayalet_b",
+  "console": {
+   "d0": 0.86,
+   "slope": 0.00055,
+   "v0": 380,
+   "emblem_v": 512,
+   "top": [
+    [
+     0,
+     572
+    ],
+    [
+     90,
+     520
+    ],
+    [
+     200,
+     468
+    ],
+    [
+     330,
+     410
+    ],
+    [
+     376,
+     384
+    ],
+    [
+     600,
+     372
+    ],
+    [
+     640,
+     364
+    ],
+    [
+     960,
+     364
+    ],
+    [
+     1000,
+     372
+    ],
+    [
+     1224,
+     384
+    ],
+    [
+     1270,
+     410
+    ],
+    [
+     1400,
+     468
+    ],
+    [
+     1510,
+     520
+    ],
+    [
+     1600,
+     572
+    ]
+   ]
+  },
+  "screens": {
+   "radar": [
+    [
+     644,
+     374
+    ],
+    [
+     956,
+     374
+    ],
+    [
+     972,
+     490
+    ],
+    [
+     628,
+     490
+    ]
+   ],
+   "sys": [
+    [
+     376,
+     382
+    ],
+    [
+     596,
+     381
+    ],
+    [
+     596,
+     486
+    ],
+    [
+     330,
+     522
+    ]
+   ],
+   "hull": [
+    [
+     1002,
+     381
+    ],
+    [
+     1224,
+     384
+    ],
+    [
+     1272,
+     522
+    ],
+    [
+     1002,
+     488
+    ]
+   ]
+  },
+  "canopy": {
+   "depth": 1.25,
+   "pillar_r": 0.03
+  },
+  "seat": {
+   "top_z": -0.35
+  },
+  "r002": true
+ },
+ "prepare": {
+  "cull": "interior",
+  "eyes": [
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    0.07,
+    0,
+    0
+   ],
+   [
+    -0.07,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0.05
+   ],
+   [
+    0,
+    0,
+    -0.04
+   ],
+   [
+    0,
+    0.05,
+    0
+   ],
+   [
+    0,
+    -0.05,
+    0
+   ]
+  ],
+  "tex": {
+   "base": 2048,
+   "orm": 1024,
+   "normal": 1024
+  },
+  "uv_pack": "CONVEX",
+  "ao_distance": 0.3,
+  "ao_into_base": 0.35
+ }
+}

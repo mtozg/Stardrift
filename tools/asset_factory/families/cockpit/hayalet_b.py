@@ -215,7 +215,10 @@ def build(spec, mats):
                 uo = u_ + (6.5 if r_ % 2 else 0.0)
                 dd_ = fd(v_) - 0.004      # r001-düzeltme: güverte yüzü konsol yüzünün ARKASINDA kalıp altıgenleri gizliyordu
                 p0 = P(uu(uo), v_, dd_)
-                hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - 0.0035), 0.0082, 6)
+                if A.get('r002'):      # r002: koyu ve alçak altıgen (parlak petek yok)
+                    hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - 0.0018), 0.0072, 6)
+                else:
+                    hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - 0.0035), 0.0082, 6)
             r_ += 1
 
     # ---- koltuk: kapitone siyah deri (Kaşif ayak izi); radar alt kenarı yüksek → geniş görünür alan
@@ -227,7 +230,8 @@ def build(spec, mats):
         nm = 'L' if s_ < 0 else 'R'
         add('seat_wing_v_' + nm, soft_box((s_ * 0.235, sy - 0.012, ztop - 0.215), (0.10, 0.11, 0.26), 0.024, 1), 'hay_leather', smooth=60)
     # kapitone yastıkçıklar (üç sütun x üç sıra başlıkta; kanatlarda iki sıra) ve aralarında koyu mor iplik
-    pad = lambda cx, cz, w, h, nm, yy: add(nm, soft_box((cx, yy, cz), (w, 0.022, h), 0.010, 1), 'hay_leather', smooth=60)
+    pw_, ph_, pd_, pb_ = (0.1055, 0.0685, 0.012, 0.014) if A.get('r002') else (0.100, 0.062, 0.022, 0.010)      # r002: yastıklar neredeyse bitişik, düşük kabartma (tek kapitone yüz)
+    pad = lambda cx, cz, w, h, nm, yy: add(nm, soft_box((cx, yy, cz), (w if not A.get('r002') else pw_, pd_, h if not A.get('r002') else ph_), pb_, 1), 'hay_leather', smooth=60)
     for r_, dz_ in enumerate((0.045, 0.115, 0.185)):
         for c_, dx_ in enumerate((-0.108, 0.0, 0.108)):
             pad(dx_, ztop - dz_, 0.100, 0.062, 'seat_pad_%d%d' % (r_, c_), fyy - 0.004)
@@ -243,7 +247,7 @@ def build(spec, mats):
     # ---- toplu ayrıntı grupları (küçük pah: kenar parlaması)
     for nm, acc, mt, role, bev in (('detail_carbon', carb_d, 'hay_carbon', 'body', True), ('detail_dark', dark_d, 'hay_dark', 'body', True), ('detail_mid', mid_d, 'hay_mid', 'body', True),
                                    ('detail_neon', lamps_d, 'emit_violet', 'emit_live', False), ('detail_thread', thread_d, 'hay_thread', 'body', False),
-                                   ('detail_rivets', rivets, 'hay_mid', 'body', False), ('detail_hex', hexes, 'hay_dark', 'body', False)):
+                                   ('detail_rivets', rivets, 'hay_mid', 'body', False), ('detail_hex', hexes, 'hay_hex' if A.get('r002') else 'hay_dark', 'body', False)):
         if not acc.empty():
             add(nm, Soft(acc.bm, 0.0018, 0) if bev else acc.bm, mt, role=role, smooth=60)
 
