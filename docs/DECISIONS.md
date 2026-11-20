@@ -35,6 +35,12 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 | K15 | Yük Devi kokpiti **PRODUCTION başlasın**. | Kapı 2 (teknik) ve Kapı 3 (entegrasyon) onayları ayrıca alınır. | Asset Factory |
 | G-2 | Developer oturumu yalnız `claude/bold-bardeen-oqf73o` dalına push edebiliyor: işler bu dalda sırayla, aynı anda tek açık PR, her PR birleşince dal `main`'den tazelenir. | G-1 kuralının uyarlaması. | Developer |
 
+## 2026-11-20 (3) — Ekip yapısı
+
+| ID | Karar | Kapsam / kısıt | Ajan |
+|---|---|---|---|
+| K16 | Aktif ekip 2 ajan: **Lead Developer** (HOD + Developer + QA + Game Design, ana oturum) ve **Asset Factory** (bağımsız 3D uzmanı). | QA Engineer, Game Designer ve Developer oturumlarına yeni görev atanmaz; oturumlar silinmez (Mehmet'in son onayına kadar). Açık PR, dal ve dosya silinmez. Gereksiz paralel oturum açılmaz; işler ana oturumda sırayla yürür. Rütbe, XP ve kredi onay kuralları aynen geçerli. | Tümü |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
