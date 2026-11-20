@@ -1,0 +1,106 @@
+<title>Yük Devi Kokpit Kapı 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: tek sütun; pilot görüşü, karar bekleyen konular, ölçümler, Blender ⟷ Three, kıskaç hiyerarşisi, Kapı 2 kararı. */
+:root {
+  --bg: #f2f2ec; --surface: #ffffff; --ink: #1e1f19; --muted: #5d5f52; --line: #dcdcd0;
+  --accent: #a8561c; --good: #2f7a45; --good-soft: #e2f1e6; --warn: #946200; --warn-soft: #f8eed4; --code-bg: #ebebe2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 80px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 46px/1.05 var(--f-display); margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 28px/1.15 var(--f-display); margin: 48px 0 10px; text-wrap: balance }
+p, li { max-width: 76ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font: .86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px }
+figure { margin: 12px 0 18px } figure img { display: block; width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0a0d14 }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 5px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 10px 0 }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: nowrap }
+.pill { display: inline-block; font: 600 12px var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.p-ok { background: var(--good-soft); color: var(--good) } .p-warn { background: var(--warn-soft); color: var(--warn) }
+pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; font: 13.5px/1.55 var(--f-mono); overflow-x: auto }
+.gate { margin-top: 40px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 18px 20px }
+.gate h2 { margin-top: 0 } .gate ol { padding-left: 20px } .gate li { margin: 5px 0 }
+@media (max-width: 760px) { h1 { font-size: 36px } }
+</style>
+
+<main>
+<div class="eyebrow">Asset Factory · Yük Devi · PRODUCTION r008 · Kapı 2</div>
+<h1>Yük Devi Kokpit Kapı 2</h1>
+<p class="lede">Onaylı PREVIEW r007 tasarımı ayrıntılandırıldı: perçin sıraları, plakalar, havalandırma ızgaraları, anahtar panelleri, kadranlar, ekran bulonları, yumuşak koltuk ve kıskaç ayrıntısı. GLB, doku ve QC hazır. Bu bir <b>teslim adayıdır</b>: teknik onayın (Kapı 2) kaydı sende; oyuna entegre edilmedi.</p>
+
+<h2>Pilot görüşü</h2>
+<figure><img src="img/yuk_prod/01_pilot.webp" alt="Yük Devi kokpiti, pilot görüşü"><figcaption>Blender, kendi ışığıyla. Ekranlardaki camgöbeği düz renk yer tutucudur; oyunda canlı ekranlar bağlanır.</figcaption></figure>
+<div class="grid2">
+  <figure><img src="img/yuk_prod/cene.webp" alt="Çene camından kıskaç"><figcaption>Çene camından kıskaç: iki çene ve bilek göbeği. Kök ve dirsek çerçevenin altında.</figcaption></figure>
+  <figure><img src="img/yuk_prod/03_konsol.webp" alt="Konsol yakın plan"><figcaption>Konsol: güverte havalandırması, anahtar kapakları, ekran bulonları.</figcaption></figure>
+  <figure><img src="img/yuk_prod/02_capraz.webp" alt="Çapraz görünüş"><figcaption>Çapraz: dikme plakaları, perçin sıraları, koltuk.</figcaption></figure>
+  <figure><img src="img/yuk_prod/05_dis.webp" alt="Dıştan"><figcaption>Dıştan: köprü kabini ve burun altındaki kıskaç.</figcaption></figure>
+</div>
+
+<h2>Karar bekleyen konular</h2>
+<ul>
+  <li><b>HUD bölgesi engeli %10,5</b> (sınır %10, Kaşif %9,3; uyarı, hata değil). Engelin kaynağı orta dikme, plakaları ve RADAR çerçevesinin üst kenarı. PREVIEW ölçümü %8,8 idi; QC 8 px aralıklı ışın ızgarası kullandığı için daha kaba. Onaylayabilir ya da düzeltme isteyebilirsin (dikme plakalarını inceltmek ≈ 0,5 puan kazandırır, 27 dakikalık yeniden üretim gerekir).</li>
+  <li><b>Tangent uyarısı</b> (7 × <code>MESH_PRIMITIVE_GENERATED_TANGENT_SPACE</code>): GLB'de tangent yok, three çalışma anında üretir. Şahin ve Kaşif'te de aynı; Şahin'de kabul edilmişti.</li>
+  <li><b>Siluet farkı Blender ⟷ Three %0,99</b> (pilot görüşü, sınır %1): sınıra yakın ama geçiyor.</li>
+</ul>
+
+<h2>Ölçümler</h2>
+<div class="tbl"><table>
+<tr><th>Ölçü</th><th>Yük Devi r008</th><th>Şahin r012</th><th>Kaşif</th><th>Bütçe</th><th></th></tr>
+<tr><td>GLB boyutu</td><td class="num">714 KB</td><td class="num">717 KB</td><td class="num">3,8 MB</td><td>≤ 4 MB</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Üçgen (görünen)</td><td class="num">4.752</td><td class="num">9.384</td><td class="num">56.362</td><td>≤ 60 bin</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Draw call</td><td class="num">11 (8 statik + 3 ekran)</td><td class="num">5</td><td class="num">15</td><td>≤ 28</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>GPU doku belleği (tahmin)</td><td class="num">32 MB</td><td class="num">32 MB</td><td class="num">≈ 512 MB</td><td>≤ 40 MB</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Doku yoğunluğu</td><td class="num">370 px/m</td><td class="num">406 px/m</td><td class="num">239 px/m</td><td>≥ 240 px/m</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Ekran görünürlüğü SYS · RADAR · HULL</td><td class="num">5/5 · 5/5 · 5/5</td><td class="num">5/5</td><td></td><td>5/5</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Cam oranı</td><td class="num">%46,2</td><td class="num">%54,5</td><td class="num">%50,7</td><td>bilgi</td><td><span class="pill p-ok">bilgi</span></td></tr>
+<tr><td>RADAR oranı</td><td class="num">1,73:1</td><td class="num">1,56:1</td><td class="num">3:1</td><td>canvas bu orana göre</td><td><span class="pill p-ok">bilgi</span></td></tr>
+<tr><td>Ters yüz görünürlüğü</td><td class="num">%0,06</td><td></td><td></td><td>≤ %0,5</td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Kaşif sözleşme uyumu</td><td class="num">18 PASS · 0 FAIL · 3 bilgi</td><td class="num">aynı</td><td></td><td></td><td><span class="pill p-ok">geçti</span></td></tr>
+<tr><td>Tam QC</td><td class="num">66 PASS · 2 WARN · 0 FAIL</td><td class="num">61 · 1 · 0</td><td></td><td></td><td><span class="pill p-warn">2 uyarı</span></td></tr>
+<tr><td>Kare süresi (emülatör, n=1)</td><td class="num">13,1–13,9 ms</td><td class="num">18,7–20,8 ms</td><td></td><td>yalnız referans</td><td><span class="pill p-ok">bilgi</span></td></tr>
+</table></div>
+<p>Üçgen sayısı kaynak modelin %43'ü: pilotun hiçbir göz noktasından görünmeyen yüzler (yaklaşık 6.300 üçgen) temizlendi. Kıskaç parçaları temizlikten muaf tutuldu, animasyon eklenirse tam geometri gerekir.</p>
+
+<h2>Blender ⟷ Three.js r128 (nötr ışık)</h2>
+<figure><img src="img/yuk_prod/cmp_pilot.webp" alt="Blender, Three ve fark"><figcaption>Soldan sağa: Blender altın referans, Three r128, fark. Parlaklık farkı %2,1–2,5, ΔE ≈ 3,2.</figcaption></figure>
+
+<h2>Kıskaç hiyerarşisi (statik, animasyona hazır)</h2>
+<pre class="tree">LOD0
+└─ ART_claw_root          sabit: gövde bağlantısı
+   └─ ART_claw_shoulder   X (yan eksen): kaldırma
+      └─ ART_claw_elbow   X: dirsek
+         └─ ART_claw_wrist   kol ekseni: bilek dönüşü
+            ├─ ART_claw_jaw_L   çene düzlemi normali
+            └─ ART_claw_jaw_R   çene düzlemi normali
+SOCK_claw_grip   ART_claw_wrist altında (kavrama noktası)</pre>
+<p>Her eklem için tek mesh (<code>ART_*_geo</code>, eklem uzayında, birim dönüşümlü), eksen bilgisi düğüm extras'ında. QC bu yapıyı doğruladı: hiyerarşi, eksen, pivotun geometriye yakınlığı (≤ 15 cm), birim dönüşüm, soketin eklemle birlikte hareketi (5/5 PASS). Hazırlık hattı artık eklemli parçaları birleştirmiyor; bu Şahin ve Kaşif paketlerini etkilemez.</p>
+
+<div class="gate">
+  <h2>Kapı 2: senin kararın</h2>
+  <ol>
+    <li><b>Onay:</b> HUD uyarısı ve tangent uyarısı kabul edilir; nihai paket çıkarılır, SHA256 ve manifest korunur. Entegrasyon (Kapı 3) Lead Developer ile ayrıca onaylanır.</li>
+    <li><b>Düzeltme:</b> Görsel ya da ölçü isteklerini yaz (ör. dikme plakalarını incelt, ayrıntı yoğunluğu, renk). Notları biriktirip tek revizyonda uygularım.</li>
+  </ol>
+  <p style="color:var(--muted);font-size:14px">Paket: <code>tools/asset_factory/deliveries/yuk_cockpit/r008_aday/</code> (dal <code>claude/asset-factory-budget-mode</code>). Gerçek cihaz testi yapılmadı.</p>
+</div>
+</main>

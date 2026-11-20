@@ -423,7 +423,7 @@ def cmd_deliver(a):
 """ % (a.id, rev, '\n> **Test nesnesi: oyuna entegre edilmeyecek.**' if spec.get('test_asset') else '', glb_name, a.id))
     if spec['family'] == 'cockpit':      # kokpite özel entegrasyon notu + teslim raporu + Kaşif uyumluluğu (yukarıdaki genel notun yerine)
         from pipeline import cockpit_docs
-        cockpit_docs.write(out, a.id, rev, glb_name, R, compat, reg, candidate=getattr(a, 'candidate', False))
+        cockpit_docs.write(out, a.id, rev, glb_name, R, compat, reg, candidate=getattr(a, 'candidate', False), spec=spec)
     if getattr(a, 'candidate', False):
         print('RESULT', json.dumps({'stage': 'deliver', 'candidate': True, 'out': out, 'files': sorted(os.path.relpath(p, out) for p in glob.glob(out + '/**/*', recursive=True) if os.path.isfile(p))}, ensure_ascii=False))
         return

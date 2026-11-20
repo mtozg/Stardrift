@@ -1,0 +1,415 @@
+{
+ "yeni": "sd_yuk_cockpit_r008.glb",
+ "kasif": "cockpit_kasif.glb",
+ "bayt": {
+  "yeni": 731076,
+  "kasif": 3912056
+ },
+ "butce": {
+  "yeni": {
+   "bayt": 731076,
+   "ucgen": 4752,
+   "primitive": 11,
+   "doku_girisi": 3,
+   "gorsel": 3,
+   "gpu_mb_tahmin": 32.0,
+   "malzeme": 3
+  },
+  "kasif": {
+   "bayt": 3912056,
+   "ucgen": 56362,
+   "primitive": 15,
+   "doku_girisi": 24,
+   "gorsel": 4,
+   "gpu_mb_tahmin": 512.0,
+   "malzeme": 10
+  }
+ },
+ "items": [
+  {
+   "id": "ekran.SCR_SYS.var",
+   "status": "PASS",
+   "value": true,
+   "kasif": true,
+   "note": "oyun ekranı ada göre bağlar (traverse)"
+  },
+  {
+   "id": "ekran.SCR_SYS.tek_primitive",
+   "status": "PASS",
+   "value": [
+    1,
+    4
+   ],
+   "kasif": [
+    1,
+    4
+   ],
+   "note": "tek dörtgen"
+  },
+  {
+   "id": "ekran.SCR_SYS.uv_yonu",
+   "status": "PASS",
+   "value": {
+    "sol_ust": [
+     0.0,
+     0.0
+    ],
+    "sag_alt": [
+     1.0,
+     1.0
+    ]
+   },
+   "kasif": {
+    "sol_ust": [
+     0.0,
+     0.0
+    ],
+    "sag_alt": [
+     1.0,
+     1.0
+    ]
+   },
+   "note": "CanvasTexture flipY=false: görüntünün sol-üstü UV (0,0)"
+  },
+  {
+   "id": "ekran.SCR_SYS.gozun_onunde",
+   "status": "PASS",
+   "value": true,
+   "kasif": true,
+   "note": "göz orijinde, ileri −Z"
+  },
+  {
+   "id": "ekran.SCR_SYS.cerceve_ici",
+   "status": "PASS",
+   "value": [
+    [
+     316,
+     404
+    ],
+    [
+     586,
+     388
+    ],
+    [
+     594,
+     540
+    ],
+    [
+     332,
+     566
+    ]
+   ],
+   "kasif": [
+    [
+     393,
+     411
+    ],
+    [
+     565,
+     393
+    ],
+    [
+     558,
+     504
+    ],
+    [
+     342,
+     525
+    ]
+   ],
+   "note": "pilot çerçevesinde (1600×656)"
+  },
+  {
+   "id": "ekran.SCR_SYS.boyut_px",
+   "status": "INFO",
+   "value": [
+    278,
+    178
+   ],
+   "kasif": [
+    223,
+    132
+   ],
+   "note": "tasarım farkı (r008 kararı: daha büyük, yakın, yüksek)"
+  },
+  {
+   "id": "ekran.SCR_RADAR.var",
+   "status": "PASS",
+   "value": true,
+   "kasif": true,
+   "note": "oyun ekranı ada göre bağlar (traverse)"
+  },
+  {
+   "id": "ekran.SCR_RADAR.tek_primitive",
+   "status": "PASS",
+   "value": [
+    1,
+    4
+   ],
+   "kasif": [
+    1,
+    4
+   ],
+   "note": "tek dörtgen"
+  },
+  {
+   "id": "ekran.SCR_RADAR.uv_yonu",
+   "status": "PASS",
+   "value": {
+    "sol_ust": [
+     0.0,
+     0.0
+    ],
+    "sag_alt": [
+     1.0,
+     1.0
+    ]
+   },
+   "kasif": {
+    "sol_ust": [
+     0.0,
+     0.0
+    ],
+    "sag_alt": [
+     1.0,
+     1.0
+    ]
+   },
+   "note": "CanvasTexture flipY=false: görüntünün sol-üstü UV (0,0)"
+  },
+  {
+   "id": "ekran.SCR_RADAR.gozun_onunde",
+   "status": "PASS",
+   "value": true,
+   "kasif": true,
+   "note": "göz orijinde, ileri −Z"
+  },
+  {
+   "id": "ekran.SCR_RADAR.cerceve_ici",
+   "status": "PASS",
+   "value": [
+    [
+     662,
+     378
+    ],
+    [
+     938,
+     378
+    ],
+    [
+     938,
+     538
+    ],
+    [
+     662,
+     538
+    ]
+   ],
+   "kasif": [
+    [
+     628,
+     369
+    ],
+    [
+     974,
+     370
+    ],
+    [
+     975,
+     508
+    ],
+    [
+     624,
+     508
+    ]
+   ],
+   "note": "pilot çerçevesinde (1600×656)"
+  },
+  {
+   "id": "ekran.SCR_RADAR.boyut_px",
+   "status": "INFO",
+   "value": [
+    276,
+    160
+   ],
+   "kasif": [
+    350,
+    139
+   ],
+   "note": "tasarım farkı (r008 kararı: daha büyük, yakın, yüksek)"
+  },
+  {
+   "id": "ekran.SCR_HULL.var",
+   "status": "PASS",
+   "value": true,
+   "kasif": true,
+   "note": "oyun ekranı ada göre bağlar (traverse)"
+  },
+  {
+   "id": "ekran.SCR_HULL.tek_primitive",
+   "status": "PASS",
+   "value": [
+    1,
+    4
+   ],
+   "kasif": [
+    1,
+    4
+   ],
+   "note": "tek dörtgen"
+  },
+  {
+   "id": "ekran.SCR_HULL.uv_yonu",
+   "status": "PASS",
+   "value": {
+    "sol_ust": [
+     0.0,
+     0.0
+    ],
+    "sag_alt": [
+     1.0,
+     1.0
+    ]
+   },
+   "kasif": {
+    "sol_ust": [
+     0.0,
+     0.0
+    ],
+    "sag_alt": [
+     1.0,
+     1.0
+    ]
+   },
+   "note": "CanvasTexture flipY=false: görüntünün sol-üstü UV (0,0)"
+  },
+  {
+   "id": "ekran.SCR_HULL.gozun_onunde",
+   "status": "PASS",
+   "value": true,
+   "kasif": true,
+   "note": "göz orijinde, ileri −Z"
+  },
+  {
+   "id": "ekran.SCR_HULL.cerceve_ici",
+   "status": "PASS",
+   "value": [
+    [
+     1014,
+     388
+    ],
+    [
+     1284,
+     404
+    ],
+    [
+     1268,
+     566
+    ],
+    [
+     1006,
+     540
+    ]
+   ],
+   "kasif": [
+    [
+     1032,
+     393
+    ],
+    [
+     1206,
+     411
+    ],
+    [
+     1257,
+     525
+    ],
+    [
+     1042,
+     504
+    ]
+   ],
+   "note": "pilot çerçevesinde (1600×656)"
+  },
+  {
+   "id": "ekran.SCR_HULL.boyut_px",
+   "status": "INFO",
+   "value": [
+    278,
+    178
+   ],
+   "kasif": [
+    225,
+    132
+   ],
+   "note": "tasarım farkı (r008 kararı: daha büyük, yakın, yüksek)"
+  },
+  {
+   "id": "birim.olcek",
+   "status": "PASS",
+   "value": {
+    "min": [
+     -1.175,
+     -1.38,
+     -1.719
+    ],
+    "max": [
+     1.175,
+     0.62,
+     0.9
+    ]
+   },
+   "kasif": {
+    "min": [
+     -1.388,
+     -1.483,
+     -1.572
+    ],
+    "max": [
+     1.387,
+     1.007,
+     -0.366
+    ]
+   },
+   "note": "metre; aynı ölçek düzeyi (genişlik farkı < 1,5 m)"
+  },
+  {
+   "id": "uzanti.r128",
+   "status": "PASS",
+   "value": [
+    "EXT_texture_webp"
+   ],
+   "kasif": [
+    "KHR_materials_emissive_strength"
+   ],
+   "note": "r128 GLTFLoader tanır; Kaşif'teki emissive_strength r128'de yok sayılıyor"
+  },
+  {
+   "id": "malzeme.standart",
+   "status": "PASS",
+   "value": [
+    "MAT_body",
+    "MAT_emit",
+    "MAT_screen"
+   ],
+   "kasif": [
+    "M_gunmetal_baked",
+    "M_dark_steel_baked",
+    "M_composite_baked",
+    "M_titanium_baked",
+    "M_aluminum_baked",
+    "M_leather_baked",
+    "M_thread_baked",
+    "M_fabric_baked",
+    "M_cyan",
+    "M_screen"
+   ],
+   "note": "MeshStandardMaterial'a dönüşür; oyun envMapIntensity 0,9 atar"
+  }
+ ],
+ "ozet": {
+  "PASS": 18,
+  "FAIL": 0,
+  "INFO": 3
+ }
+}

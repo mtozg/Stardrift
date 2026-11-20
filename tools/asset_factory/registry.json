@@ -380,7 +380,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "visual_approved",
+   "state": "qc_pass",
    "rev": 8,
    "history": [
     {
@@ -473,10 +473,24 @@
      "from": "visual_approved",
      "to": "visual_approved",
      "reason": "PRODUCTION modeli r008 (Kapı 1 onaylı r007 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-20T08:48:54+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-20T08:49:19+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (66 PASS, 2 WARN, 0 FAIL)"
     }
    ],
    "timings": {
-    "model": 1249.6
+    "model": 1249.6,
+    "prepare": 340.3,
+    "qc": 13.9
    },
    "approvals": [
     {
@@ -490,7 +504,12 @@
    "geometry_hash": "a6bf5a44ce90568a51d6fd5ea153ceff400bca2e92ee546e46833a0bf2c5ee43",
    "spec_hash": "5450cdac23dd2831341c7b7e81d70f6a31f91c6295e1a558887ce6bdf052a92f",
    "fast": false,
-   "perf_baseline": null
+   "perf_baseline": {
+    "masaüstü 1200×750|1": 13.6,
+    "iPad Pro 11 landscape|1": 13.9,
+    "iPhone 13 landscape|1": 13.4,
+    "Pixel 7 landscape|1": 13.1
+   }
   }
  }
 }

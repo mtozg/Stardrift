@@ -1,0 +1,255 @@
+{
+ "spec": {
+  "id": "yuk_cockpit",
+  "family": "cockpit",
+  "class": "cockpit",
+  "seed": 5000,
+  "profile": "PRODUCTION",
+  "concept": "B · Kıskaç Gözü + yükseltilmiş ekranlar (Kapı 1: PREVIEW r007, Mehmet 2026-11-20); PRODUCTION: K15",
+  "_note": "Yük Devi kokpiti. Kaynak: konsept B şeması (docs/yuk_kokpit.html#b), kullanıcı değişikliği: ekranlar C'deki gibi panelden bir tık yukarı, braketlerde. Eski 2B kokpit çizimleri kullanılmaz (STANDARDS §0.1). Kaşif tasarımı kopyalanmaz.",
+  "materials": [
+   "yuk_paint",
+   "yuk_dark",
+   "yuk_rust",
+   "yuk_hazard",
+   "yuk_black",
+   "emit_amber",
+   "yuk_glass_edge",
+   "seat_textile",
+   "screen_placeholder",
+   "gunmetal"
+  ],
+  "texture_mode": "unique",
+  "texture_size": 2048,
+  "lods": [
+   1.0
+  ],
+  "reference": {
+   "concept": "tools/asset_factory/docs/yuk_kokpit.html#b"
+  },
+  "params": {
+   "layout": "yuk_b",
+   "cabin": {
+    "front_y": 1.05,
+    "front_half": 0.75,
+    "side_back": [
+     1.1,
+     0.15
+    ],
+    "header_z": 0.438,
+    "sill_z": -0.36,
+    "ceil_z": 0.62,
+    "side_post_t": 0.45,
+    "post_w": 0.036
+   },
+   "deck": {
+    "edge_y": 0.75,
+    "z": -0.37,
+    "fascia_dir": [
+     -0.2,
+     -0.58
+    ],
+    "half": 1.0
+   },
+   "screens": {
+    "radar": [
+     [
+      662,
+      378
+     ],
+     [
+      938,
+      378
+     ],
+     [
+      938,
+      538
+     ],
+     [
+      662,
+      538
+     ]
+    ],
+    "sys": [
+     [
+      316,
+      404
+     ],
+     [
+      586,
+      388
+     ],
+     [
+      594,
+      540
+     ],
+     [
+      332,
+      566
+     ]
+    ],
+    "hull": [
+     [
+      1014,
+      388
+     ],
+     [
+      1284,
+      404
+     ],
+     [
+      1268,
+      566
+     ],
+     [
+      1006,
+      540
+     ]
+    ],
+    "radar_depth": 0.66,
+    "side_depth": [
+     0.6,
+     0.68
+    ],
+    "_karar": "C'deki gibi panelden yükseltilmiş: konsol üst çizgisi ~454 px, ekran üstleri 372–404 px",
+    "_r002": "HUD bölgesi engeli %11,8 → RADAR üstü 372→378, çerçeve inceltildi, orta dikme 58→36 mm"
+   },
+   "chin": {
+    "quad": [
+     [
+      624,
+      566
+     ],
+     [
+      976,
+      566
+     ],
+     [
+      1030,
+      656
+     ],
+     [
+      570,
+      656
+     ]
+    ],
+    "tunnel": 1.55
+   },
+   "claw": {
+    "root": [
+     0,
+     0.95,
+     -1.08
+    ],
+    "elbow": [
+     0,
+     1.1,
+     -1.3
+    ],
+    "wrist": [
+     0,
+     1.3,
+     -1.3
+    ],
+    "jaw_r": 0.22,
+    "jaw_gap": 0.16,
+    "_kaynak": "SPECS3D.yuk.claw oranları (js/game.js:3874), statik; ART_* hiyerarşi",
+    "_r002": "r001: bağlantı kutusu çene camını kapatıyordu; kıskaç öne/aşağı, kök fascia arkasında gizli",
+    "tube_r": 0.035,
+    "_r004": "r003: çeneler çene camında ~6 px, okunmuyordu → büyütüldü (R 0,17→0,22, kalınlık 22→35 mm) ve yaklaştırıldı",
+    "_r006": "r005: çeneler çene camının alt kenarında ve kol boyunca kısalıyordu → ön kol yatay (çene düzlemi yatay, göz ~41° yukarıdan bakar), kök ve dirsek çerçeve altında gizli",
+    "_r007": "r006: bağlantı kutusu çene camının altında görünüyordu → kök geri/aşağı (göz ışını k < −0,96, çerçeve altında)"
+   },
+   "levers": {
+    "u": [
+     548,
+     1052
+    ],
+    "depth": 0.56
+   },
+   "seat": {
+    "pan_z": -0.56,
+    "recline_deg": 12
+   }
+  },
+  "prepare": {
+   "cull": "interior",
+   "eyes": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0.07,
+     0,
+     0
+    ],
+    [
+     -0.07,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0.05
+    ],
+    [
+     0,
+     0,
+     -0.04
+    ],
+    [
+     0,
+     0.05,
+     0
+    ],
+    [
+     0,
+     -0.05,
+     0
+    ]
+   ],
+   "tex": {
+    "base": 2048,
+    "orm": 1024,
+    "normal": 1024
+   },
+   "uv_pack": "CONVEX"
+  },
+  "articulation": {
+   "joints": {
+    "ART_claw_root": null,
+    "ART_claw_shoulder": "ART_claw_root",
+    "ART_claw_elbow": "ART_claw_shoulder",
+    "ART_claw_wrist": "ART_claw_elbow",
+    "ART_claw_jaw_L": "ART_claw_wrist",
+    "ART_claw_jaw_R": "ART_claw_wrist"
+   },
+   "sockets": {
+    "SOCK_claw_grip": "ART_claw_wrist"
+   },
+   "pivot_tol_m": 0.15,
+   "_not": "Kıskaç statik; hiyerarşi/pivot animasyona hazır (STANDARDS §0.3). Eksenler düğüm extras.joint_axis"
+  }
+ },
+ "seed": 5000,
+ "spec_hash": "5450cdac23dd2831341c7b7e81d70f6a31f91c6295e1a558887ce6bdf052a92f",
+ "geometry_hash": "a6bf5a44ce90568a51d6fd5ea153ceff400bca2e92ee546e46833a0bf2c5ee43",
+ "factory_commit": "88211ef",
+ "blender": "5.3.0",
+ "library_materials": [
+  "yuk_paint",
+  "yuk_dark",
+  "yuk_rust",
+  "yuk_hazard",
+  "yuk_black",
+  "emit_amber",
+  "yuk_glass_edge",
+  "seat_textile",
+  "screen_placeholder",
+  "gunmetal"
+ ],
+ "rebuild": "python factory.py model yuk_cockpit && python factory.py prepare yuk_cockpit"
+}

@@ -7,7 +7,7 @@ def _p(v, d=1):
     return ('%%.%df' % d % v).replace('.', ',')
 
 
-def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
+def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False, spec=None):
     st, info, perf = R['stats'], R['three']['info'], R.get('perf') or {}
     items = {i['id']: i for i in R['items']}
     val = lambda k, d=None: items.get(k, {}).get('value', d)
@@ -24,6 +24,23 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 - Kapsam: yalnız Asset Factory teslim paketi. Ana oyun koduna entegrasyon, main dalına aktarım ve Kaşif dosyalarında değişiklik **ayrı onay** gerektirir.
 ''' % (tech['by'], tech['t'], tech['note'], ', '.join(tech['accept_warn']) or '—')) if tech and not candidate else ''
 
+    ship = {'sahin': 'Şahin', 'yuk': 'Yük Devi', 'kasif': 'Kaşif', 'hayalet': 'Hayalet'}.get(asset_id.split('_')[0], asset_id)
+    final = bool(tech) and not candidate      # Kapı 2 kaydı varsa karar cümleleri onay notundan; yoksa öneri
+    art_block = ''
+    if spec and spec.get('articulation'):
+        from qc import glb_checks
+        jj, _, _ = glb_checks.read_glb(os.path.join(out, glb_name))
+        nn = jj['nodes']
+        rows = '\n'.join('| `%s` | `%s` | %s |' % (n['name'], (nn[[i for i, m in enumerate(nn) if n['name'] in [nn[c]['name'] for c in m.get('children', [])]][0]]['name'] if any(n['name'] in [nn[c]['name'] for c in m.get('children', [])] for m in nn) else '-'),
+                                                  n.get('extras', {}).get('joint_axis', '?')) for n in nn if n.get('name', '').startswith('ART_') and not n['name'].endswith('_geo'))
+        art_block = '''
+## Eklemli parçalar (statik, animasyona hazır)
+Her eklem ayrı düğüm; pivot eklem merkezinde, eklem mesh'i (`ART_*_geo`) eklem uzayında ve birim dönüşümlü. Oyun bu parçalara ad ve hiyerarşiyle erişir; bu sürümde animasyon yoktur (STANDARDS §0.3).
+| Eklem düğümü | Ebeveyn | Dönüş ekseni (extras.joint_axis) |
+|---|---|---|
+%s
+Soketler eklemle birlikte hareket eder (ör. `SOCK_claw_grip` → `ART_claw_wrist`). Eksenler Blender yerel uzayında yazılmıştır; glTF'de Y-up dönüşümü uygulanır, dönüş testi animasyon görevinde yapılmalıdır.
+''' % rows
     # ---------- integration.md ----------
     scr = {i['id'].split('.')[1]: i for i in (compat or {}).get('items', []) if i['id'].endswith('boyut_px')}
     radar = scr.get('SCR_RADAR', {})
@@ -45,18 +62,18 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 - `SCR_SYS` → bars, `SCR_RADAR` → map, `SCR_HULL` → hull (dalın renderB/buildB'sindeki ada göre bağlama; traverse).
 - Her biri tek dörtgen, 4 köşe; UV sol-üst (0,0), sağ-alt (1,1) → CanvasTexture `flipY=false`.
 - Dosyadaki `MAT_screen` yer tutucudur (koyu camgöbeği emisyon); oyun MeshBasicMaterial + canvas ile değiştirir.
-- **Dikkat — RADAR oranı:** Şahin RADAR %(rw)s×%(rh)s px (≈ %(ra)s:1), Kaşif %(kw)s×%(kh)s px (≈ %(ka)s:1). Kaşif'e göre çizilmiş canvas
-  içeriği gerilebilir. **Kapı 2 kararı:** 1,56:1 oranı korunur; radar canvas içeriği bu orana göre hazırlanmalı (model değiştirilmez).
+- **Dikkat — RADAR oranı:** %(ship)s RADAR %(rw)s×%(rh)s px (≈ %(ra)s:1), Kaşif %(kw)s×%(kh)s px (≈ %(ka)s:1). Kaşif'e göre çizilmiş canvas
+  içeriği gerilebilir. %(radar_note)s
+%(art_block)s
 
 ## Gemiye göre seçim
-- Daldaki kod Kaşif'e bağlı (`save.ship === 'kasif'`, `models/cockpit_kasif.glb`). Şahin için gemi → GLB eşlemesi gerekir (ör. `models/cockpit_sahin.glb`).
-  Bu genelleştirme Kapı 3'te, onayla yapılır.
+- Oyunda gemi başına 3B kokpit tablosu (`CK3`, `js/game.js`) var: yeni gemi = bir satır (model, telefon modeli, ekran köşeleri, HUD sırtı) + iki GLB. Telefon varyantı: `pipeline/mobile_variant.py` (yalnız base doku 1024).
+  Entegrasyon Lead Developer'a aittir; bu paket oyun koduna dokunmaz.
 
 ## Malzeme ve ışık
 - `MAT_body` (base 2048 + ORM 1024 + normal 1024), `MAT_emit` (düz emisyon ≤ 1; parlaklık bloom'dan — r128'de emissive_strength yok), `MAT_screen`.
-- Oyun Kaşif'te envMapIntensity 0,9 atıyor; Şahin aynı ayarla QC'deki nötr ışıkta Blender'a ΔE ≈ 3 içinde.
-- Tangent dosyada yok; three çalışma anında üretir (validator uyarısı; Kaşif'te de var). **Kapı 2 kararı:** uyarı kabul edildi; entegrasyon sonrası
-  oyun içinde runtime tangent üretimi ve normal map görünümü (dikiş, ters aydınlanma, parlama) ayrıca kontrol edilecek.
+- Oyun Kaşif'te envMapIntensity 0,9 atıyor; %(ship)s aynı ayarla QC'deki nötr ışıkta Blender'a ΔE ≈ 3 içinde.
+- Tangent dosyada yok; three çalışma anında üretir (validator uyarısı; Kaşif'te de var). %(tangent_note)s
 - Model gözün arkasına uzanır (koltuk, z en çok +0,64 m): kamera önünde görünmez, zararsız.
 
 ## Fallback ve çevrimdışı
@@ -65,7 +82,7 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 
 ## Test
 - `qc/viewer/check.html` (otomatik, Three r128) ve `qc/viewer/bench.html?glb=…` (gerçek cihaz ölçümü — henüz yapılmadı).
-- **Kapı 2 kararı:** emülatör 19–21 ms yalnız referanstır; gerçek cihaz performans testi daha sonra yapılacak.
+- %(perf_note)s
 
 ## Entegrasyon sonrası kontrol listesi
 - [ ] Runtime tangent + normal map görünümü (pilot ve iki göz noktası)
@@ -73,7 +90,11 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 - [ ] Gerçek cihaz kare süresi (iPhone/Android, yatay)
 - [ ] Bloom altında `MAT_emit` ve ekran parlaklığı
 
-""" % dict(id=asset_id, rev=rev, glb=glb_name, rw=radar.get('value', ['?', '?'])[0], rh=radar.get('value', ['?', '?'])[1],
+""" % dict(ship=ship, art_block=art_block,
+           radar_note=('**Kapı 2 notu:** ' + tech['note']) if final else 'Öneri (Kapı 2\'de karar): RADAR canvas içeriği ekranın gerçek oranına göre hazırlanmalı; model değiştirilmez.',
+           tangent_note=('**Kapı 2:** uyarı kabul edildi (' + ', '.join(tech['accept_warn']) + '); entegrasyon sonrası runtime tangent ve normal map görünümü oyun içinde ayrıca kontrol edilecek.') if final else 'Öneri (Kapı 2\'de karar): uyarı kabul edilebilir; entegrasyon sonrası runtime tangent ve normal map görünümü oyun içinde kontrol edilmeli.',
+           perf_note='Emülatör kare süreleri yalnız referanstır; gerçek cihaz performans testi entegrasyon sonrası yapılmalıdır.',
+           id=asset_id, rev=rev, glb=glb_name, rw=radar.get('value', ['?', '?'])[0], rh=radar.get('value', ['?', '?'])[1],
            ra=_p(radar['value'][0] / radar['value'][1], 2) if radar else '?', kw=radar.get('kasif', ['?', '?'])[0], kh=radar.get('kasif', ['?', '?'])[1],
            ka=_p(radar['kasif'][0] / radar['kasif'][1], 2) if radar else '?'))
 
@@ -89,7 +110,7 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 **Durum:** %(state)s **Oyuna entegre edilmedi** — Kapı 3 ayrı onay bekliyor.
 
 ## Ana ölçüler
-| Ölçü | Şahin r%(rev)03d | Kaşif (referans) | Bütçe (kokpit) |
+| Ölçü | %(ship)s r%(rev)03d | Kaşif (referans) | Bütçe (kokpit) |
 |---|---|---|---|
 | GLB dosya boyutu | %(kb)s KB (%(bytes)s bayt) | %(kkb)s KB | ≤ 4 MB |
 | Üçgen (three, görünen) | %(tris)s | %(ktris)s | ≤ 60 bin |
@@ -99,7 +120,7 @@ def write(out, asset_id, rev, glb_name, R, compat, reg, candidate=False):
 | GPU doku belleği (RGBA8 + mip tahmini) | %(gpu)s MB | ≈ %(kgpu)s MB | ≤ 40 MB |
 | Malzeme | %(mat)s | %(kmat)s | — |
 
-Draw call: 2 statik gövde çağrısı (`MAT_body`, `MAT_emit`) + 3 canlı ekran (`SCR_*`, oyunun canvas'ı için ayrı kalmak zorunda) = %(calls)d.
+Draw call: %(calls0)d statik çağrı (gövde, emisyon ve varsa eklem mesh'leri) + 3 canlı ekran (`SCR_*`, oyunun canvas'ı için ayrı kalmak zorunda) = %(calls)d.
 GPU tahmini three r128 davranışına göredir: her doku girişi ayrı yüklenir (Source paylaşımı r138'de geldi). Kaşif'in 24 girişi 4 görseli paylaşıyor; r128'de bu ≈ %(kgpu)s MB'a çıkar.
 
 ## QC
@@ -118,7 +139,7 @@ GPU tahmini three r128 davranışına göredir: her doku girişi ayrı yüklenir
 |---|---|
 %(perf)s
 
-Gerçek cihaz ölçümü yapılmadı. Kapı 2 kararı: emülatör değerleri yalnız referans; gerçek cihaz testi sonra.
+Gerçek cihaz ölçümü yapılmadı; emülatör değerleri yalnız referanstır, gerçek cihaz testi entegrasyon sonrası yapılmalıdır.
 %(gate2)s
 
 ## Dokular
@@ -135,8 +156,8 @@ Gerçek cihaz ölçümü yapılmadı. Kapı 2 kararı: emülatör değerleri yal
   Three r128: `three_r128_*`; yan yana `three_vs_blender_*`
 - `qc_report.json/html`, `kasif_uyumluluk.json/md`, `manifest.json`, `source.json`, `spec_sheet.md`, `integration.md`
 - Süreler: model %(tm)s s · hazırlık %(tp)s s · QC %(tq)s s
-""" % dict(gate2=gate2, warnstate='Kapı 2\'de kullanıcı tarafından kabul edildi; runtime tangent entegrasyonda kontrol edilecek.' if tech and not candidate else 'Kapı 2\'de kabul kararı kullanıcınındır.', id=asset_id, rev=rev, state=('Görsel: %s **TESLİM ADAYI** — Kapı 2 teknik onayı kullanıcıdan bekleniyor; bu paket onay yerine geçmez.' if candidate
-                                  else 'Görsel: %s Teknik onaylı teslim paketi.') % frozen.get('not', 'dondurma kaydı yok'), kb=_p(st['glb_bytes'] / 1024), bytes='{:,}'.format(st['glb_bytes']).replace(',', '.'),
+""" % dict(ship=ship, gate2=gate2, warnstate='Kapı 2\'de kullanıcı tarafından kabul edildi; runtime tangent entegrasyonda kontrol edilecek.' if tech and not candidate else 'Kapı 2\'de kabul kararı kullanıcınındır.', id=asset_id, rev=rev, state=('Görsel: %s **TESLİM ADAYI** — Kapı 2 teknik onayı kullanıcıdan bekleniyor; bu paket onay yerine geçmez.' if candidate
+                                  else 'Görsel: %s Teknik onaylı teslim paketi.') % frozen.get('not', 'dondurma kaydı yok; ' + ((lambda v: 'Kapı 1: ' + v[-1]['note'])([x for x in reg.get('approvals', []) if x['gate'] == 'visual']) if any(x['gate'] == 'visual' for x in reg.get('approvals', [])) else 'Kapı 1 kaydı yok')), kb=_p(st['glb_bytes'] / 1024), bytes='{:,}'.format(st['glb_bytes']).replace(',', '.'),
            kkb=_p(ks.get('bayt', 0) / 1024, 0), tris='{:,}'.format(info['triangles']).replace(',', '.'), ktris='{:,}'.format(ks.get('ucgen', 0)).replace(',', '.'),
            calls=info['calls'], kcalls='%s primitive' % ks.get('primitive', '?'), calls0=st['calls_lod0'], tex=yn.get('doku_girisi'), img=yn.get('gorsel'),
            ktex=ks.get('doku_girisi'), kimg=ks.get('gorsel'), gpu=_p(st['tex_gpu_bytes_est'] / 1048576), kgpu=_p(ks.get('gpu_mb_tahmin', 0), 0),
@@ -157,7 +178,7 @@ Tasarım kopyalanmadı: ekran boyutu/konumu farkları INFO olarak kayıtlıdır.
 
 **Özet:** %s
 
-| Kontrol | Durum | Şahin | Kaşif | Not |
+| Kontrol | Durum | Yeni model | Kaşif | Not |
 |---|---|---|---|---|
 %s
 """ % (asset_id, rev, ' · '.join('%s %s' % (k, v) for k, v in compat['ozet'].items()), rows))
