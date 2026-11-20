@@ -10471,13 +10471,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const fake = Math.min(0.9, (performance.now() - prepAt) / 9000); prepEl.querySelector('.b i').style.width = Math.round(Math.max(fake, prepPct) * 100) + '%'; }
     function prepHide(ok){ if (!prepEl) return; const el = prepEl; prepEl = null; el.querySelector('.b i').style.width = '100%'; if (ok) el.querySelector('.m').textContent = 'Kokpit hazır';
       setTimeout(() => { el.classList.add('go'); window.__menuOn = false; setTimeout(() => el.remove(), 500); }, ok ? 350 : 0); }
-    let prepLast = performance.now();
+    let prepLast = performance.now(), bWarn = false;
     setInterval(() => { const now = performance.now(), dt = (now - prepLast) / 1000; prepLast = now; const tt = document.getElementById('title'), inGame = (!tt || tt.classList.contains('off')) && !document.getElementById('intro') && !document.getElementById('sideSel') && !document.getElementById('ctrlSel');
       syncB();
       if (ck3dSet() && inGame && !paused && !docked && !BM && !BF){ if (!prepEl && !window.__menuOn) prepShow(); prepTick(dt);
         if (prepEl && !BP && now - prepAt > 400 && now >= bNext) loadB().catch(() => {});   /* oyun beklerken render döngüsü seyrekleşir: yüklemeyi burası başlatır */
-        if (prepEl && now - prepAt > 30000) BF = true; }   /* 30 sn: hazırlık ekranı kalkar, oyun HUD ile sürer; yükleme arkada denenmeye devam eder */
-      else if (prepEl) prepHide(!!BM); }, 120);
+        if (prepEl && now - prepAt > 30000){ BF = true; bWarn = true; toast('Kokpit modeli yüklenemedi (bağlantı yok ya da yavaş). Oyun göstergelerle sürüyor; kokpit arkada yeniden deneniyor.', 6000); } }   /* 1.55.0 (K14) */   /* 30 sn: hazırlık ekranı kalkar, oyun HUD ile sürer; yükleme arkada denenmeye devam eder */
+      else if (prepEl) prepHide(!!BM);
+      if (bWarn && BM){ bWarn = false; toast('Kokpit yüklendi.', 2200); } }, 120);
     const _rm = renderMain; renderMain = function(){ _rm();
       syncB(); const kas = ck3dSet(); if (kas && !BM && !BP && performance.now() >= bNext){ const tt = document.getElementById('title'); if (!tt || tt.classList.contains('off')){ bT0 = bT0 || performance.now(); if (performance.now() - bT0 > 1200) loadB().catch(() => {}); } }   /* model, başlık ekranı kapanıp oyun 1,2 sn oturduktan sonra yüklenir: açılıştaki bellek tepesiyle çakışmaz (telefon) */
       window.__ck3on = kas && !!BM && IMGMODE && !docked && !window.__ck3bad;
