@@ -68,7 +68,7 @@ Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet
 |---|---|---|
 | B-01e | Unvan görevleri 3. ve 4. kademe | Ertelendi (K35): eskort ve patron avı mevcut sistemlerle çakışıyor; çift gelir olmayacak şekilde yeniden tasarım gerekir |
 | B-02 | Yük Devi r015 ve Şahin r014 kokpitleri | Tamam: oyunda (1.64.0, PR bekliyor). Resmî Kapı 2 kaydı (`factory.py approve/deliver`) Mehmet'in açık izni bekliyor |
-| B-03 | Hayalet kokpiti | Konsept ve önizleme (r001) Mehmet onaylı; Asset Factory production'da (tek derleme, max 2 tur); oyuna ekleme (`CK3.hayalet`) sonra |
+| B-03 | Hayalet kokpiti | Production r001 oyunda (1.64.1, K45); Kapı 1 görsel kararı bekliyor; 1 düzeltme hakkı kaldı (altıgen güverte) |
 | B-05b | Başarım rozet çizimleri (10 rozet × 3 kademe) | Asset Factory, sonra |
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | Mehmet'in konsol ekran görüntüsü gerekli |
 | B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |

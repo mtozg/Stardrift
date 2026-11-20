@@ -110,4 +110,4 @@ Görseller `assets/img/` içinde, adları kodda nerede kullanıldıklarını sö
 - İstasyon bülteni: yanaşınca başlık yanında tarafa göre bir bülten satırı (Filo Bülteni, Lonca Haberleri, Kara Liman Dedikodusu); yalnız bilgi.
 - Taraf zincirinin 1., 3. ve 5. adımında tarafın telsizinden kısa mesaj gelir (yalnız metin).
 - Ayarlar > Kayıt > Oyunu sıfırla: tüm ilerlemeyi siler ("SIFIRLA" yazarak onaylanır); giriş yapıldıysa buluttaki kayıt da silinir.
-- 3B kokpitler: Kaşif, Şahin (r014) ve Yük Devi (r015). Hayalet hâlâ çizim kokpitiyle (3B kokpit hazırlanıyor).
+- 3B kokpitler: Kaşif, Şahin (r014), Yük Devi (r015) Hayalet (r001).
