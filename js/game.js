@@ -8516,7 +8516,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // taraf değiştirme: zor ve cezalı
   const REQ = { xp: 1200, kredi: 4000, rep: 30, cool: 2 * 3600 * 1000 };
   function canSwitch(to){
-    const r = []; if (save.xp < REQ.xp) r.push('Usta Pilot rütbesi'); if (save.kredi < REQ.kredi) r.push(REQ.kredi + ' kredi'); if (save.fac[to] < REQ.rep) r.push(SIDE[to].ad + ' ile en az Dost (' + Math.round(save.fac[to]) + '/30)');
+    const r = []; if (save.xp < REQ.xp) r.push(REQ.xp + ' XP'); if (save.kredi < REQ.kredi) r.push(REQ.kredi + ' kredi'); if (save.fac[to] < REQ.rep) r.push(SIDE[to].ad + ' ile en az Dost (' + Math.round(save.fac[to]) + '/30)');
     const left = (save.sideT || 0) + REQ.cool - Date.now(); if (left > 0) r.push('son değişiklikten ' + Math.ceil(left / 60000) + ' dk sonra');
     return r;
   }
