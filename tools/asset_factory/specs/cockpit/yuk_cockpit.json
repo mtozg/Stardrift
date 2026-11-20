@@ -39,7 +39,13 @@
    "sill_z": -0.36,
    "ceil_z": 0.62,
    "side_post_t": 0.45,
-   "post_w": 0.036
+   "post_w": 0.03,
+   "post_corner_w": 0.04,
+   "post_side_w": 0.034,
+   "post_t": 0.034,
+   "_r009": "Mehmet (r008): dikmeler çok kalın → köşe 67→40 mm, yan 77→34 mm, kalınlık 70→34 mm; bağlantı plakaları dikmeye göre",
+   "post_plate_w": 0.058,
+   "_r009b": "HUD engeli: orta dikme 36→30 mm, plaka 100→58 mm (Mehmet yalnız yan dikmeleri istedi; bu küçük ek HUD uyarısı içindir, geri alınabilir)"
   },
   "deck": {
    "edge_y": 0.75,

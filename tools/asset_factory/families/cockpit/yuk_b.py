@@ -101,9 +101,12 @@ def build(spec, mats):
         add('header_side_' + sd, wall_box(c0, c1, zh, zc, 0.08), 'yuk_dark')
         add('glass_edge_side_' + sd, wall_box(c0, c1, zh - 0.016, zh, 0.01), 'yuk_glass_edge')
         add('sill_side_' + sd, wall_box(c0, c1, -0.92, zs, 0.06), 'yuk_paint')
-        add('post_corner_' + sd, wall_box(side_pt(s, -0.03), side_pt(s, 0.04), zs, zh, 0.07), 'yuk_dark')
+        Ls = math.hypot(sb[0] - fh, sb[1] - fy)      # eğik yan duvarın uzunluğu (t parametresi → metre)
+        cw, sw_, pt_ = cb.get('post_corner_w', 0.0676), cb.get('post_side_w', 0.0772), cb.get('post_t', 0.07)      # dikme genişliği (duvar boyunca) ve kalınlığı (dışa) — r009: Mehmet 'dikmeler çok kalın'
+        tc = 0.005
+        add('post_corner_' + sd, wall_box(side_pt(s, tc - cw / 2 / Ls), side_pt(s, tc + cw / 2 / Ls), zs, zh, pt_), 'yuk_dark')
         t = cb['side_post_t']
-        add('post_side_' + sd, wall_box(side_pt(s, t - 0.04), side_pt(s, t + 0.04), zs, zh, 0.07), 'yuk_dark')
+        add('post_side_' + sd, wall_box(side_pt(s, t - sw_ / 2 / Ls), side_pt(s, t + sw_ / 2 / Ls), zs, zh, pt_), 'yuk_dark')
         add('wall_side_' + sd, wall_box((s * sb[0], sb[1]), (s * sb[0], -0.9), -0.92, zc, 0.06), 'yuk_paint')
         add('lamp_side_' + sd, geo.bm_box((s * 0.80, 0.58, -0.33), (0.03, 0.015, 0.015)), 'emit_amber', role='emit_live')
         add('lamp_header_' + sd, geo.bm_cylinder((s * 0.45, fy - 0.005, 0.53), (s * 0.45, fy - 0.03, 0.53), 0.022, 14), 'emit_amber', role='emit_live', smooth=60)
@@ -255,13 +258,14 @@ def build(spec, mats):
                     pp = a2 + (b2 - a2) * t
                     rivets.cyl((pp.x, pp.y, z), (pp.x + inw.x * 0.0085, pp.y + inw.y * 0.0085, z), 0.0075, 6)
             # dikme tabanı ve tepesinde bağlantı plakaları + 4 bulon
-            for t in (0.0, cb['side_post_t']):
+            for t, pw_ in ((0.0, cb.get('post_corner_w', 0.0676)), (cb['side_post_t'], cb.get('post_side_w', 0.0772))):
                 pp = a2 + (b2 - a2) * t
                 for z in (zs + 0.05, zh - 0.05):
-                    dark_d.box((pp.x + inw.x * 0.004, pp.y + inw.y * 0.004, z), (0.085, 0.085, 0.08), rot_z=math.atan2(dd.y, dd.x))
+                    dark_d.box((pp.x + inw.x * 0.004, pp.y + inw.y * 0.004, z), (pw_ + 0.016, pw_ + 0.016, 0.08), rot_z=math.atan2(dd.y, dd.x))
         for z in (zs + 0.055, zh - 0.055):      # orta dikme plakaları
-            dark_d.box((0, fy - 0.006, z), (0.1, 0.012, 0.07))
-            for dx in (-0.032, 0.032):
+            pw2 = cb.get('post_plate_w', 0.1)      # orta dikme plakası genişliği (HUD bölgesindeki engel)
+            dark_d.box((0, fy - 0.006, z), (pw2, 0.012, 0.07))
+            for dx in (-0.32 * pw2, 0.32 * pw2):
                 for dz in (-0.022, 0.022):
                     rivets.cyl((dx, fy - 0.0125, z + dz), (dx, fy - 0.006, z + dz), 0.007, 6)
 

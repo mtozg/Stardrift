@@ -380,8 +380,8 @@
    }
   },
   "yuk_cockpit": {
-   "state": "qc_pass",
-   "rev": 8,
+   "state": "visual_approved",
+   "rev": 9,
    "history": [
     {
      "t": "2026-11-16T10:45:12+00:00",
@@ -485,13 +485,15 @@
      "from": "prepared",
      "to": "qc_pass",
      "reason": "QC WARN (66 PASS, 2 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-20T09:34:45+00:00",
+     "from": "qc_pass",
+     "to": "visual_approved",
+     "reason": "PRODUCTION modeli r009 (Kapı 1 onaylı r008 tasarımına dayanır)"
     }
    ],
-   "timings": {
-    "model": 1249.6,
-    "prepare": 340.3,
-    "qc": 13.9
-   },
+   "timings": {},
    "approvals": [
     {
      "t": "2026-11-20T08:16:40+00:00",
@@ -509,7 +511,13 @@
     "iPad Pro 11 landscape|1": 13.9,
     "iPhone 13 landscape|1": 13.4,
     "Pixel 7 landscape|1": 13.1
-   }
+   },
+   "notes": [
+    {
+     "t": "2026-11-20T09:33:46+00:00",
+     "text": "Mehmet (Lead Dev üzerinden, r008): sağ ve sol dikme çok kalın, biraz daha ince olsun; Kaşif/Şahin dikme kalınlığı referans; HUD %10,5 sınır altına inmeli; kıskaç, ekranlar, malzeme, kamera aynı kalsın"
+    }
+   ]
   }
  }
 }
