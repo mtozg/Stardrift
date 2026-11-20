@@ -380,7 +380,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "visual_approved",
+   "state": "qc_fail",
    "rev": 9,
    "history": [
     {
@@ -491,9 +491,25 @@
      "from": "qc_pass",
      "to": "visual_approved",
      "reason": "PRODUCTION modeli r009 (Kapı 1 onaylı r008 tasarımına dayanır)"
+    },
+    {
+     "t": "2026-11-20T10:01:57+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-20T10:02:16+00:00",
+     "from": "prepared",
+     "to": "qc_fail",
+     "reason": "QC FAIL (65 PASS, 2 WARN, 1 FAIL)"
     }
    ],
-   "timings": {},
+   "timings": {
+    "model": 1285.9,
+    "prepare": 346.3,
+    "qc": 16.5
+   },
    "approvals": [
     {
      "t": "2026-11-20T08:16:40+00:00",
@@ -503,8 +519,8 @@
      "accept_warn": []
     }
    ],
-   "geometry_hash": "a6bf5a44ce90568a51d6fd5ea153ceff400bca2e92ee546e46833a0bf2c5ee43",
-   "spec_hash": "5450cdac23dd2831341c7b7e81d70f6a31f91c6295e1a558887ce6bdf052a92f",
+   "geometry_hash": "2dc789d61300a144d03d5de59d435099a35658ea1853611120a580d1767f3670",
+   "spec_hash": "0abd425c2f07c8a0583794c20988d880907669f6da0414e2fa2f31171b86fd2b",
    "fast": false,
    "perf_baseline": {
     "masaüstü 1200×750|1": 13.6,
@@ -512,10 +528,16 @@
     "iPhone 13 landscape|1": 13.4,
     "Pixel 7 landscape|1": 13.1
    },
-   "notes": [
+   "notes": [],
+   "notes_applied": [
     {
-     "t": "2026-11-20T09:33:46+00:00",
-     "text": "Mehmet (Lead Dev üzerinden, r008): sağ ve sol dikme çok kalın, biraz daha ince olsun; Kaşif/Şahin dikme kalınlığı referans; HUD %10,5 sınır altına inmeli; kıskaç, ekranlar, malzeme, kamera aynı kalsın"
+     "rev": 9,
+     "notes": [
+      {
+       "t": "2026-11-20T09:33:46+00:00",
+       "text": "Mehmet (Lead Dev üzerinden, r008): sağ ve sol dikme çok kalın, biraz daha ince olsun; Kaşif/Şahin dikme kalınlığı referans; HUD %10,5 sınır altına inmeli; kıskaç, ekranlar, malzeme, kamera aynı kalsın"
+      }
+     ]
     }
    ]
   }
