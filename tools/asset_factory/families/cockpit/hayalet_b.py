@@ -202,8 +202,6 @@ def build(spec, mats):
         # ekranlar arası dikey derzler
     for u_ in (300, 600, 1000, 1300):
         plate(u_ - 1, 510, u_ + 1, 656, dark_d, 0.0085, 0.004)
-    plate(180, 560, 182, 650, dark_d, 0.0085, 0.004)
-    plate(1418, 560, 1420, 650, dark_d, 0.0085, 0.004)
     # V amblemi radar kepi üstünde (küçük, mor)
     vv = vtop(800) - 1.5
     for sg in (-1, 1):
@@ -215,9 +213,9 @@ def build(spec, mats):
         for v_ in lin(566, 696, 13):
             for k_, u_ in enumerate(lin(8, 300, 23)):
                 uo = u_ + (6.5 if r_ % 2 else 0.0)
-                dd_ = fd(v_) + 0.02 + 0.00025 * (330 - uo)
+                dd_ = fd(v_) - 0.004      # r001-düzeltme: güverte yüzü konsol yüzünün ARKASINDA kalıp altıgenleri gizliyordu
                 p0 = P(uu(uo), v_, dd_)
-                hexes.cyl(p0, P(uu(uo), v_, dd_ - 0.0035), 0.0082, 6)
+                hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - 0.0035), 0.0082, 6)
             r_ += 1
 
     # ---- koltuk: kapitone siyah deri (Kaşif ayak izi); radar alt kenarı yüksek → geniş görünür alan
