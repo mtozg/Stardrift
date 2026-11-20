@@ -380,7 +380,7 @@
    }
   },
   "yuk_cockpit": {
-   "state": "draft",
+   "state": "modeled",
    "rev": 10,
    "history": [
     {
@@ -528,10 +528,17 @@
      "from": "delivered",
      "to": "draft",
      "reason": "yeni revizyon r010: Mehmet görsel ret (r009 oyun içi): konsol/duvar/dikme ayrıntısı ve malzeme çeşitliliği Şahin r012 düzeyinde değil"
+    },
+    {
+     "t": "2026-11-20T13:20:35+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
     }
    ],
    "timings": {
-    "probe": 32.2
+    "probe": 15.2,
+    "model": 369.2
    },
    "approvals": [
     {
@@ -552,9 +559,9 @@
      ]
     }
    ],
-   "geometry_hash": "2dc789d61300a144d03d5de59d435099a35658ea1853611120a580d1767f3670",
-   "spec_hash": "0abd425c2f07c8a0583794c20988d880907669f6da0414e2fa2f31171b86fd2b",
-   "fast": false,
+   "geometry_hash": "7e864b0c797a1cbe05e4f0c1859a7a9fca07efe1bcc7591e5060bfa5ea0b11e0",
+   "spec_hash": "2c4ad96da949a380268794a108ad8032952b3bfe6c63732e66c2e2a194b30d99",
+   "fast": true,
    "perf_baseline": {
     "masaüstü 1200×750|1": 13.6,
     "iPad Pro 11 landscape|1": 13.9,

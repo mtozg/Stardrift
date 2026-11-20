@@ -33,5 +33,7 @@
   0.32,
   0.3
  ],
- "_r010": "koyu çelik: kırık ve çizik okunur"
+ "_r010": "koyu çelik: kırık ve çizik okunur",
+ "panels": 0.75,
+ "panel_scale": 3.0
 }

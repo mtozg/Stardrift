@@ -33,5 +33,7 @@
   0.28,
   0.12
  ],
- "_r010": "turuncu boyalı panel: çıplak çelik kırıkları"
+ "_r010": "turuncu boyalı panel: çıplak çelik kırıkları",
+ "panels": 0.7,
+ "panel_scale": 3.4
 }

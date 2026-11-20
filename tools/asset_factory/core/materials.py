@@ -13,6 +13,7 @@ DEFAULTS = {
     'scratch': 0.0, 'scratch_color': [0.22, 0.23, 0.25], 'wear': 0.0, 'wear_color': [0.5, 0.52, 0.56], 'wear_radius': 0.01,
     'dirt': 0.0, 'dirt_distance': 0.06, 'bump': 0.04, 'micro_scale': 420.0,
     'emission': None,
+    'panels': 0.0, 'panel_scale': 2.6,      # panel derzleri: nesne uzayında üç eksenli tuğla örüntüsü (düz büyük yüzeyleri böler); 0 = kapalı
     'chips': 0.0, 'chip_scale': 14.0, 'chip_color': [0.42, 0.43, 0.45], 'grime': 0.0, 'streaks': 0.0,
 }
 
@@ -182,6 +183,30 @@ def build(defn):
         streak = _math(nt, 'MULTIPLY', _range(nt, sn.outputs['Fac'], 0.52, 0.74), d['streaks'], clamp=True)
     nt.links.new(rough, bsdf.inputs['Roughness'])
 
+    # panel derzleri: üç eksen izdüşümünün birleşimi (her yüzey yönünde ızgara)
+    seam = None
+    if d['panels'] > 0:
+        sep = _n(nt, 'ShaderNodeSeparateXYZ')
+        nt.links.new(obj, sep.inputs['Vector'])
+        fac = []
+        for ax in ((0, 1), (0, 2), (1, 2)):
+            cmb = _n(nt, 'ShaderNodeCombineXYZ')
+            nt.links.new(sep.outputs['XYZ'[ax[0]]], cmb.inputs['X'])
+            nt.links.new(sep.outputs['XYZ'[ax[1]]], cmb.inputs['Y'])
+            bk = _n(nt, 'ShaderNodeTexBrick')
+            bk.offset = 0.0
+            bk.inputs['Scale'].default_value = d['panel_scale']
+            bk.inputs['Mortar Size'].default_value = 0.022
+            bk.inputs['Mortar Smooth'].default_value = 0.15
+            bk.inputs['Bias'].default_value = 0.0
+            bk.inputs['Brick Width'].default_value = 1.0
+            bk.inputs['Row Height'].default_value = 0.62
+            nt.links.new(cmb.outputs['Vector'], bk.inputs['Vector'])
+            fac.append(bk.outputs['Fac'])
+        mn = _math(nt, 'MINIMUM', _math(nt, 'MINIMUM', fac[0], fac[1]), fac[2])
+        seam = _math(nt, 'SUBTRACT', 1.0, mn, clamp=True)      # 1 = derz
+        rough = _math(nt, 'ADD', rough, _math(nt, 'MULTIPLY', seam, 0.12), clamp=True)
+        nt.links.new(rough, bsdf.inputs['Roughness'])
     # renk
     tone = _range(nt, cloud.outputs['Fac'], 0.3, 0.7, d['tone_var'][0], d['tone_var'][1])
     col = _mix(nt, 'MULTIPLY', d['base'], tone)
@@ -197,6 +222,8 @@ def build(defn):
         col = _mix(nt, 'MULTIPLY', col, _range(nt, streak, 0.0, 1.0, 1.0, 0.78))
     if chips is not None:
         col = _mix(nt, 'MIX', col, d['chip_color'], chips)
+    if seam is not None:
+        col = _mix(nt, 'MULTIPLY', col, _range(nt, seam, 0.0, 1.0, 1.0, 1.0 - 0.62 * d['panels']))
     nt.links.new(col, bsdf.inputs['Base Color'])
 
     if d['kind'] == 'metal' and d['dirt'] > 0:
@@ -219,6 +246,8 @@ def build(defn):
     nt.links.new(obj, micro.inputs['Vector'])
     h = _math(nt, 'ADD', _math(nt, 'MULTIPLY', brush.outputs['Fac'], d['brush']), scratch)
     h = _math(nt, 'ADD', h, _math(nt, 'MULTIPLY', micro.outputs['Fac'], 0.5))
+    if seam is not None:
+        h = _math(nt, 'SUBTRACT', h, _math(nt, 'MULTIPLY', seam, 3.0 * d['panels']))      # derz çukuru
     bump = _n(nt, 'ShaderNodeBump')
     bump.inputs['Strength'].default_value = d['bump']
     bump.inputs['Distance'].default_value = 0.01
