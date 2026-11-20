@@ -50,6 +50,14 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 | K19 | Asset Factory'nin Yük Devi Kapı 1 kayıt komutuna izin verildi. | Kayıt geçti (r007 visual_approved); PRODUCTION başladı. | Asset Factory |
 | K12b | Aşama 1: **A bölge tablosu ve B hedef renkleri onaylandı.** C devriye karar mantığı için önce tasarım notu hazırlanacak, karar Mehmet'te. D taraf unvanları C'den sonra planlanacak. | Rütbe, XP ve kredi değerleri değişmez. | Lead Developer |
 
+## 2026-11-20 (5)
+
+| ID | Karar | Kapsam / kısıt | Ajan |
+|---|---|---|---|
+| K20 | **Aşama 1-C onaylandı:** devriye akışı (tespit → çağrı → uy/kaç → tarama ya da takip → saldırı) ve bölge tablosu tasarım notundaki gibi. **Rüşvet** girsin; ücreti Lead Developer ekonomiye uygun belirler. **Tüccar kaçışı** ve korsan selamı aynı pakette. | Rüşvet: yalnız Korsan, `max(150, kaçak × 45 + aranma × 120)` kredi. Kaçak yakalanma kaybına (mal + birim başı 60 ceza + aranma) yakın, taramadan biraz ucuz. Tarama oranları, el koyma ve ceza değişmez. | Lead Developer |
+| K21 | Yük Devi r008 beğenildi; **Kapı 2 henüz onaylanmadı**: sağ ve sol dikmeler inceltilecek. | Diğer her şey aynı. | Asset Factory |
+| — | PR #32 yalnız ilk commit'le (K13) birleşti; kalan 8 commit PR #33'e taşındı. | — | Lead Developer |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.

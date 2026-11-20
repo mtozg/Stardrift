@@ -84,3 +84,34 @@ Satır numaraları `js/game.js` 1.53.1 içindir; sonraki sürümlerde kayabilir.
 ### Asset Factory
 - PR #28 main ile birleştirildi (fd6a7c5, sürüm 1.54.0, çakışma çözüldü, iPhone 13 testi geçti). Birleştirme Mehmet'te.
 - Yük Devi PRODUCTION, fabrikanın Kapı 1 kaydını bekliyor: `cd tools/asset_factory && python3 factory.py approve yuk_cockpit --gate visual --by "Mehmet" --note "PREVIEW r007 onayı"` (Asset Factory oturumunda Mehmet'in izni gerekir).
+
+## 9. Sürüm 1.55.0 test özeti (Lead Developer, PR #32)
+Playwright, swiftshader, test kaydı. Betikler oturum geçici klasöründe; kokpit testi `tools/qa/qa_pr28.js`.
+
+| Konu | Sonuç |
+|---|---|
+| K9 kargo kaydı: eski kayıt, yenileme, pagehide, satış sonrası, bozuk değerler, gemi değişimi kapasite engeli, gerçek kayıtta test kancası yok | Geçti |
+| K13: Ankora satış var; Kara Liman ana istasyonu kara pazar; Kara Liman'daki üste pazar yok, zorla alım etkisiz | Geçti (Ankora'daki üsse yanaşma test ortamında tamamlanamadı) |
+| K6 göç: temiz korsan −65 → −50; Filo gemisi düşürmüş (−65), hain (sideN, −65) ve kötüleşmiş (−80) kayıtlar değişmedi | Geçti |
+| 1-B: Korsan'da devriye "wary" (mor), kargo/madenci "prey", korsan "ally"; Filo'da korsan "foe" | Geçti |
+| 1-A: "Sıçrama tamamlandı: Kızıl Geçit · Çekişmeli bölge" | Geçti |
+| S1-11: Filo + 3 patron, Morr yenilmemiş → "Ücra kapı → Kara Liman" işaretli; Morr yenilmişse işaret yok | Geçti |
+| K14: model engelli → 30 sn sonra uyarı; engel kalkınca "Kokpit yüklendi" | Geçti |
+| S1-03 hangar: 3 tur × 4 gemi, geometri 45 sabit, doku ilk turdan sonra 24 sabit | Geçti |
+| Kokpit regresyonu (qa_pr28.js): K→Ş→K→Ş→K doku Δ0 (masaüstü 71/50, iPhone 54/33), engel kalkınca ~12 sn'de toparlanma, gerçek kayıtta `__ckb.swap` tanımsız | Geçti |
+| Sayfa hatası | Hiçbiri |
+
+Test edilmeyenler: gerçek iPhone/iPad, bulut kaydında iki cihaz çakışması, Firebase.
+
+## 10. Sürüm 1.56.0 test özeti (Aşama 1-C)
+| Konu | Sonuç |
+|---|---|
+| Karar tablosu: Ankora temiz/kaçak/★2/★3/itibar ≤ −60 → yok/çağrı/çağrı/saldırı/saldırı; Kızıl kaçak %50 çağrı, ★2/★3/düşük → çağrı; Zümrüt ★2 yok, ★3/düşük saldırı; Lonca Pazarı hiçbiri | Geçti |
+| Filo, 4 kaçak, Ankora: çağrı kutusu → Uy → tarama (3 sn) → sonuç; aranma değişmedi | Geçti |
+| Korsan, 10 kaçak, Ankora: kutuda "Rüşvet · 450 kredi"; rüşvet → −450 kredi, tarama yok, kaçak 10 kaldı | Geçti |
+| Kaç: aranma 1 → 2 (tek artış; ikinci devriye 30 sn çağrı yapmaz), takip; süre sonunda yakındaysa devriye düşman | Geçti |
+| Tüccar kaçışı: Korsan 250 m'ye girince kargo gemisi kaçıyor | Geçti |
+| Önceki testler (göç, renkler, bölge mesajı, ücra kapı, K14, K13) | Geçti |
+| Sayfa hatası | Hiçbiri |
+
+Not: test ortamında (swiftshader) oyun saati gerçek zamanın yaklaşık 1/8'i hızında akıyor; zamanlı adımlar oyun saatine göre beklendi. Korsan selamı (itibar ≥ 60) ayrıca test edilmedi.
