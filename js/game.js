@@ -10615,7 +10615,16 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (VIEW.b0 !== undefined) VIEW.b = Math.min(VIEW.b0, OY + (ck3Of().top - 239.5) * (H - OY) / 416.5 - 30) + sway.y * 1.1;   /* HUD işaretleri ekranların ~30 px üstünde biter; sınır sallanan dashboard ile kayar */
       renderB();
     }
-    { const _dhm = drawHud; drawHud = function(){ _dhm(); if (window.__ck3on && !window.__noHudMask) try { hudMask(hctx); } catch (e) {} }; }   /* en son sarmalayıcı: tüm işaretler çizildikten sonra dashboard bölgesini siler */
+    /* 1.59.1: kokpit camı hissi, oyun tarafında. Pencere alanına çok hafif soğuk pus perdesi (üstte güçlü, aşağıda sönük), güneşe bakınca ışıma; dashboard sınırından sonra HUD maskesi perdeyi aşağıda siler.
+   Varsayılan AÇIK (Mehmet: yeterli); kapatmak için adrese ?cam=0 eklenir (localStorage sd_cam=0), ?cam=1 yeniden açar. */
+  const CAMP = (() => { try { if (/[?&]cam=1/.test(location.search)) localStorage.removeItem('sd_cam'); if (/[?&]cam=0/.test(location.search)) localStorage.setItem('sd_cam', '0'); return localStorage.getItem('sd_cam') !== '0'; } catch (e) { return true; } })();
+  function camPerde(c){ if (!CAMP) return; const sa = Math.acos(clamp(fwd.dot(sunDir), -1, 1)), sun = Math.pow(clamp(1 - sa / 1.4, 0, 1), 2);
+    c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.globalCompositeOperation = 'source-over';
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(160,200,235,' + (0.14 + 0.10 * sun).toFixed(3) + ')'); g.addColorStop(0.5, 'rgba(130,170,215,' + (0.07 + 0.08 * sun).toFixed(3) + ')'); g.addColorStop(1, 'rgba(100,140,195,0.02)');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    if (sun > 0.05){ c.globalCompositeOperation = 'lighter'; const sp = proj(rig.position.clone().addScaledVector(sunDir, 30000)); if (!sp.behind){ const r = Math.max(W, H) * 0.8, rg = c.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, r); rg.addColorStop(0, 'rgba(255,240,215,' + (0.16 * sun).toFixed(3) + ')'); rg.addColorStop(1, 'rgba(255,240,215,0)'); c.fillStyle = rg; c.fillRect(0, 0, W, H); } }
+    c.restore(); }
+  { const _dhm = drawHud; drawHud = function(){ _dhm(); if (window.__ck3on && !window.__noHudMask) try { camPerde(hctx); hudMask(hctx); } catch (e) {} }; }   /* en son sarmalayıcı: tüm işaretler çizildikten sonra dashboard bölgesini siler */
     /* kokpit hazırlık ekranı: model gelene kadar boş ekran yerine gemi hazırlığı anlatılır; oyun bu sırada bekler (menü bayrağı) */
     const PREP = ['Gemiye cephane yükleniyor', 'Motor yağı yenileniyor', 'Kalkan jeneratörü ısınıyor', 'Navigasyon kalibre ediliyor', 'Yakıt hatları basınçlandırılıyor', 'Kokpit ekranları açılıyor'];
     let prepEl = null, prepI = 0, prepT = 0, prepPct = 0, prepAt = 0;
@@ -10682,6 +10691,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
+    lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     kill: n => killNpc(n, 'player'), rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
     get time(){ return time; }, get hp(){ return Object.assign({}, hp); },
     tp: (v, dz) => { rig.position.copy(v).add(V(0, 0, dz || 0)); }, stop: () => vel.set(0, 0, 0), speed: v => vel.set(0, 0, -(v || 0)).applyQuaternion(rig.quaternion),

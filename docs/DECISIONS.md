@@ -80,6 +80,8 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 |---|---|---|---|
 | K28 | Sprint 3 başladı (Lead Developer, onay gerektirmeyen işler): **Aşama 1-D taraf unvanları** (zincir ilerlemesinden türetilir, ekonomi yok), hangar animasyonu kare hızından bağımsız (120 Hz hatası), oyuncuya ham hata metni yerine sade uyarı (ayrıntı yalnız `?tani=1` ve test kaydında), yaklaşma yazısı 3B kokpitte üst orta kısma taşındı. | Rütbe, XP, kredi değişmedi. | Lead Developer |
 
+| K29 | Kokpit **cam hissi oyun tarafında** (Mehmet: "yeterli"): pencere alanında hafif soğuk pus perdesi + güneşe bakınca ışıma; varsayılan açık, `?cam=0` ile kapanır. Asset Factory'nin model içi cam yüzeyi denemesi (K27) kapatıldı: referansın yaptığı şey yüzey değil, atmosfer. | Kokpit modellerine dokunmaz, tüm gemilere uygulanır, ek çizim çağrısı yok. | Lead Developer |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
