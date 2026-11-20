@@ -8439,9 +8439,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       perks: ['Cevher satışı +%8', 'Kargo kapasitesi +4', 'Başlangıçta herkesle arası iyi'], rel: { filo: 10, lonca: 40, korsan: -5 } },
     korsan: { ad: 'Korsan Birliği', col: '#ff6b8a', img: 'fac_korsan', pitch: 'Kural yok. Tüccarları soy, devriyelerden kaç.',
       story: 'Kara Liman, bir asteroidin içine oyulmuş, hiçbir haritada görünmeyen bir sığınaktır. Filo\'dan kaçanlar, Loncanın borçlu bıraktıkları, düzene sığmayanlar orada yaşar. Korsan Birliği\'nin tek kuralı vardır: Birlik\'ten olana dokunulmaz. Gerisi av.',
-      perks: ['Korsanlar sana saldırmaz', 'Tüccar gemisi düşürünce yağma +80 kredi', 'Ama Filo devriyeleri seni görünce saldırır'], rel: { filo: -65, lonca: -20, korsan: 50 } }
+      perks: ['Korsanlar sana saldırmaz', 'Tüccar gemisi düşürünce yağma +80 kredi', 'Ama Filo sana soğuk: av yaptıkça devriyeler seni görünce saldırmaya başlar'], rel: { filo: -50, lonca: -20, korsan: 50 } }
   };
   window.__SIDE = SIDE;
+  // 1.55.0 (K6): Korsan başlangıç Filo itibarı −65 → −50. Tek seferlik göç: taraf değiştirmemiş, Filo gemisi düşürmemiş, aranmayan
+  // ve Filo itibarı başlangıç değerinden kötüleşmemiş (−65..−50) korsan kayıtları −50'ye çekilir. Taraf değiştirmedeki −65 ihanet bedeli korunur.
+  if (!save.mig50){ save.mig50 = 1;
+    if (save.side === 'korsan' && !save.sideN && !((save.st && save.st.avci) > 0) && !(save.wanted > 0) && save.fac && save.fac.filo >= -65 && save.fac.filo < -50) save.fac.filo = -50;
+    persist(); }
   const fac = window.__fac;
   const own = () => save.side && SIDE[save.side] ? save.side : null;
   // avantajlar
@@ -8676,7 +8681,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     // devriyeler: çok arananı görünce saldırır, kaçak mal tarar
     for (let i = 0; i < npcs.length; i++){ const q = npcs[i]; if (q.role !== 'patrol' || q.hostile || curSys === 5) continue; const d = q.pos.distanceTo(rig.position); if (d > 600) continue;
       if (save.wanted >= 3 && !(save.grace > 0) && !(q.rev > time)){ q.rev = time + 60; radio(q.name, 'Aranan pilot tespit edildi. Teslim ol!', '#ff5a6e'); }
-      if (save.kacak > 0 && !scanned.has(q)){ scanned.add(q); if (Math.random() < (save.side === 'lonca' ? 0.2 : 0.3)) seize(q.name); else { eco.radioT = -9; radio(q.name, 'Rutin tarama... temiz. Devam et.', '#7fd8ff'); } }
+      if (save.kacak > 0 && !scanned.has(q)){ scanned.add(q); if (Math.random() < (save.side === 'lonca' ? 0.2 : save.side === 'korsan' ? 0.25 : 0.3)) seize(q.name); else { eco.radioT = -9; radio(q.name, 'Rutin tarama... temiz. Devam et.', '#7fd8ff'); } }
     }
   });
   function seize(who){ const n = save.kacak, fine = n * 60; save.kacak = 0; save.kredi = Math.max(0, save.kredi - fine); persist(); addWanted(1, 'kaçak mal');
@@ -8686,7 +8691,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   window.__kHold = HOLD;
   // istasyona yanaşınca gümrük taraması
   { const _td = tryDock; tryDock = function(){ const was = docked; const r = _td.apply(this, arguments);
-      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && !(curSt && curSt.isBase) && Math.random() < (save.side === 'lonca' ? 0.25 : 0.4)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
+      setTimeout(() => { if (!was && docked && save.kacak > 0 && curSys !== 5 && !(curSt && curSt.isBase) && Math.random() < ((save.side === 'lonca' || save.side === 'korsan') ? 0.25 : 0.4)) seize((curSt && curSt.ad) || 'Gümrük'); }, 200); return r; }; }
   // istasyonda: Ticaret sekmesinde kaçak pazar ve kayıt silme
   const box = document.createElement('div'); box.id = 'kacakBox'; box.dataset.tab = 'trade';
   const BUY = 90, sellP = () => (curSys === 4 && curSt === STATIONS[0] ? 185 : 150);
