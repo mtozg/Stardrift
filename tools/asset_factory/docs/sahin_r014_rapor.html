@@ -1,0 +1,84 @@
+<title>Şahin r014 Aday Raporu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: tek sütun; pilot görüşü, karar bekleyen konular, ölçümler, Blender ⟷ Three, kıskaç hiyerarşisi, Kapı 2 kararı. */
+:root {
+  --bg: #f2f2ec; --surface: #ffffff; --ink: #1e1f19; --muted: #5d5f52; --line: #dcdcd0;
+  --accent: #a8561c; --good: #2f7a45; --good-soft: #e2f1e6; --warn: #946200; --warn-soft: #f8eed4; --code-bg: #ebebe2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 80px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 46px/1.05 var(--f-display); margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 28px/1.15 var(--f-display); margin: 48px 0 10px; text-wrap: balance }
+p, li { max-width: 76ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font: .86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px }
+figure { margin: 12px 0 18px } figure img { display: block; width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0a0d14 }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 5px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 10px 0 }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: nowrap }
+.pill { display: inline-block; font: 600 12px var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.p-ok { background: var(--good-soft); color: var(--good) } .p-warn { background: var(--warn-soft); color: var(--warn) }
+pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; font: 13.5px/1.55 var(--f-mono); overflow-x: auto }
+.gate { margin-top: 40px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 18px 20px }
+.gate h2 { margin-top: 0 } .gate ol { padding-left: 20px } .gate li { margin: 5px 0 }
+@media (max-width: 760px) { h1 { font-size: 36px } }
+</style>
+
+<main>
+<div class="eyebrow">Asset Factory · Şahin r014 adayı (final tur) · konsolide rapor</div>
+<h1>Şahin r014 Aday Raporu</h1>
+<p class="lede">Şahin r012 donmuş ve oyunda; <b>r012/r013 dosyalarına, kaydına ve <code>models/</code> altındaki dosyalara dokunulmadı</b>. r014 ayrı aday (<code>sahin_r014_aday</code>, kayıt dışı). Görüntüler güncel oyundan (main 1.62.3 birleştirildi; geçici test kopyası). Kaşif · Şahin r012 (oyundaki) · Şahin r014 adayı · Yük r014, aynı oyun ve çözünürlük (1600×800). Puanlama yok.</p>
+<h2>Oyun içi</h2>
+<figure><img src="img/sahin_r014/oyun_kasif.webp" alt="Kaşif"><figcaption>Kaşif.</figcaption></figure>
+<figure><img src="img/sahin_r014/oyun_sahin_r012.webp" alt="Şahin r012"><figcaption>Şahin r012 (oyundaki).</figcaption></figure>
+<figure><img src="img/sahin_r014/oyun_sahin_r014.webp" alt="Şahin r014 aday"><figcaption>Şahin r014 adayı.</figcaption></figure>
+<figure><img src="img/sahin_r014/oyun_yuk_r014.webp" alt="Yük r014"><figcaption>Yük Devi r014.</figcaption></figure>
+<h2>Yakın planlar (2×, r014 adayı)</h2>
+<figure><img src="img/sahin_r014/yakin_orta.webp" alt="Alt orta"><figcaption>Alt orta: koltuk başlığı radar altında.</figcaption></figure>
+<figure><img src="img/sahin_r014/yakin_sol.webp" alt="Sol alt"><figcaption>Sol alt: küçük anahtar plakası, kabartma paneller, kablo kanalı, derzler.</figcaption></figure>
+<h2>Tamamlananlar</h2>
+<ul>
+<li><b>Yan blokları:</b> her yanda 8 anahtar + 8 kırmızı/turuncu ışık yerine 2 küçük anahtar (%80 boyut), ışık yok. Yerine kabartma düz paneller (bulonlu) ve klipsli kablo kanalı.</li>
+<li><b>Koltuk:</b> radar alt kenarının hemen altından başlıyor, geniş başlık, ince yan kanatlar, kırmızı kemer şeritleri, dikiş, toka; r013'ten daha geniş/yüksek.</li>
+<li><b>Geometrik derinlik:</b> alt plakalarda kabartma iç paneller ve derz; yan alanda kabartma paneller; kablo kanalı. Malzeme: panel derzi ve AO hafifletildi.</li>
+<li><b>Ton:</b> r012'ye yakın (AO etkisi 0,35 → 0,15, boya taban rengi r012 değerine döndü).</li>
+<li>Aynı kalanlar: açık gri gövde, kırmızı şerit, ekran köşeleri, RADAR 1,56:1, ART/SOCK, kamera, HUD sırtı.</li>
+</ul>
+<h2>Teknik doğrulama</h2>
+<div class="tbl"><table>
+<tr><th>Ölçü</th><th>r014 adayı</th><th>r012</th><th>Sınır</th></tr>
+<tr><td>Görünen üçgen</td><td class="num">10.346</td><td class="num">9.384</td><td>≤ 60.000</td></tr>
+<tr><td>Draw call</td><td class="num">5</td><td class="num">5</td><td>≤ 28</td></tr>
+<tr><td>GLB masaüstü / telefon</td><td class="num">766 / 662 KB</td><td class="num">717 / 611 KB</td><td>≤ 4 MB</td></tr>
+<tr><td>GPU doku</td><td class="num">32 MB</td><td class="num">32 MB</td><td>≤ 40 MB</td></tr>
+<tr><td>HUD bölgesi (probe)</td><td class="num">%1,2</td><td class="num">aynı</td><td>≤ %10</td></tr>
+<tr><td>Ekran hizası · RADAR</td><td class="num">0,03–0,04 px · 1,56</td><td class="num">aynı</td><td></td></tr>
+<tr><td>verify · bellek K→Ş→K</td><td class="num">12/12 · sabit</td><td class="num">12/12</td><td></td></tr>
+</table></div>
+<h2>Tespit edilen sorunlar (tek liste)</h2>
+<ol>
+<li><b>Koltuk küçük kalıyor:</b> oyunda yaklaşık 55 piksel (Kaşif yaklaşık 148). Şahin'de radar ekranının alt kenarı çok aşağıda (çerçevede v=584); sözleşme sabit olduğundan koltuğa yalnızca radar altı dar bant kalıyor. Daha büyüğü için radar ekranının yukarı taşınması gerekir (kapsam dışı).</li>
+<li>Yan panellerdeki derzler ve kabartmalar oyun ölçeğinde ince; geometri derinliği belirgin ama Kaşif'in kafes/yapı derinliğine ulaşmıyor.</li>
+<li>Test görüntüsü geçici kopyadan; entegrasyon için oyun tarafı değişiklik gerekmez (aynı dosya adı, aynı ART/SOCK).</li>
+</ol>
+<h2>Durum</h2>
+<p>Şahin 2. (final) tur tamamlandı; revizyon hakkı kalmadı. Teslim paketi (tam QC, Kapı 2, <code>deliver</code>) yalnızca Mehmet'in görsel onayından sonra ve r012'nin yerine geçmesi kararıyla hazırlanır.</p>
+</main>
