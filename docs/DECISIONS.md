@@ -58,6 +58,15 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 | K21 | Yük Devi r008 beğenildi; **Kapı 2 henüz onaylanmadı**: sağ ve sol dikmeler inceltilecek. | Diğer her şey aynı. | Asset Factory |
 | — | PR #32 yalnız ilk commit'le (K13) birleşti; kalan 8 commit PR #33'e taşındı. | — | Lead Developer |
 
+## 2026-11-20 (6)
+
+| ID | Karar | Kapsam / kısıt | Ajan |
+|---|---|---|---|
+| K22 | Yük Devi r009: Kapı 2 (teknik) onayı verilmişti, ama oyunda **görsel olarak Şahin'in çok gerisinde** (düz yüzeyler, detay ve malzeme yok) bulundu. Oyuna eklenme geri alındı; **r010 revizyonu** (panel derzi, bulon, uyarı şeritleri, 3-4 malzeme, anahtar blokları) istendi. | Dikme inceltmesi aynen kalır. Görsel onay yeniden Mehmet'te. | Asset Factory |
+| K23 | Kokpit siluet QC ölçütü 1 px toleranslı yapıldı; eşik Kaşif, Şahin, Yük Devi ölçümleriyle kalibre (FAIL > %0,4, WARN > %0,25). Eski ölçüt raporda bilgi olarak duruyor. | Ölçüm artefaktı düzeltmesi; kalite eşiği düşürülmedi. | Asset Factory |
+| K24 | Model politikası: varsayılan Sonnet; Opus yalnız Mehmet onayıyla. **PR "hazır" denince birleştirilir; hazır denen PR'a commit eklenmez.** **Bir model oyuna girmeden önce Kaşif ve Şahin ile yan yana ekran görüntüsüne bakılır ve Mehmet'e gösterilir** (yalnız ölçüm yetmez). | — | Tüm ekip |
+| K25 | **Sprint 2 başladı.** Ana görev Bölüm 6'ya yeni son adım: **Kadim Kapı'nın Bekçisi** (Ankora). Ödül yalnızca rozet; kredi, XP, parça yok. Mevcut öldürme ödülü (normal düşman bounty'si) geçerli. `save.boss`'a yazılmaz, ayrı bayrak `save.bekci`. Korsan dahil herkese düşman. | Ekonomi değerleri değişmedi. | Lead Developer |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
