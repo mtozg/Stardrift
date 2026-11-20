@@ -19,7 +19,8 @@
   "gunmetal",
   "yuk_pale",
   "yuk_steel",
-  "yuk_bare"
+  "yuk_bare",
+  "yuk_leather"
  ],
  "texture_mode": "unique",
  "texture_size": 2048,
@@ -227,7 +228,7 @@
   },
   "uv_pack": "CONVEX",
   "ao_distance": 0.3,
-  "ao_into_base": 0.7,
+  "ao_into_base": 0.55,
   "_ao": "r012: Lead Developer/Mehmet: yüzey derinliği; AO albedoya çarpılır (Kaşif yaklaşımı)"
  },
  "articulation": {

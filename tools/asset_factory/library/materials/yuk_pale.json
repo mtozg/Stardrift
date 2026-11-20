@@ -2,9 +2,9 @@
  "kind": "dielectric",
  "metallic": 0.0,
  "base": [
-  0.597,
-  0.565,
-  0.381
+  0.8,
+  0.77,
+  0.6
  ],
  "rough": [
   0.45,
@@ -28,5 +28,6 @@
  "grime": 0.6,
  "streaks": 0.4,
  "_note": "açık etiket/uyarı plakası (#cbc6a6): koyu ve haki yüzeylerde kontrast",
- "dirt_distance": 0.1
+ "dirt_distance": 0.1,
+ "_r013": "etiket: yüksek kontrast"
 }

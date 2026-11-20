@@ -97,11 +97,7 @@ def build(spec, mats):
     add('header_front', wall_box((-fh, fy), (fh, fy), zh, zc, 0.08), 'yuk_dark')
     add('glass_edge_front', wall_box((-fh, fy - 0.004), (fh, fy - 0.004), zh - 0.016, zh, 0.01), 'yuk_glass_edge')
     add('sill_front', wall_box((-fh, fy), (fh, fy), -0.62, zs, 0.06), 'yuk_paint')
-    if not prod:
-        add('post_center', geo.bm_box((0, fy + 0.03, (zs + zh) / 2), (cb.get('post_w', 0.058), 0.06, zh - zs)), 'yuk_dark')
-    else:      # r012: orta dikme iki ray + basamaklar (merdiven); HUD engelini de azaltır
-        for sg in (-1, 1):
-            add('post_center_rail_%d' % sg, geo.bm_box((sg * (cb.get('post_w', 0.03) / 2 - 0.004), fy + 0.03, (zs + zh) / 2), (0.008, 0.06, zh - zs)), 'yuk_dark')
+    add('post_center', geo.bm_box((0, fy + 0.03, (zs + zh) / 2), (cb.get('post_w', 0.058), 0.06, zh - zs)), 'yuk_dark')      # r013: tek parça ince dikme (kafes/merdiven kaldırıldı)
     for s in (-1, 1):
         sd = 'L' if s < 0 else 'R'
         c0, c1 = side_pt(s, 0), side_pt(s, 1)
@@ -112,15 +108,8 @@ def build(spec, mats):
         cw, sw_, pt_ = cb.get('post_corner_w', 0.0676), cb.get('post_side_w', 0.0772), cb.get('post_t', 0.07)      # dikme genişliği (duvar boyunca) ve kalınlığı (dışa) — r009: Mehmet 'dikmeler çok kalın'
         tc = 0.005
         t = cb['side_post_t']
-        if not prod:
-            add('post_corner_' + sd, wall_box(side_pt(s, tc - cw / 2 / Ls), side_pt(s, tc + cw / 2 / Ls), zs, zh, pt_), 'yuk_dark')
-            add('post_side_' + sd, wall_box(side_pt(s, t - sw_ / 2 / Ls), side_pt(s, t + sw_ / 2 / Ls), zs, zh, pt_), 'yuk_dark')
-        else:      # r012: kafesli dikme (iki ray + X çaprazlar + bağlantı plakaları); toplam genişlik ve kalınlık aynı (Mehmet: dikme inceltmesi korunur)
-            rw = 0.009
-            for nm_, t0_, w_ in (('corner', tc, cw), ('side', t, sw_)):
-                for sg in (-1, 1):
-                    tr = t0_ + sg * (w_ / 2 - rw / 2) / Ls
-                    add('post_%s_rail_%s%d' % (nm_, sd, sg), wall_box(side_pt(s, tr - rw / 2 / Ls), side_pt(s, tr + rw / 2 / Ls), zs, zh, pt_), 'yuk_dark')
+        add('post_corner_' + sd, wall_box(side_pt(s, tc - cw / 2 / Ls), side_pt(s, tc + cw / 2 / Ls), zs, zh, pt_), 'yuk_dark')      # r013: tek parça ince dikme
+        add('post_side_' + sd, wall_box(side_pt(s, t - sw_ / 2 / Ls), side_pt(s, t + sw_ / 2 / Ls), zs, zh, pt_), 'yuk_dark')
         add('wall_side_' + sd, wall_box((s * sb[0], sb[1]), (s * sb[0], -0.9), -0.92, zc, 0.06), 'yuk_paint')
         add('lamp_housing_' + sd, geo.bm_box((s * 0.80, 0.585, -0.33), (0.034, 0.012, 0.022)), 'yuk_dark')
         add('lamp_side_' + sd, geo.bm_box((s * 0.80, 0.578, -0.33), (0.012, 0.006, 0.007)), 'emit_amber', role='emit_live')
@@ -331,15 +320,17 @@ def build(spec, mats):
             plate(u0, v0, u1, v0 + th, acc, off, depth); plate(u0, v1 - th, u1, v1, acc, off, depth)
             plate(u0, v0, u0 + th, v1, acc, off, depth); plate(u1 - th, v0, u1, v1, acc, off, depth)
 
-        def label(pc, w, h, n=5, seed=0):      # etiket plakası + baskı çizgileri
-            pale_d.box((pc.x, pc.y - 0.0035, pc.z), (w, 0.0035, h))
-            x0 = pc.x - w / 2 + 0.004
+        def label(pc, w, h, n=5, seed=0):      # etiket plakası + kalın yüksek kontrastlı baskı blokları (r013: oyun ölçeğinde okunsun)
+            w, h = w * 1.2, h * 1.9
+            black_d.box((pc.x, pc.y - 0.0030, pc.z), (w + 0.004, 0.0028, h + 0.004))      # koyu çerçeve
+            pale_d.box((pc.x, pc.y - 0.0045, pc.z), (w, 0.0030, h))
+            x0 = pc.x - w / 2 + 0.005
             for k in range(n):
-                bw = 0.004 + 0.009 * (((k + seed) * 7) % 5) / 4
-                if x0 + bw > pc.x + w / 2 - 0.003:
+                bw = 0.007 + 0.011 * (((k + seed) * 7) % 5) / 4
+                if x0 + bw > pc.x + w / 2 - 0.004:
                     break
-                black_d.box((x0 + bw / 2, pc.y - 0.0058, pc.z), (bw, 0.0016, h * 0.42))
-                x0 += bw + 0.004
+                black_d.box((x0 + bw / 2, pc.y - 0.0068, pc.z), (bw, 0.0018, h * 0.62))
+                x0 += bw + 0.005
 
         def toggle(pc, guarded=False, accent=False):      # mandal anahtar: taban plakası, kovan halkası, ince çelik mandal, kauçuk uç, isteğe bağlı menteşeli koruma kapağı
             dark_d.box((pc.x, pc.y - 0.004, pc.z), (0.024, 0.008, 0.026))
@@ -544,22 +535,35 @@ def build(spec, mats):
             for t_, pw_ in ((0.005, cb.get('post_corner_w', 0.0676)), (cb['side_post_t'], cb.get('post_side_w', 0.0772))):      # dikme tabanlarında kelepçe bantları + kafes çaprazları
                 for z_, mt_, h_ in ((zs + 0.014, bare_d, 0.010), (zs + 0.030, hazard_d, 0.008), (zs + 0.046, bare_d, 0.010)):
                     wbox(mt_, sd, t_, z_, pw_ + 0.012, h_, 0.010)
-                gap = pw_ - 2 * 0.009
-                nseg = 6
-                zz = lin(zs + 0.06, zh - 0.02, nseg + 1)
-                for k_ in range(nseg):
-                    dz = zz[k_ + 1] - zz[k_]
-                    wbox(dark_d, sd, t_, (zz[k_] + zz[k_ + 1]) / 2, 0.0045, dz, 0.016, 0.0, skew=(1 if k_ % 2 == 0 else -1) * gap / dz)      # X çapraz (zikzak)
-                    wbox(bare_d, sd, t_, zz[k_], pw_ + 0.010, 0.008, 0.020)      # bağlantı plakası
-                    for dx_ in (-1, 1):
-                        a_, b_, d_, in_, L_ = wl(sd)
-                        pq = a2 + (b2 - a2) * (t_ + dx_ * (pw_ / 2 - 0.0045) / Lw) + inw * 0.021
-                        rivets.cyl((pq.x, pq.y, zz[k_]), (pq.x + inw.x * 0.005, pq.y + inw.y * 0.005, zz[k_]), 0.0032, 5)
-        for z_ in lin(zs + 0.04, zh - 0.04, 14):      # orta dikme basamakları
-            dark_d.box((0, fy + 0.03, z_), (cb.get('post_w', 0.03) - 0.012, 0.012, 0.005))
-        # orta dikme: kelepçe halkaları ve sarı bantlar
-        for z_ in lin(zs + 0.06, zh - 0.06, 6):
-            steel_d.box((0, fy - 0.0035, z_), (cb.get('post_w', 0.036) + 0.012, 0.007, 0.012))
+                a_, b_, d_, in_, L_ = wl(sd)
+                zr = zh - zs
+                # kablo kanalı: dikme yüzünde tek kauçuk boru + üç kelepçe
+                pc_ = a2 + (b2 - a2) * (t_ + (pw_ / 2 - 0.007) / Lw) + inw * 0.020
+                black_d.cyl((pc_.x, pc_.y, zs + 0.08), (pc_.x, pc_.y, zh - 0.08), 0.0045, 6)
+                for fz_ in (0.2, 0.5, 0.8):
+                    wbox(bare_d, sd, t_ + (pw_ / 2 - 0.007) / Lw, zs + zr * fz_, 0.012, 0.010, 0.022)
+                # küçük paneller + bulon + etiket (dikey tekrar eden çubuk yok)
+                for fz_, kind_ in ((0.34, 'p'), (0.66, 'l')):
+                    zc_ = zs + zr * fz_
+                    if kind_ == 'p':
+                        wbox(bare_d, sd, t_ - 0.004 / Lw, zc_, pw_ * 0.62, 0.058, 0.019)
+                        wbox(dark_d, sd, t_ - 0.004 / Lw, zc_, pw_ * 0.62 - 0.006, 0.052, 0.021)
+                        for dx_, dz_ in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
+                            pq = a2 + (b2 - a2) * (t_ - 0.004 / Lw + dx_ * (pw_ * 0.31 - 0.004) / Lw) + inw * 0.022
+                            rivets.cyl((pq.x, pq.y, zc_ + dz_ * 0.021), (pq.x + inw.x * 0.005, pq.y + inw.y * 0.005, zc_ + dz_ * 0.021), 0.0034, 6)
+                    else:
+                        wbox(pale_d, sd, t_ - 0.004 / Lw, zc_, pw_ * 0.74, 0.048, 0.020)
+                        for k2_ in range(3):
+                            wbox(black_d, sd, t_ - 0.004 / Lw + (k2_ - 1) * 0.008 / Lw, zc_, 0.005, 0.030 - 0.006 * (k2_ % 2), 0.0225)
+        # orta dikme: tek ince gövde; yüzeyde küçük panel, etiket ve bulon (r013)
+        pw0 = cb.get('post_w', 0.03)
+        bare_d.box((0, fy - 0.0025, zs + (zh - zs) * 0.40), (pw0 + 0.004, 0.005, 0.060))
+        dark_d.box((0, fy - 0.0045, zs + (zh - zs) * 0.40), (pw0 - 0.004, 0.005, 0.052))
+        pale_d.box((0, fy - 0.0045, zs + (zh - zs) * 0.62), (pw0 - 0.004, 0.005, 0.050))
+        for k2_ in range(3):
+            black_d.box(((k2_ - 1) * 0.0065, fy - 0.0075, zs + (zh - zs) * 0.62), (0.0035, 0.002, 0.030 - 0.006 * (k2_ % 2)))
+        for fz_ in (0.31, 0.49, 0.55, 0.69):
+            rivets.cyl((0, fy - 0.0075, zs + (zh - zs) * fz_), (0, fy - 0.0125, zs + (zh - zs) * fz_), 0.0035, 6)
         for z_ in (zs + 0.11, (zs + zh) / 2, zh - 0.11):
             hazard_d.box((0, fy - 0.0045, z_), (cb.get('post_w', 0.036) + 0.004, 0.009, 0.034))
         # başlık kirişi: boru hattı, kelepçeler, sarı-siyah alt flanş, etiket plakaları
@@ -591,6 +595,20 @@ def build(spec, mats):
             add('seat_strap_%s' % ('L' if s < 0 else 'R'), strap, 'yuk_black')
         add('seat_buckle', geo.bm_box((0, -0.27, pz + 0.22), (0.07, 0.02, 0.05)), 'gunmetal')
     add('seat_base', geo.bm_box((0, -0.05, pz - 0.18), (0.36, 0.5, 0.24)), 'gunmetal')
+
+    if prod:      # r013: pilot görüşünde görünen koltuk başlığı/omuz kanatları (Kaşif'te alt orta bölgede koltuk belli oluyor); çene camı bölgesinde, HUD sırtının altında
+        sy = 0.555
+        add('seat_headrest_v', soft_box((0, sy, -0.560), (0.28, 0.09, 0.16), 0.025, 1), 'yuk_leather')
+        for s_ in (-1, 1):
+            add('seat_wing_v_%s' % ('L' if s_ < 0 else 'R'), soft_box((s_ * 0.195, sy - 0.01, -0.620), (0.08, 0.10, 0.15), 0.022, 1), 'yuk_leather')
+            add('seat_strap_v_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.085, sy - 0.047, -0.66), (0.030, 0.008, 0.20)), 'yuk_black')
+        fy_ = sy - 0.0475
+        add('seat_seam_v', geo.bm_box((0, fy_, -0.60), (0.004, 0.003, 0.14)), 'yuk_pale')
+        add('seat_seam_h', geo.bm_box((0, fy_, -0.535), (0.24, 0.003, 0.004)), 'yuk_pale')
+        for s_ in (-1, 1):
+            add('seat_seam_w_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.12, fy_, -0.60), (0.004, 0.003, 0.14)), 'yuk_pale')
+            add('seat_wing_seam_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.195, sy - 0.0605, -0.62), (0.004, 0.003, 0.12)), 'yuk_pale')
+        add('seat_buckle_v', geo.bm_box((0, sy - 0.049, -0.66), (0.050, 0.010, 0.036)), 'yuk_steel')
 
     # ---- kıskaç: statik, animasyona hazır hiyerarşi (STANDARDS §0.3)
     cl = A['claw']

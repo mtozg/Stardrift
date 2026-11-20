@@ -2,9 +2,9 @@
  "kind": "dielectric",
  "metallic": 0.0,
  "base": [
-  0.275,
-  0.254,
-  0.107
+  0.336,
+  0.31,
+  0.131
  ],
  "rough": [
   0.38,
@@ -39,5 +39,6 @@
  "_r010": "Mehmet: düz haki → belirgin leke, boya kırığı (çıplak çelik), akıntı",
  "panels": 1.0,
  "panel_scale": 2.4,
- "dirt_distance": 0.1
+ "dirt_distance": 0.1,
+ "_r013": "ton açıldı x1.22"
 }

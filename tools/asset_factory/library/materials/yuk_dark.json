@@ -2,9 +2,9 @@
  "kind": "dielectric",
  "metallic": 0.0,
  "base": [
-  0.115,
-  0.108,
-  0.092
+  0.19,
+  0.18,
+  0.155
  ],
  "rough": [
   0.38,
@@ -37,5 +37,6 @@
  "panels": 0.9,
  "panel_scale": 3.0,
  "_r011b": "koyu çelik açıldı: siyah parçalarla kontrast",
- "dirt_distance": 0.1
+ "dirt_distance": 0.1,
+ "_r013": "ton Kaşif'e yakın/açık (0.115→0.19)"
 }

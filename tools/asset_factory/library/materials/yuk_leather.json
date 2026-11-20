@@ -1,0 +1,35 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.22,
+  0.14,
+  0.088
+ ],
+ "rough": [
+  0.42,
+  0.66
+ ],
+ "micro_scale": 420.0,
+ "bump": 0.05,
+ "wear": 0.15,
+ "wear_color": [
+  0.42,
+  0.3,
+  0.2
+ ],
+ "dirt": 0.35,
+ "tone_var": [
+  0.75,
+  1.2
+ ],
+ "chips": 0.0,
+ "chip_scale": 16.0,
+ "chip_color": [
+  0.45,
+  0.33,
+  0.22
+ ],
+ "grime": 0.25,
+ "_note": "Y\u00fck Devi koltuk: y\u0131pranm\u0131\u015f tan-kahve deri (r013); Ka\u015fif M_leather yakla\u015f\u0131m\u0131"
+}
