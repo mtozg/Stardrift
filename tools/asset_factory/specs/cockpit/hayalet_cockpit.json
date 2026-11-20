@@ -3,8 +3,8 @@
  "family": "cockpit",
  "class": "cockpit",
  "seed": 6000,
- "profile": "PREVIEW",
- "concept": "Hayalet: karbon-siyah, tek mor neon, ince X/V A-direkleri (ortada dikme yok), kama konsol, kapitone deri koltuk (konsept Kapı 1 onaylı 2026-11-20)",
+ "profile": "PRODUCTION",
+ "concept": "Hayalet: karbon-siyah, tek mor neon, ince X/V A-direkleri (ortada dikme yok), kama konsol, kapitone deri koltuk (konsept Kapı 1 onaylı 2026-11-20) · PRODUCTION r002",
  "materials": [
   "hay_carbon",
   "hay_dark",
@@ -198,6 +198,6 @@
   },
   "uv_pack": "CONVEX",
   "ao_distance": 0.3,
-  "ao_into_base": 0.4
+  "ao_into_base": 0.35
  }
 }

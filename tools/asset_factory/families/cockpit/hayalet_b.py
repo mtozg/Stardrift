@@ -12,7 +12,7 @@ def build(spec, mats):
     A = spec['params']
     obs = []
     prod = spec.get('profile') == 'PRODUCTION'
-    dark_d, mid_d, lamps_d, thread_d, rivets = Acc(), Acc(), Acc(), Acc(), Acc()
+    dark_d, mid_d, lamps_d, thread_d, rivets, carb_d, hexes = Acc(), Acc(), Acc(), Acc(), Acc(), Acc(), Acc()
 
     def add(name, bm, mat, role='body', smooth=35, eye=False, solid=None, toward_eye=False):
         sft = bm if isinstance(bm, Soft) else None
@@ -125,51 +125,129 @@ def build(spec, mats):
         for i_ in range(5):
             dark_d.box(tuple(P(cxu, vb - 10 + i_ * 5, fd(vb) - 0.016)), (0.075, 0.003, 0.003))
 
-    # ---- kanopi çerçevesi: başlık kirişi, iki çapraz A-direği (aşağıya yakınsayan V), dış kemerler, tavan neon çentiği
+    # ---- kanopi çerçevesi: ince kanat profilli başlık kirişi, iki çapraz A-direği (aşağıya yakınsayan V), dış kemerler, tavan neon çentiği
     dC = A['canopy']['depth']
-    rP = A['canopy']['pillar_r']
-    hdr = [P(u, 20 + 8 * math.sin((u - 330) / 940 * math.pi) * -1 + 0, dC) for u in lin(330, 1270, 21)]
-    add('header_beam', tube(hdr, 0.028, 8), 'hay_carbon', smooth=60)
+
+    def ribbon(pts, hw, depth, name, solid=0.018, dfun=None):
+        """Piksel uzayında bir çizgi boyunca şerit (kanat profili): her noktada teğete dik ±hw px; solidify ile ince kalınlık."""
+        rows = []
+        for i, (u, v) in enumerate(pts):
+            u2, v2 = pts[min(i + 1, len(pts) - 1)]
+            u0, v0 = pts[max(i - 1, 0)]
+            tx, ty = u2 - u0, v2 - v0
+            l = math.hypot(tx, ty) or 1.0
+            nx, ny = -ty / l, tx / l
+            w = hw(i / (len(pts) - 1)) if callable(hw) else hw
+            d = depth(i / (len(pts) - 1)) if callable(depth) else depth
+            rows.append([P(u - nx * w, v - ny * w, d), P(u + nx * w, v + ny * w, d)])
+        return add(name, grid(rows), 'hay_carbon', eye=True, solid=solid)
+
+    hdr = [(u, 18 + 6 * math.sin((u - 330) / 940 * math.pi) * -1) for u in lin(330, 1270, 24)]
+    ribbon(hdr, 13, dC, 'header_beam', 0.024)
+    for u_, hw_ in ((800, 18),):
+        lamps_d.box(tuple(P(u_, 36, dC - 0.03)), (0.07, 0.01, 0.012))      # tavan ortası neon çentik
+        lamps_d.box(tuple(P(u_, 50, dC - 0.03)), (0.034, 0.01, 0.008))
     for sd in (-1, 1):
         uu = (lambda u: u) if sd < 0 else (lambda u: W - u)
         nm = 'L' if sd < 0 else 'R'
-        # A-direği: tavan ortasına doğru geniş, konsol omzuna iner
-        pil = [P(uu(385 + (565 - 385) * t), 40 + (335 - 40) * t, dC - 0.25 * t) for t in lin(0, 1, 12)]
-        add('pillar_' + nm, tube(pil, rP, 8), 'hay_carbon', smooth=60)
-        # iç kenar neonu: direğin iç yüzüne ince çizgi
-        neon = [P(uu(395 + (553 - 395) * t), 70 + (300 - 70) * t, dC - 0.25 * t - rP * 0.9) for t in lin(0.0, 1, 8)]
-        lamps_d.cyl(neon[1], neon[-2], 0.0035, 5)
+        pil = [(uu(385 + 180 * t), 40 + 295 * t) for t in lin(0, 1.13, 13)]
+        ribbon(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, 'pillar_' + nm, 0.022)
+        # iç kenar neonu (dar ışık çizgisi, kanat yüzünde)
+        seg = [P(uu(395 + 158 * t + (11 + 8 * t) - 4), 70 + 230 * t, dC - 0.25 * t - 0.014) for t in lin(0.0, 1, 8)]
+        lamps_d.cyl(seg[1], seg[-2], 0.0035, 5)
         # dış kemer (yan pencere çerçevesi)
-        arc = [P(uu(u), v, dC + 0.05) for u, v in ((330, 18), (225, 60), (120, 150), (45, 255), (2, 350))]
-        add('arc_' + nm, tube(arc, 0.034, 8), 'hay_carbon', smooth=60)
-        lamps_d.cyl(P(uu(300), 26, dC - 0.02), P(uu(250), 44, dC - 0.02), 0.0045, 5)
-        lamps_d.cyl(P(uu(60), 230, dC + 0.01), P(uu(18), 320, dC + 0.01), 0.0045, 5)
+        arc = [(uu(u), v) for u, v in ((330, 18), (270, 38), (225, 60), (170, 100), (120, 150), (80, 200), (45, 255), (20, 305), (2, 350))]
+        ribbon(arc, 10, dC + 0.05, 'arc_' + nm, 0.02)
+        lamps_d.cyl(P(uu(300), 26, dC - 0.015), P(uu(250), 44, dC - 0.015), 0.0045, 5)
+        lamps_d.cyl(P(uu(60), 230, dC + 0.02), P(uu(18), 320, dC + 0.02), 0.0045, 5)
         # yan güverte kenarı: konsol omzundan yan kenara inen profil + neon çizgi
-        rim = [P(uu(u), v, fd(v) - 0.01) for u, v in ((330, 408), (200, 468), (90, 520), (0, 570))]
-        add('deck_rim_' + nm, tube(rim, 0.012, 8), 'hay_mid', smooth=60)
+        rim = [(uu(u), v) for u, v in ((330, 408), (200, 468), (90, 520), (0, 570))]
+        ribbon(rim, 6, lambda t: fd(480) - 0.012, 'deck_rim_' + nm, 0.014)
         lamps_d.cyl(P(uu(250), 600, fd(600) - 0.012), P(uu(110), 640, fd(640) - 0.012), 0.0042, 5)
-    lamps_d.box(tuple(P(800, 36, dC - 0.03)), (0.07, 0.01, 0.012))      # tavan ortası neon çentik
-    lamps_d.box(tuple(P(800, 52, dC - 0.03)), (0.034, 0.01, 0.008))
+
+    # ---- konsol ayrıntısı: sakin yüzeyler (derz, kabartma plaka, ızgara, bulon, V amblemi) + altıgen güverte
+    def onF(u, v, off=0.0):
+        return P(u, v, fd(v) - off)
+
+    def plate(u0, v0, u1, v1, acc, off=0.006, depth=0.008):
+        pa, pb = onF(u0, v0), onF(u1, v1)
+        acc.box(((pa.x + pb.x) / 2, pa.y - off, (pa.z + pb.z) / 2), (abs(pb.x - pa.x), depth, abs(pa.z - pb.z)))
+
+    def frame(u0, v0, u1, v1, acc, th=2, off=0.0075, depth=0.006):
+        plate(u0, v0, u1, v0 + th, acc, off, depth); plate(u0, v1 - th, u1, v1, acc, off, depth)
+        plate(u0, v0, u0 + th, v1, acc, off, depth); plate(u1 - th, v0, u1, v1, acc, off, depth)
+
+    def bolts(pts, off=0.0095):
+        for (u, v) in pts:
+            pp = onF(u, v, off)
+            rivets.cyl((pp.x, pp.y, pp.z), (pp.x, pp.y - 0.004, pp.z), 0.0042, 6)
+
+    for sd in (-1, 1):
+        uu = (lambda u: u) if sd < 0 else (lambda u: W - u)
+        # ekran altı kabartma plaka + çerçeve + bulonlar + kablo kanalı
+        ua, ub = sorted((uu(345), uu(560)))
+        plate(ua, 546, ub, 612, carb_d, 0.0065, 0.009)
+        frame(ua, 546, ub, 612, mid_d, 2)
+        bolts([(ua + 8, 554), (ub - 8, 554), (ua + 8, 604), (ub - 8, 604)])
+        plate(min(uu(372), uu(532)), 576, max(uu(372), uu(532)), 578, dark_d, 0.009, 0.004)      # derz
+        duct = [P(uu(u), 628 + 2 * math.sin(u / 40.0), fd(628) - 0.012) for u in lin(330, 560, 10)]
+        d_ = tube(duct, 0.0055, 8)
+        add('duct_' + ('L' if sd < 0 else 'R'), d_, 'hay_dark', smooth=60)
+        # omuzda havalandırma ızgarası (referanstaki yan ızgara): çerçeve + ince dilimler
+        gu0, gu1 = sorted((uu(268), uu(328)))
+        plate(gu0, 470, gu1, 536, mid_d, 0.0065, 0.008)
+        for k_ in range(9):
+            v_ = 478 + k_ * 6.6
+            plate(gu0 + 4, v_, gu1 - 4, v_ + 2.4, dark_d, 0.0105, 0.004)
+        # ekranlar arası dikey derzler
+    for u_ in (300, 600, 1000, 1300):
+        plate(u_ - 1, 510, u_ + 1, 656, dark_d, 0.0085, 0.004)
+    plate(180, 560, 182, 650, dark_d, 0.0085, 0.004)
+    plate(1418, 560, 1420, 650, dark_d, 0.0085, 0.004)
+    # V amblemi radar kepi üstünde (küçük, mor)
+    vv = vtop(800) - 1.5
+    for sg in (-1, 1):
+        lamps_d.box(tuple(onF(800 + sg * 7, vv, 0.014)), (0.004, 0.004, 0.020), skew=sg * 0.5)
+    # altıgen güverte: bal peteği (altıgen prizma)
+    for sd in (-1, 1):
+        uu = (lambda u: u) if sd < 0 else (lambda u: W - u)
+        r_ = 0
+        for v_ in lin(566, 696, 13):
+            for k_, u_ in enumerate(lin(8, 300, 23)):
+                uo = u_ + (6.5 if r_ % 2 else 0.0)
+                dd_ = fd(v_) + 0.02 + 0.00025 * (330 - uo)
+                p0 = P(uu(uo), v_, dd_)
+                hexes.cyl(p0, P(uu(uo), v_, dd_ - 0.0035), 0.0082, 6)
+            r_ += 1
 
     # ---- koltuk: kapitone siyah deri (Kaşif ayak izi); radar alt kenarı yüksek → geniş görünür alan
     sy = 0.555
     ztop = A['seat']['top_z']
-    hr = soft_box((0, sy, ztop - 0.135), (0.34, 0.10, 0.27), 0.028, 1)
-    add('seat_headrest_v', hr, 'hay_leather', smooth=60)
+    add('seat_headrest_v', soft_box((0, sy, ztop - 0.135), (0.34, 0.10, 0.27), 0.028, 1), 'hay_leather', smooth=60)
+    fyy = sy - 0.0505
     for s_ in (-1, 1):
         nm = 'L' if s_ < 0 else 'R'
         add('seat_wing_v_' + nm, soft_box((s_ * 0.235, sy - 0.012, ztop - 0.215), (0.10, 0.11, 0.26), 0.024, 1), 'hay_leather', smooth=60)
-        thread_d.box((s_ * 0.235, sy - 0.0645, ztop - 0.22), (0.003, 0.003, 0.17))
-    fyy = sy - 0.0535
-    thread_d.box((0, fyy, ztop - 0.11), (0.30, 0.003, 0.003))
-    for dx_ in (-0.085, 0.085):
-        thread_d.box((dx_, fyy, ztop - 0.19), (0.003, 0.003, 0.15))
+    # kapitone yastıkçıklar (üç sütun x üç sıra başlıkta; kanatlarda iki sıra) ve aralarında koyu mor iplik
+    pad = lambda cx, cz, w, h, nm, yy: add(nm, soft_box((cx, yy, cz), (w, 0.022, h), 0.010, 1), 'hay_leather', smooth=60)
+    for r_, dz_ in enumerate((0.045, 0.115, 0.185)):
+        for c_, dx_ in enumerate((-0.108, 0.0, 0.108)):
+            pad(dx_, ztop - dz_, 0.100, 0.062, 'seat_pad_%d%d' % (r_, c_), fyy - 0.004)
+    for s_ in (-1, 1):
+        for r_, dz_ in enumerate((0.080, 0.170)):
+            pad(s_ * 0.235, ztop - dz_, 0.078, 0.074, 'seat_wpad_%d_%d' % (s_ > 0, r_), sy - 0.012 - 0.0555 - 0.004)
+        thread_d.box((s_ * 0.235, sy - 0.012 - 0.0545, ztop - 0.125), (0.082, 0.003, 0.004))
+    for dz_ in (0.080, 0.150):
+        thread_d.box((0, fyy, ztop - dz_), (0.34, 0.003, 0.004))
+    for dx_ in (-0.054, 0.054):
+        thread_d.box((dx_, fyy, ztop - 0.12), (0.004, 0.003, 0.20))
 
-    # ---- toplu ayrıntı grupları
-    for nm, acc, mt, role in (('detail_dark', dark_d, 'hay_dark', 'body'), ('detail_mid', mid_d, 'hay_mid', 'body'), ('detail_neon', lamps_d, 'emit_violet', 'emit_live'),
-                              ('detail_thread', thread_d, 'hay_thread', 'body'), ('detail_rivets', rivets, 'hay_mid', 'body')):
+    # ---- toplu ayrıntı grupları (küçük pah: kenar parlaması)
+    for nm, acc, mt, role, bev in (('detail_carbon', carb_d, 'hay_carbon', 'body', True), ('detail_dark', dark_d, 'hay_dark', 'body', True), ('detail_mid', mid_d, 'hay_mid', 'body', True),
+                                   ('detail_neon', lamps_d, 'emit_violet', 'emit_live', False), ('detail_thread', thread_d, 'hay_thread', 'body', False),
+                                   ('detail_rivets', rivets, 'hay_mid', 'body', False), ('detail_hex', hexes, 'hay_dark', 'body', False)):
         if not acc.empty():
-            add(nm, acc.bm, mt, role=role, smooth=60)
+            add(nm, Soft(acc.bm, 0.0018, 0) if bev else acc.bm, mt, role=role, smooth=60)
 
     socks = [{'name': 'SOCK_cam_0', 'loc': (0, 0, 0), 'dir': (0, 1, 0), 'extras': {'purpose': 'pilot gözü (kamera sözleşmesi)', 'fovy': 74}}]
     return {'objects': obs, 'sockets': socks}
