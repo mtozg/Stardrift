@@ -10379,13 +10379,18 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     window.__ckb = { get ready(){ return !!BM; }, get failed(){ return BF; }, get k(){ return BK; }, get stat(){ return bStat; }, get view(){ return { OX, OY, W, H }; }, get id(){ return BID; },
       /* test kancaları (salt okunur bilgi + hangardaki gemi seçimiyle aynı geçiş): tools/asset_factory/qc/ingame_cockpit.js */
       get scr(){ return SCR; }, get quads(){ const d = ck3Of(); return d ? (d.q || CKP[save.ship].q) : null; }, get mem(){ return renderer.info.memory; }, get sway(){ return sway; },
-      get tries(){ return bTry; }, get img2d(){ return IMG.img ? IMG.img.src : ''; }, get ship(){ return save.ship; },
-      swap(id){ if (!PSHIPS.some(s => s.id === id)) return false; if (!save.ships.includes(id)) save.ships.push(id); save.ship = id; SHP = PSHIPS.find(s => s.id === id); applyShip(true); setCockpit(id); return true; } };
+      get tries(){ return bTry; }, get img2d(){ return IMG.img ? IMG.img.src : ''; }, get ship(){ return save.ship; } };
+    /* gemi değiştirme test kancası YALNIZ test modunda (ayrı test kaydı, ':test' anahtarı) tanımlıdır; gerçek kayıtta yoktur. save.ships'e gemi eklemez (ekonomi korunur). */
+    if (TESTM) window.__ckb.swap = id => { if (!PSHIPS.some(s => s.id === id)) return false; save.ship = id; SHP = PSHIPS.find(s => s.id === id); applyShip(true); setCockpit(id); return true; };
     /* gemi değişince önceki modelin GPU kaynakları bırakılır (telefon belleği): geometri, malzeme, doku ve ortam haritası */
+    function disposeTree(r, seen){
+      const free = o => { if (o && o.dispose && !seen.has(o)){ seen.add(o); o.dispose(); } };
+      if (r) r.traverse(o => { if (!o.isMesh) return; free(o.geometry); for (const m of [].concat(o.material || [])){ for (const k in m) if (m[k] && m[k].isTexture) free(m[k]); free(m); } });
+      return free;
+    }
     function dropB(){
-      const seen = new Set(), free = o => { if (o && o.dispose && !seen.has(o)){ seen.add(o); o.dispose(); } };
-      const walk = r => r && r.traverse(o => { if (!o.isMesh) return; free(o.geometry); for (const m of [].concat(o.material || [])){ for (const k in m) if (m[k] && m[k].isTexture) free(m[k]); free(m); } });
-      try { walk(BM); if (BK){ walk(BK.S); free(BK.S.environment); } } catch (e) { console.warn(e); }
+      const seen = new Set();
+      try { const free = disposeTree(BM, seen); if (BK){ disposeTree(BK.S, seen); free(BK.S.environment); free(BK.S.userData.envRT); free(BK.S.userData.envSrc); } } catch (e) { console.warn(e); }
       BM = null; BP = null; BF = false; BK = null; bT0 = 0; bTry = 0; bNext = 0; window.__ck3bad = false;
     }
     function syncB(){ if (BID !== save.ship){ if (BID) dropB(); BID = save.ship; } }
@@ -10393,7 +10398,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       syncB(); if (BP) return BP; const K3 = ck3Of(); if (!K3) return Promise.reject(new Error('3B kokpit yok')); const id = BID;
       BP = new Promise((res, rej) => {
         const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? K3.glbM : K3.glb) + v,   /* telefon: 1024 dokulu hafif model, tablet/masaüstü: 2048 */
-          g => { if (id !== BID) return rej(new Error('gemi değişti')); BM = g.scene; res(); }, x => { if (x && x.total) prepPct = Math.min(0.95, x.loaded / x.total); }, e => rej(e));
+          g => { if (id !== BID){ try { disposeTree(g.scene, new Set()); } catch (e) {} return rej(new Error('gemi değişti')); } BM = g.scene; res(); }, x => { if (x && x.total) prepPct = Math.min(0.95, x.loaded / x.total); }, e => rej(e));
         if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { sc.remove(); rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
       /* yüklenemezse vazgeçilmez: 1,5 → 3 → 6 → 12 → 15 sn aralıkla sessizce yeniden denenir (geçici ağ kesintisi, çevrimdışı ilk açılış) */
       BP.catch(e => { if (id !== BID) return; console.warn('kokpit yüklenemedi, yeniden denenecek', e); BP = null; bNext = performance.now() + Math.min(15000, 1500 * Math.pow(2, bTry)); bTry++; }); return BP;
@@ -10406,7 +10411,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
           o.material = new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, side: THREE.DoubleSide }); scr.push({ o, tx, kind: bind[o.name], ver: -1 }); }
         else if (o.material){ o.material.envMapIntensity = 0.9; o.frustumCulled = false; } });
       try { const gc = document.createElement('canvas'); gc.width = 256; gc.height = 128; const gx = gc.getContext('2d'), gg = gx.createLinearGradient(0, 0, 0, 128); gg.addColorStop(0, '#7f98c8'); gg.addColorStop(0.5, '#2a3a5c'); gg.addColorStop(1, '#17223a'); gx.fillStyle = gg; gx.fillRect(0, 0, 256, 128);
-        const gt = new THREE.CanvasTexture(gc); gt.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); S.environment = pm.fromEquirectangular(gt).texture; pm.dispose(); } catch (e) { console.warn(e); }
+        const gt = new THREE.CanvasTexture(gc); gt.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer), rt = pm.fromEquirectangular(gt); S.environment = rt.texture; S.userData.envRT = rt; S.userData.envSrc = gt; pm.dispose(); } catch (e) { console.warn(e); }   /* rt ve gt gemi değişiminde dropB'de bırakılır */
       S.add(new THREE.HemisphereLight(0x7a92c4, 0x1c2840, 0.7));
       const sun = new THREE.DirectionalLight(0xfff0dc, 0); S.add(sun); const fl = new THREE.PointLight(0xffb070, 0, 9); fl.position.set(0, 0.5, -0.8); S.add(fl);
       const sg = new THREE.PointLight(0x4cc8ff, 0.45, 2.2); sg.position.set(0, -0.15, -0.55); S.add(sg); const lz = new THREE.PointLight(0xff6a8c, 0, 3); lz.position.set(0, -0.2, -0.5); S.add(lz);
