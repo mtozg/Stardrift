@@ -108,3 +108,5 @@ Görseller `assets/img/` içinde, adları kodda nerede kullanıldıklarını sö
 
 - Çevrimdışı oyun: oyun bir kez internetle açılınca bütün dosyaları (~38 MB: kod, görseller, 3B kokpit modelleri, sesler, müzik) arkada iner; sonra tamamen internetsiz oynanır. Durum Ayarlar'ın altında görünür. İnternet varken her açılışta yeni sürüm gelir, yalnızca değişen dosyalar yeniden iner. Görsel/ses/müzik eklediğinde ya da değiştirdiğinde `python3 tools/offline_list.py` çalıştır (offline.json güncellenir). Ana ekrana eklenince oyunun amblemiyle tam ekran uygulama gibi açılır.
 - İstasyon bülteni: yanaşınca başlık yanında tarafa göre bir bülten satırı (Filo Bülteni, Lonca Haberleri, Kara Liman Dedikodusu); yalnız bilgi.
+- Taraf zincirinin 1., 3. ve 5. adımında tarafın telsizinden kısa mesaj gelir (yalnız metin).
+- Ayarlar > Kayıt > Oyunu sıfırla: tüm ilerlemeyi siler ("SIFIRLA" yazarak onaylanır); giriş yapıldıysa buluttaki kayıt da silinir.

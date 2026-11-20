@@ -7065,10 +7065,39 @@ window.__xpal = {
       + line('Başlangıç rehberi', 'Uçuş, madencilik ve ticaretin kısa anlatımı', '<button class="act" data-set="tut">' + (save.tut ? 'Tekrar göster' : 'Açık') + '</button>')
       + line('Giriş hikâyesi', 'Kadim Kapı ve üç tarafın hikâyesi', '<button class="act" data-set="story">İzle</button>')
       + (TESTVIS() ? '<div class="sect">Test</div>' + line('Test modu', 'Ayrı bir kayıtta sınırsız kredi, parça ve en üst rütbe. Gerçek kaydın etkilenmez; kapatınca ona dönersin.', '<button class="act" data-set="test">' + (TESTM ? 'Açık' : 'Kapalı') + '</button>') : '')
+      + '<div class="sect">Kayıt</div>'
+      + line('Oyunu sıfırla', 'Tüm ilerlemeni (kredi, rütbe, gemiler, görevler) siler ve baştan başlatır. Hesabın açık kalır; giriş yaptıysan buluttaki kayıt da silinir.', '<button class="act" data-set="reset" style="color:#ff8a8a">Sıfırla</button>')
       + '<div class="sver">Sürüm <button data-set="ver">' + (window.SD_VERSION || '?') + '</button></div>'
       + '</div>';
   }
   let verTap = 0;
+  /* 1.63.3: Oyunu sıfırla. İki adım: açıklama + "SIFIRLA" yazmak. Yerel kaydı siler; hesap açıksa buluttaki kaydı da siler (silinemezse yeni yerel kayıt daha yeni olduğu için buluta yazılır). Hesap oturumu ve ayarlar (ses, kalite) kalır. */
+  function resetAsk(){
+    if (document.getElementById('resetBox')) return;
+    const w = document.createElement('div'); w.id = 'resetBox'; w.className = 'cb';
+    w.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(2,6,14,.82)';
+    w.innerHTML = '<div style="width:min(92vw,360px);background:#0c1626;border:1px solid #5a2430;border-radius:12px;padding:18px;color:#dbe8f8;font:14px/1.45 Barlow,system-ui,sans-serif"><b style="letter-spacing:.12em;color:#ff8a8a">OYUNU SIFIRLA</b>'
+      + '<p style="margin:10px 0">Bu cihazdaki <b>tüm ilerlemen silinecek</b>: kredi, rütbe, gemiler, görevler, başarımlar. Giriş yaptıysan buluttaki kaydın da silinir. Bu geri alınamaz.</p>'
+      + '<p style="margin:6px 0;opacity:.8">Devam etmek için kutuya <b>SIFIRLA</b> yaz.</p>'
+      + '<input id="rsI" autocomplete="off" autocapitalize="characters" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #33465f;background:#08111e;color:#fff;font-size:16px">'
+      + '<div id="rsE" style="min-height:18px;margin:6px 0;color:#ff8a8a;font-size:12px"></div>'
+      + '<div style="display:flex;gap:10px"><button id="rsX" style="flex:1;padding:12px;border-radius:8px;border:1px solid #33465f;background:#12202f;color:#dbe8f8;font-size:15px">Vazgeç</button><button id="rsGo" style="flex:1;padding:12px;border-radius:8px;border:1px solid #8a2f3d;background:#4a1620;color:#ffd0d0;font-size:15px">Sıfırla</button></div></div>';
+    document.body.appendChild(w);
+    for (const ev of ['keydown', 'keyup', 'keypress', 'pointerdown', 'touchstart']) w.addEventListener(ev, e => e.stopPropagation());
+    const kapat = () => w.remove();
+    w.querySelector('#rsX').onclick = kapat;
+    w.addEventListener('click', e => { if (e.target === w) kapat(); });
+    w.querySelector('#rsGo').onclick = async () => {
+      const v = (w.querySelector('#rsI').value || '').trim().toLocaleUpperCase('tr-TR').replace(/İ/g, 'I');
+      if (v !== 'SIFIRLA'){ w.querySelector('#rsE').textContent = 'Devam etmek için SIFIRLA yazman gerekiyor.'; return; }
+      const g = w.querySelector('#rsGo'); g.disabled = true; g.textContent = 'Siliniyor…';
+      try { if (window.__cloudReset) await Promise.race([window.__cloudReset(), new Promise(r => setTimeout(r, 6000))]); } catch (e) {}
+      window.__noPersist = true; persist = function(){};
+      try { localStorage.removeItem(SAVEKEY); } catch (e) {}
+      location.reload();
+    };
+    setTimeout(() => { const i = w.querySelector('#rsI'); i && i.focus(); }, 50);
+  }
   const BSV = [0.8, 0.9, 1, 1.12, 1.25], BSN = ['Çok küçük', 'Küçük', 'Normal', 'Büyük', 'Çok büyük'];
   const BSI = () => { try { const v = localStorage.getItem('sd_bs'); return v == null ? 2 : Math.max(0, Math.min(BSV.length - 1, +v)); } catch (e) { return 2; } };
   const bsSt = document.createElement('style'); document.head.appendChild(bsSt);
@@ -7090,6 +7119,7 @@ window.__xpal = {
     else if (a === 'story'){ close(); if (window.__story) window.__story(); }
     else if (a === 'ver'){ verTap++; if (verTap >= 5 && !TESTVIS()){ try { localStorage.setItem('sd_testvis', '1'); } catch (e) {} toast('Test ayarı açıldı', 2000); render(); } }
     else if (a === 'test'){ persist(); try { if (TESTM){ localStorage.setItem('sd-key', localStorage.getItem('sd-key-prev') || 'kayip-yildizlar'); } else { localStorage.setItem('sd-key-prev', SAVEKEY); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); } } catch (e) {} location.reload(); }
+    else if (a === 'reset'){ resetAsk(); }
     else if (a === 'tut' && save.tut){ save.tut = 0; persist(); b.textContent = 'Sonraki açılışta'; toast('Rehber oyunu bir sonraki açışında baştan çıkacak.', 2600); }
   });
   for (const ev of ['keydown', 'keyup']) P.addEventListener(ev, e => e.stopPropagation());
@@ -7585,6 +7615,11 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     lonca: [null, 'Pazar Ustası! Fiyatlar seni dinlemeye başladı.', 'Sözleşme Lideri. İmzan artık Lonca\'da bir şey ifade ediyor.', 'Ticaret Lideri. Pazarlar senin adınla açılıyor.'],
     korsan: [null, 'Akıncı! Birlik\'ten biri daha göğüs gerdi.', 'Çete Reisi. Adamların seni takip ediyor.', 'Korsan Lordu. Kara Liman\'ın kapıları sana açık.'] };
   const UWHO = { filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' };
+  /* 1.63.1: taraf zincirinin tek numaralı adımlarında (1, 3, 5) kısa telsiz sahnesi; çift adımlar zaten unvan mesajı verir. Yalnız metin, ödül yok. */
+  const CLINES = { filo: { 1: 'Ana karargah: İlk raporun alındı. Filo seni artık ismen tanıyor.', 3: 'Ana karargah: Raporların komuta masasında dolaşıyor. Dikkat çekiyorsun, pilot.', 5: 'Ana karargah: Son adım yakın. Komuta seni bekliyor.' },
+    lonca: { 1: 'Lonca masası: İlk sözleşmen kayda geçti. Kapılar yavaş yavaş aralanıyor.', 3: 'Lonca masası: Sicilin temiz ve kârlı. Meclis bunu konuşuyor.', 5: 'Lonca masası: Meclis oylamaya hazırlanıyor. Bir adım kaldı.' },
+    korsan: { 1: 'Kara Liman: İşin sessiz ve temiz geçti. Adın ağızdan ağıza dolaşıyor.', 3: 'Kara Liman: Reis senden bahsetti. İyiye işaret, belki.', 5: 'Kara Liman: Koltuk boşalmak üzere. Son hamle senin.' } };
+  window.__chainSay = (side, n) => { try { const t = CLINES[side] && CLINES[side][n]; if (!t) return; setTimeout(() => { eco.radioT = -9; radio(UWHO[side], t, (window.__SIDE && window.__SIDE[side] && window.__SIDE[side].col) || '#7fd8ff'); }, 2600); } catch (e) {} };
   let kz0 = Date.now(), kzT = 0, kzNext = 0;
   const kzSay = (msg, ms, snd) => { const at = Math.max(Date.now(), kzNext); kzNext = at + 2800; setTimeout(() => { toast(msg, ms); try { sfxP('rutbe', snd); } catch (e) {} }, at - Date.now()); };   /* aynı anda gelen bildirimler birbirinin üstüne yazılmaz */
   EXTRA.push(() => { const now = Date.now(); if (now - kzT < 2000 || now - kz0 < 8000) return; kzT = now;
@@ -9517,6 +9552,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     save.mq.i++; if (S.src) save.lq[S.src[0]] = Math.max(save.lq[S.src[0]] || 0, S.src[1] + 1);
     if (r.k) save.kredi += r.k; if (r.sp) save.sp = (save.sp || 0) + 1; persist(); if (r.x && window.__addXp) window.__addXp(r.x); if (r.f && window.__fac) window.__fac(r.f[0], r.f[1]);
     const N = cur(); toast('Ana görev tamam: ' + S.t + ' · ' + rwTxt(r) + (S.opens ? ' · ' + SYS[S.opens].ad + ' kapısı açıldı!' : '') + (N && N.bi !== S.bi ? ' · Yeni bölüm: ' + N.B.b : ''), 5200);
+    try { S.src && window.__chainSay && window.__chainSay(S.src[0], S.src[1] + 1); } catch (er) {}
     try { sfxP('gorev_tamam', 0.8); } catch (er) {} renderLq(); try { renderDock(); } catch (er) {} try { window.__drawTrack && window.__drawTrack(); } catch (er) {} });
   // uçarken: ana görev adımı bitince haber ver
   { let acc = 0; const told = {}; EXTRA.push(dt => { acc += dt; if (acc < 3 || docked) return; acc = 0; const S = cur(); if (!S) return; const key = save.mq.i; if (!told[key] && (S.f() || 0) >= S.n){ told[key] = 1; toast('Ana görev hazır: ' + S.t + ' · ödülü istasyonda Görevler\'den al.', 4600); try { window.__drawTrack && window.__drawTrack(); } catch (er) {} } }); }
@@ -10398,24 +10434,26 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const next = () => { if (i >= files.length){ try { if (!firebase.apps.length) firebase.initializeApp(CFG); firebase.auth().languageCode = 'tr'; res(firebase); } catch (e) { rej(e); } return; }
         const sc = document.createElement('script'); sc.src = 'vendor/firebase/' + files[i++] + v; sc.onload = next; sc.onerror = () => { fbp = null; rej(new Error('Firebase yüklenemedi')); }; document.head.appendChild(sc); };
       next(); }));
-    const TR = { 'auth/email-already-in-use': 'Bu e-postayla zaten bir hesap var. Giriş yap.', 'auth/invalid-email': 'Geçerli bir e-posta gir.', 'auth/weak-password': 'Şifre en az 6 karakter olmalı.', 'auth/wrong-password': 'E-posta ya da şifre yanlış.', 'auth/user-not-found': 'E-posta ya da şifre yanlış.', 'auth/invalid-credential': 'E-posta ya da şifre yanlış.', 'auth/invalid-login-credentials': 'E-posta ya da şifre yanlış.', 'auth/too-many-requests': 'Çok fazla deneme. Biraz sonra tekrar dene.', 'auth/network-request-failed': 'İnternet bağlantısı yok ya da sunucuya ulaşılamadı.', 'permission-denied': 'İzin yok. (Firestore kuralları ayarlı mı?)', 'unavailable': 'Sunucuya ulaşılamadı.', 'auth/operation-not-allowed': 'Hesap sistemi henüz açılmadı. Biraz sonra tekrar dene.', 'auth/admin-restricted-operation': 'Kodla aktarım henüz açılmadı. Biraz sonra tekrar dene.', 'auth/internal-error': 'Google girişine ulaşılamadı. İnternetini kontrol edip tekrar dene.', 'auth/popup-blocked': 'Tarayıcı giriş penceresini engelledi. Bir daha dokun.', 'auth/popup-closed-by-user': 'Google penceresi kapatıldı.', 'auth/cancelled-popup-request': 'Google penceresi kapatıldı.', 'auth/unauthorized-domain': 'Bu site Firebase\'de yetkili değil (Authorized domains).', 'auth/account-exists-with-different-credential': 'Bu e-postayla şifreli bir hesap var. E-posta ve şifreyle giriş yap.', 'auth/web-storage-unsupported': 'Tarayıcı depolamaya izin vermiyor (gizli sekme?).' };
-    const err = e => ({ ok: false, error: TR[e && e.code] || (navigator.onLine === false ? 'İnternet bağlantısı yok.' : 'Bir sorun oldu: ' + ((e && (e.code || e.message)) || e)), code: e && e.code });
+    const TR = { 'auth/email-already-in-use': 'Bu e-postayla zaten bir hesap var. Giriş yap.', 'auth/invalid-email': 'Geçerli bir e-posta gir.', 'auth/weak-password': 'Şifre en az 6 karakter olmalı.', 'auth/wrong-password': 'E-posta ya da şifre yanlış.', 'auth/user-not-found': 'E-posta ya da şifre yanlış.', 'auth/invalid-credential': 'E-posta ya da şifre yanlış.', 'auth/invalid-login-credentials': 'E-posta ya da şifre yanlış.', 'auth/too-many-requests': 'Çok fazla deneme. Biraz sonra tekrar dene.', 'auth/network-request-failed': 'İnternet bağlantısı yok ya da sunucuya ulaşılamadı.', 'permission-denied': 'İzin yok. (Firestore kuralları ayarlı mı?)', 'unavailable': 'Sunucuya ulaşılamadı.', 'auth/operation-not-allowed': 'Hesap sistemi henüz açılmadı. Biraz sonra tekrar dene.', 'auth/admin-restricted-operation': 'Kodla aktarım henüz açılmadı. Biraz sonra tekrar dene.', 'auth/internal-error': 'Google girişine ulaşılamadı. İnternetini kontrol edip tekrar dene.', 'auth/unauthorized-continue-uri': 'Doğrulama bağlantısı bu adrese gönderilemedi. Biraz sonra yeniden gönder.', 'auth/web-storage-unsupported': 'Tarayıcın giriş bilgisini saklamayı engelliyor (gizli sekme ya da çerez ayarı). Normal sekmede dene.', 'auth/user-disabled': 'Bu hesap kapatılmış.', 'auth/requires-recent-login': 'Güvenlik için yeniden giriş yap.', 'auth/popup-blocked': 'Tarayıcı giriş penceresini engelledi. Bir daha dokun.', 'auth/popup-closed-by-user': 'Google penceresi kapatıldı.', 'auth/cancelled-popup-request': 'Google penceresi kapatıldı.', 'auth/unauthorized-domain': 'Bu site Firebase\'de yetkili değil (Authorized domains).', 'auth/account-exists-with-different-credential': 'Bu e-postayla şifreli bir hesap var. E-posta ve şifreyle giriş yap.', 'auth/web-storage-unsupported': 'Tarayıcı depolamaya izin vermiyor (gizli sekme?).' };
+    const err = e => ({ ok: false, error: TR[e && e.code] || (e && e.message === 'Firebase yüklenemedi' ? 'Hesap sistemi yüklenemedi. İnternetini kontrol edip tekrar dene.' : null) || (navigator.onLine === false ? 'İnternet bağlantısı yok.' : 'Bir sorun oldu: ' + ((e && (e.code || e.message)) || e)), code: e && e.code });
     const user = () => (window.firebase && firebase.apps.length ? firebase.auth().currentUser : null);
     const acct = () => { const u = user(); return u && !u.isAnonymous && u.emailVerified ? u : null; };
     // eski arayüz bu üç yardımcıyı kullanıyor: getC (oturum), setC (çıkış), call (işlemler)
     const getC = () => { const u = acct(); if (u) return { email: u.email, uid: u.uid }; try { const c = JSON.parse(localStorage.getItem('sd-cloud') || 'null'); return c && c.email ? c : null; } catch (e) { return null; } };
     const setC = c => { try { if (c) localStorage.setItem('sd-cloud', JSON.stringify({ email: c.email })); else localStorage.removeItem('sd-cloud'); } catch (e) {} };
     const actionUrl = () => location.origin + location.pathname;
+    /* 1.63.2: dönüş adresi Firebase'de yetkili değilse (unauthorized-continue-uri) e-posta adressiz yeniden denenir; hesap açılmış olduğu için kayıt akışı bu yüzden kesilmez */
+    const withUrl = async fn => { try { await fn({ url: actionUrl() }); return true; } catch (e) { if (e && /continue-uri|unauthorized-domain|invalid-continue/.test(e.code || '')){ await fn(); return true; } throw e; } };
     async function call(m, path, body){
       try { const fb = await loadFB(), au = fb.auth(), db = fb.firestore();
         if (path === '/register'){ const cr = await au.createUserWithEmailAndPassword(body.email, body.password); if (body.pilot) try { await cr.user.updateProfile({ displayName: body.pilot }); } catch (e) {}
-          await cr.user.sendEmailVerification({ url: actionUrl() }); return { ok: true, need: 'verify' }; }
+          try { await withUrl(o => cr.user.sendEmailVerification(o)); } catch (e) { return { ok: true, need: 'verify', warn: 'Hesabın açıldı ama doğrulama e-postası gönderilemedi. Aşağıdan yeniden göndermeyi dene.' }; } return { ok: true, need: 'verify' }; }
         if (path === '/login'){ const cr = await au.signInWithEmailAndPassword(body.email, body.password); await cr.user.reload();
-          if (!cr.user.emailVerified){ try { await cr.user.sendEmailVerification({ url: actionUrl() }); } catch (e) {} return { ok: false, need: 'verify', error: 'Hesabın henüz etkin değil. E-postana yeni doğrulama bağlantısı gönderdik.' }; }
+          if (!cr.user.emailVerified){ try { await withUrl(o => cr.user.sendEmailVerification(o)); } catch (e) {} return { ok: false, need: 'verify', error: 'Hesabın henüz etkin değil. E-postana yeni doğrulama bağlantısı gönderdik.' }; }
           return { ok: true, email: cr.user.email, pilot: cr.user.displayName || '' }; }
         if (path === '/verify'){ const u = au.currentUser; if (!u) return { ok: false, error: 'Önce giriş yap.' }; await u.reload(); if (!au.currentUser.emailVerified) return { ok: false, error: 'Henüz doğrulanmamış. E-postadaki bağlantıya tıkladıktan sonra tekrar dene.' }; await u.getIdToken(true); return { ok: true, email: u.email, pilot: u.displayName || '' }; }
-        if (path === '/resend'){ const u = au.currentUser; if (u && !u.emailVerified) await u.sendEmailVerification({ url: actionUrl() }); return { ok: true }; }
-        if (path === '/forgot'){ try { await au.sendPasswordResetEmail(body.email, { url: actionUrl() }); } catch (e) { if (e.code !== 'auth/user-not-found') throw e; } return { ok: true }; }
+        if (path === '/resend'){ const u = au.currentUser; if (u && !u.emailVerified) await withUrl(o => u.sendEmailVerification(o)); return { ok: true }; }
+        if (path === '/forgot'){ try { await withUrl(o => au.sendPasswordResetEmail(body.email, o)); } catch (e) { if (e.code !== 'auth/user-not-found') throw e; } return { ok: true }; }
         if (path === '/google'){ const pr = new fb.auth.GoogleAuthProvider(); pr.setCustomParameters({ prompt: 'select_account' }); const cr = await au.signInWithPopup(pr);
           if (body && body.pilot && !cr.user.displayName) try { await cr.user.updateProfile({ displayName: body.pilot }); } catch (e) {}
           return { ok: true, email: cr.user.email, pilot: cr.user.displayName || '' }; }
@@ -10430,6 +10468,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         return { ok: false, error: 'Bilinmeyen işlem' };
       } catch (e) { return err(e); } }
     window.__cloudCall = call;
+    window.__cloudReset = async () => { try { const u = acct(); if (!u) return false; const fb = await loadFB(); await fb.firestore().collection('saves').doc(u.uid).delete(); return true; } catch (e) { return false; } };   /* oyunu sıfırla: buluttaki kaydı siler */
     // oturum açıksa kütüphaneyi açılışta yükle (eşitleme için); değilse yalnızca hesap ekranı açılınca
     try { if (localStorage.getItem('sd-cloud')) loadFB().then(fb => fb.auth().onAuthStateChanged(() => { if (!acct()) { /* oturum düştü */ } try { refreshRow(); } catch (e) {} })).catch(() => {}); } catch (e) {}
     // kayıt zaman damgası: her persist'te güncellenir (hangi cihazın kaydı daha yeni, anlamak için)
@@ -10472,7 +10511,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         const v = id => ((w.querySelector('#' + id) || {}).value || '').trim();
         if (m === 'reg'){ em = v('cE'); const pw = (w.querySelector('#cP') || {}).value || '', pw2 = (w.querySelector('#cP2') || {}).value || '';
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er('Geçerli bir e-posta gir.'); if (pw.length < 6) return er('Şifre en az 6 karakter olmalı.'); if (pw !== pw2) return er('Şifreler aynı değil.');
-          const r = await call('POST', '/register', { email: em, password: pw, pilot: v('cN') }); if (!r.ok) return er(r.error); m = 'verify'; draw('Doğrulama bağlantısı gönderildi.', true); return; }
+          const r = await call('POST', '/register', { email: em, password: pw, pilot: v('cN') }); if (!r.ok) return er(r.error); m = 'verify'; draw(r.warn || 'Doğrulama bağlantısı gönderildi.', !r.warn); return; }
         if (m === 'in'){ em = v('cE'); const r = await call('POST', '/login', { email: em, password: (w.querySelector('#cP') || {}).value || '' });
           if (r.ok) return done(r); if (r.need === 'verify'){ m = 'verify'; return draw(r.error, true); } return er(r.error); }
         if (m === 'verify'){ const r = await call('POST', '/verify', { email: em }); if (!r.ok) return er(r.error); return done(r); }
@@ -10484,7 +10523,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     window.__cloudAccount = account;
     // ---- eşitleme
     let lastPut = '', lastPutT = 0, syncing = false;
-    async function push(force){ const c = getC(); if (!c || syncing || !acct()) return;   /* oturum henüz hazır değilse bekle; çıkış sayma */ const d = raw(); if (!force && d === lastPut) return; syncing = true;
+    async function push(force){ if (window.__noPersist) return;   /* sıfırlama ya da kayıt yükleme sırasında eski durumu buluta yazma */ const c = getC(); if (!c || syncing || !acct()) return;   /* oturum henüz hazır değilse bekle; çıkış sayma */ const d = raw(); if (!force && d === lastPut) return; syncing = true;
       const r = await call('PUT', '/save', { data: d }); syncing = false;
       if (r.ok){ lastPut = d; lastPutT = Date.now(); c.t = r.t; setC(c); } else if (r.status === 401){ setC(null); refreshRow(); toast('Bulut oturumu sona erdi. Yeniden giriş yap.', 3200); } }
     window.__cloudPush = push;
