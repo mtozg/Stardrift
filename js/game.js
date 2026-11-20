@@ -7604,16 +7604,16 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   const KD = () => (window.__kadimCount ? window.__kadimCount() : 0), ST = k => ((save.st && save.st[k]) || 0);
   const TIER = ['Bronz', 'Gümüş', 'Altın'], TCOL = ['#c98a5a', '#c5d2e2', '#ffc94d'];
   const BG = [
-    { ad: 'Madenci', d: 'birim cevher sat', f: () => ST('sell'), t: [50, 300, 1000] },
-    { ad: 'Avcı', d: 'düşman gemi düşür', f: () => ST('kill'), t: [10, 50, 150] },
-    { ad: 'Devriye avcısı', d: 'devriye ya da avcı düşür', f: () => ST('avci'), t: [3, 10, 30] },
-    { ad: 'Kaçakçı', d: 'birim kaçak mal sat', f: () => ST('kacak'), t: [10, 50, 150] },
-    { ad: 'Siparişçi', d: 'acil sipariş yetiştir', f: () => ST('sip'), t: [2, 8, 20] },
-    { ad: 'Patron avcısı', d: 'korsan reisi yen', f: () => (save.boss || []).length, t: [1, 3, 6] },
-    { ad: 'Kadim dinleyici', d: 'kalıntı yankısı bul', f: KD, t: [4, 12, 16] },
-    { ad: 'Gezgin', d: 'sistem ziyaret et', f: () => (save.seen || []).length, t: [2, 4, 6] },
-    { ad: 'Üs kurucu', d: 'üs seviyesi', f: () => (save.base ? save.base.lv || 1 : 0), t: [1, 2, 3] },
-    { ad: 'Kapı Bekçisi', d: 'Kadim Bekçi\'yi yen', f: () => (save.bekci ? 1 : 0), t: [1, 1, 1], tek: 1 }
+    { r: 'madenci', ad: 'Madenci', d: 'birim cevher sat', f: () => ST('sell'), t: [50, 300, 1000] },
+    { r: 'avci', ad: 'Avcı', d: 'düşman gemi düşür', f: () => ST('kill'), t: [10, 50, 150] },
+    { r: 'devriye', ad: 'Devriye avcısı', d: 'devriye ya da avcı düşür', f: () => ST('avci'), t: [3, 10, 30] },
+    { r: 'kacakci', ad: 'Kaçakçı', d: 'birim kaçak mal sat', f: () => ST('kacak'), t: [10, 50, 150] },
+    { r: 'siparisci', ad: 'Siparişçi', d: 'acil sipariş yetiştir', f: () => ST('sip'), t: [2, 8, 20] },
+    { r: 'patron', ad: 'Patron avcısı', d: 'korsan reisi yen', f: () => (save.boss || []).length, t: [1, 3, 6] },
+    { r: 'kadim', ad: 'Kadim dinleyici', d: 'kalıntı yankısı bul', f: KD, t: [4, 12, 16] },
+    { r: 'gezgin', ad: 'Gezgin', d: 'sistem ziyaret et', f: () => (save.seen || []).length, t: [2, 4, 6] },
+    { r: 'us', ad: 'Üs kurucu', d: 'üs seviyesi', f: () => (save.base ? save.base.lv || 1 : 0), t: [1, 2, 3] },
+    { r: 'bekci', ad: 'Kapı Bekçisi', d: 'Kadim Bekçi\'yi yen', f: () => (save.bekci ? 1 : 0), t: [1, 1, 1], tek: 1 }
   ];
   const level = b => { const v = b.f() || 0; let n = 0; for (let i = 0; i < 3; i++) if (v >= b.t[i]) n = i + 1; return { v, n }; };
   window.__kutuk = () => BG.map(b => Object.assign({ ad: b.ad }, level(b)));
@@ -7643,7 +7643,8 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     let tot = 0, h = '';
     for (const b of BG){ const { v, n } = level(b); tot += b.tek ? (n ? 3 : 0) : n; const nx = b.t[Math.min(n, 2)];
       const tag = n === 0 ? '<i style="color:#6f7d99">kilitli</i>' : b.tek ? '<i style="color:' + TCOL[2] + '">kazanıldı</i>' : '<i style="color:' + TCOL[n - 1] + '">' + TIER[n - 1] + '</i>';
-      h += '<div class="line"><span>' + b.ad + ' ' + tag + '<span class="dim"><br>' + (b.tek ? b.d : (n >= 3 ? v + ' ' + b.d + ' · en üst kademe' : v + ' / ' + nx + ' ' + b.d)) + '</span></span></div>'; }
+      const ik = '<img src="assets/img/rozet_' + b.r + '_' + (n === 0 ? 1 : (b.tek ? 3 : n)) + '.webp" width="44" height="44" alt="" style="flex:none;' + (n === 0 ? 'filter:grayscale(1);opacity:.28' : '') + '">';   /* 1.65.0: rozet çizimleri (Asset Factory); kilitliyken soluk gri */
+      h += '<div class="line"><span style="display:flex;align-items:center;gap:10px">' + ik + '<span>' + b.ad + ' ' + tag + '<span class="dim"><br>' + (b.tek ? b.d : (n >= 3 ? v + ' ' + b.d + ' · en üst kademe' : v + ' / ' + nx + ' ' + b.d)) + '</span></span></span></div>'; }
     box.insertAdjacentHTML('beforeend', '<div class="sect">Başarımlar · ' + tot + '/30</div>' + h);
   };
 }

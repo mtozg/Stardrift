@@ -216,3 +216,10 @@ Not: swiftshader sayıları gerçek GPU'dan farklı olabilir; gerçek cihaz (iPh
 | Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (75/128, 54/118, 54/124, 54/118), sayfa hatası yok | PASS |
 | Oyun içi görsel kontrol: ekranlar oturuyor, HUD doğru, ortada dikme yok, koltuk büyük | Ekran görüntüsüyle |
 Not: swiftshader; gerçek cihaz test edilmedi. Teslimdeki HUD sırtı sağ kenarı düzeltildi (alt kenara kaçan son üç nokta sol kenarın aynasıyla değiştirildi). Altıgen güverte parlak (Asset Factory'nin de bildirdiği 1. sorun).
+
+## 24. Sürüm 1.65.0 test özeti (rozet çizimleri)
+| Test | Sonuç |
+|---|---|
+| kutuk (Başarımlar listesi, 9/30, kademeler) ve ekran görüntüsü: ikonlar kademe rengiyle, kilitliler soluk | PASS |
+| offline.json: 30 rozet ve 8 kokpit GLB'si (Hayalet dahil) listede | Doğrulandı |
+Not: 1.64.1'deki `offline.json` Hayalet GLB'lerini içermiyordu; bu sürümde düzeltildi. Gerçek cihaz test edilmedi.
