@@ -133,3 +133,12 @@ Regresyon seti artık depoda: `bash tools/qa/run.sh` (9 test; bekleme ~20 dk). K
 | kutuk: 10 rozet, kademeler, "Pilot Kütüğü · 9/30" başlığı, açılır bölüm | PASS |
 **Bekçi ödülü:** yalnız rozet. Mevcut öldürme ödülü geçerli (test kaydında Filo +1.045 kredi / +30 XP, Korsan +80 kredi / +50 XP; normal bir patron gemisi öldürmeyle aynı sistem). Yeni ödül değeri eklenmedi.
 Sınırlar: gerçek cihaz; Bekçi savaşının gerçek oynanış dengesi (gövde 2.600, salvo 24 hasar) elle denenmedi, yalnızca akış otomatik test edildi.
+
+## 13. Sürüm 1.59.0 (Sprint 3) test özeti
+| Konu | Sonuç |
+|---|---|
+| unvan_hata: 7 kademe × 3 taraf unvanı doğru; test kaydında ham hata metni, gerçek kayıtta "Küçük bir sorun oluştu, oyun devam ediyor." | PASS |
+| hangar_bellek (hangar animasyon değişikliği sonrası) | PASS |
+| Yaklaşma yazısı: Kaşif 3B kokpitinde üst orta kısımda (ekran görüntüsü), konsolu örtmüyor | Doğrulandı |
+| Sayfa hatası | Yok |
+Not: 120 Hz'de animasyon hızı gerçek ekranda denenmedi; yöntem zaman tabanlı (dt) olduğundan 60 Hz'de davranış aynıdır.

@@ -4056,10 +4056,11 @@ function hgSet(id){
 }
 function hgLoop(){
   if (!hgR || !docked || !isHome() || dockEl.classList.contains('hidden')){ hgRun = false; return; } { const stg = $('hgStage'); if (stg){ const w = Math.max(200, stg.clientWidth), h = Math.max(160, stg.clientHeight); if (hgR.__w !== w || hgR.__h !== h){ hgR.__w = w; hgR.__h = h; hgR.setSize(w, h, false); hgC.aspect = w / h; hgC.updateProjectionMatrix(); } } } /*hgResize*/
-  hgT += 0.008; if (hgM){ if (hgM.userData.hull){ hgM.rotation.y = hgT * 0.7 + hgYo; hgM.rotation.x = 0.2 + hgRo; hgM.rotation.z = 0; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } else if (hgM.userData.art){ hgM.rotation.y = 0.07 * Math.sin(hgT * 0.9) + hgYo * 0.25; hgM.rotation.x = 0; hgM.rotation.z = 0.015 * Math.sin(hgT * 1.3); hgM.position.y = Math.sin(hgT * 2.2) * 0.09; const pa = hgM.userData.pa.material, pb = hgM.userData.pb.material; pa.opacity += ((hgVM === 'side' ? 1 : 0) - pa.opacity) * 0.14; pb.opacity += ((hgVM === 'top' ? 1 : 0) - pb.opacity) * 0.14; } else { hgM.rotation.y = hgT; hgM.rotation.x = 0.16; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } }
+  { const nw = performance.now(), dts = Math.min(0.05, (nw - (hgLast || nw)) / 1000); hgLast = nw; hgDt = dts * 60; }   /* 1.59.0: kare hızından bağımsız (60 Hz = 1) */
+  hgT += 0.008 * hgDt; if (hgM){ if (hgM.userData.hull){ hgM.rotation.y = hgT * 0.7 + hgYo; hgM.rotation.x = 0.2 + hgRo; hgM.rotation.z = 0; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } else if (hgM.userData.art){ hgM.rotation.y = 0.07 * Math.sin(hgT * 0.9) + hgYo * 0.25; hgM.rotation.x = 0; hgM.rotation.z = 0.015 * Math.sin(hgT * 1.3); hgM.position.y = Math.sin(hgT * 2.2) * 0.09; const pa = hgM.userData.pa.material, pb = hgM.userData.pb.material; pa.opacity += ((hgVM === 'side' ? 1 : 0) - pa.opacity) * 0.14; pb.opacity += ((hgVM === 'top' ? 1 : 0) - pb.opacity) * 0.14; } else { hgM.rotation.y = hgT; hgM.rotation.x = 0.16; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } }
   hgOdd = !hgOdd; if (hgOdd || !window.matchMedia('(pointer: coarse)').matches) hgR.render(hgS, hgC); requestAnimationFrame(hgLoop);   /* telefonda hangar gemisi saniyede 30 kare: akıcı görünür, yarı yük */
 }
-let hgOdd = false;
+let hgOdd = false, hgLast = 0, hgDt = 1;
 const _rxH = renderExtras; renderExtras = function(){
   _rxH();
   const e = $('exBox'); if (e) e.dataset.tab = 'more'; const j = $('jumpBox'); if (j) j.dataset.tab = 'more';
@@ -5694,6 +5695,7 @@ function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === (
 {
   const css = document.createElement('style'); css.textContent = '#cine i{position:fixed;left:0;right:0;height:0;background:#000;z-index:4;transition:height .7s;pointer-events:none}#cine i:first-child{top:0}#cine i:nth-child(2){bottom:0}#cine.on i{height:3.6vh}#cine b{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(3.6vh + 8px);z-index:4;padding:5px 14px;border-radius:14px;background:rgba(5,10,20,.55);color:#e8edff;font:700 13px var(--font);letter-spacing:.08em;opacity:0;transition:opacity .6s;white-space:nowrap;pointer-events:none;text-shadow:0 0 8px rgba(0,0,0,.9)}#cine.on b{opacity:1}';
   document.head.appendChild(css);
+  { const st2 = document.createElement('style'); st2.textContent = 'html body #cine.top b{bottom:auto !important;top:calc(env(safe-area-inset-top,0px) + 92px) !important;left:50% !important;right:auto !important}'; document.head.appendChild(st2); }   /* 1.59.0: 3B kokpitte yazı üst orta kısımda */
   const cn = document.createElement('div'); cn.id = 'cine'; cn.innerHTML = '<i></i><i></i><b></b>'; document.body.appendChild(cn); const lab = cn.querySelector('b');
   let z = 1, lastN = '';
   EXTRA.push(dt => {
@@ -5704,7 +5706,7 @@ function isHome(){ return curSt === STATIONS[0] && (curSys === 0 || curSys === (
       tz = 1 - 0.32 * e; on = p > 0.3;
       if (on){ const n = best.ad + (bd < best.dock ? ' · kenetlenebilirsin' : ' · yaklaşıyorsun'); if (n !== lastN){ lab.textContent = n; lastN = n; } }
     }
-    z += (tz - z) * Math.min(1, dt * 2.2); window.__cz2 = z; cn.classList.toggle('on', on);
+    z += (tz - z) * Math.min(1, dt * 2.2); window.__cz2 = z; cn.classList.toggle('on', on); cn.classList.toggle('top', !!window.__ck3on);   /* 1.59.0: 3B kokpitte yazı konsolun üstüne binmesin, üst orta kısma geçer */
   });
 }
 
@@ -6458,7 +6460,7 @@ setTimeout(() => {
     document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#hgStage')){ down = true; ease = false; } }, true);
     const up = () => { if (!down) return; down = false; hgYo = ((hgYo + Math.PI) % TAU + TAU) % TAU - Math.PI; ease = true; };
     document.addEventListener('pointerup', up, true); document.addEventListener('pointercancel', up, true);
-    (function tick(){ if (ease && !down){ hgYo *= 0.9; hgRo *= 0.9; if (Math.abs(hgYo) < 0.002 && Math.abs(hgRo) < 0.002){ hgYo = 0; hgRo = 0; ease = false; } } requestAnimationFrame(tick); })(); }
+    (function tick(){ if (ease && !down){ { const k = Math.pow(0.9, hgDt || 1); hgYo *= k; hgRo *= k; } if (Math.abs(hgYo) < 0.002 && Math.abs(hgRo) < 0.002){ hgYo = 0; hgRo = 0; ease = false; } } requestAnimationFrame(tick); })(); }
 
   // istasyon durumu: ticaretten çıktı, Diğer sekmesinde salt okunur
   devHtml = () => '';
@@ -8072,7 +8074,7 @@ function drawBehind(dt, cover){
 let frameErrT = 0, frameErrN = 0;
 function frame(now){
   requestAnimationFrame(frame);
-  try { frame0(now); } catch (e){ frameErrN++; console.error(e); const t = performance.now(); if (t - frameErrT > 8000){ frameErrT = t; try { toast('Hata: ' + ((e && e.message) || e) + ' · ' + (((e && e.stack) || '').split('\n')[1] || '').trim().slice(0, 80), 6000); } catch (er) {} } }
+  try { frame0(now); } catch (e){ frameErrN++; console.error(e); const t = performance.now(); if (t - frameErrT > 8000){ frameErrT = t; window.__lastErr = String((e && e.message) || e).slice(0, 120); try { toast(window.__dbgErr ? 'Hata: ' + window.__lastErr + ' · ' + (((e && e.stack) || '').split('\n')[1] || '').trim().slice(0, 80) : 'Küçük bir sorun oluştu, oyun devam ediyor.', window.__dbgErr ? 6000 : 3000); } catch (er) {} } }
 }
 function frame0(now){
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -8530,6 +8532,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       perks: ['Korsanlar sana saldırmaz', 'Tüccar gemisi düşürünce yağma +80 kredi', 'Ama Filo sana soğuk: av yaptıkça devriyeler seni görünce saldırmaya başlar'], rel: { filo: -50, lonca: -20, korsan: 50 } }
   };
   window.__SIDE = SIDE;
+  // 1.59.0 (Aşama 1-D): taraf unvanı. Ayrı sistem değil: taraf zincirindeki tamamlanan adım sayısından türetilir (save.lq[taraf], 0-6); rütbe ve ekonomiye dokunmaz.
+  const UNVAN = { filo: ['Er', 'Devriye Subayı', 'Operasyon Lideri', 'Filo Komutanı'], lonca: ['Küçük Tüccar', 'Pazar Ustası', 'Sözleşme Lideri', 'Ticaret Lideri'], korsan: ['Kaçakçı', 'Akıncı', 'Çete Reisi', 'Korsan Lordu'] };
+  window.__unvan = k => { k = k || save.side; if (!UNVAN[k]) return ''; const n = Math.min(6, (save.lq && save.lq[k]) || 0); return UNVAN[k][n >= 6 ? 3 : n >= 4 ? 2 : n >= 2 ? 1 : 0]; };
   // 1.55.0 (K6): Korsan başlangıç Filo itibarı −65 → −50. Tek seferlik göç: taraf değiştirmemiş, Filo gemisi düşürmemiş, aranmayan
   // ve Filo itibarı başlangıç değerinden kötüleşmemiş (−65..−50) korsan kayıtları −50'ye çekilir. Taraf değiştirmedeki −65 ihanet bedeli korunur.
   if (!save.mig50){ save.mig50 = 1;
@@ -8627,7 +8632,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   const _rc = renderCt; renderCt = function(){
     _rc(); const box = $('ctBox'); if (!box) return; const k = own(); if (!k) return;
     const sect = [...box.querySelectorAll(':scope > .sect')].find(x => /^Gruplar/.test(x.dataset.t0 || x.textContent)); if (!sect) return;
-    let h = '<div class="line"><span>Tarafın: <b style="color:' + SIDE[k].col + '">' + SIDE[k].ad + '</b><span class="dim"><br>' + SIDE[k].perks.slice(0, 2).join(' · ') + '</span></span></div>';
+    let h = '<div class="line"><span>Tarafın: <b style="color:' + SIDE[k].col + '">' + SIDE[k].ad + '</b> · ' + window.__unvan(k) + '<span class="dim"><br>' + SIDE[k].perks.slice(0, 2).join(' · ') + '</span></span></div>';
     for (const to in SIDE){ if (to === k) continue; const miss = canSwitch(to);
       h += '<div class="line"><span>' + SIDE[to].ad + ' tarafına geç<span class="dim"><br>' + (miss.length ? 'Gerekli: ' + miss.join(', ') : 'Bedeli: ' + REQ.kredi + ' kredi, XP\'nin %20\'si; ' + SIDE[k].ad + ' seni düşman sayar') + '</span></span><button class="act' + (miss.length ? '' : ' go') + '" data-side="' + to + '" ' + (miss.length ? 'disabled' : '') + '>Geç</button></div>'; }
     sect.insertAdjacentHTML('afterend', h);
@@ -10657,7 +10662,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   /* ---- tanı: yakalanmayan hatalar ekranda kısaca görünür; adrese ?tani=1 eklenirse küçük bir durum paneli açılır (hareket/ateş sorunlarını cihazdan okumak için) ---- */
   (function(){
     let lastErr = '', errAt = 0; const evs = [];
-    const note = m => { lastErr = String(m).slice(0, 120); const t = performance.now(); if (t - errAt > 8000){ errAt = t; try { toast('Hata: ' + lastErr, 5000); } catch (e) {} } };
+    window.__dbgErr = /[?&]tani=1/.test(location.search) || TESTM;   /* ham hata metni yalnız tanı modunda ve test kaydında gösterilir; oyuncu sade uyarı görür */
+    const note = m => { lastErr = String(m).slice(0, 120); window.__lastErr = lastErr; const t = performance.now(); if (t - errAt > 8000){ errAt = t; try { toast(window.__dbgErr ? 'Hata: ' + lastErr : 'Küçük bir sorun oluştu, oyun devam ediyor.', window.__dbgErr ? 5000 : 3000); } catch (e) {} } };
     window.addEventListener('error', e => note((e && e.message) || 'hata'));
     window.addEventListener('unhandledrejection', e => note('söz: ' + ((e && e.reason && (e.reason.message || e.reason)) || '')));
     if (!/[?&]tani=1/.test(location.search)) return;

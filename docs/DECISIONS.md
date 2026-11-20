@@ -74,6 +74,12 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 | K26 | **Ana görsel referans artık Kaşif** (oyun içi onaylı 3B kokpit). Yük Devi r012 ve **Şahin r013** (yeni revizyon) Kaşif düzeyine çekilecek: pişirilmiş AO, kir, aşınma, derin panel yüzeyi. | Şahin r012 donmuş ve oyunda; r013 ayrı aday, Mehmet'in görsel onayına kadar oyundaki dosyalara dokunulmaz. Yük Devi r010 ve r011 görsel olarak reddedildi. | Asset Factory |
 | K27 | Kokpit **cam denemesi**: Şahin kopyasında 3 varyant (camsız, hafif, belirgin), yalnız görsel kıyas. | Oyuna girmez; beğenilirse yayma ayrı onay. | Asset Factory |
 
+## 2026-11-20 (8)
+
+| ID | Karar | Kapsam / kısıt | Ajan |
+|---|---|---|---|
+| K28 | Sprint 3 başladı (Lead Developer, onay gerektirmeyen işler): **Aşama 1-D taraf unvanları** (zincir ilerlemesinden türetilir, ekonomi yok), hangar animasyonu kare hızından bağımsız (120 Hz hatası), oyuncuya ham hata metni yerine sade uyarı (ayrıntı yalnız `?tani=1` ve test kaydında), yaklaşma yazısı 3B kokpitte üst orta kısma taşındı. | Rütbe, XP, kredi değişmedi. | Lead Developer |
+
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
