@@ -1,6 +1,6 @@
 // Oyun içi 3B kokpit testi (Playwright, swiftshader). Kullanım: repo kökünde `python3 -m http.server 8765` çalışırken
 //   node tools/asset_factory/qc/ingame_cockpit.js <çıktı_klasörü>
-// Kontroller (gemi başına): model yüklendi mi (masaüstü/telefon dosyası), ekran mesh'leri canlı tuvallere bağlı mı, kamera hizası
+// Bellek: K→Ş→K'de kokpit payı (ckTex/ckGeo) sabit kalmalı; taban BASE_MS (varsayılan 40 sn) sonra alınır. Kontroller (gemi başına): model yüklendi mi (masaüstü/telefon dosyası), ekran mesh'leri canlı tuvallere bağlı mı, kamera hizası
 // (GLB ekran köşeleri ↔ CK3 dörtgenleri, px), RADAR tuval oranı, çizim çağrısı/üçgen/süre, gemi değişiminde eski modelin bırakılması,
 // Şahin modeli ilk denemelerde gelmezse çizim kokpitine dönmeden yeniden deneme. Kaşif davranışı aynı kalmalı.
 const { chromium, devices } = require('playwright'); const fs = require('fs');
@@ -27,6 +27,10 @@ function measure(p, id){
     if (!k) return out; out.scr = k.scr.map(e => ({ kind: e.kind, canvas: e.tx.image ? [e.tx.image.width, e.tx.image.height] : null }));
     const m = B.scr.find(s => s.kind === 'map'); out.radarCanvasAspect = m ? +(m.cv.width / m.cv.height).toFixed(3) : null; out.radarLogical = m ? [m.lw, m.lh] : null;
     out.calls = B.stat.calls; out.tris = B.stat.tris; out.ms = +B.stat.ms.toFixed(2); out.texMem = B.mem.textures; out.geoMem = B.mem.geometries;
+    /* kokpit payı: kokpit sahnesinden erişilen tekil doku/geometri (ortam haritası dahil). Toplamdan ayrı izlenir: gemi değişiminde sızıntı = bu pay döngü sonunda geri gelmez.
+       (toplam − pay) oyunun kendi zamana bağlı tembel yüklemesidir (S1-02b ölçümü, 2026-11-20) ve gemi değişiminden bağımsız artar. */
+    { const G = new Set(), T = new Set(); k.S.traverse(o => { if (!o.isMesh) return; G.add(o.geometry); for (const mt of [].concat(o.material || [])) for (const kk in mt) if (mt[kk] && mt[kk].isTexture) T.add(mt[kk]); });
+      if (k.S.environment) T.add(k.S.environment); out.ckGeo = G.size; out.ckTex = T.size; }
     /* hiza referansı: modeldeki SCR_* köşelerinin ideal kameradaki pikselleri (qc/cockpit_compat.py; Kaşif = main'deki cockpit_kasif.glb, Şahin = r012). Kaşif'in CKP dörtgenleri eski çapalar, model değil */
     const REF = { kasif: [[[393, 411], [565, 393], [558, 504], [342, 525]], [[628, 369], [974, 370], [975, 508], [624, 508]], [[1032, 393], [1206, 411], [1257, 525], [1042, 504]]] };
     const Q = REF[id] || B.quads, s = (v.H - v.OY) / 416.5, names = { SCR_SYS: 0, SCR_RADAR: 1, SCR_HULL: 2 }, err = {}; const swayNow = [B.sway.x, B.sway.y];
@@ -38,13 +42,17 @@ function measure(p, id){
 }
 const still = p => p.evaluate(() => { try { window.__ckb.sway.x = 0; window.__ckb.sway.y = 0; } catch (e) {} });
 (async () => { const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] }); const res = {};
-  const only = process.argv[3]; for (const dev of Object.keys(DEV).filter(d => !only || d === only)){
+  const only = process.argv[3], BASE = +(process.env.BASE_MS || 40000);   /* oyunun tembel yüklemeleri oturana dek taban bekleme (ms); hızlı ara kontrol için BASE_MS=0 */
+  let leak = false; for (const dev of Object.keys(DEV).filter(d => !only || d === only)){
     const { ctx, p, log, glb } = await boot(b, dev, null); const R = {};
-    R.kasif_ok = await waitReady(p, 'kasif', 60000); await still(p); await p.waitForTimeout(300); R.kasif = await measure(p, 'kasif'); await p.screenshot({ path: OUT + '/kasif_' + dev.replace(/\s+/g, '_') + '.png' });
+    R.kasif_ok = await waitReady(p, 'kasif', 60000); await p.waitForTimeout(BASE); await still(p); await p.waitForTimeout(300); R.kasif = await measure(p, 'kasif'); await p.screenshot({ path: OUT + '/kasif_' + dev.replace(/\s+/g, '_') + '.png' });
     await setShip(p, 'sahin'); R.sahin_ok = await waitReady(p, 'sahin', 60000); await p.waitForTimeout(1500); await still(p); await p.waitForTimeout(300); R.sahin = await measure(p, 'sahin'); await p.screenshot({ path: OUT + '/sahin_' + dev.replace(/\s+/g, '_') + '.png' });
     await setShip(p, 'kasif'); R.back_ok = await waitReady(p, 'kasif', 60000); await p.waitForTimeout(1000); R.back = await measure(p, 'kasif');
     R.glbRequests = glb; R.log = log.slice(0, 8); res[dev] = R;
-    console.log(dev, JSON.stringify({ kasif: R.kasif_ok, sahin: R.sahin_ok, geri: R.back_ok, glb, hizaS: R.sahin.alignErrPx, hizaK: R.kasif.alignErrPx, radar: R.sahin.radarCanvasAspect, calls: R.sahin.calls, tris: R.sahin.tris, tex: [R.kasif.texMem, R.sahin.texMem, R.back.texMem], log: R.log }));
+    R.mem = { kokpitPayiSabit: R.back.ckTex === R.kasif.ckTex && R.back.ckGeo === R.kasif.ckGeo, kasif: [R.kasif.ckTex, R.kasif.ckGeo], sahin: [R.sahin.ckTex, R.sahin.ckGeo], geri: [R.back.ckTex, R.back.ckGeo],
+      digerDokuDelta: (R.back.texMem - R.back.ckTex) - (R.kasif.texMem - R.kasif.ckTex), taban_ms: BASE };
+    if (!R.mem.kokpitPayiSabit) leak = true;
+    console.log(dev, JSON.stringify({ kasif: R.kasif_ok, sahin: R.sahin_ok, geri: R.back_ok, glb, hizaS: R.sahin.alignErrPx, hizaK: R.kasif.alignErrPx, radar: R.sahin.radarCanvasAspect, calls: R.sahin.calls, tris: R.sahin.tris, tex: [R.kasif.texMem, R.sahin.texMem, R.back.texMem], bellek: R.mem, log: R.log }));
     await ctx.close(); }
   // yeniden deneme: Şahin modelinin ilk 2 isteği reddedilir → çizim kokpitine dönülmez, oyun yeniden dener ve modeli yükler
   if (!only) { let n = 0; const { ctx, p, log } = await boot(b, 'iPad Pro 11 landscape', null);
@@ -52,4 +60,4 @@ const still = p => p.evaluate(() => { try { window.__ckb.sway.x = 0; window.__ck
     await waitReady(p, 'kasif', 60000); await setShip(p, 'sahin'); const ok = await waitReady(p, 'sahin', 90000);
     const r = await p.evaluate(() => ({ ready: window.__ckb.ready, tries: window.__ckb.tries, ck3on: !!window.__ck3on, img2d: /ck_sahin/.test(window.__ckb.img2d), menuOn: !!window.__menuOn }));
     res.retry = { ok, requests: n, ...r, log: log.slice(0, 5) }; console.log('yeniden_deneme', JSON.stringify(res.retry)); await p.screenshot({ path: OUT + '/sahin_retry.png' }); await ctx.close(); }
-  fs.writeFileSync(OUT + '/ingame_result.json', JSON.stringify(res, null, 1)); await b.close(); })();
+  fs.writeFileSync(OUT + '/ingame_result.json', JSON.stringify(res, null, 1)); await b.close(); if (leak){ console.log('BELLEK: kokpit payı gemi döngüsünde geri gelmedi (sızıntı şüphesi)'); process.exitCode = 1; } })();
