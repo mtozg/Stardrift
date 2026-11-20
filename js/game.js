@@ -6458,9 +6458,10 @@ setTimeout(() => {
   // hangar: bırakınca gemi ilk konumuna döner
   { let ease = false, down = false;
     document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#hgStage')){ down = true; ease = false; } }, true);
-    const up = () => { if (!down) return; down = false; hgYo = ((hgYo + Math.PI) % TAU + TAU) % TAU - Math.PI; ease = true; };
-    document.addEventListener('pointerup', up, true); document.addEventListener('pointercancel', up, true);
-    (function tick(){ if (ease && !down){ { const k = Math.pow(0.9, hgDt || 1); hgYo *= k; hgRo *= k; } if (Math.abs(hgYo) < 0.002 && Math.abs(hgRo) < 0.002){ hgYo = 0; hgRo = 0; ease = false; } } requestAnimationFrame(tick); })(); }
+    let tickOn = false;   /* 1.59.2: geri dönüş döngüsü yalnız gemi bırakıldıktan sonra çalışır (eskiden her karede sürekli dönüyordu; pil tasarrufu) */
+    function tick(){ tickOn = false; if (ease && !down){ { const k = Math.pow(0.9, hgDt || 1); hgYo *= k; hgRo *= k; } if (Math.abs(hgYo) < 0.002 && Math.abs(hgRo) < 0.002){ hgYo = 0; hgRo = 0; ease = false; } } if (ease && !down){ tickOn = true; requestAnimationFrame(tick); } }
+    const up = () => { if (!down) return; down = false; hgYo = ((hgYo + Math.PI) % TAU + TAU) % TAU - Math.PI; ease = true; if (!tickOn){ tickOn = true; requestAnimationFrame(tick); } };
+    document.addEventListener('pointerup', up, true); document.addEventListener('pointercancel', up, true); }
 
   // istasyon durumu: ticaretten çıktı, Diğer sekmesinde salt okunur
   devHtml = () => '';
@@ -10692,6 +10693,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
+    hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },
     kill: n => killNpc(n, 'player'), rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
     get time(){ return time; }, get hp(){ return Object.assign({}, hp); },
     tp: (v, dz) => { rig.position.copy(v).add(V(0, 0, dz || 0)); }, stop: () => vel.set(0, 0, 0), speed: v => vel.set(0, 0, -(v || 0)).applyQuaternion(rig.quaternion),

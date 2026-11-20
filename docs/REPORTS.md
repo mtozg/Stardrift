@@ -142,3 +142,6 @@ Sınırlar: gerçek cihaz; Bekçi savaşının gerçek oynanış dengesi (gövde
 | Yaklaşma yazısı: Kaşif 3B kokpitinde üst orta kısımda (ekran görüntüsü), konsolu örtmüyor | Doğrulandı |
 | Sayfa hatası | Yok |
 Not: 120 Hz'de animasyon hızı gerçek ekranda denenmedi; yöntem zaman tabanlı (dt) olduğundan 60 Hz'de davranış aynıdır.
+
+### 1.59.2 eki
+- Hangar geri dönüş döngüsü (QA P2 "hiç durmayan rAF"): yalnız gemi bırakıldıktan sonra çalışır, bitince durur. Test `hangar_geri`: sürükleme hgYo 1,6 → bırakınca 4 sn içinde 0: PASS. `hangar_bellek`: PASS.
