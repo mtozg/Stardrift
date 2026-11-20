@@ -123,15 +123,3 @@ Bulunan ve düzeltilen hatalar:
 2. **Duran oyuncu seçim yapamıyordu:** çağrı 1 sn sonra kendiliğinden taramaya geçiyordu. Artık "Uy" ya da 3 sn yavaş kalma gerekir.
 3. **Düğmeler her 0,25 sn yeniden oluşturuluyordu:** dokunuş kaybolabiliyordu. Kutu artık aşama başına bir kez kurulur; düğmeler `pointerdown` ile (uçuş düğmeleri gibi) çalışır, 42 px yüksekliğinde.
 Sonuç: çağrı kutusu iPhone ekranında okunaklı; dokunarak rüşvet −450 kredi, tarama yok, kaçak korundu; hata yok.
-
-## 11. Yük Devi kokpiti oyun içi testi (1.57.0)
-Asset Factory'nin `ingame_cockpit.js` testi Yük Devi için uyarlandı (masaüstü 1600×800, iPhone 13 yatay).
-| Ölçüm | Masaüstü | iPhone 13 |
-|---|---|---|
-| Yüklenen model | cockpit_yuk.glb | cockpit_yuk_m.glb |
-| Ekran hizası (SYS / RADAR / HULL) | 0,05 / 0,03 / 0,05 px | 0,02 / 0,01 / 0,02 px |
-| RADAR tuval oranı | 1,727 | 1,728 |
-| Çizim çağrısı / üçgen | 11 / 4.752 | 11 / 4.752 |
-| Kaşif → Yük Devi → Kaşif kokpit payı (doku, geometri) | 28,15 → 7,11 → 28,15 | aynı |
-| Sayfa hatası | yok | yok |
-Not: telefonda sağ alt dokunmatik düğmeler GÖVDE ekranının sağ kısmını örtüyor.

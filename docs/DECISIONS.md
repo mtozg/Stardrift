@@ -58,14 +58,6 @@ Mehmet: "Hepsi önerin gibi. Yük Devi tam modelleme başlasın."
 | K21 | Yük Devi r008 beğenildi; **Kapı 2 henüz onaylanmadı**: sağ ve sol dikmeler inceltilecek. | Diğer her şey aynı. | Asset Factory |
 | — | PR #32 yalnız ilk commit'le (K13) birleşti; kalan 8 commit PR #33'e taşındı. | — | Lead Developer |
 
-## 2026-11-20 (6)
-
-| ID | Karar | Kapsam / kısıt | Ajan |
-|---|---|---|---|
-| K22 | Yük Devi kokpiti r009 **Kapı 2 onaylandı**; orta dikme 30 mm kaldı. Oyuna eklendi (1.57.0). | Kabul edilen uyarılar: tangent, HUD engeli %10,1. | Asset Factory, Lead Developer |
-| K23 | Kokpit siluet QC ölçütü 1 px toleranslı yapıldı; eşik Kaşif, Şahin ve Yük Devi ölçümleriyle kalibre (FAIL > %0,4, WARN > %0,25). Eski ölçüt raporda bilgi olarak duruyor. | Teknik karar (Lead Developer); ölçüm artefaktı, kalite eşiği düşürülmedi. | Asset Factory |
-| K24 | Model politikası: varsayılan Sonnet; Opus yalnız Mehmet onayıyla. PR "hazır" denince birleştirilir; hazır denen PR'a commit eklenmez. | — | Tüm ekip |
-
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
 - Kapı ücretleri 250 / 600 / 1200 kredi; taraf değiştirme 1200 XP + 4000 kredi + Dost itibar. Mehmet onayı olmadan değişmez.
