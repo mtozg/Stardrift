@@ -2,17 +2,17 @@
  "kind": "dielectric",
  "metallic": 0.0,
  "base": [
-  0.22,
-  0.14,
-  0.088
+  0.17,
+  0.1,
+  0.062
  ],
  "rough": [
   0.42,
   0.66
  ],
  "micro_scale": 420.0,
- "bump": 0.05,
- "wear": 0.15,
+ "bump": 0.07,
+ "wear": 0.3,
  "wear_color": [
   0.42,
   0.3,

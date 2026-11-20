@@ -598,16 +598,16 @@ def build(spec, mats):
 
     if prod:      # r013: pilot görüşünde görünen koltuk başlığı/omuz kanatları (Kaşif'te alt orta bölgede koltuk belli oluyor); çene camı bölgesinde, HUD sırtının altında
         sy = 0.555
-        add('seat_headrest_v', soft_box((0, sy, -0.560), (0.28, 0.09, 0.16), 0.025, 1), 'yuk_leather')
+        add('seat_headrest_v', soft_box((0, sy, -0.530), (0.30, 0.10, 0.19), 0.025, 1), 'yuk_leather')
         for s_ in (-1, 1):
-            add('seat_wing_v_%s' % ('L' if s_ < 0 else 'R'), soft_box((s_ * 0.195, sy - 0.01, -0.620), (0.08, 0.10, 0.15), 0.022, 1), 'yuk_leather')
+            add('seat_wing_v_%s' % ('L' if s_ < 0 else 'R'), soft_box((s_ * 0.205, sy - 0.01, -0.595), (0.09, 0.11, 0.17), 0.022, 1), 'yuk_leather')
             add('seat_strap_v_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.085, sy - 0.047, -0.66), (0.030, 0.008, 0.20)), 'yuk_black')
         fy_ = sy - 0.0475
-        add('seat_seam_v', geo.bm_box((0, fy_, -0.60), (0.004, 0.003, 0.14)), 'yuk_pale')
-        add('seat_seam_h', geo.bm_box((0, fy_, -0.535), (0.24, 0.003, 0.004)), 'yuk_pale')
+        add('seat_seam_v', geo.bm_box((0, fy_, -0.57), (0.006, 0.004, 0.15)), 'yuk_pale')
+        add('seat_seam_h', geo.bm_box((0, fy_, -0.505), (0.26, 0.004, 0.006)), 'yuk_pale')
         for s_ in (-1, 1):
-            add('seat_seam_w_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.12, fy_, -0.60), (0.004, 0.003, 0.14)), 'yuk_pale')
-            add('seat_wing_seam_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.195, sy - 0.0605, -0.62), (0.004, 0.003, 0.12)), 'yuk_pale')
+            add('seat_seam_w_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.12, fy_, -0.57), (0.006, 0.004, 0.15)), 'yuk_pale')
+            add('seat_wing_seam_%s' % ('L' if s_ < 0 else 'R'), geo.bm_box((s_ * 0.205, sy - 0.0605, -0.595), (0.006, 0.004, 0.13)), 'yuk_pale')
         add('seat_buckle_v', geo.bm_box((0, sy - 0.049, -0.66), (0.050, 0.010, 0.036)), 'yuk_steel')
 
     # ---- kıskaç: statik, animasyona hazır hiyerarşi (STANDARDS §0.3)
