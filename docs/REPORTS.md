@@ -145,3 +145,10 @@ Not: 120 Hz'de animasyon hızı gerçek ekranda denenmedi; yöntem zaman tabanl�
 
 ### 1.59.2 eki
 - Hangar geri dönüş döngüsü (QA P2 "hiç durmayan rAF"): yalnız gemi bırakıldıktan sonra çalışır, bitince durur. Test `hangar_geri`: sürükleme hgYo 1,6 → bırakınca 4 sn içinde 0: PASS. `hangar_bellek`: PASS.
+
+## 14. Sürüm 1.60.0 test özeti
+| Test | Sonuç |
+|---|---|
+| ozel_ekonomi: Kaşif kargo kapasitesi 16; Filo unvan 2'de "Uzak devriye" teklifi, unvan 1'de yok; yakında öldürme 0 ilerleme, 9 km uzakta 1; Lonca "Toplu sipariş" (n=34); Korsan "Pusu"; kaçak satışı 4 birim → +20 XP | PASS |
+| kargo_kaydi, kacak_uste, kutuk (kapasite 16 sonrası) | PASS |
+Not: 3. ve 4. kademe görevleri yok; yalnız 2. kademe. Test ortamında oyun saati yavaş akar; zamanlı adımlar oyun saatine göre beklendi.
