@@ -18,7 +18,8 @@
   "screen_placeholder",
   "gunmetal",
   "yuk_pale",
-  "yuk_steel"
+  "yuk_steel",
+  "yuk_bare"
  ],
  "texture_mode": "unique",
  "texture_size": 2048,

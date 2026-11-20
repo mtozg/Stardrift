@@ -380,8 +380,8 @@
    }
   },
   "yuk_cockpit": {
-   "state": "modeled",
-   "rev": 11,
+   "state": "draft",
+   "rev": 12,
    "history": [
     {
      "t": "2026-11-16T10:45:12+00:00",
@@ -546,11 +546,16 @@
      "from": "draft",
      "to": "modeled",
      "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-20T14:41:24+00:00",
+     "from": "modeled",
+     "to": "draft",
+     "reason": "yeni revizyon r012: Mehmet r011: uçlardaki sarı-siyah bloklar kalın/basit, en alt orta bölge karanlık, ince metal detayı Şahin düzeyine; r012"
     }
    ],
    "timings": {
-    "probe": 45.3,
-    "model": 378.2
+    "probe": 86.1
    },
    "approvals": [
     {
@@ -580,7 +585,12 @@
     "iPhone 13 landscape|1": 13.4,
     "Pixel 7 landscape|1": 13.1
    },
-   "notes": [],
+   "notes": [
+    {
+     "t": "2026-11-20T14:41:24+00:00",
+     "text": "r012: uç sarı-siyah bloklar → panel+bant+bulon, küçük sarı vurgu; alt orta bölge aydınlık/etiket/lamba/derz/aşınma; çıplak metal kenarlık, anahtar/düğme altı vida; HUD/ekran/ART/kamera aynı"
+    }
+   ],
    "notes_applied": [
     {
      "rev": 9,

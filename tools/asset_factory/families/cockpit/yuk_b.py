@@ -57,7 +57,7 @@ def build(spec, mats):
     A = spec['params']
     obs = []
     prod = spec.get('profile') == 'PRODUCTION'
-    rivets, dark_d, black_d, rust_d, hazard_d, lamps_d, pale_d, steel_d = Acc(), Acc(), Acc(), Acc(), Acc(), Acc(), Acc(), Acc()      # PRODUCTION ayrıntı grupları (malzeme başına tek nesne)
+    rivets, dark_d, black_d, rust_d, hazard_d, lamps_d, pale_d, steel_d, bare_d = Acc(), Acc(), Acc(), Acc(), Acc(), Acc(), Acc(), Acc(), Acc()      # PRODUCTION ayrıntı grupları (malzeme başına tek nesne)
 
     def add(name, bm, mat, role='body', smooth=35, eye=False, solid=None, toward_eye=False):
         sft = bm if isinstance(bm, Soft) else None
@@ -110,7 +110,8 @@ def build(spec, mats):
         t = cb['side_post_t']
         add('post_side_' + sd, wall_box(side_pt(s, t - sw_ / 2 / Ls), side_pt(s, t + sw_ / 2 / Ls), zs, zh, pt_), 'yuk_dark')
         add('wall_side_' + sd, wall_box((s * sb[0], sb[1]), (s * sb[0], -0.9), -0.92, zc, 0.06), 'yuk_paint')
-        add('lamp_side_' + sd, geo.bm_box((s * 0.80, 0.58, -0.33), (0.03, 0.015, 0.015)), 'emit_amber', role='emit_live')
+        add('lamp_housing_' + sd, geo.bm_box((s * 0.80, 0.585, -0.33), (0.034, 0.012, 0.022)), 'yuk_dark')
+        add('lamp_side_' + sd, geo.bm_box((s * 0.80, 0.578, -0.33), (0.012, 0.006, 0.007)), 'emit_amber', role='emit_live')
         add('lamp_header_' + sd, geo.bm_cylinder((s * 0.45, fy - 0.005, 0.53), (s * 0.45, fy - 0.03, 0.53), 0.022, 14), 'emit_amber', role='emit_live', smooth=60)
     add('lamp_header_C', geo.bm_cylinder((0, fy - 0.005, 0.53), (0, fy - 0.035, 0.53), 0.028, 16), 'emit_amber', role='emit_live', smooth=60)
     add('ceiling', geo.bm_box((0, (fy + 0.08 - 0.9) / 2, zc + 0.02), (2 * sb[0] + 0.12, fy + 0.08 + 0.9, 0.04)), 'yuk_dark')
@@ -158,7 +159,7 @@ def build(spec, mats):
     vo = [bm.verts.new(p) for p in ring_out]
     for k in range(4):
         bm.faces.new((vo[k], vo[(k + 1) % 4], vi[(k + 1) % 4], vi[k]))
-    add('chin_bezel', bm, 'yuk_dark', eye=True, solid=0.02, toward_eye=True)
+    add('chin_bezel', bm, 'yuk_steel' if prod else 'yuk_dark', eye=True, solid=0.02, toward_eye=True)
     tf = A['chin']['tunnel']
     bm = bmesh.new()
     a = [bm.verts.new(p) for p in ring_in]
@@ -330,6 +331,8 @@ def build(spec, mats):
 
         def toggle(pc, guarded=False, accent=False):      # mandal anahtar: taban plakası, kovan halkası, ince çelik mandal, kauçuk uç, isteğe bağlı menteşeli koruma kapağı
             dark_d.box((pc.x, pc.y - 0.004, pc.z), (0.024, 0.008, 0.026))
+            for sx_, sz_ in ((-1, -1), (1, -1), (-1, 1), (1, 1)):      # taban plakası vidaları
+                rivets.cyl((pc.x + sx_ * 0.0098, pc.y - 0.0075, pc.z + sz_ * 0.0108), (pc.x + sx_ * 0.0098, pc.y - 0.0105, pc.z + sz_ * 0.0108), 0.0017, 4)
             steel_d.cyl((pc.x, pc.y - 0.007, pc.z), (pc.x, pc.y - 0.0135, pc.z), 0.0085, 8)
             tip = (pc.x, pc.y - 0.034, pc.z + 0.007)
             steel_d.cyl((pc.x, pc.y - 0.0135, pc.z), tip, 0.0032, 5)
@@ -339,7 +342,9 @@ def build(spec, mats):
                 steel_d.cyl((pc.x - 0.011, pc.y - 0.027, pc.z + 0.0155), (pc.x + 0.011, pc.y - 0.027, pc.z + 0.0155), 0.0028, 5)
 
         def knob(pc, r=0.0105, ticks=True):      # ribli döner düğme: çelik etek, kauçuk gövde, 8 rib, işaret çizgisi, kadran tikleri
-            steel_d.cyl((pc.x, pc.y - 0.002, pc.z), (pc.x, pc.y - 0.007, pc.z), r * 1.55, 10)
+            for sx_ in (-1, 1):      # düğme altı iki vida
+                rivets.cyl((pc.x + sx_ * r * 2.3, pc.y - 0.0035, pc.z - r * 1.9), (pc.x + sx_ * r * 2.3, pc.y - 0.0065, pc.z - r * 1.9), 0.0017, 4)
+            bare_d.cyl((pc.x, pc.y - 0.002, pc.z), (pc.x, pc.y - 0.007, pc.z), r * 1.55, 10)
             black_d.cyl((pc.x, pc.y - 0.007, pc.z), (pc.x, pc.y - 0.022, pc.z), r, 8)
             for k in range(8):
                 a_ = k * math.pi / 4
@@ -351,7 +356,9 @@ def build(spec, mats):
                     pale_d.box((pc.x + 1.9 * r * math.sin(a_), pc.y - 0.0045, pc.z + 1.9 * r * math.cos(a_)), (0.0024, 0.0016, 0.0055))
 
         def pbutton(pc, accent=False):      # çerçeveli basma düğmesi + koruma kafesi
-            steel_d.box((pc.x, pc.y - 0.004, pc.z), (0.034, 0.008, 0.034))
+            bare_d.box((pc.x, pc.y - 0.004, pc.z), (0.034, 0.008, 0.034))
+            for sx_, sz_ in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
+                rivets.cyl((pc.x + sx_ * 0.0142, pc.y - 0.0075, pc.z + sz_ * 0.0142), (pc.x + sx_ * 0.0142, pc.y - 0.0105, pc.z + sz_ * 0.0142), 0.0019, 4)
             black_d.cyl((pc.x, pc.y - 0.008, pc.z), (pc.x, pc.y - 0.019, pc.z), 0.0105, 8)
             (rust_d if accent else pale_d).cyl((pc.x, pc.y - 0.019, pc.z), (pc.x, pc.y - 0.0205, pc.z), 0.0072, 8)
             for dx_, dz_ in ((-0.0145, -0.0145), (0.0145, -0.0145), (-0.0145, 0.0145), (0.0145, 0.0145)):
@@ -382,7 +389,7 @@ def build(spec, mats):
             for k in range(n):
                 zc_ = pa.z + (pb.z - pa.z) * (k + 0.5) / n
                 black_d.box(((pa.x + pb.x) / 2, pa.y - 0.0105, zc_), (abs(pb.x - pa.x) * 0.82, 0.006, abs(pa.z - pb.z) / n * 0.5))
-            frame(u0, v0, u1, v1, steel_d, 2, 0.0095, 0.006)
+            frame(u0, v0, u1, v1, bare_d, 2, 0.0095, 0.006)
 
         def bundle(pts, r=0.0065, n=3):      # kablo demeti: paralel kauçuk borular + çelik kelepçeler
             for i_ in range(n):
@@ -395,7 +402,7 @@ def build(spec, mats):
         # --- A: radarın altındaki şerit (çene camının üstü): röle/sigorta paneli, kablo demeti, etiketler
         pA = [onF(u, 560, 0.0) for u in (650, 950)]
         plate(646, 543, 954, 580, dark_d, 0.0065, 0.009)
-        frame(646, 543, 954, 580, steel_d, 2, 0.0075, 0.006)
+        frame(646, 543, 954, 580, bare_d, 2, 0.0075, 0.006)
         for k_, u_ in enumerate(lin(668, 932, 12)):
             pc = onF(u_, 556, 0.0)
             relay(pc, k_)
@@ -406,7 +413,7 @@ def build(spec, mats):
         # --- B/C: çene camının iki yanındaki orta paneller
         for sd, (u0, u1) in ((-1, (578, 676)), (1, (924, 1022))):
             plate(u0, 586, u1, 654, dark_d, 0.0065, 0.009)
-            frame(u0, 586, u1, 654, steel_d, 2, 0.0075, 0.006)
+            frame(u0, 586, u1, 654, bare_d, 2, 0.0075, 0.006)
             if sd < 0:
                 vent(u0 + 8, 594, u1 - 8, 616, 7)
                 for u_ in (u0 + 26, u1 - 26):
@@ -420,13 +427,20 @@ def build(spec, mats):
                 for u_ in lin(u0 + 12, u1 - 12, 4):
                     lamps_d.cyl((onF(u_, 591, 0.0).x, onF(u_, 591, 0.0).y - 0.004, onF(u_, 591, 0.0).z), (onF(u_, 591, 0.0).x, onF(u_, 591, 0.0).y - 0.009, onF(u_, 591, 0.0).z), 0.0028, 5)
         # kablo demetleri: şeridin altından çene camı kenarlarına
-        for sd, u_ in ((-1, 676), (1, 924)):
+        for sd, u_ in ((-1, 676), (1, 924)):      # çene camı yan lamba sırası + tünel üstünde LED şeridi
+            for v_ in (600, 618, 636, 650):
+                pl = onF(u_ + sd * 7 * -1, v_, 0.0)
+                lamps_d.cyl((pl.x, pl.y - 0.012, pl.z), (pl.x, pl.y - 0.018, pl.z), 0.0032, 5)
             p1, p2, p3 = onF(u_, 580, 0.012), onF(u_ + sd * -10, 600, 0.012), onF(u_ + sd * -22, 640, 0.012)
             bundle([(p1.x, p1.y, p1.z), (p2.x, p2.y, p2.z), (p3.x, p3.y, p3.z)])
+        for u_ in lin(cq[0][0] + 10, cq[1][0] - 10, 9):      # çene camı üst kenarı: etiketli aydınlık şerit (pale) + LED
+            pp = onF(u_, 586, 0.0)
+            pale_d.box((pp.x, pp.y - 0.006, pp.z), (0.012, 0.004, 0.0045))
+        label(onF((cq[0][0] + cq[1][0]) / 2, 579, 0.0), 0.10, 0.011, 7, 4)
         # --- D: sol/sağ kanat (kıskaç kumanda grubu ve göstergeler)
         for sd, (u0, u1) in ((-1, (330, 522)), (1, (1078, 1270))):
             plate(u0, 572, u1, 650, dark_d, 0.006, 0.009)
-            frame(u0, 572, u1, 650, steel_d, 2, 0.0075, 0.006)
+            frame(u0, 572, u1, 650, bare_d, 2, 0.0075, 0.006)
             plate(u0 + 4, 572, u1 - 4, 575, rust_d, 0.0085, 0.004)      # tek ince turuncu vurgu çizgisi
             for u_ in lin(u0 + 20, u1 - 20, 7):
                 pc = onF(u_, 582, 0.0)
@@ -485,11 +499,16 @@ def build(spec, mats):
         for sd in (-1, 1):
             a2, b2, dd, inw, Lw = wl(sd)
             wbox(dark_d, sd, 0.5, -0.70, 0.94 * Lw, 0.34, 0.010)      # alt yarı koyu çelik
-            wbox(black_d, sd, 0.5, zs - 0.075, 0.94 * Lw, 0.065, 0.008)      # uyarı bandı tabanı
-            for k_ in range(int(0.94 * Lw / 0.07)):
+            wbox(dark_d, sd, 0.5, zs - 0.07, 0.94 * Lw, 0.05, 0.009)      # bant paneli (koyu)
+            wbox(bare_d, sd, 0.5, zs - 0.0425, 0.94 * Lw, 0.0035, 0.0115)      # üst çıplak metal kenar
+            wbox(bare_d, sd, 0.5, zs - 0.0975, 0.94 * Lw, 0.0035, 0.0115)      # alt çıplak metal kenar
+            for k_ in range(int(0.9 * Lw / 0.09)):      # ince sarı çapraz vurgu (az) + aralarda bulon
                 a_, b_, d_, in_, L_ = wl(sd)
-                pp = a2 + (b2 - a2) * (0.03 + k_ * 0.07 / Lw) + inw * 0.0105
-                hazard_d.box((pp.x, pp.y, zs - 0.075), (0.026, 0.013, 0.065), rot_z=math.atan2(dd.y, dd.x), skew=0.75)
+                t_ = 0.04 + k_ * 0.09 / Lw
+                pp = a2 + (b2 - a2) * t_ + inw * 0.0105
+                hazard_d.box((pp.x, pp.y, zs - 0.07), (0.010, 0.011, 0.032), rot_z=math.atan2(dd.y, dd.x), skew=0.8)
+                pq = a2 + (b2 - a2) * (t_ + 0.045 / Lw) + inw * 0.0095
+                rivets.cyl((pq.x, pq.y, zs - 0.07), (pq.x + inw.x * 0.005, pq.y + inw.y * 0.005, zs - 0.07), 0.0045, 5)
             for z_ in (zs - 0.17, zs - 0.31, zs - 0.47):      # yatay derzler
                 wbox(black_d, sd, 0.5, z_, 0.94 * Lw, 0.009, 0.006)
             for t_ in (0.2, 0.44, 0.68, 0.9):      # dikey derzler
@@ -511,8 +530,8 @@ def build(spec, mats):
             for t_ in (0.12, 0.35, 0.58, 0.81):
                 wbox(steel_d, sd, t_, zs - 0.40, 0.022, 0.044, 0.030)
             for t_, pw_ in ((0.0, cb.get('post_corner_w', 0.0676)), (cb['side_post_t'], cb.get('post_side_w', 0.0772))):      # dikme tabanlarında sarı-siyah kelepçe bantları
-                for z_, mt_ in ((zs + 0.012, hazard_d), (zs + 0.040, black_d), (zs + 0.068, hazard_d)):
-                    wbox(mt_, sd, t_, z_, pw_ + 0.014, 0.020, 0.010)
+                for z_, mt_, h_ in ((zs + 0.014, bare_d, 0.010), (zs + 0.030, hazard_d, 0.008), (zs + 0.046, bare_d, 0.010)):
+                    wbox(mt_, sd, t_, z_, pw_ + 0.012, h_, 0.010)
         # orta dikme: kelepçe halkaları ve sarı bantlar
         for z_ in lin(zs + 0.06, zh - 0.06, 6):
             steel_d.box((0, fy - 0.0035, z_), (cb.get('post_w', 0.036) + 0.012, 0.007, 0.012))
@@ -625,7 +644,7 @@ def build(spec, mats):
     if prod:      # toplu ayrıntı grupları: malzeme başına tek nesne
         for nm, acc, mt, role in (('detail_rivets', rivets, 'yuk_steel', 'body'), ('detail_plates', dark_d, 'yuk_dark', 'body'), ('detail_black', black_d, 'yuk_black', 'body'),
                                   ('detail_rust', rust_d, 'yuk_rust', 'body'), ('detail_hazard', hazard_d, 'yuk_hazard', 'body'), ('detail_pale', pale_d, 'yuk_pale', 'body'),
-                                  ('detail_steel', steel_d, 'yuk_steel', 'body'), ('detail_lamps', lamps_d, 'emit_amber', 'emit_live')):
+                                  ('detail_steel', steel_d, 'yuk_steel', 'body'), ('detail_bare', bare_d, 'yuk_bare', 'body'), ('detail_lamps', lamps_d, 'emit_amber', 'emit_live')):
             if not acc.empty():
                 add(nm, acc.bm, mt, role=role, smooth=60)
 
