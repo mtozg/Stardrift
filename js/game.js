@@ -7057,6 +7057,7 @@ window.__xpal = {
       + '<div id="ctlSet"></div>'
       + '<div class="sect">Grafik</div>'
       + line('Parlama efekti', 'Motor, lazer, patlama ve kapılar ışık saçar (yalnızca Yüksek kalitede)', '<button class="act" data-set="bloom">' + (window.__bloomPref ? 'Açık' : 'Kapalı') + '</button>')
+      + line('Kokpit camı', 'Pencerede hafif pus perdesi ve güneş ışıması (3B kokpitli gemilerde)', '<button class="act" data-set="cam">' + (window.__camOn ? 'Açık' : 'Kapalı') + '</button>')
       + line('Görüntü kalitesi', 'Yüksek en keskini; oyun kasarsa Dengeli ya da Performans seç', '<button class="act" data-set="q">' + ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel] + '</button>')
       + line('Düğme ve mesaj şeffaflığı', 'Düğmeler ve kutular daha silik olur', '<span style="display:flex;align-items:center;gap:8px"><input type="range" id="trR" min="0" max="100" step="5" value="' + (save.tro || 0) + '" style="width:110px"><b id="trV">%' + (save.tro || 0) + '</b></span>')
       + '<div class="sect">Rehber</div>'
@@ -7081,6 +7082,7 @@ window.__xpal = {
     const b = e.target.closest('button[data-set]'); if (!b) return; const a = b.dataset.set;
     if (a === 'close') close();
     else if (a === 'mute'){ soundOn = !soundOn; save.mute = !soundOn; persist(); b.textContent = soundOn ? 'Açık' : 'Kapalı'; $('snd').classList.toggle('off', !soundOn); }
+    else if (a === 'cam'){ window.__camOn = !window.__camOn; try { localStorage.setItem('sd_cam', window.__camOn ? '1' : '0'); } catch (e) {} b.textContent = window.__camOn ? 'Açık' : 'Kapalı'; }
     else if (a === 'bloom'){ window.__bloomPref = !window.__bloomPref; try { localStorage.setItem('sd_bloom', window.__bloomPref ? '1' : '0'); } catch (e) {} b.textContent = window.__bloomPref ? 'Açık' : 'Kapalı'; }
     else if (a === 'ck'){ window.__ckSet((window.__ckLevel + 1) % 3); b.textContent = ['Klasik', 'Dengeli', 'Geniş cam'][window.__ckLevel]; }
     else if (a === 'q'){ window.__qSet((window.__qLevel + 2) % 3, true); b.textContent = ['Performans', 'Dengeli', 'Yüksek'][window.__qLevel]; }
@@ -10074,7 +10076,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     document.head.appendChild(css);
     const D = document.createElement('div'); D.id = 'death'; document.body.appendChild(D);
     for (const ev of ['pointerdown', 'touchstart', 'keydown', 'keyup', 'wheel']) D.addEventListener(ev, e => e.stopPropagation());
-    const fee = () => Math.min(save.kredi, Math.max(50, Math.round(save.kredi * 0.1)));
+    const fee = () => Math.min(save.kredi, Math.max(50, Math.min(2000, Math.round(save.kredi * 0.1))));   /* 1.62.1 (K38): ölüm bedeli kredinin %10'u, en az 50, EN FAZLA 2000 (eskiden üst sınır yoktu) */
     // gemi parçaları: ok biçimli gövdeyi oluşturan üçgenler dağınıktan yerine gelir
     const SH = [[[0,-60],[16,-20],[-16,-20]], [[-16,-20],[16,-20],[14,20],[-14,20]], [[-14,20],[14,20],[10,46],[-10,46]], [[-16,-20],[-58,24],[-48,34],[-14,20]], [[16,-20],[58,24],[48,34],[14,20]], [[-10,46],[-22,58],[-4,52]], [[10,46],[22,58],[4,52]], [[-48,34],[-66,40],[-58,24]], [[48,34],[66,40],[58,24]]];
     const OFF = SH.map(() => ({ x: (Math.random() - 0.5) * 300, y: (Math.random() - 0.5) * 180, r: (Math.random() - 0.5) * 5 }));
@@ -10086,7 +10088,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       if (t >= 1){ g.globalCompositeOperation = 'lighter'; const gr = g.createRadialGradient(0, 0, 0, 0, 0, 90); gr.addColorStop(0, 'rgba(127,216,255,.35)'); gr.addColorStop(1, 'rgba(127,216,255,0)'); g.fillStyle = gr; g.fillRect(-130, -80, 260, 160); g.globalCompositeOperation = 'source-over'; } }
     function show(){
       const f = fee(), st = (typeof STATION !== 'undefined' && STATION) ? STATION.ad : 'ana istasyon';
-      D.innerHTML = '<h2>GEMİ PARÇALANDI</h2><p>Kargon uzaya saçıldı. Kurtarma ekibi gövdeni toplayıp yeniden birleştirebilir.<br>Canlanma yeri: <b>' + st + '</b></p><p class="ls">Kurtarma ve onarım ücreti: kredinin %10\'u (en az 50).</p><button>' + (f > 0 ? 'CANLAN · ' + f + ' KREDİ' : 'CANLAN · ÜCRETSİZ') + '</button>';
+      D.innerHTML = '<h2>GEMİ PARÇALANDI</h2><p>Kargon uzaya saçıldı. Kurtarma ekibi gövdeni toplayıp yeniden birleştirebilir.<br>Canlanma yeri: <b>' + st + '</b></p><p class="ls">Kurtarma ve onarım ücreti: kredinin %10\'u (en az 50, en fazla 2000).</p><button>' + (f > 0 ? 'CANLAN · ' + f + ' KREDİ' : 'CANLAN · ÜCRETSİZ') + '</button>';
       D.classList.add('on'); requestAnimationFrame(() => D.classList.add('vis')); window.__menuOn = true;
       D.querySelector('button').onclick = () => { const c = fee(); save.kredi -= c; persist(); rebuild(c); };
     }
@@ -10668,8 +10670,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     }
     /* 1.59.1: kokpit camı hissi, oyun tarafında. Pencere alanına çok hafif soğuk pus perdesi (üstte güçlü, aşağıda sönük), güneşe bakınca ışıma; dashboard sınırından sonra HUD maskesi perdeyi aşağıda siler.
    Varsayılan AÇIK (Mehmet: yeterli); kapatmak için adrese ?cam=0 eklenir (localStorage sd_cam=0), ?cam=1 yeniden açar. */
-  const CAMP = (() => { try { if (/[?&]cam=1/.test(location.search)) localStorage.removeItem('sd_cam'); if (/[?&]cam=0/.test(location.search)) localStorage.setItem('sd_cam', '0'); return localStorage.getItem('sd_cam') !== '0'; } catch (e) { return true; } })();
-  function camPerde(c){ if (!CAMP) return; const sa = Math.acos(clamp(fwd.dot(sunDir), -1, 1)), sun = Math.pow(clamp(1 - sa / 1.4, 0, 1), 2);
+  window.__camOn = true;
+  const CAMP0 = (() => { try { if (/[?&]cam=1/.test(location.search)) localStorage.removeItem('sd_cam'); if (/[?&]cam=0/.test(location.search)) localStorage.setItem('sd_cam', '0'); return localStorage.getItem('sd_cam') !== '0'; } catch (e) { return true; } })();
+  window.__camOn = CAMP0;
+  function camPerde(c){ if (!window.__camOn) return; const sa = Math.acos(clamp(fwd.dot(sunDir), -1, 1)), sun = Math.pow(clamp(1 - sa / 1.4, 0, 1), 2);
     c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.globalCompositeOperation = 'source-over';
     const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(160,200,235,' + (0.14 + 0.10 * sun).toFixed(3) + ')'); g.addColorStop(0.5, 'rgba(130,170,215,' + (0.07 + 0.08 * sun).toFixed(3) + ')'); g.addColorStop(1, 'rgba(100,140,195,0.02)');
     c.fillStyle = g; c.fillRect(0, 0, W, H);
@@ -10744,6 +10748,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },
+    wreck: () => wreck(),
     spawn: (ty, pos) => spawnNpc(ty, pos, STATION),
     spawnOre: (pos, k) => spawnOre(pos, k), rigPos: () => rig.position.clone(),
     kill: n => killNpc(n, 'player'), rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),

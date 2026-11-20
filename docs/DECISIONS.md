@@ -109,6 +109,7 @@ Mehmet blanket izin verdi; ekonomiye dokunan her madde PR'da kırmızı uyarıyl
 |---|---|---|---|
 | K36 | **Yeni pano görev türleri** (Game Designer önerisi): "Keşif" (bu sistemde N yeni bölge karesi, N = 25-45, ödül 7 × N kredi, 3 × N XP) ve "Kargoyu doldur" (100 kredi, 40 XP). Teklif sayısı değişmez; 'kaya' ya da 'ziyaret' teklifinin yerine %60 olasılıkla geçer. | Ödüller mevcut aralıkta (150-450 / 100); **yeni gelir değil, yer değiştirme**. Yeni sayaç yok (mevcut keşif ve kargo). | Lead Developer |
 | K37 | **Derin sinyal "Kadim yankı"** (Designer: hikâye sonrası hedef). Yalnız derin kuşakta (üsten > 12,6 km) çıkan sinyal: 5 muhafız (2 brute, 2 reaver, 1 raider). Ödül: **450-750 kredi** (× sistem ödül çarpanı) + 3 levha + 2 devre kartı + 1 enerji hücresi + 12 cevher. | **EKONOMİ ETKİSİ VAR.** Karşılaştırma: Korsan kampı 300-520 kredi + 2 levha + 1 devre. Derin sinyal ≈ 1,5 kat; riski de yüksek. Ağırlık 2 (kamp ile aynı). Rütbe ve XP formülleri değişmedi. | Lead Developer |
+| K38 | **Ölüm bedeli üst sınırı (EKONOMİ, Mehmet incelemesi bekliyor).** Bedel kredinin %10'u, en az 50; artık **en fazla 2000** (eskiden sınırsız: 500k kredide 50k kayıp). Ayrıca ayarlara "Kokpit camı" açma/kapama eklendi (ekonomi dışı). | Önerildi (PR #38) |
 
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.
