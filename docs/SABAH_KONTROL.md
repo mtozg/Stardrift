@@ -6,7 +6,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 | Aşama | İş | Durum | Commit / PR | Geri alma |
 |---|---|---|---|---|
 | 1 | Şahin r014 ve Yük Devi r015 3B kokpitleri oyunda | Hazır, PR #42 senin onayını bekliyor | 9d92f6f / PR #42 | `git revert 9d92f6f` |
-| 2 | Hayalet 3B kokpit r001 (Asset Factory production → oyuna `CK3.hayalet`) | Hazır, oyunda; Kapı 1 görsel kararın bekliyor | HAYALET_SHA | `git revert HAYALET_SHA` |
+| 2 | Hayalet 3B kokpit r001 (Asset Factory production → oyuna `CK3.hayalet`) | Hazır, oyunda; Kapı 1 görsel kararın bekliyor | b58af28 | `git revert b58af28` |
 | 3 | Başarım rozet çizimleri (10 rozet × 3 kademe) ve oyuna bağlama | Sırada | - | - |
 
 ## Nasıl bakarsın
