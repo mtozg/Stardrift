@@ -7561,6 +7561,22 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   ];
   const level = b => { const v = b.f() || 0; let n = 0; for (let i = 0; i < 3; i++) if (v >= b.t[i]) n = i + 1; return { v, n }; };
   window.__kutuk = () => BG.map(b => Object.assign({ ad: b.ad }, level(b)));
+  // 1.61.0: rozet ve unvan kazanılınca bildirim (bildirim + ses + tarafın telsiz mesajı). Açılıştan 8 sn sonra mevcut seviyeler sessizce kaydedilir; sonrası yükselişler duyurulur.
+  const ULINES = { filo: [null, 'Tebrikler, Devriye Subayı. Kuşaklar artık senin gözünde.', 'Operasyon Lideri! Filo emrine amade bir pilot daha.', 'Filo Komutanı. Bu filoyu sen taşıyorsun, komutan.'],
+    lonca: [null, 'Pazar Ustası! Fiyatlar seni dinlemeye başladı.', 'Sözleşme Lideri. İmzan artık Lonca\'da bir şey ifade ediyor.', 'Ticaret Lideri. Pazarlar senin adınla açılıyor.'],
+    korsan: [null, 'Akıncı! Birlik\'ten biri daha göğüs gerdi.', 'Çete Reisi. Adamların seni takip ediyor.', 'Korsan Lordu. Kara Liman\'ın kapıları sana açık.'] };
+  const UWHO = { filo: 'Yıldız Filosu', lonca: 'Tüccar Loncası', korsan: 'Korsan Birliği' };
+  let kz0 = Date.now(), kzT = 0, kzNext = 0;
+  const kzSay = (msg, ms, snd) => { const at = Math.max(Date.now(), kzNext); kzNext = at + 2800; setTimeout(() => { toast(msg, ms); try { sfxP('rutbe', snd); } catch (e) {} }, at - Date.now()); };   /* aynı anda gelen bildirimler birbirinin üstüne yazılmaz */
+  EXTRA.push(() => { const now = Date.now(); if (now - kzT < 2000 || now - kz0 < 8000) return; kzT = now;
+    const cur = BG.map(b => level(b).n), un = (save.side && window.__unvanN) ? window.__unvanN(save.side) : 0;
+    if (!save.bz){ save.bz = { b: cur, u: un, side: save.side || '' }; persist(); return; }
+    let ch = false;
+    cur.forEach((n, i) => { if (n > (save.bz.b[i] || 0)){ const b = BG[i]; save.bz.b[i] = n; ch = true; kzSay('Başarım: ' + b.ad + (b.tek ? '' : ' · ' + TIER[n - 1]), 2600, 0.7); } });
+    if (save.bz.side !== (save.side || '')){ save.bz.side = save.side || ''; save.bz.u = un; ch = true; }
+    else if (un > (save.bz.u || 0)){ save.bz.u = un; ch = true; kzSay('Yeni unvan: ' + window.__unvan(save.side), 2600, 0.9);
+      const L = ULINES[save.side]; if (L && L[un]) setTimeout(() => { eco.radioT = -9; radio(UWHO[save.side], L[un], (window.__SIDE && window.__SIDE[save.side] && window.__SIDE[save.side].col) || '#7fd8ff'); }, Math.max(2000, kzNext - Date.now() + 400)); }
+    if (ch) persist(); });
   const _rc3 = renderCt; renderCt = function(){
     _rc3(); const box = $('ctBox'); if (!box) return;
     let tot = 0, h = '';
