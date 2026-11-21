@@ -1,5 +1,6 @@
 (() => {
 'use strict';
+window.__sdm && window.__sdm('game-basla');   /* T2 ölçümü: yalnız ?tani=1 iken tanımlı */
 if (typeof THREE === 'undefined'){
   document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;inset:0;z-index:99999;background:#03050c;color:#e8edff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;font:600 17px/1.4 Barlow,system-ui,sans-serif"><b style="font-size:22px;color:#ffb454">3D motoru yüklenemedi</b><span>vendor/three.min.js dosyası bulunamadı ve internetten de indirilemedi.</span><span style="color:#8f9cc0;font-size:14px">Oyun klasörünün tamamını (vendor klasörü dahil) indirdiğinden emin ol, sonra sayfayı yenile.</span></div>');
   return;
@@ -10799,7 +10800,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         + 'hız ' + Math.round(vel.length()) + ' itiş ' + (+thrustNow).toFixed(1) + ' ateş ' + (+!!firing) + ' lazer ' + (+!!laserOn) + ' | olay ' + evs.join(' ') + '\n'
         + 'hata: ' + (lastErr || '-'); }, 500);
   })();
-  requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('sd-ready')));   // açılış perdesi kalkar (index.html)
+  window.__sdm && window.__sdm('game-hazir');
+  requestAnimationFrame(() => requestAnimationFrame(() => { document.documentElement.classList.add('sd-ready'); if (window.__sdm){ window.__sdm('sd-ready'); requestAnimationFrame(() => window.__sdm('menu')); } }));   // açılış perdesi kalkar (index.html)
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
