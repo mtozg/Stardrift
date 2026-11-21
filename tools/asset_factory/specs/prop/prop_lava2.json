@@ -1,0 +1,40 @@
+{
+ "id": "prop_lava2",
+ "family": "prop",
+ "class": "prop",
+ "seed": 8000,
+ "profile": "PRODUCTION",
+ "concept": "Parti 1: lava",
+ "length_m": 30.0,
+ "materials": [
+  "lava_rock",
+  "emit_lava"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "lava",
+  "scale_m": 30.0,
+  "seed": 2
+ },
+ "prepare": {
+  "tex": {
+   "base": 1024,
+   "orm": 512,
+   "normal": 512
+  },
+  "ao_distance": 0.2,
+  "ao_into_base": 0.6,
+  "normalize_length": true,
+  "cull": "exterior",
+  "uv_angle": 80,
+  "uv_margin": 3,
+  "bake_samples": 8,
+  "ao_samples": 32,
+  "normalize_axis": "max"
+ }
+}

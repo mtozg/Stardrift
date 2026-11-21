@@ -233,11 +233,11 @@ def L_lava(spec, mats):
     sd = spec['params'].get('seed', 1)
     b.blob((0, 0, 0), 0.5, 'rock', 4, 0.45, sd, (1.0, 0.85, 0.8), 1.8)
     rng = random.Random(sd)
-    for i in range(6):                                                                      # parlayan çatlaklar
-        a = rng.random() * 6.28; e = rng.random() * 1.2 - 0.6
+    for i in range(10):                                                                     # parlayan çatlaklar (daha büyük, kabuğun içine gömülü yarıklar)
+        a = rng.random() * 6.28; e = rng.random() * 1.6 - 0.8
         d = Vector((math.cos(a) * math.cos(e), math.sin(a) * math.cos(e), math.sin(e)))
-        p0 = d * 0.42; p1 = d * 0.60
-        b.box(tuple((p0 + p1) / 2), (0.05, 0.012, 0.16), 'lava', (rng.random() * 2, rng.random() * 2, a))
+        p0 = d * 0.40; p1 = d * 0.58
+        b.box(tuple((p0 + p1) / 2), (0.09, 0.022, 0.26), 'lava', (rng.random() * 2, rng.random() * 2, a))
     return b
 
 
