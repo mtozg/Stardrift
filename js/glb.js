@@ -104,6 +104,24 @@
     return e;
   }
 
+  // ---------- küçük nesneler (prop): roket, kaçak yük, sonda, buz devi, monolit, ini, uydu, lav kayası, enkaz ----------
+  // Sözleşme (AF): ölçek = EN BÜYÜK boyut 1,0; merkez orijin; yukarı +Y; uzun eksen +Z; çapa yok. Anahtar: prop_<ad> (sd_prop_<ad>.glb).
+  // spec: { pos: Vector3 (yerel), rot: Euler, size: en büyük boyut (dünya birimi), hide: [Mesh] (kabuk parçaları, GLB hazırsa görünmez olur) }
+  var invis = null;
+  G.prop = function(key, parent, spec){
+    var k = 'prop_' + key;
+    G.ready.then(function(){ if (!G.index[k]) return; return G.load(k); }).then(function(p){
+      if (!p || !parent || G.kapali) return;
+      var r = inst(p); r.userData.glb = true; r.scale.setScalar(spec.size * p.s);
+      if (spec.pos) r.position.copy(spec.pos); if (spec.rot) r.rotation.copy(spec.rot); if (spec.yaw) r.rotation.y += spec.yaw;
+      var l1 = byName(r, 'LOD1'), l0 = byName(r, 'LOD0'); if (l1 && l0 && l1 !== l0) l1.visible = false;
+      r.traverse(function(o){ o.userData.shared = true; });
+      parent.add(r); G.stats.prop = (G.stats.prop || 0) + 1; (G.props || (G.props = [])).push({ key: key, obj: r });   // props: test için konum listesi
+      (spec.hide || []).forEach(function(o){ if (!o) return; if (o.isMesh){ if (!invis) invis = new T.MeshBasicMaterial({ visible: false }); o.userData.glbMat = o.material; o.material = invis; } else o.visible = false; });
+      if (spec.done) spec.done(r);
+    }).catch(function(){});
+  };
+
   // ---------- oyuncu gemisi (hangar, sinema, hiper atlama: mkShip grubu) ----------
   // game.js mkShip sonunda çağırır: GLB hazırsa kabuk gövdenin yerine geçer; yoksa hiçbir şey olmaz. Boyut: oyundaki gemi boyu (SPECS3D len; GLB L=1).
   G.ship = function(g, id, len){
