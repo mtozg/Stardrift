@@ -1,0 +1,20 @@
+{
+ "id": "ast_buz",
+ "kind": "buz",
+ "sprites": [
+  "assets/img/ore3_buz_1.webp",
+  "assets/img/ore3_buz_2.webp",
+  "assets/img/ore3_buz_3.webp"
+ ],
+ "pickup": "assets/img/orep_buz.webp",
+ "voxels": 56,
+ "tris": 480,
+ "pickup_tris": 110,
+ "orm_tex": 256,
+ "emit_tex": 256,
+ "emit_v": 0.55,
+ "emit_s": 0.4,
+ "_not": "Lead: LOD0<=300-500 uc, pickup<=120, tek atlas 1024, GLB<=1MB",
+ "noise": 0.035,
+ "back_tile": true
+}

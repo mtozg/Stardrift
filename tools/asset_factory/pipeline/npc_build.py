@@ -301,7 +301,7 @@ if PROBE:
 
 # ---- UV + albedo: kaynak çizimler DOĞRUDAN atlasa yerleştirilir (üst çizim + yan çizim), UV düzlemsel izdüşüm → pişirme yok, palet birebir
 TEX = spec['budget'].get('tex', 512)
-WTX = int((TEX - 6 - 2) / (ht + hs))      # üst+yan çizim dikeyde yan yana sığacak en büyük genişlik
+WTX = min(TEX, int((TEX - 6 - 2) / (ht + hs)))      # üst+yan çizim dikeyde yan yana sığacak en büyük genişlik
 HTX = int(round(WTX * ht))
 HSX = int(round(WTX * hs))
 GAP = 6
