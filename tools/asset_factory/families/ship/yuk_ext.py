@@ -10,6 +10,30 @@ MAT = {'boya': 'yuk_paint', 'turuncu': 'yuk_orange', 'metal': 'yuk_steel', 'koyu
        'sari': 'yuk_hazard', 'is': 'yuk_soot', 'soluk': 'yuk_pale', 'isik': 'emit_amber', 'cekirdek': 'emit_amber', 'celik': 'yuk_bare'}
 
 
+def orient_outward(bm):
+    """recalc_face_normals ince levhalarda (kuyruk, kanat) yanlış yön seçebiliyor: her bağlı adada yüz normallerinin adanın ağırlık merkezine göre çoğunluk oyuyla dışa çevir."""
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    seen = set()
+    for f0 in bm.faces:
+        if f0 in seen:
+            continue
+        isl, st = [], [f0]
+        seen.add(f0)
+        while st:
+            f = st.pop()
+            isl.append(f)
+            for e in f.edges:
+                for g in e.link_faces:
+                    if g not in seen:
+                        seen.add(g)
+                        st.append(g)
+        cen = sum((f.calc_center_median() for f in isl), Vector()) / len(isl)
+        score = sum(f.calc_area() * (1 if f.normal.dot(f.calc_center_median() - cen) > 0 else -1) for f in isl)
+        if score < 0:
+            for f in isl:
+                f.normal_flip()
+
+
 class B:
     def __init__(self):
         self.bm = {k: bmesh.new() for k in MAT}
@@ -209,7 +233,7 @@ def build(spec, mats):
             continue
         for v in bm.verts:
             v.co = geo.g2b(Vector(v.co) * S)
-        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        orient_outward(bm)
         ob = geo.mesh_object('P_' + key, bm, mats[MAT[key]], role='body', smooth_angle=35)
         objs.append(ob)
     socks = []

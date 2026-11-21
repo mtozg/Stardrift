@@ -1,0 +1,36 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.47,
+  0.49,
+  0.52
+ ],
+ "rough": [
+  0.3,
+  0.58
+ ],
+ "brush": 0.1,
+ "scratch": 0.4,
+ "wear": 1.2,
+ "wear_color": [
+  0.62,
+  0.63,
+  0.66
+ ],
+ "dirt": 0.35,
+ "bump": 0.035,
+ "_note": "Şahin dış: açık gri gövde (panelli)",
+ "chips": 0.9,
+ "chip_scale": 16.0,
+ "grime": 0.45,
+ "streaks": 0.35,
+ "wear_radius": 0.018,
+ "tone_var": [
+  0.78,
+  1.12
+ ],
+ "_r012": "ayrıntı ve malzeme geçişi (Kapı 2 kararı 2026-11-16): kırık, lekelenme, akıntı, belirgin aşınma",
+ "panels": 0.4,
+ "panel_scale": 3.4
+}
