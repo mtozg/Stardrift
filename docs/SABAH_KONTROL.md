@@ -11,7 +11,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 
 | 4 | Hayalet r003 (derinlik + büyük ekranlar; Mehmet'in geri bildirimi) | Hazır; r001'in yerine | 2c0c30e | `git revert 2c0c30e` (r001'e döner) |
 
-| 5 | Kaşif ekranları %7 büyütüldü (çerçeveye göre küçük kalmıştı) | Hazır | K5SHA | `git revert K5SHA` |
+| 5 | Kaşif ekranları %7 büyütüldü (çerçeveye göre küçük kalmıştı) | Hazır | d9055d8 | `git revert d9055d8` |
 | 6 | Hayalet r004: sırt hafiflet, Kaşif kadar katmanlı derinlik, ekranlar bir tık küçük | Asset Factory çalışıyor | - | - |
 
 ## Nasıl bakarsın
