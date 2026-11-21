@@ -1314,8 +1314,10 @@ function tryDock(){
   if (!nearStation()){ toast('İstasyon çok uzakta. Haritayı (M) açıp istasyona dokunursan gemi seni götürür.'); return; }
   curSt = stationInRange(); docked = true; lock = null; rpStart(); overlay = null; blip(150, 0.35); vel.set(0, 0, 0); laserOn = false; boostBtn = false; braking = false; thrustOn = false; $('bThrust').classList.remove('on');
   stick.on = false; sBase.classList.add('hidden'); sKnob.classList.add('hidden');
+  clearFlightNotices();   /* uçuştan kalan uyarılar (toast, ipucu, telsiz) menüye taşınmaz */
   renderDock(); $('dock').classList.remove('hidden');
 }
+function clearFlightNotices(){ try { clearTimeout(toastT); $('toast').classList.remove('on'); $('hint').style.visibility = ''; const r = $('radio'); if (r) r.replaceChildren(); } catch (e) {} }
 function undock(){
   docked = false; $('dock').classList.add('hidden');
   const away = rig.position.clone().sub(curSt.pos).normalize();
@@ -9320,8 +9322,12 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         const r = e.target.closest('button[data-skr]'); if (r && !r.disabled){ if (!r.dataset.ok){ r.dataset.ok = 1; r.textContent = 'Emin misin? ' + RESET() + ' kredi'; return; } const n = Object.values(save.sk).reduce((a, b) => a + b, 0); save.kredi -= RESET(); save.sk = {}; save.sp += n; persist(); skApply(); skRender(); } });
       addEventListener('resize', () => { if (w.classList.contains('on')) skLines(); }); }
     if (typeof tab === 'number') skTab = tab;
+    const dk = $('dock'); w.classList.toggle('indock', !!(dk && !dk.classList.contains('hidden')));   /* istasyon menüsündeyken ağaç tam ekran değil, sekmelerin altında açılır */
+    if (w.classList.contains('indock')){ const ub = document.querySelector('#dock button[data-t="up"]'); document.querySelectorAll('#dock button[data-t].on').forEach(b => b.classList.remove('on')); if (ub) ub.classList.add('on'); }
     skRender(); if (!w.classList.contains('on')){ void w.offsetWidth; w.classList.add('on'); }
   }
+  /* menü içinde açılan ağaç: başka sekmeye ya da ‹ › düğmesine basınca kapanır (sekme kendi işini yapar) */
+  document.addEventListener('click', e => { const w = $('skModal'); if (!w || !w.classList.contains('on') || !w.classList.contains('indock')) return; const b = e.target.closest && e.target.closest('#dock button[data-t], #dock .tnav'); if (!b || b.dataset.t === 'up') return; w.classList.remove('on'); }, true);
   const RESET = () => 300 + 100 * Object.values(save.sk).reduce((a, b) => a + b, 0);
   const nodeHtml = (q, bc) => { const l = SL(q.id), lock = inBr(q.b) < TNEED[q.t];
     return '<div class="nd' + (l ? ' has' : '') + (l >= q.m ? ' max' : '') + (lock ? ' lk' : '') + (skSel === q.id ? ' sel' : '') + '" data-skn="' + q.id + '"><svg class="sh" viewBox="0 0 100 100">' + BSHAPE[q.b] + '</svg><svg class="sic" viewBox="0 0 24 24">' + IC[q.id] + '</svg><small>' + l + '/' + q.m + '</small><em>' + q.n + '</em></div>'; };
@@ -9389,6 +9395,9 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   #skModal{position:fixed;inset:0;z-index:59;background:radial-gradient(ellipse at 50% 30%,rgba(14,26,48,.94),rgba(3,6,14,.97));display:none;align-items:center;justify-content:center;padding:10px}#skModal.on{display:flex}
   html body #skModal{display:flex;opacity:0;visibility:hidden;pointer-events:none;background:rgba(3,6,14,.78);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);transition:opacity .24s ease,visibility 0s linear .24s}
   html body #skModal.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .24s ease}
+  html body #skModal.indock{inset:calc(env(safe-area-inset-top,0px) + 100px) 28px 18px 28px;background:#060c18;-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid rgba(220,235,245,.14);border-radius:6px;padding:8px;z-index:92}
+  html body #skModal.indock .bx{width:100%;height:100%}
+  html body #skModal.indock .tabs .x{display:none}
   html body #skModal .bx{transform:translateY(14px);transition:transform .28s cubic-bezier(.2,.8,.3,1)}html body #skModal.on .bx{transform:none}
   html body #skModal .tabs .x{flex:0 0 auto;width:auto;padding:0 12px;border:1px solid rgba(220,235,245,.3);border-radius:4px;font:700 11px var(--font);letter-spacing:.12em;white-space:nowrap}
   #skModal .bx{width:min(1040px,98vw);height:min(640px,96vh);display:flex;flex-direction:column;color:#e8edff;font:500 13px/1.4 var(--font)}
