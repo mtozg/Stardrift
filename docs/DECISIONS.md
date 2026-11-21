@@ -126,6 +126,7 @@ Mehmet blanket izin verdi; ekonomiye dokunan her madde PR'da kırmızı uyarıyl
 | K52 | **Hayalet r006 oyunda (r004 yerine; Hayalet kapandı).** Mehmet: "sorunları çöz" (neon hizası, koyu altıgen). r006: neonlar kenar eğrisini izliyor (probe: 12 parça, sorunlu 0), sade koyu dikiş, altıgen daha koyu ve alçak, HUD %7,3. Altıgen hâlâ seçilebiliyor. Ekonomiye dokunmaz | Uygulandı (1.66.2) |
 | K53 | **Hayalet Kapı 1 ONAY + varlık programı.** Mehmet Hayalet r006'yı kabul etti (tek istek: dikmeleri biraz daha gerçekçi, r007). Aynı mesajda oyun içi TÜM diğer varlıkların (NPC gemileri, evrenler, gökyüzü, kapılar vb.) kokpitler kadar gerçekçi yenilenmesini istedi. Önce denetim ve program (`docs/ASSET_PROGRAMI.md`), üretim Mehmet öncelik onayından sonra. Ekonomiye dokunmaz | Onaylandı / denetim başladı |
 | K54 | **Kaşif yan ekranlar bir tık daha büyük** (Mehmet: "çok küçük duruyor"). `CK3.kasif.qS = [1.15, 1.07, 1.15]` (sol, orta, sağ; önce hepsi 1,07 idi). Model değişmedi. Ekonomiye dokunmaz | Uygulandı (1.66.3) |
+| K55 | **Hayalet r007 oyunda (Kapı 1 onaylı, dikme gerçekçiliği).** r006'nın üstüne yalnız direk malzemesi/pahı/cıvata/derz. `CK3.hayalet` q aynı, sırt 4 noktada 3 px farklı (pah yüzünden). Ekonomiye dokunmaz | Uygulandı (1.66.4) |
 
 ## Önceden geçerli olan kurallar
 - Rütbeler: Çaylak 0 · Pilot 970 · Usta Pilot 2790 · Kaptan 5830 · Komodor 10780 · Efsane 18620 XP (`js/game.js` RANKS). Mehmet onayı olmadan değişmez.

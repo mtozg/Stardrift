@@ -22,6 +22,8 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 
 | 10 | Kaşif yan ekranlar bir tık daha büyük (sol/sağ %15, orta %7) | Hazır | 044761c | `git revert 044761c` |
 
+| 11 | Hayalet r007: dikmelerde gerçekçilik (fırçalı metal, kenar pahı, cıvata sırası, panel derzi) | Hazır; PR henüz açılmadı (denetim kuralı) | R7SHA | `git revert R7SHA` (r006'ya döner) |
+
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
 - Aşama 2 ve 3: Hazır olunca bu tabloya işlenecek.
@@ -72,3 +74,6 @@ Görsel: `docs/sabah/asama9_hayalet_r006_kiyas.webp` (üstte Kaşif, altta Hayal
 
 ## Aşama 10: Kaşif yan ekranlar
 Görsel: `docs/sabah/asama10_kasif_yan_ekranlar.webp`. `CK3.kasif.qS = [1.15, 1.07, 1.15]` (sol, orta, sağ). Yazılar daha büyük, çerçeve içinde dolgun; taşma görmedim. Beğenmezsen sayıyı 1,07'ye indir.
+
+## Aşama 11: Hayalet r007
+Görsel: `docs/sabah/asama11_hayalet_r007.webp`. Mehmet r006'yı kabul etti, tek istek dikme gerçekçiliğiydi. Direklerde fırçalı karbon/metal yüzey, 2,2 mm kenar pahı, cıvata sırası, enine ince derzler; neon, ekran, koltuk aynı. HUD %7,3; bellek sabit (75/116, 54/106, 54/112, 54/106). Etki ince (oyunda bakış mesafesinden); beğenilmezse r006'ya dönmek tek commit.
