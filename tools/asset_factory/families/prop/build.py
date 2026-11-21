@@ -192,6 +192,15 @@ def L_lair(spec, mats):
     b.box((0.0, 0.0, 0.42), (0.7, 0.5, 0.06), 'metal')                                       # iniş platformu
     for i in range(6):
         b.box((-0.30 + i * 0.12, 0.26, 0.42), (0.04, 0.02, 0.07), 'hazard')
+    vr = spec['params'].get('seed', 3) % 4
+    if vr == 1:
+        b.box((0.0, 0.0, 0.62), (0.30, 0.30, 0.34), 'paint'); b.cyl((0.0, 0.0, 0.79), (0.0, 0.0, 1.10), 0.02, 'metal', 0.01, 8)
+    elif vr == 2:
+        for sx in (-1, 1):
+            b.cyl((sx * 0.3, 0.0, 0.45), (sx * 0.3, 0.0, 0.85), 0.05, 'metal', 0.035, 10); b.box((sx * 0.3, 0.0, 0.88), (0.16, 0.12, 0.07), 'paint')
+    elif vr == 3:
+        for k in range(3):
+            b.box((-0.25 + k * 0.25, 0.12, 0.55 + 0.08 * k), (0.18, 0.14, 0.14), 'paint'); b.cyl((-0.25 + k * 0.25, 0.12, 0.62 + 0.08 * k), (-0.25 + k * 0.25, 0.12, 0.9 + 0.08 * k), 0.015, 'metal', None, 6)
     b.cyl((-0.36, -0.1, 0.45), (-0.36, -0.1, 0.95), 0.045, 'metal', 0.03, 10)               # kule
     b.box((-0.36, -0.1, 0.97), (0.20, 0.14, 0.08), 'paint')
     b.cyl((0.30, 0.05, 0.45), (0.30, 0.05, 0.75), 0.035, 'dark', 0.05, 10)
@@ -248,6 +257,9 @@ def L_debris(spec, mats):
     M = {'plate': 'white_paint', 'steel': 'steel_dark', 'dark': 'yuk_dark', 'hazard': 'yuk_hazard'}
     b = Bld({k: mats[v] for k, v in M.items()}, P)
     v = spec['params'].get('variant', 0)
+    for q in range(5):
+        b.box((0.1 * q - 0.2, 0.05 * q, 0.1 - 0.05 * q), (0.05, 0.12, 0.03), 'dark', (q, 0.3 * q, 0.2))        # kırık kaburgalar/kablo kütükleri
+    b.cyl((-0.3, 0.1, -0.1), (0.1, 0.25, -0.2), 0.012, 'steel', None, 6)
     if v == 0:
         b.box((0, 0, 0), (0.60, 0.04, 0.40), 'plate', (0.1, 0.2, 0.3))
         b.box((0.1, 0.03, 0.05), (0.40, 0.02, 0.10), 'hazard', (0.1, 0.2, 0.3))

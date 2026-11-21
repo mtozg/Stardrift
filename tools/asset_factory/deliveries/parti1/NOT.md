@@ -26,3 +26,6 @@ Hat: `families/prop/build.py` (14 nesne, 10 yerleşim) → `pipeline/model.py` �
 
 ## Kalite turu (lav / buz / uydu) — Lead notlarına göre tek hedefli
 Lav: çatlaklar büyütüldü ve daha sıcak turuncu emissive, kaya içinde ısı çekirdeği; buz: içten ışıma çekirdeği eklendi (dışarıdan görünmüyor: kristaller opak, gerçek şeffaflık yok → etkisi zayıf); uydu: açık gövde + açık mavi güneş panelleri, gunmetal direkler. Oyun içi doğrulanmadı; varyantlar (lava2/3, sat1/2) bu tura dahil EDİLMEDİ (eski sürümde).
+
+## Kalite turu 2 (ini / enkaz)
+Patron ini: seed'e göre 4 gerçek yerleşim (iki kule, tek büyük blok, üç konteyner, iki direk); varyant 4–5 hâlâ eski yerleşim. Enkaz: kırık kaburga/kablo kütükleri eklendi (hâlâ yalın). Oyun içi doğrulanmadı.
