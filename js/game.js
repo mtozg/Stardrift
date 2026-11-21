@@ -54,7 +54,11 @@ const QCAP = [1.25, 1.6, 2];
 // dokunmatik cihazda (telefon/tablet) varsayılan Dengeli: parlama efekti ve tam çözünürlük çatışmada telefonu kasıyordu. Elle seçilen kalite korunur.
 const Q_DEF = (() => { try { return matchMedia('(pointer: coarse)').matches ? 1 : 2; } catch (e) { return 2; } })();
 window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); if (localStorage.getItem('sd_q') !== null && localStorage.getItem('sd_qm') !== '1' && v > Q_DEF) return Q_DEF; return v >= 0 && v <= 2 && localStorage.getItem('sd_q') !== null ? v : Q_DEF; } catch (e) { return Q_DEF; } })();
-window.__qCap = () => QCAP[window.__qLevel];
+/* bellek tasarrufu (1.67.8): iPad ve dokunmatik cihazlarda çizim tuvali toplam ~3 milyon pikseli geçmez (iPad 10. nesil gibi 4 GB cihazlarda büyük tuval + doku belleği grafik bağlantısını koparıyordu). Masaüstü etkilenmez. */
+const IPADX = (() => { try { return /iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch (e) { return false; } })();
+const TOUCHX = IPADX || Q_DEF === 1;
+window.__lowMem = IPADX || window.__qLevel === 0;
+window.__qCap = () => { let c = QCAP[window.__qLevel]; if (TOUCHX) c = Math.min(c, Math.max(1, Math.sqrt(3.0e6 / Math.max(1, innerWidth * innerHeight)))); return c; };
 // kokpit oranı: pencere (üst) büyür, gösterge paneli (alt) küçülür. 0 klasik, 1 dengeli, 2 geniş cam
 const CKB = [1, 0.85, 0.72];
 window.__ckLevel = 2;   /* 'Kokpit görünümü' ayarı kaldırıldı: Geniş cam sabit (eski kayıtlı seçim yok sayılır) */
@@ -2649,6 +2653,7 @@ loadArt(FXART.impact, t => { impactTex = t; impact.material.map = t; impact.mate
 loadArt(FXART.muzzle, t => { muzzle.forEach(m => { m.material.map = t; m.material.needsUpdate = true; }); });
 loadArt(FXART.boom, t => { boomTex = t; });
 loadArt(ART.sky, t => {
+  if (window.__lowMem && t.image && t.image.width > 2048){ try { const c2 = document.createElement('canvas'); c2.width = 2048; c2.height = Math.round(2048 * t.image.height / t.image.width); c2.getContext('2d').drawImage(t.image, 0, 0, c2.width, c2.height); const t2 = new THREE.CanvasTexture(c2); t2.encoding = t.encoding; t = t2; } catch (e) {} }   /* düşük bellek: gökyüzü 4096 -> 2048 (yaklaşık 35 MB az doku) */
   window.__skyT = t;
   const geo = new THREE.SphereGeometry(35000, 64, 40); geo.scale(-1, 1, 1);
   const mat = new THREE.MeshBasicMaterial({ map: t, depthWrite: false, depthTest: false, fog: false }); mat.color.setRGB(1.18 * SKYB, 1.18 * SKYB, 1.28 * SKYB); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); t.needsUpdate = true;
