@@ -189,3 +189,49 @@ def assign_single(ob, mat):
     ob.data.materials.append(mat)
     for p in ob.data.polygons:
         p.material_index = 0
+
+
+def bake_normal_from_high(low, high, size, cage=0.08, ray=0.25, margin=12, samples=4):
+    """Yüksek poligon → düşük poligon tangent normal haritası (selected-to-active). Düşük nesnenin UV'si ve tek malzemesi hazır olmalı."""
+    sc = bpy.context.scene
+    sc.render.engine = 'CYCLES'
+    sc.cycles.device = 'CPU'
+    sc.cycles.use_denoising = False
+    sc.cycles.samples = samples
+    bk = sc.render.bake
+    bk.margin = margin
+    bk.margin_type = 'EXTEND'
+    bk.use_clear = True
+    bk.use_selected_to_active = True
+    bk.cage_extrusion = cage
+    bk.max_ray_distance = ray
+    bk.normal_space = 'TANGENT'
+    img = bpy.data.images.new('bake_normal_hi', size, size, alpha=False, float_buffer=True)
+    img.colorspace_settings.name = 'Non-Color'
+    mats = [s.material for s in low.material_slots if s.material]
+    _target(mats, img)
+    for o in bpy.context.view_layer.objects:
+        o.select_set(False)
+    high.select_set(True)
+    low.select_set(True)
+    bpy.context.view_layer.objects.active = low
+    with bpy.context.temp_override(active_object=low, object=low, selected_objects=[low, high], selected_editable_objects=[low, high]):
+        bpy.ops.object.bake(type='NORMAL')
+    bk.use_selected_to_active = False
+    return img
+
+
+def curvature_from_normal(nrm_px, k_edge=7.0, k_cav=7.0):
+    """tangent normal haritasından (r,g = xy) kenar (dışbükey) ve girinti (içbükey) maskeleri"""
+    nx = nrm_px[..., 0] * 2 - 1
+    ny = nrm_px[..., 1] * 2 - 1
+    div = np.gradient(nx, axis=1) + np.gradient(ny, axis=0)
+    div = div * (nrm_px.shape[0] / 1024.0)
+    from PIL import Image, ImageFilter
+    def blur(a, r):
+        im = Image.fromarray(np.clip((a * 0.5 + 0.5) * 255, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(r))
+        return (np.asarray(im, np.float32) / 255.0 - 0.5) * 2
+    d = blur(np.clip(div, -1, 1), 0.8)
+    edge = np.clip(-d * k_edge, 0, 1)
+    cav = np.clip(d * k_cav, 0, 1)
+    return edge, cav

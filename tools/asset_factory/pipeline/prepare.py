@@ -60,6 +60,16 @@ else:
 info['tris_after_cull'] = geo.tri_count(occ)
 t0 = tick('cull_hidden', t0)
 
+hi = None
+if PC.get('hipoly'):
+    from core import hipoly
+    HP = PC['hipoly']
+    hi, hi_tris = hipoly.make_high(body, panel=HP.get('panel', 0.9), seed=HP.get('seed', 1), relief=tuple(HP.get('relief', (0.012, 0.03))), inset=HP.get('inset', 0.045),
+                                   bevel=HP.get('bevel', 0.006), rivet_r=HP.get('rivet_r', 0.024), rivet_h=HP.get('rivet_h', 0.014), rivet_p=HP.get('rivet_p', 0.55), frac=HP.get('frac', 0.6))
+    info['hipoly_tris'] = hi_tris
+    hi.hide_render = True      # AO/diğer bake'ler hi-poly'yi görmemeli (kabartma AO'ya 'dama' gölgesi basıyordu)
+    t0 = tick('hipoly_build', t0)
+
 part_joint = {}      # yüz özniteliği sd_part → eklem adı (0 = gövde)
 if arts:
     import bmesh
@@ -80,12 +90,12 @@ if arts:
 size = 512 if fast else spec['texture_size']
 tex = {k: (max(256, v // 4) if fast else v) for k, v in PC.get('tex', {'base': size, 'orm': size, 'normal': size}).items()}
 size = tex['base']
-uv.unwrap_unique(body, size, shape=PC.get('uv_pack', 'CONCAVE'))
+uv.unwrap_unique(body, size, shape=PC.get('uv_pack', 'CONCAVE'), margin_px_at_1024=PC.get('uv_margin', 4), angle=PC.get('uv_angle', 66))
 info['uv'] = uv.stats(body, size)
 info['tex_sizes'] = tex
 t0 = tick('uv', t0)
 
-imgs = bake.bake(body, tex, samples=8 if fast else 24, ao_samples=24 if fast else 128, ao_distance=PC.get('ao_distance'))
+imgs = bake.bake(body, tex, samples=8 if fast else PC.get('bake_samples', 24), ao_samples=24 if fast else PC.get('ao_samples', 128), ao_distance=PC.get('ao_distance'))
 if PC.get('ao_into_base'):      # pişirilmiş AO'yu albedoya da çarp: Three'de aoMap yalnız dolaylı ışığı etkiler; derinlik her ışıkta görünsün (Kaşif yaklaşımı)
     _s = float(PC['ao_into_base'])
     _b, _a = bake.pixels(imgs['base']), bake.pixels(imgs['ao'])
@@ -97,6 +107,29 @@ if PC.get('ao_into_base'):      # pişirilmiş AO'yu albedoya da çarp: Three'de
     imgs['base'].pixels = _b.ravel().tolist()
     info['ao_into_base'] = _s
 t0 = tick('bake', t0)
+if hi is not None:      # normal: hi-poly'den pişir; eğrilik maskeleriyle albedo/ORM'e kenar parlaması + girinti kiri işle
+    HP = PC['hipoly']
+    hi.hide_render = False
+    nimg = bake.bake_normal_from_high(body, hi, tex['normal'], cage=HP.get('cage', 0.08), ray=HP.get('ray', 0.25))
+    npx = bake.pixels(nimg)
+    edge, cav = bake.curvature_from_normal(npx, HP.get('k_edge', 7.0), HP.get('k_cav', 7.0))
+    imgs['normal'] = nimg
+    from PIL import Image as _I
+    def _fit(m, sz):
+        return m if m.shape[0] == sz else np.asarray(_I.fromarray((m * 255).astype(np.uint8)).resize((sz, sz), _I.BILINEAR), np.float32) / 255.0
+    eb, cb = _fit(edge, imgs['base'].size[0]), _fit(cav, imgs['base'].size[0])
+    b = bake.pixels(imgs['base'])
+    b[..., :3] = b[..., :3] * (1 - HP.get('cav_dark', 0.38) * cb[..., None]) + (b[..., :3] * 1.5 + 0.05 - b[..., :3]) * (HP.get('edge_light', 0.7) * eb[..., None])
+    b[..., :3] = np.clip(b[..., :3], 0, 1)
+    imgs['base'].pixels = b.ravel().tolist()
+    eo, co = _fit(edge, imgs['rough'].size[0]), _fit(cav, imgs['rough'].size[0])
+    for key, fn in (('rough', lambda a: a * (1 - 0.45 * eo[..., None]) * (1 + 0.15 * co[..., None])), ('metal', lambda a: a + (1 - a) * 0.55 * eo[..., None] * HP.get('edge_metal', 1.0)), ('ao', lambda a: a * (1 - 0.35 * co[..., None]))):
+        a = bake.pixels(imgs[key])
+        a[..., :3] = np.clip(fn(a[..., :3]), 0, 1)
+        imgs[key].pixels = a.ravel().tolist()
+    bpy.data.objects.remove(hi)
+    info['hipoly_baked'] = True
+    t0 = tick('hipoly_bake', t0)
 
 orm = bake.compose_orm(imgs, tex['orm'])
 # normal: float → 8 bit doğrusal görüntü (glTF/WebP)

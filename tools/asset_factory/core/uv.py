@@ -3,7 +3,7 @@ import bpy, math
 import numpy as np
 
 
-def unwrap_unique(ob, tex_size, margin_px_at_1024=4, name='UVMap', shape='CONCAVE'):
+def unwrap_unique(ob, tex_size, margin_px_at_1024=4, name='UVMap', shape='CONCAVE', angle=66):
     me = ob.data
     while len(me.uv_layers) > 0:
         me.uv_layers.remove(me.uv_layers[0])
@@ -16,7 +16,7 @@ def unwrap_unique(ob, tex_size, margin_px_at_1024=4, name='UVMap', shape='CONCAV
     vl.objects.active = ob
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=margin, area_weight=0.0, scale_to_bounds=False)
+    bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=margin, area_weight=0.0, scale_to_bounds=False)
     bpy.ops.uv.select_all(action='SELECT')
     bpy.ops.uv.average_islands_scale()
     bpy.ops.uv.pack_islands(rotate=True, rotate_method='ANY', shape_method=shape, margin_method='FRACTION', margin=margin)
