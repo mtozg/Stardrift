@@ -232,3 +232,25 @@ Not: 1.64.1'deki `offline.json` Hayalet GLB'lerini içermiyordu; bu sürümde d�
 | offline.json: 8 kokpit GLB'si (git add sonrası üretildi) | Doğrulandı |
 | Oyun içi görsel: ekranlar büyük ve çerçeveli, HUD doğru, ortada dikme yok | Ekran görüntüsüyle |
 Not: swiftshader; gerçek cihaz test edilmedi.
+
+## 26. Sürüm 1.65.2 test özeti (Kaşif ekranları)
+| Test | Sonuç |
+|---|---|
+| Kaşif ekranları %7 büyük: ekran görüntüsüyle önce/sonra karşılaştırıldı, kenarlara taşma yok, sayfa hatası yok | Görsel |
+Not: yalnız masaüstü boyutunda görüldü; iPhone yatay boyutunda ve gerçek cihazda ayrıca bakılmadı.
+
+## 27. Sürüm 1.65.3 test özeti (Hayalet r004)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (e7ffaeb3 / 3dfc0848) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (77/135, 56/125, 56/131, 56/125), sayfa hatası yok | PASS |
+| offline.json: 8 kokpit GLB'si (git add sonrası üretildi) | Doğrulandı |
+| Oyun içi görsel: sırt sade, katmanlı konsol, ekranlar bir tık küçük, ekran altı neon oturuyor; direk ve kemer neonları hâlâ kopuk | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi.
+
+## 28. Telefon boyutu kokpit kontrolü ve kokpit_dongu testi (1.65.3)
+| Kontrol | Sonuç |
+|---|---|
+| 844×390 yatay boyutunda 4 kokpit (Kaşif, Şahin, Yük, Hayalet): ekranlar yerine oturuyor, HUD sırtı doğru, sayfa hatası yok (`docs/sabah/telefon_boyutu_kokpitler.webp`) | Görsel |
+| Yeni test `kokpit_dongu` (4 kokpit ×3 tur, doku/geometri sabit, hata yok) `run.sh` listesinde | PASS |
+Not: Kaşif'te canlı ekranlar telefon boyutunda en küçük görünenler (yazılar küçük). Emülasyon; gerçek cihaz test edilmedi.
