@@ -1,0 +1,45 @@
+{
+ "id": "kasif_ext",
+ "family": "ship",
+ "class": "player_ship",
+ "seed": 7003,
+ "profile": "PRODUCTION",
+ "concept": "Kaşif dış model: Kapı 1 onaylı konsept c001 (Mehmet 2026-11-21): 4 motor 2+2, camlar oyundaki Kaşif kokpitine uygun",
+ "length_m": 14.0,
+ "materials": [
+  "kasif_hull",
+  "kasif_light",
+  "sahin_dark",
+  "sahin_glass",
+  "yuk_rubber",
+  "steel_dark",
+  "gunmetal",
+  "yuk_soot",
+  "emit_cyan",
+  "emit_pinkhot",
+  "emit_amber",
+  "emit_red",
+  "yuk_cont_rust"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "kasif_ext",
+  "scale_m": 14.0
+ },
+ "prepare": {
+  "tex": {
+   "base": 1024,
+   "orm": 512,
+   "normal": 512
+  },
+  "ao_distance": 0.25,
+  "ao_into_base": 0.6,
+  "normalize_length": true,
+  "cull": "exterior"
+ }
+}
