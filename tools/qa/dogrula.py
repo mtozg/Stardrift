@@ -33,6 +33,7 @@ BEKLE = {
  'sifirla': [('oncePilot', 'Eski Pilot'), ('yanlisHata', True), ('yanlisKutuAcik', True), ('yanlisKayitDuruyor', 'Eski Pilot'), ('sonraTemiz', True), ('errs', [])],
  'kokpit_dongu': [('hepsi', True), ('sabit', True), ('errs', [])],
  'olum_yenile': [('dp', 1), ('fark', 2000), ('dpSonra', 0), ('errs', [])],
+ 'acilis_koruma': [('hizliYenilemeKurtarmaYok', True), ('cokmeKurtarmaTetiklendi', True), ('eskiBayrakSilinir', True), ('tazeBayrakAktif', True), ('sureDolunca', True), ('errs', [])],
  'bulten': [('filo.onek', True), ('filo.bos', False), ('lonca.onek', True), ('lonca.bos', False), ('korsan.onek', True), ('korsan.bos', False), ('errs', [])],
  'olum_hesap': [('k0', 0), ('k30', 30), ('k50', 50), ('k200', 50), ('k500', 50), ('k600', 60), ('k1000', 100), ('k8000', 800), ('k19999', 2000), ('k25000', 2000), ('k999999', 2000), ('errs', [])],
  'olum_siniri': [('ucret', 2000), ('errs', [])],

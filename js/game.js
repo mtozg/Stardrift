@@ -10075,7 +10075,10 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     const report = () => { try { const c = navigator.serviceWorker.controller || (window.__swReg && window.__swReg.active); if (!c) return;
       const urls = [...new Set(performance.getEntriesByType('resource').map(r => r.name).filter(u => u.indexOf(location.origin) === 0 && !/\/sw\.js/.test(u)))]; urls.push(location.href.split('#')[0]);
       c.postMessage({ type: 'cache', urls }); } catch (e) {} };
-    let noSync = false; try { noSync = localStorage.getItem('sd_nosync') === '1'; } catch (e) {}   /* açılış kurtarma çökme saptarsa çevrimdışı paket indirmesi bu cihazda kapanır */
+    /* 1.66.6: açılış kurtarma çökme saptarsa çevrimdışı paket indirmesi geçici (24 saat) kapanır; eskiden kalıcıydı ve yanlış alarmda (hızlı yenileme) hiç açılmıyordu.
+       Eski sürümün yazdığı '1' değeri geçersiz sayılır ve silinir: o cihazlarda paket indirmesi yeniden açılır. */
+    let noSync = false; try { const t = +(localStorage.getItem('sd_nosync') || 0); noSync = t > 1e12 && Date.now() - t < 86400000; if (t && !noSync) localStorage.removeItem('sd_nosync'); } catch (e) {}
+    window.__noSync = noSync;
     navigator.serviceWorker.register('sw.js').then(reg => { window.__swReg = reg; navigator.serviceWorker.ready.then(r => { if (noSync) return;
       /* oyun açılırken bellek yarışmasın: paket indirmesi ve dosya kaydı oyun açıldıktan 60 sn sonra, sayfa görünürken başlar */
       setTimeout(() => { report(); setInterval(report, 120000); }, 60000);
@@ -10799,7 +10802,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         + 'hız ' + Math.round(vel.length()) + ' itiş ' + (+thrustNow).toFixed(1) + ' ateş ' + (+!!firing) + ' lazer ' + (+!!laserOn) + ' | olay ' + evs.join(' ') + '\n'
         + 'hata: ' + (lastErr || '-'); }, 500);
   })();
-  requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('sd-ready')));   // açılış perdesi kalkar (index.html)
+  requestAnimationFrame(() => requestAnimationFrame(() => { document.documentElement.classList.add('sd-ready'); try { localStorage.setItem('sd_boot', '0'); } catch (e) {} }));   // açılış perdesi kalkar (index.html); oyun açıldı: çökme sayacı sıfırlanır (yalnız açılışta biten yüklemeler sayılır)
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
