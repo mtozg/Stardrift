@@ -1,0 +1,28 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#080c16"><canvas id="c" width="1500" height="520"></canvas>
+<script src="/vendor/three.min.js"></script><script src="/vendor/GLTFLoader.js"></script>
+<script>
+const q=new URLSearchParams(location.search);
+const R=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});R.setSize(1500,520,false);R.setClearColor(0x080c16,1);
+const sc=new THREE.Scene();sc.add(new THREE.AmbientLight(0x6a7088,0.9));const d=new THREE.DirectionalLight(0xfff2e0,1.6);d.position.set(-2,3,-1.5);sc.add(d);
+const cams=[];
+function view(cam,x,y,w,h){R.setViewport(x,y,w,h);R.setScissor(x,y,w,h);R.setScissorTest(true);cam.aspect=w/h;cam.updateProjectionMatrix();R.render(sc,cam);}
+new THREE.GLTFLoader().load(q.get('glb'),g=>{
+  const root=g.scene;sc.add(root);
+  const lod1=[];root.traverse(o=>{if(o.name==='LOD1')o.visible=false;});
+  const names=[];root.traverse(o=>{if(o.isMesh)names.push(o.name)});
+  const ms=q.get('multi');
+  if(ms){ // asteroit: parçaları yan yana
+    const meshes=[];root.traverse(o=>{if(o.isMesh)meshes.push(o)});meshes.forEach((m,i)=>{m.position.x=(i-(meshes.length-1)/2)*1.3});
+    const cam=new THREE.PerspectiveCamera(35,1,0.1,50);cam.position.set(0,-4.5,1.2);cam.lookAt(0,0,0);cam.up.set(0,0,1);
+    view(cam,0,0,1500,520);
+  } else {
+    const cams=[[3.2,1.4,-0.4+0,'3/4 arka üst'],[0.0,2.6,-2.8,'arkadan'],[-2.6,0.5,0.2,'yan']];
+    // burun +Z: kameralar arkadan-üstten ve yandan
+    const a=new THREE.PerspectiveCamera(32,1,0.05,50);a.position.set(1.1,0.9,-1.7);a.lookAt(0,0,0);
+    const b=new THREE.PerspectiveCamera(32,1,0.05,50);b.position.set(-1.8,0.5,0.4);b.lookAt(0,0,0);
+    const c=new THREE.PerspectiveCamera(32,1,0.05,50);c.position.set(0.3,2.4,0.1);c.lookAt(0,0,0);c.up.set(0,0,1);
+    view(a,0,0,500,520);view(b,500,0,500,520);view(c,1000,0,500,520);
+  }
+  document.title='ok '+names.join(',');
+},undefined,e=>{document.title='hata '+e;});
+</script>

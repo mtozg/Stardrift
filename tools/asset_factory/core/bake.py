@@ -156,10 +156,14 @@ def gltf_body_material(name, base, orm, normal, emit=None):
         nt.nodes.remove(n)
     out = nt.nodes.new('ShaderNodeOutputMaterial')
     b = nt.nodes.new('ShaderNodeBsdfPrincipled')
-    tb, to, tn = (nt.nodes.new('ShaderNodeTexImage') for _ in range(3))
-    tb.image, to.image, tn.image = base, orm, normal
+    tb, to = (nt.nodes.new('ShaderNodeTexImage') for _ in range(2))
+    tb.image, to.image = base, orm
+    tn = nm = None
+    if normal is not None:      # NPC/istasyon: normal haritasız (albedo + ORM) paket
+        tn = nt.nodes.new('ShaderNodeTexImage')
+        tn.image = normal
+        nm = nt.nodes.new('ShaderNodeNormalMap')
     sep = nt.nodes.new('ShaderNodeSeparateColor')
-    nm = nt.nodes.new('ShaderNodeNormalMap')
     grp = nt.nodes.new('ShaderNodeGroup')
     grp.node_tree = _occlusion_group()
     L = nt.links.new
@@ -168,8 +172,9 @@ def gltf_body_material(name, base, orm, normal, emit=None):
     L(sep.outputs['Red'], grp.inputs['Occlusion'])
     L(sep.outputs['Green'], b.inputs['Roughness'])
     L(sep.outputs['Blue'], b.inputs['Metallic'])
-    L(tn.outputs['Color'], nm.inputs['Color'])
-    L(nm.outputs['Normal'], b.inputs['Normal'])
+    if nm is not None:
+        L(tn.outputs['Color'], nm.inputs['Color'])
+        L(nm.outputs['Normal'], b.inputs['Normal'])
     L(b.outputs['BSDF'], out.inputs['Surface'])
     if emit is not None:
         te = nt.nodes.new('ShaderNodeTexImage')
