@@ -129,13 +129,13 @@ body,button{font-size-adjust:.5}
 </div>
 <script>setTimeout(function(){document.documentElement.classList.add('sd-ready')},20000)</script>
 <script>
-/* Kurtarma: sayfa üst üste iki kez yüklenirken çökerse (tarayıcı belleği/bozuk önbellek) ya da adrese ?sifirla=1 eklenirse
+/* Kurtarma: sayfa üst üste iki kez, oyun açılmadan (ilk kare/menü gelmeden) yeniden yüklenirse (1.66.6: oyun açılınca sayaç sıfırlanır, hızlı manuel yenileme sayılmaz) (tarayıcı belleği/bozuk önbellek) ya da adrese ?sifirla=1 eklenirse
    service worker ve önbellek temizlenir, sayfa yeniden açılır. Kayıt (localStorage) silinmez. */
 (function(){ try {
   try { localStorage.removeItem('sd_ck3'); } catch (e) {}   /* eski kokpit denemesi ayarı artık yok */
   var n = +(localStorage.getItem('sd_boot') || 0), force = /[?&]sifirla=1/.test(location.search);
   if (force || n >= 2){
-    localStorage.setItem('sd_boot', '0'); if (n >= 2) { localStorage.setItem('sd_nosync', '1'); } var P = [];   /* çökme: indirme ve kokpit denemesi kapanır */   /* çökme saptandı: bu cihazda çevrimdışı paket indirmesi kapanır */
+    localStorage.setItem('sd_boot', '0'); if (n >= 2) { localStorage.setItem('sd_nosync', String(Date.now())); }   /* 24 saat sonra kendiliğinden kalkar (game.js) */ var P = [];   /* çökme: indirme ve kokpit denemesi kapanır */   /* çökme saptandı: bu cihazda çevrimdışı paket indirmesi kapanır */
     try { if (navigator.serviceWorker) P.push(navigator.serviceWorker.getRegistrations().then(function(r){ return Promise.all(r.map(function(x){ return x.unregister(); })); })); } catch (e) {}
     try { if (window.caches) P.push(caches.keys().then(function(k){ return Promise.all(k.map(function(x){ return caches.delete(x); })); })); } catch (e) {}
     Promise.all(P).catch(function(){}).then(function(){ location.replace(location.pathname); });
@@ -149,6 +149,7 @@ body,button{font-size-adjust:.5}
    ayarlar panelinin altında da bu numara görünür. */
 window.SD_VERSION = '1.67.0';
 window.SD_FB = { apiKey: "AIzaSyADLoPqH_HEHjSv1mwY23cJZkuce-KOkUo", authDomain: "stardrift-617de.firebaseapp.com", projectId: "stardrift-617de", storageBucket: "stardrift-617de.firebasestorage.app", messagingSenderId: "527698904689", appId: "1:527698904689:web:dfdceeabba807fdf747dd0" };   // Firebase istemci ayarı (gizli değildir; güvenlik Firestore kurallarındadır)
+if (/[?&]tani=1/.test(location.search)) document.write('<script src="js/tani.js?v=' + window.SD_VERSION + '"><\/script>');   /* ölçüm paneli (T1/T2): yalnız ?tani=1 ile yüklenir */
 document.write('<script src="vendor/three-bloom.js?v=' + window.SD_VERSION + '"><\/script>');
 var glbOn = false; try { if (/[?&]glb=0/.test(location.search)) localStorage.removeItem('sd_glb'); else if (/[?&]glb=1/.test(location.search)) localStorage.setItem('sd_glb', '1'); glbOn = localStorage.getItem('sd_glb') === '1'; } catch (e) {}
 if (glbOn) document.write('<script src="js/glb.js?v=' + window.SD_VERSION + '"><\/script>');   /* GLB prototipi: VARSAYILAN KAPALI (?glb=1 açar, ?glb=0 kapatır) */
