@@ -1,0 +1,43 @@
+{
+ "id": "prop_probe",
+ "family": "prop",
+ "class": "prop",
+ "seed": 8000,
+ "profile": "PRODUCTION",
+ "concept": "Parti 1: probe",
+ "length_m": 8.0,
+ "materials": [
+  "white_paint",
+  "steel_dark",
+  "yuk_dark",
+  "hay_dark",
+  "emit_red",
+  "yuk_hazard"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "probe",
+  "scale_m": 8.0
+ },
+ "prepare": {
+  "tex": {
+   "base": 1024,
+   "orm": 512,
+   "normal": 512
+  },
+  "ao_distance": 0.2,
+  "ao_into_base": 0.6,
+  "normalize_length": true,
+  "cull": "exterior",
+  "uv_angle": 80,
+  "uv_margin": 3,
+  "bake_samples": 8,
+  "ao_samples": 32,
+  "normalize_axis": "max"
+ }
+}

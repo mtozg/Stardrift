@@ -189,7 +189,8 @@ NORM = None      # normalize_length: modeli metre ölçeğinden L=1,0 (burun eks
 if PC.get('normalize_length'):
     _objs = [o for o in [body, live] + screens + arts if o]
     _lo, _hi = geo.bounds(_objs)
-    _s = 1.0 / (_hi.y - _lo.y)
+    _ext = (_hi - _lo)
+    _s = 1.0 / (max(_ext.x, _ext.y, _ext.z) if PC.get('normalize_axis') == 'max' else _ext.y)
     _c = (_lo + _hi) / 2
     for o in _objs:
         for v in o.data.vertices:

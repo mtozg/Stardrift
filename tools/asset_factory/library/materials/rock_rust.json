@@ -1,0 +1,28 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.16,
+  0.08,
+  0.05
+ ],
+ "rough": [
+  0.7,
+  0.95
+ ],
+ "tone_var": [
+  0.5,
+  1.4
+ ],
+ "cloud_scale": 2.5,
+ "dirt": 0.8,
+ "grime": 0.9,
+ "chips": 0.7,
+ "chip_scale": 6.0,
+ "chip_color": [
+  0.3,
+  0.15,
+  0.08
+ ],
+ "bump": 0.12
+}

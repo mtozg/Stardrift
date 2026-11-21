@@ -55,6 +55,8 @@ def cull_hidden_exterior(target, occluders, far=1e3, eps=2e-4):
     bm = bmesh.new()
     bm.from_mesh(target.data)
     bm.normal_update()
+    _dg = max((v.co for v in bm.verts), key=lambda c: c.length).length if bm.verts else 1.0
+    eps = max(eps, _dg * 2e-5)      # büyük koordinatlarda (≥100 m) float hatası sabit eps'i aşar → yüzler kendine çarpıp yanlış silinir
     kill = []
     for f in bm.faces:
         c = M @ f.calc_center_median()

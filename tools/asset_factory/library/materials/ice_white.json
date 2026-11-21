@@ -1,0 +1,20 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.82,
+  0.88,
+  0.94
+ ],
+ "rough": [
+  0.35,
+  0.6
+ ],
+ "tone_var": [
+  0.8,
+  1.2
+ ],
+ "cloud_scale": 2.5,
+ "dirt": 0.2,
+ "bump": 0.05
+}
