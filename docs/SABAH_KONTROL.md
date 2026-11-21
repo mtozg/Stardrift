@@ -18,7 +18,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 
 | 8 | `game.js` modülerleştirme 1. adım: ses ve şekil verileri ayrı dosyalara (davranış aynı) | Hazır, 10 test PASS | cbdf15e | `git revert cbdf15e` |
 
-| 9 | Hayalet r006 (son tur): neon hizası, koyu altıgen, sade dikiş (r004'ün yerine) | Hazır | R6SHA | `git revert R6SHA` (r004'e döner) |
+| 9 | Hayalet r006 (son tur): neon hizası, koyu altıgen, sade dikiş (r004'ün yerine) | Hazır | 28568db | `git revert 28568db` (r004'e döner) |
 
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
