@@ -60,12 +60,16 @@ def from_lab(L):
     return a.reshape(sh)
 
 
-def recolor(im, ref, strength=0.85):
+WARM = {'ankora': (34, 9, 24)}      # (min L, a, b): sıcak amber/bronz (oyun içi Ankora hangarı)
+
+
+def recolor(im, ref, strength=0.9):
     """istasyon paleti: koridor dokularının Lab ortalama/sapması, istasyonun kapı çizimine kaydırılır (ankora: kaynak ximg_in birebir)"""
-    if ST == 'ankora':
-        return im
     m0, s0 = lab_stats(im)
     m1, s1 = lab_stats(ref)
+    if ST in WARM:      # istasyon kimlik tonu: kapı çiziminin L'sini koru, a/b ortalamasını hedef tona çek
+        m1 = m1.copy(); m1[0] = max(m1[0], WARM[ST][0]); m1[1], m1[2] = WARM[ST][1], WARM[ST][2]
+        s1 = s1.copy(); s1[1:] = np.maximum(s1[1:], 3.0)
     a = np.array(im.convert('RGB')).astype(np.float32) / 255.0
     L = to_lab(a)
     L2 = (L - m0) / s0 * (s1 * 0.8 + s0 * 0.2) + m1
@@ -139,6 +143,10 @@ def corridor():
     # zemin ızgara kaburgaları (boyuna)
     for i in range(-4, 5):
         m.box((i * 0.95, -OH / 2 + 0.06, L / 2), (0.16, 0.12, L - 0.4), 2, 'z', (4.5, 3.8))
+    for k in range(7):   # zemin plakaları (enine bağlantı çıtaları) + tavan kirişleri
+        zz = 0.5 + k * (L - 1.0) / 6
+        m.box((0, -OH / 2 + 0.03, zz), (OW - 0.6, 0.06, 0.1), 0, 'z', (3.0, 3.0))
+        m.box((0, OH / 2 - 0.12, zz), (OW - 0.4, 0.24, 0.22), 1, 'z', (4.5, 3.8))
     # tavan ışık şeritleri (emissive karo: tavan karosu parlak orta) + kablo kanalları
     for sx in (-1, 1):
         m.box((sx * 1.6, OH / 2 - 0.08, L / 2), (0.55, 0.1, L - 0.6), 3, 'z', (4.5, 3.8))
@@ -149,7 +157,21 @@ def corridor():
             m.box((sx * (OW / 2 - 0.12), 0, 0.45 + k * (L - 0.9) / 4), (0.34, OH, 0.28), 1, 'x', (1.0, 5.2))
         for yy in (-1.5, -0.2, 1.1, 2.0):
             cyl_x(m, (sx * (OW / 2 - 0.35), yy, 0.2), (sx * (OW / 2 - 0.35), yy, L - 0.2), 0.16, 1)
-        m.box((sx * (OW / 2 - 0.22), -OH / 2 + 0.5, L / 2), (0.3, 0.4, L - 0.5), 0, 'x', (3.8, 5.2))      # alt panel şeridi (kapı dokusundan sarı-siyah)
+        m.box((sx * (OW / 2 - 0.22), -OH / 2 + 0.5, L / 2), (0.3, 0.4, L - 0.5), 0, 'x', (3.8, 5.2))
+        # r3 ayrıntı: farklı yarıçaplı ince/kalın borular, kelepçeler, panel kutuları, vana/rakor blokları
+        for yy, rr in ((-2.1, 0.07), (0.45, 0.10), (1.6, 0.07), (2.35, 0.12)):
+            cyl_x(m, (sx * (OW / 2 - 0.30), yy, 0.2), (sx * (OW / 2 - 0.30), yy, L - 0.2), rr, 1, 8)
+        for k in range(10):
+            zz = 0.55 + k * (L - 1.1) / 9
+            for yy in (-1.5, -0.2, 1.1):
+                m.box((sx * (OW / 2 - 0.35), yy, zz), (0.30, 0.34, 0.14), 0, 'x', (1.2, 1.2))      # kelepçe
+            if k % 3 == 1:
+                m.box((sx * (OW / 2 - 0.40), 0.65, zz), (0.4, 0.8, 0.5), 1, 'x', (1.0, 1.0))        # vana kutusu
+                m.box((sx * (OW / 2 - 0.45), 0.65, zz), (0.3, 0.25, 0.3), 0, 'x', (0.5, 0.5))      # kol
+            if k % 3 == 0:
+                m.box((sx * (OW / 2 - 0.30), 1.75, zz + 0.3), (0.22, 1.1, 0.7), 1, 'x', (1.0, 1.0))  # kontrol paneli
+        for k in range(4):
+            m.box((sx * (OW / 2 - 0.25), 3.0 - OH / 2 + 0.0, 0.9 + k * 1.9), (0.2, 0.2, 0.9), 0, 'x', (0.6, 0.6))   # üst kablo tepsisi parçaları      # alt panel şeridi (kapı dokusundan sarı-siyah)
     # uçlarda sekizgen çerçeve (segment bağlantısı)
     octa_frame(m, 0.14, OW - 0.4, OH - 0.2, 0.42, 0.28, 0)
     octa_frame(m, L - 0.14, OW - 0.4, OH - 0.2, 0.42, 0.28, 0)
