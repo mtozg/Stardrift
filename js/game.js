@@ -58,6 +58,7 @@ window.__qLevel = (() => { try { const v = +localStorage.getItem('sd_q'); if (lo
 const IPADX = (() => { try { return /iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch (e) { return false; } })();
 const TOUCHX = IPADX || Q_DEF === 1;
 window.__lowMem = IPADX || window.__qLevel === 0;
+window.__ipadX = IPADX;
 window.__qCap = () => { let c = QCAP[window.__qLevel]; if (TOUCHX) c = Math.min(c, Math.max(1, Math.sqrt(3.0e6 / Math.max(1, innerWidth * innerHeight)))); return c; };
 // kokpit oranı: pencere (üst) büyür, gösterge paneli (alt) küçülür. 0 klasik, 1 dengeli, 2 geniş cam
 const CKB = [1, 0.85, 0.72];
@@ -10709,7 +10710,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     function loadB(){
       syncB(); if (BP) return BP; const K3 = ck3Of(); if (!K3) return Promise.reject(new Error('3B kokpit yok')); const id = BID;
       BP = new Promise((res, rej) => {
-        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600 ? K3.glbM : K3.glb) + v,   /* telefon: 1024 dokulu hafif model, tablet/masaüstü: 2048 */
+        const v = '?v=' + (window.SD_VERSION || ''), go = () => new THREE.GLTFLoader().load(((matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 600) || window.__lowMem || window.__ipadX ? K3.glbM : K3.glb) + v,   /* telefon, iPad ve düşük bellek (Performans kalitesi): 1024 dokulu hafif model (4 doku, 2048'lik modelin ~%25'i); masaüstü: 2048. iPad'de 2048'lik doku belleği Safari'yi çökertiyor olabilir */
           g => { if (id !== BID){ try { disposeTree(g.scene, new Set()); } catch (e) {} return rej(new Error('gemi değişti')); } BM = g.scene; res(); }, x => { if (x && x.total) prepPct = Math.min(0.95, x.loaded / x.total); }, e => rej(e));
         if (THREE.GLTFLoader) go(); else { const sc = document.createElement('script'); sc.src = 'vendor/GLTFLoader.js' + v; sc.onload = go; sc.onerror = () => { sc.remove(); rej(new Error('GLTFLoader')); }; document.head.appendChild(sc); } });
       /* yüklenemezse vazgeçilmez: 1,5 → 3 → 6 → 12 → 15 sn aralıkla sessizce yeniden denenir (geçici ağ kesintisi, çevrimdışı ilk açılış) */
