@@ -1,0 +1,253 @@
+{
+ "id": "hayalet_r006_aday",
+ "family": "cockpit",
+ "class": "cockpit",
+ "seed": 6000,
+ "profile": "PRODUCTION",
+ "concept": "Hayalet r006 (Mehmet r005 listesi; r005 klasörü neon düzeltmesiydi): neon hizalı, koyu alçak altıgen, kısık dikiş, düşük kabartmalı yüzey",
+ "materials": [
+  "hay_carbon",
+  "hay_dark",
+  "hay_mid",
+  "hay_leather",
+  "hay_thread",
+  "emit_violet",
+  "screen_placeholder",
+  "hay_hex",
+  "hay_thread2"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 2048,
+ "lods": [
+  1.0
+ ],
+ "reference": {
+  "concept": "tools/asset_factory/docs/hayalet_konsept.html"
+ },
+ "params": {
+  "layout": "hayalet_b",
+  "console": {
+   "d0": 0.86,
+   "slope": 0.00055,
+   "v0": 380,
+   "emblem_v": 512,
+   "top": [
+    [
+     0,
+     572
+    ],
+    [
+     90,
+     520
+    ],
+    [
+     200,
+     468
+    ],
+    [
+     330,
+     410
+    ],
+    [
+     376,
+     384
+    ],
+    [
+     600,
+     372
+    ],
+    [
+     640,
+     364
+    ],
+    [
+     960,
+     364
+    ],
+    [
+     1000,
+     372
+    ],
+    [
+     1224,
+     384
+    ],
+    [
+     1270,
+     410
+    ],
+    [
+     1400,
+     468
+    ],
+    [
+     1510,
+     520
+    ],
+    [
+     1600,
+     572
+    ]
+   ]
+  },
+  "screens": {
+   "radar": [
+    [
+     633,
+     371
+    ],
+    [
+     967,
+     371
+    ],
+    [
+     980,
+     501
+    ],
+    [
+     620,
+     501
+    ]
+   ],
+   "sys": [
+    [
+     310,
+     393
+    ],
+    [
+     580,
+     378
+    ],
+    [
+     580,
+     510
+    ],
+    [
+     301,
+     545
+    ]
+   ],
+   "hull": [
+    [
+     1020,
+     378
+    ],
+    [
+     1290,
+     393
+    ],
+    [
+     1299,
+     545
+    ],
+    [
+     1020,
+     510
+    ]
+   ]
+  },
+  "canopy": {
+   "depth": 1.25,
+   "pillar_r": 0.03,
+   "pil_dx": 160
+  },
+  "seat": {
+   "top_z": -0.35
+  },
+  "r002": true,
+  "r003": true,
+  "dividers": [
+   [
+    583,
+    611
+   ],
+   [
+    989,
+    1017
+   ]
+  ],
+  "r004": true,
+  "neon2": true,
+  "seam_min": true
+ },
+ "prepare": {
+  "cull": "interior",
+  "eyes": [
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    0.07,
+    0,
+    0
+   ],
+   [
+    -0.07,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0.05
+   ],
+   [
+    0,
+    0,
+    -0.04
+   ],
+   [
+    0,
+    0.05,
+    0
+   ],
+   [
+    0,
+    -0.05,
+    0
+   ]
+  ],
+  "tex": {
+   "base": 2048,
+   "orm": 1024,
+   "normal": 1024
+  },
+  "uv_pack": "CONVEX",
+  "ao_distance": 0.3,
+  "ao_into_base": 0.35
+ },
+ "material_overrides": {
+  "hay_carbon": {
+   "panels": 0.9,
+   "panel_scale": 2.2,
+   "bump": 0.085,
+   "wear": 1.3,
+   "dirt_distance": 0.1
+  },
+  "hay_dark": {
+   "panels": 0.8,
+   "panel_scale": 2.2,
+   "bump": 0.06
+  },
+  "hay_hex": {
+   "base": [
+    0.007,
+    0.007,
+    0.011
+   ],
+   "rough": [
+    0.8,
+    0.95
+   ]
+  },
+  "hay_thread2": {
+   "base": [
+    0.03,
+    0.012,
+    0.07
+   ]
+  }
+ }
+}

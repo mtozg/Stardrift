@@ -300,7 +300,7 @@ def build(spec, mats):
                 dd_ = fd(v_) - 0.004      # r001-düzeltme: güverte yüzü konsol yüzünün ARKASINDA kalıp altıgenleri gizliyordu
                 p0 = P(uu(uo), v_, dd_)
                 if A.get('r002'):      # r002: koyu ve alçak altıgen (parlak petek yok)
-                    hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - 0.0018), 0.0072, 6)
+                    hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - (0.0011 if A.get('seam_min') else 0.0018)), 0.0072, 6)
                 else:
                     hexes.cyl(p0 + p0.normalized() * 0.001, P(uu(uo), v_, dd_ - 0.0035), 0.0082, 6)
             r_ += 1
@@ -393,7 +393,10 @@ def build(spec, mats):
     for s_ in (-1, 1):
         nm = 'L' if s_ < 0 else 'R'
         add('seat_wing_v_' + nm, soft_box((s_ * 0.235, sy - 0.012, ztop - 0.215), (0.10, 0.11, 0.26), 0.024, 1), 'hay_leather', smooth=60)
-    if A.get('r004'):      # r004: sade tek yüzlü sırt (yastık/tuğla okunmasın): yalnız ince koyu mor dikiş çizgileri
+    if A.get('r004') and A.get('seam_min'):      # r006: yalnız iki ince dikey dikiş (ızgara okunmasın)
+        for dx_ in (-0.095, 0.095):
+            thread_d.box((dx_, fyy - 0.0005, ztop - 0.125), (0.003, 0.003, 0.19))
+    elif A.get('r004'):      # r004: sade tek yüzlü sırt (yastık/tuğla okunmasın): yalnız ince koyu mor dikiş çizgileri
         for dx_ in (-0.095, 0.095):
             thread_d.box((dx_, fyy - 0.0005, ztop - 0.125), (0.003, 0.003, 0.19))
         thread_d.box((0, fyy - 0.0005, ztop - 0.075), (0.30, 0.003, 0.003))
