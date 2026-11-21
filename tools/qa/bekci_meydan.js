@@ -19,7 +19,7 @@ const boot = require('./_boot.js');
     if (z === 0) { await p.evaluate(() => { const t = window.__sdt; t.save.bekciOn = 1; const d = window.__bekciDbg(); const v = d.GP.clone(); v.z += 900; t.tp(v, 0); t.stop(); });
       await p.waitForFunction(() => window.__bekciDbg().G, null, { timeout: 40000 }).catch(() => {}); R.hull2 = await p.evaluate(() => { const g = window.__bekciDbg().G; return g ? g.hullMax : 0; }); }
   }
-  R.rozet = await p.evaluate(() => window.__kutuk().find(x => x.ad === 'Kapı Bekçisi').n);
+  R.rozet = await p.evaluate(() => window.__kutuk().find(x => x.ad === 'Kapı Bekçisi').n);   // eski kayıttaki Bekçi rozeti (3) değişmez
   R.hullOran = R.hull1 && R.hull2 ? Math.round(R.hull2 / R.hull1 * 100) / 100 : 0;
   R.errs = errs; console.log('@@' + JSON.stringify(R)); await b.close();
 })();
