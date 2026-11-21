@@ -1712,8 +1712,9 @@ var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [25
 /* ---- 3B kokpitli gemiler (Blender → GLB). Her gemi: model (masaüstü/telefon), ekran dörtgenleri (GLB'deki SCR_* köşeleri, 1600x656), canlı tuval oran katsayısı,
    HUD maskesi sırtı (pilot görüşünde dashboard üst sınırı) ve orta sırt yüksekliği. Listede olmayan gemiler çizim (2B) kokpitiyle devam eder. ---- */
 var CK3 = {
-  kasif: { glb: 'models/cockpit_kasif.glb', glbM: 'models/cockpit_kasif_m.glb', ad: 'KAŞİF', top: 382, ridge: HUD_RIDGE, qS: [1.15, 1.07, 1.15],
-    scrK: { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] } },
+  kasif: { glb: 'models/cockpit_kasif.glb', glbM: 'models/cockpit_kasif_m.glb', ad: 'KAŞİF', top: 382, ridge: HUD_RIDGE, scrK: {},
+    /* Asset Factory yan ekran düzeltmesi (deliveries/kasif_ekran): SYS ve HULL ekranları %18 büyük, yamukluk %50 az; RADAR aynı. Köşeler modeldeki gerçek ekran köşeleri (1600x656). */
+    q: [[[350, 392], [583, 382], [579, 525], [320, 537]], [[628, 369], [974, 370], [975, 508], [624, 508]], [[1013, 382], [1249, 392], [1279, 537], [1019, 525]]] },
   /* Şahin: Asset Factory teslimi r014 (tools/asset_factory/deliveries/sahin_cockpit/r014, Kapı 1 onaylı; ekran köşeleri ve sırt r012 ile aynı). Ekranlar GLB'deki gerçek köşeler: RADAR 280x180 (1,56:1), tuval bu oranda kurulur.
      Sırt: r012 pilot görüşü alfa maskesinden (cam kalkanı ortada 366 px). */
   sahin: { glb: 'models/cockpit_sahin.glb', glbM: 'models/cockpit_sahin_m.glb', ad: 'ŞAHİN', top: 366, scrK: {},
