@@ -276,3 +276,11 @@ Not: telefon/gerçek cihazda ilk açılış süresi ölçülmedi; iki ek betik d
 | Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (76/125, 55/115, 55/121, 55/115), sayfa hatası yok | PASS |
 | Oyun içi görsel: neonlar kenar eğrisini izliyor, ekran altı neonu oturuyor, koltukta parlak ızgara yok | Ekran görüntüsüyle |
 Not: swiftshader; gerçek cihaz test edilmedi.
+
+## 32. Sürüm 1.66.4 test özeti (Hayalet r007)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (1f68ea2e / 65290f10) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (75/116, 54/106, 54/112, 54/106), sayfa hatası yok | PASS |
+| Oyun içi görsel: direklerde cıvata sırası ve fırçalı yüzey seçiliyor, diğer yerler değişmedi | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi.

@@ -1710,7 +1710,7 @@ var HUD_RIDGE = [[-400, 281], [50, 281], [100, 355], [150, 414], [200, 428], [25
 /* ---- 3B kokpitli gemiler (Blender → GLB). Her gemi: model (masaüstü/telefon), ekran dörtgenleri (GLB'deki SCR_* köşeleri, 1600x656), canlı tuval oran katsayısı,
    HUD maskesi sırtı (pilot görüşünde dashboard üst sınırı) ve orta sırt yüksekliği. Listede olmayan gemiler çizim (2B) kokpitiyle devam eder. ---- */
 var CK3 = {
-  kasif: { glb: 'models/cockpit_kasif.glb', glbM: 'models/cockpit_kasif_m.glb', ad: 'KAŞİF', top: 382, ridge: HUD_RIDGE, qS: 1.07,
+  kasif: { glb: 'models/cockpit_kasif.glb', glbM: 'models/cockpit_kasif_m.glb', ad: 'KAŞİF', top: 382, ridge: HUD_RIDGE, qS: [1.15, 1.07, 1.15],
     scrK: { bars: [0.893, 1.007], map: [1.003, 1.206], hull: [0.893, 1.008] } },
   /* Şahin: Asset Factory teslimi r014 (tools/asset_factory/deliveries/sahin_cockpit/r014, Kapı 1 onaylı; ekran köşeleri ve sırt r012 ile aynı). Ekranlar GLB'deki gerçek köşeler: RADAR 280x180 (1,56:1), tuval bu oranda kurulur.
      Sırt: r012 pilot görüşü alfa maskesinden (cam kalkanı ortada 366 px). */
@@ -1721,10 +1721,10 @@ var CK3 = {
   yuk: { glb: 'models/cockpit_yuk.glb', glbM: 'models/cockpit_yuk_m.glb', ad: 'YÜK DEVİ', top: 372, scrK: {},
     q: [[[316, 404], [586, 388], [594, 540], [332, 566]], [[662, 378], [938, 378], [938, 538], [662, 538]], [[1014, 388], [1284, 404], [1268, 566], [1006, 540]]],
     ridge: [[-400, 525], [0, 525], [50, 510], [100, 495], [150, 481], [200, 427], [250, 451], [300, 406], [350, 402], [400, 399], [450, 386], [500, 381], [550, 381], [600, 381], [650, 372], [700, 372], [750, 372], [800, 372], [850, 372], [900, 372], [950, 372], [1000, 381], [1050, 381], [1100, 381], [1150, 386], [1200, 389], [1250, 392], [1300, 395], [1350, 451], [1400, 427], [1450, 481], [1500, 496], [1550, 510], [1600, 525], [2000, 525]] },
-  /* Hayalet: Asset Factory teslimi r006 (tools/asset_factory/deliveries/hayalet_cockpit/r006, son tur: neon hizası, koyu altıgen, sade dikiş; Kapı 1 görsel kararı bekliyor). RADAR 2,65:1; sırt simetrik teslimden. */
+  /* Hayalet: Asset Factory teslimi r007 (tools/asset_factory/deliveries/hayalet_cockpit/r007; Mehmet kabul etti, direk gerçekçiliği). RADAR 2,65:1; sırt simetrik teslimden. */
   hayalet: { glb: 'models/cockpit_hayalet.glb', glbM: 'models/cockpit_hayalet_m.glb', ad: 'HAYALET', top: 358, scrK: {},
     q: [[[310, 393], [580, 378], [580, 510], [301, 545]], [[633, 371], [967, 371], [980, 501], [620, 501]], [[1020, 378], [1290, 393], [1299, 545], [1020, 510]]],
-    ridge: [[-400, 520], [0, 520], [50, 515], [100, 512], [150, 488], [200, 431], [250, 431], [300, 381], [350, 379], [400, 376], [450, 373], [500, 371], [550, 366], [600, 366], [650, 358], [700, 358], [750, 358], [800, 358], [850, 358], [900, 358], [950, 358], [1000, 366], [1050, 366], [1100, 371], [1150, 373], [1200, 376], [1250, 379], [1300, 381], [1350, 431], [1400, 431], [1450, 488], [1500, 512], [1550, 515], [1600, 520], [2000, 520]] }
+    ridge: [[-400, 520], [0, 520], [50, 515], [100, 512], [150, 488], [200, 431], [250, 431], [300, 381], [350, 379], [400, 376], [450, 373], [500, 371], [550, 369], [600, 369], [650, 358], [700, 358], [750, 358], [800, 358], [850, 358], [900, 358], [950, 358], [1000, 369], [1050, 369], [1100, 371], [1150, 373], [1200, 376], [1250, 379], [1300, 381], [1350, 431], [1400, 431], [1450, 488], [1500, 512], [1550, 515], [1600, 520], [2000, 520]] }
 };
 function ck3Of(id){ return CK3[id || save.ship] || null; }   /* 3B kokpitli gemi çizim kokpitine hiç dönmez: model gelene kadar yükleme yeniden denenir */
 function ck3dSet(){ return !!ck3Of(); }
@@ -3530,7 +3530,7 @@ function setCockpit(id){
   const d = CK[id], P = CKP[id]; if (!P) return;
   const K3 = ck3Of(id);
   if (K3){   /* 3B kokpitli gemi (CK3): çizim resmi yok, yalnızca yerleşim bilgisi; ekran dörtgenleri modeldeki gerçek köşeler */
-    const Q = K3.q || (K3.qS ? P.q.map(sq => { const cx = sq.reduce((t, v) => t + v[0], 0) / 4, cy = sq.reduce((t, v) => t + v[1], 0) / 4; return sq.map(v => [cx + (v[0] - cx) * K3.qS, cy + (v[1] - cy) * K3.qS]); }) : P.q); IMG.img = null;   /* qS: dörtgenleri merkezinden büyüt/küçült (Kaşif ekranları çerçeveye göre küçük kalmıştı) */ IMG.ok = true; IMG.hi = true; IMG.ih = 656; IMG.iw = 1600;
+    const Q = K3.q || (K3.qS ? P.q.map((sq, qi) => { const k = Array.isArray(K3.qS) ? K3.qS[qi] : K3.qS, cx = sq.reduce((t, v) => t + v[0], 0) / 4, cy = sq.reduce((t, v) => t + v[1], 0) / 4; return sq.map(v => [cx + (v[0] - cx) * k, cy + (v[1] - cy) * k]); }) : P.q); IMG.img = null;   /* qS: dörtgenleri merkezinden büyüt/küçült (Kaşif ekranları çerçeveye göre küçük kalmıştı) */ IMG.ok = true; IMG.hi = true; IMG.ih = 656; IMG.iw = 1600;
     IMG.cfg = { lamps: P.lamps, boost: P.boost, defs: [{ q: Q[0], kind: 'bars' }, { q: Q[1], kind: 'map' }, { q: Q[2], kind: 'hull' }] };
     SCR_DEF = IMG.cfg.defs; resize(); return; }
   if (!d) return; const im = new Image();
