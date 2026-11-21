@@ -691,6 +691,164 @@
      ]
     }
    ]
+  },
+  "sahin_r014_aday": {
+   "state": "delivered",
+   "rev": 1,
+   "history": [
+    {
+     "t": "2026-11-21T12:06:15+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-21T12:06:15+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: sahin_r014_aday: Mehmet görsel onayı (Kapı 1) Lead aktarımıyla; Kapı 2 kaydı izni 2026-11-21",
+     "by": "Mehmet (Lead aktarımı)"
+    },
+    {
+     "t": "2026-11-21T12:12:19+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-21T12:12:40+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (60 PASS, 2 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-21T12:12:46+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: Şahin r014 Kapı 2 teknik onay: QC WARN (metal aralığı, tangent uyarısı) kabul; izin 2026-11-21",
+     "by": "Mehmet (Lead aktarımı)"
+    },
+    {
+     "t": "2026-11-21T12:12:46+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/sahin_r014_aday/r001"
+    }
+   ],
+   "timings": {
+    "model": 1422.1,
+    "prepare": 363.4,
+    "qc": 19.0
+   },
+   "approvals": [
+    {
+     "t": "2026-11-21T12:06:15+00:00",
+     "gate": "visual",
+     "by": "Mehmet (Lead aktarımı)",
+     "note": "sahin_r014_aday: Mehmet görsel onayı (Kapı 1) Lead aktarımıyla; Kapı 2 kaydı izni 2026-11-21",
+     "accept_warn": []
+    },
+    {
+     "t": "2026-11-21T12:12:46+00:00",
+     "gate": "tech",
+     "by": "Mehmet (Lead aktarımı)",
+     "note": "Şahin r014 Kapı 2 teknik onay: QC WARN (metal aralığı, tangent uyarısı) kabul; izin 2026-11-21",
+     "accept_warn": [
+      "pbr.base_metal",
+      "gltf.validator_warnings"
+     ]
+    }
+   ],
+   "geometry_hash": "dae0f1ec48ed1508473a6a6ed8110fe7d9e3ffd2e3893ccf131872ed18e88084",
+   "spec_hash": "dff11477804d6187b283a217a14d0fe5f2af8e9dcdf1f7cc067b1b4fd9e8602a",
+   "fast": false,
+   "perf_baseline": {
+    "masaüstü 1200×750|1": 24.8,
+    "iPad Pro 11 landscape|1": 27,
+    "iPhone 13 landscape|1": 26.2,
+    "Pixel 7 landscape|1": 28
+   }
+  },
+  "hayalet_r007_aday": {
+   "state": "delivered",
+   "rev": 1,
+   "history": [
+    {
+     "t": "2026-11-21T12:25:04+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-21T12:25:04+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: hayalet_r007_aday: Mehmet görsel onayı (Kapı 1) Lead aktarımıyla; Kapı 2 kaydı izni 2026-11-21",
+     "by": "Mehmet (Lead aktarımı)"
+    },
+    {
+     "t": "2026-11-21T12:30:19+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-21T12:30:41+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (56 PASS, 6 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-21T12:30:56+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: Hayalet r007 Kapı 2: QC WARN 6 kabul (karbon-siyah palet dar aralık, metal ikili, tangent, Three-Cycles lum 0,078 sınıra yakın) ; izin 2026-11-21",
+     "by": "Mehmet (Lead aktarımı)"
+    },
+    {
+     "t": "2026-11-21T12:30:57+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/hayalet_r007_aday/r001"
+    }
+   ],
+   "timings": {
+    "model": 743.6,
+    "prepare": 314.7,
+    "qc": 18.4
+   },
+   "approvals": [
+    {
+     "t": "2026-11-21T12:25:04+00:00",
+     "gate": "visual",
+     "by": "Mehmet (Lead aktarımı)",
+     "note": "hayalet_r007_aday: Mehmet görsel onayı (Kapı 1) Lead aktarımıyla; Kapı 2 kaydı izni 2026-11-21",
+     "accept_warn": []
+    },
+    {
+     "t": "2026-11-21T12:30:56+00:00",
+     "gate": "tech",
+     "by": "Mehmet (Lead aktarımı)",
+     "note": "Hayalet r007 Kapı 2: QC WARN 6 kabul (karbon-siyah palet dar aralık, metal ikili, tangent, Three-Cycles lum 0,078 sınıra yakın) ; izin 2026-11-21",
+     "accept_warn": [
+      "pbr.base_dielectric",
+      "pbr.base_metal",
+      "pbr.metal_binary",
+      "gltf.validator_warnings",
+      "three.fidelity.N1_pilot",
+      "three.fidelity.N2_goz_sol"
+     ]
+    }
+   ],
+   "geometry_hash": "14e63311ead649ef21ce243bb1dffed8a7b1b74d603b4ad9f65dd80f5f4c1ae6",
+   "spec_hash": "5fe6edcd7002dbe49f4d36216e6325a67a38dbf5cb5c65d9ca1bc6b009988307",
+   "fast": false,
+   "perf_baseline": {
+    "masaüstü 1200×750|1": 25.7,
+    "iPad Pro 11 landscape|1": 26.2,
+    "iPhone 13 landscape|1": 26.6,
+    "Pixel 7 landscape|1": 26.9
+   }
   }
  }
 }

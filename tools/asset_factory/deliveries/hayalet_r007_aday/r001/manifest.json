@@ -1,0 +1,75 @@
+{
+ "id": "hayalet_r007_aday",
+ "rev": 1,
+ "glb": "sd_hayalet_r007_aday_r001.glb",
+ "glb_sha256": "4bdf2980491e8f926bd765b54d5d5284b840339b179848c38bc340fecbd7cbc5",
+ "glb_bytes": 1364320,
+ "class": "cockpit",
+ "family": "cockpit",
+ "test_asset": false,
+ "units": "m",
+ "forward": "-Z",
+ "up": "+Y",
+ "length_m": 0.8564,
+ "bounds_min": [
+  -2.411099910736084,
+  -0.832099974155426,
+  -1.3450000286102295
+ ],
+ "bounds_max": [
+  2.411099910736084,
+  0.6905999779701233,
+  -0.4885999858379364
+ ],
+ "tris": [
+  15204
+ ],
+ "calls_lod0": 2,
+ "materials": [
+  "MAT_emit",
+  "MAT_body",
+  "MAT_screen"
+ ],
+ "textures": [
+  "textures/sd_hayalet_r007_aday_normal.webp",
+  "textures/sd_hayalet_r007_aday_orm.webp",
+  "textures/sd_hayalet_r007_aday_base.webp"
+ ],
+ "tex_gpu_bytes_est": 33554432,
+ "sockets": [
+  {
+   "name": "SOCK_cam_0",
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "dir": [
+    0,
+    0,
+    -1
+   ],
+   "extras": {
+    "name": "SOCK_cam_0",
+    "purpose": "pilot gözü (kamera sözleşmesi)",
+    "fovy": 74,
+    "dir": [
+     0,
+     0,
+     -1
+    ]
+   }
+  }
+ ],
+ "qc": {
+  "verdict": "WARN",
+  "PASS": 56,
+  "WARN": 6,
+  "FAIL": 0,
+  "SKIP": 2
+ },
+ "contract": "GEÇİCİ — contracts/game_contract.md bekleniyor",
+ "draw_calls_three": 5,
+ "frozen": false,
+ "kasif_uyumluluk": null
+}

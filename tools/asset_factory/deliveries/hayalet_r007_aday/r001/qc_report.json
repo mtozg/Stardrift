@@ -1,0 +1,1109 @@
+{
+ "asset_id": "hayalet_r007_aday",
+ "rev": 1,
+ "time": "2026-11-21T12:30:41",
+ "factory_commit": "6d701af",
+ "blender": "5.3.0",
+ "fast": false,
+ "verdict": "WARN",
+ "summary": {
+  "PASS": 56,
+  "WARN": 6,
+  "FAIL": 0,
+  "SKIP": 2
+ },
+ "stats": {
+  "glb_bytes": 1364320,
+  "tris": [
+   15204
+  ],
+  "calls_lod0": 2,
+  "materials": 3,
+  "textures": {
+   "sd_hayalet_r007_aday_normal": {
+    "size": [
+     1024,
+     1024
+    ],
+    "mime": "image/webp",
+    "kb": 53.8
+   },
+   "sd_hayalet_r007_aday_orm": {
+    "size": [
+     1024,
+     1024
+    ],
+    "mime": "image/webp",
+    "kb": 221.5
+   },
+   "sd_hayalet_r007_aday_base": {
+    "size": [
+     2048,
+     2048
+    ],
+    "mime": "image/webp",
+    "kb": 304.9
+   }
+  },
+  "tex_gpu_bytes_est": 33554432,
+  "bounds_min": [
+   -2.411099910736084,
+   -0.832099974155426,
+   -1.3450000286102295
+  ],
+  "bounds_max": [
+   2.411099910736084,
+   0.6905999779701233,
+   -0.4885999858379364
+  ],
+  "length_m": 0.8564,
+  "extensions": [
+   "EXT_texture_webp"
+  ],
+  "sockets": [
+   "SOCK_cam_0"
+  ]
+ },
+ "three": {
+  "info": {
+   "calls": 5,
+   "triangles": 15210,
+   "textures": 5,
+   "geometries": 5
+  },
+  "load_ms": 97.4,
+  "tex_gpu_bytes": 33554432,
+  "inspect": {
+   "root": "SD_hayalet_r007_aday",
+   "extras": {
+    "name": "SD_hayalet_r007_aday",
+    "id": "hayalet_r007_aday",
+    "rev": 1,
+    "family": "cockpit",
+    "class": "cockpit",
+    "units": "m",
+    "forward": "-Z",
+    "up": "+Y",
+    "bounds_min": [
+     -2.4111,
+     -0.8321,
+     -1.345
+    ],
+    "bounds_max": [
+     2.4111,
+     0.6906,
+     -0.4886
+    ],
+    "radius": 2.5644,
+    "tris": [
+     15204
+    ],
+    "lod_ratios": [
+     1
+    ],
+    "texture_mode": "unique",
+    "spec_hash": "5fe6edcd7002dbe49f4d36216e6325a67a38dbf5cb5c65d9ca1bc6b009988307",
+    "geometry_hash": "14e63311ead649ef21ce243bb1dffed8a7b1b74d603b4ad9f65dd80f5f4c1ae6",
+    "test_asset": false,
+    "contract": "GEÇİCİ (game_contract bekleniyor)"
+   },
+   "nodes": [
+    "Scene",
+    "SD_hayalet_r007_aday",
+    "LOD0",
+    "LOD0_emit",
+    "LOD0_body",
+    "SOCK_cam_0",
+    "SCR_HULL",
+    "SCR_RADAR",
+    "SCR_SYS"
+   ],
+   "meshes": [
+    {
+     "name": "LOD0_emit",
+     "tris": 108,
+     "attrs": [
+      "position",
+      "normal"
+     ]
+    },
+    {
+     "name": "LOD0_body",
+     "tris": 15096,
+     "attrs": [
+      "position",
+      "normal",
+      "uv",
+      "uv2"
+     ]
+    },
+    {
+     "name": "SCR_HULL",
+     "tris": 2,
+     "attrs": [
+      "position",
+      "normal",
+      "uv"
+     ]
+    },
+    {
+     "name": "SCR_RADAR",
+     "tris": 2,
+     "attrs": [
+      "position",
+      "normal",
+      "uv"
+     ]
+    },
+    {
+     "name": "SCR_SYS",
+     "tris": 2,
+     "attrs": [
+      "position",
+      "normal",
+      "uv"
+     ]
+    }
+   ],
+   "materials": {
+    "MAT_emit": {
+     "type": "MeshStandardMaterial",
+     "side": 0,
+     "map": null,
+     "normalMap": null,
+     "roughnessMap": null,
+     "metalnessMap": null,
+     "aoMap": null,
+     "emissiveMap": null,
+     "emissive": [
+      0.6200000047683716,
+      0.30000001192092896,
+      1
+     ],
+     "metalness": 0,
+     "roughness": 0.5,
+     "transparent": false
+    },
+    "MAT_body": {
+     "type": "MeshStandardMaterial",
+     "side": 0,
+     "map": [
+      2048,
+      2048
+     ],
+     "normalMap": [
+      1024,
+      1024
+     ],
+     "roughnessMap": [
+      1024,
+      1024
+     ],
+     "metalnessMap": [
+      1024,
+      1024
+     ],
+     "aoMap": [
+      1024,
+      1024
+     ],
+     "emissiveMap": null,
+     "emissive": [
+      0,
+      0,
+      0
+     ],
+     "metalness": 1,
+     "roughness": 1,
+     "transparent": false
+    },
+    "MAT_screen": {
+     "type": "MeshStandardMaterial",
+     "side": 0,
+     "map": null,
+     "normalMap": null,
+     "roughnessMap": null,
+     "metalnessMap": null,
+     "aoMap": null,
+     "emissiveMap": null,
+     "emissive": [
+      0.029999999329447746,
+      0.2199999988079071,
+      0.30000001192092896
+     ],
+     "metalness": 0,
+     "roughness": 0.5,
+     "transparent": false
+    }
+   },
+   "sockets": [
+    {
+     "name": "SOCK_cam_0",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "dir": [
+      0,
+      0,
+      -1
+     ],
+     "extras": {
+      "name": "SOCK_cam_0",
+      "purpose": "pilot gözü (kamera sözleşmesi)",
+      "fovy": 74,
+      "dir": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   ]
+  }
+ },
+ "three_vs_golden": {
+  "N1_pilot": {
+   "silhouette_diff": 0.00857,
+   "silhouette_tol": 0.00274,
+   "lum_golden": 0.0847,
+   "lum_three": 0.0781,
+   "lum_diff": 0.0781,
+   "deltaE_mean": 3.11,
+   "deltaE_p95": 10.19
+  },
+  "N2_goz_sol": {
+   "silhouette_diff": 0.0096,
+   "silhouette_tol": 0.00345,
+   "lum_golden": 0.0854,
+   "lum_three": 0.0789,
+   "lum_diff": 0.077,
+   "deltaE_mean": 3.08,
+   "deltaE_p95": 10.17
+  },
+  "N3_goz_sag_alt": {
+   "silhouette_diff": 0.00717,
+   "silhouette_tol": 0.00149,
+   "lum_golden": 0.0814,
+   "lum_three": 0.0752,
+   "lum_diff": 0.0764,
+   "deltaE_mean": 2.99,
+   "deltaE_p95": 10.17
+  }
+ },
+ "perf": {
+  "masaüstü 1200×750": {
+   "perf": [
+    {
+     "n": 1,
+     "frames": 60,
+     "ms_avg": 26.06,
+     "ms_p50": 25.7,
+     "ms_p95": 31.8,
+     "calls": 5,
+     "triangles": 15210
+    }
+   ]
+  },
+  "iPad Pro 11 landscape": {
+   "perf": [
+    {
+     "n": 1,
+     "frames": 40,
+     "ms_avg": 26.83,
+     "ms_p50": 26.2,
+     "ms_p95": 30.8,
+     "calls": 5,
+     "triangles": 15210
+    }
+   ],
+   "load_ms": 95.6,
+   "page_errors": [],
+   "viewport": {
+    "width": 1194,
+    "height": 834
+   },
+   "dpr": 2
+  },
+  "iPhone 13 landscape": {
+   "perf": [
+    {
+     "n": 1,
+     "frames": 40,
+     "ms_avg": 27.27,
+     "ms_p50": 26.6,
+     "ms_p95": 36.4,
+     "calls": 5,
+     "triangles": 15210
+    }
+   ],
+   "load_ms": 119.9,
+   "page_errors": [],
+   "viewport": {
+    "width": 750,
+    "height": 342
+   },
+   "dpr": 3
+  },
+  "Pixel 7 landscape": {
+   "perf": [
+    {
+     "n": 1,
+     "frames": 40,
+     "ms_avg": 27.29,
+     "ms_p50": 26.9,
+     "ms_p95": 35.5,
+     "calls": 5,
+     "triangles": 15210
+    }
+   ],
+   "load_ms": 102,
+   "page_errors": [],
+   "viewport": {
+    "width": 863,
+    "height": 360
+   },
+   "dpr": 2.625
+  }
+ },
+ "prepare": {
+  "tris_lod": [
+   15204
+  ],
+  "culled_faces": {
+   "body": 11095,
+   "emit": 8
+  },
+  "tris_before_cull": 39240,
+  "tris_after_cull": 15210,
+  "uv": {
+   "texel_px_per_m_median": 525.3,
+   "texel_p05": 510.5,
+   "texel_p95": 534.3,
+   "uv_fill": 0.218,
+   "faces_out_of_bounds": 0
+  },
+  "texture_recompress": {
+   "sd_hayalet_r007_aday_normal": {
+    "channel": "normal",
+    "q": 92,
+    "kb_before": 83.6,
+    "kb_after": 53.8
+   },
+   "sd_hayalet_r007_aday_orm": {
+    "channel": "orm",
+    "q": 92,
+    "kb_before": 283.2,
+    "kb_after": 221.5
+   },
+   "sd_hayalet_r007_aday_base": {
+    "channel": "base",
+    "q": 88,
+    "kb_before": 525.1,
+    "kb_after": 304.9
+   }
+  },
+  "glb_bytes_blender": 1683524,
+  "glb_bytes": 1364320
+ },
+ "timings": {
+  "model": 743.6,
+  "prepare": 314.7,
+  "qc": 18.4,
+  "qc_validator": 0.2,
+  "qc_blender": 1.9,
+  "qc_repro": 1.9,
+  "qc_three": 14.4
+ },
+ "items": [
+  {
+   "id": "contract.root",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    "SD_hayalet_r007_aday"
+   ],
+   "limit": "SD_hayalet_r007_aday",
+   "note": ""
+  },
+  {
+   "id": "contract.lods",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    "LOD0"
+   ],
+   "limit": 1,
+   "note": ""
+  },
+  {
+   "id": "contract.names",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [],
+   "limit": "SD_/LODn/LODn_<rol>/SOCK_/COL_/SCR_/ART_<parça>_<eklem>",
+   "note": ""
+  },
+  {
+   "id": "contract.mesh_roles",
+   "layer": "L2",
+   "status": "PASS",
+   "value": null,
+   "limit": "LODn_body|emit|glass (+ ART_ eklem düğümleri)",
+   "note": ""
+  },
+  {
+   "id": "contract.sockets",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    "SOCK_cam_0"
+   ],
+   "limit": [
+    "SOCK_cam_"
+   ],
+   "note": ""
+  },
+  {
+   "id": "contract.transforms",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [],
+   "limit": "mesh/LOD/kök düğümleri birim dönüşümlü (SOCK_ ve ART_ eklem düğümleri hariç)",
+   "note": ""
+  },
+  {
+   "id": "contract.extras",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "tam",
+   "limit": [
+    "id",
+    "rev",
+    "family",
+    "class",
+    "units",
+    "forward",
+    "up",
+    "bounds_min",
+    "bounds_max",
+    "radius",
+    "tris",
+    "spec_hash",
+    "geometry_hash"
+   ],
+   "note": ""
+  },
+  {
+   "id": "geom.length",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0.8564,
+   "limit": "None ±2%",
+   "note": ""
+  },
+  {
+   "id": "ext.allowed",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    "EXT_texture_webp"
+   ],
+   "limit": [
+    "EXT_texture_webp",
+    "KHR_materials_unlit",
+    "KHR_texture_transform",
+    "KHR_mesh_quantization",
+    "EXT_meshopt_compression"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mat.count",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 3,
+   "limit": 3,
+   "note": ""
+  },
+  {
+   "id": "mat.names",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    "MAT_body",
+    "MAT_emit",
+    "MAT_screen"
+   ],
+   "limit": "MAT_<rol>",
+   "note": ""
+  },
+  {
+   "id": "mat.emissive_le_1",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    null,
+    [
+     0.6200000047683716,
+     0.30000001192092896,
+     1
+    ],
+    [
+     0.029999999329447746,
+     0.2199999988079071,
+     0.30000001192092896
+    ]
+   ],
+   "limit": "≤ 1 (r128)",
+   "note": ""
+  },
+  {
+   "id": "mat.single_sided",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    false,
+    false,
+    false
+   ],
+   "limit": "doubleSided=false",
+   "note": ""
+  },
+  {
+   "id": "tex.pow2.sd_hayalet_r007_aday_normal",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    1024,
+    1024
+   ],
+   "limit": "2^n kare",
+   "note": ""
+  },
+  {
+   "id": "tex.format.sd_hayalet_r007_aday_normal",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "image/webp",
+   "limit": "image/webp",
+   "note": ""
+  },
+  {
+   "id": "tex.pow2.sd_hayalet_r007_aday_orm",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    1024,
+    1024
+   ],
+   "limit": "2^n kare",
+   "note": ""
+  },
+  {
+   "id": "tex.format.sd_hayalet_r007_aday_orm",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "image/webp",
+   "limit": "image/webp",
+   "note": ""
+  },
+  {
+   "id": "tex.pow2.sd_hayalet_r007_aday_base",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    2048,
+    2048
+   ],
+   "limit": "2^n kare",
+   "note": ""
+  },
+  {
+   "id": "tex.format.sd_hayalet_r007_aday_base",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "image/webp",
+   "limit": "image/webp",
+   "note": ""
+  },
+  {
+   "id": "tex.entries_le_images",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 3,
+   "limit": 3,
+   "note": "r128 her doku girdisini ayrı GPU dokusu olarak yükler (Kaşif: 24 girdi / 4 görsel)"
+  },
+  {
+   "id": "tex.no_duplicate_images",
+   "layer": "L2",
+   "status": "PASS",
+   "value": null,
+   "limit": "her görsel bir kez",
+   "note": "Kaşif: ORM iki kez gömülüydü"
+  },
+  {
+   "id": "budget.gpu_tex_mb",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 32.0,
+   "limit": 40,
+   "note": "RGBA8 + mipmap tahmini"
+  },
+  {
+   "id": "cockpit.screen.SCR_SYS",
+   "layer": "L2",
+   "status": "PASS",
+   "value": {
+    "köşe": 4,
+    "uv": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      1.0
+     ],
+     [
+      1.0,
+      0.0
+     ],
+     [
+      1.0,
+      1.0
+     ]
+    ]
+   },
+   "limit": "4 köşe, UV köşeleri 0..1",
+   "note": "oyun canlı ekranı ada göre bağlar"
+  },
+  {
+   "id": "cockpit.screen.SCR_RADAR",
+   "layer": "L2",
+   "status": "PASS",
+   "value": {
+    "köşe": 4,
+    "uv": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      1.0
+     ],
+     [
+      1.0,
+      0.0
+     ],
+     [
+      1.0,
+      1.0
+     ]
+    ]
+   },
+   "limit": "4 köşe, UV köşeleri 0..1",
+   "note": "oyun canlı ekranı ada göre bağlar"
+  },
+  {
+   "id": "cockpit.screen.SCR_HULL",
+   "layer": "L2",
+   "status": "PASS",
+   "value": {
+    "köşe": 4,
+    "uv": [
+     [
+      0.0,
+      0.0
+     ],
+     [
+      0.0,
+      1.0
+     ],
+     [
+      1.0,
+      0.0
+     ],
+     [
+      1.0,
+      1.0
+     ]
+    ]
+   },
+   "limit": "4 köşe, UV köşeleri 0..1",
+   "note": "oyun canlı ekranı ada göre bağlar"
+  },
+  {
+   "id": "tex.size",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 2048,
+   "limit": 2048,
+   "note": ""
+  },
+  {
+   "id": "tex.uv_coverage",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0.2175,
+   "limit": null,
+   "note": "PBR istatistikleri yalnızca bu kapsamdaki tekseller üzerinden"
+  },
+  {
+   "id": "pbr.base_dielectric",
+   "layer": "L2",
+   "status": "WARN",
+   "value": [
+    19,
+    72
+   ],
+   "limit": [
+    30,
+    240
+   ],
+   "note": "p5–p95 sRGB; kir/aşınma ve sabit emisyon bölgeleri sınır dışına düşebilir (WARN)"
+  },
+  {
+   "id": "pbr.base_metal",
+   "layer": "L2",
+   "status": "WARN",
+   "value": [
+    48,
+    123
+   ],
+   "limit": [
+    120,
+    250
+   ],
+   "note": "p5–p95 sRGB; kir/aşınma ve sabit emisyon bölgeleri sınır dışına düşebilir (WARN)"
+  },
+  {
+   "id": "pbr.metal_binary",
+   "layer": "L2",
+   "status": "WARN",
+   "value": 0.3122,
+   "limit": 0.1,
+   "note": ""
+  },
+  {
+   "id": "pbr.rough_range",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    0.318,
+    0.949
+   ],
+   "limit": "p0.5 ≥ 0.04",
+   "note": "alt %0,5 yüzdelik (tek teksellik sıkıştırma artığına duyarsız); min 0.192"
+  },
+  {
+   "id": "pbr.normal_unit",
+   "layer": "L2",
+   "status": "PASS",
+   "value": [
+    1.0,
+    1.0
+   ],
+   "limit": "|n|≈1, z>0 (tangent, +Y)",
+   "note": ""
+  },
+  {
+   "id": "budget.tris_lod0",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 15204,
+   "limit": 60000,
+   "note": ""
+  },
+  {
+   "id": "budget.calls_lod0",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 2,
+   "limit": 25,
+   "note": ""
+  },
+  {
+   "id": "budget.glb_kb",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 1332.3,
+   "limit": 4096,
+   "note": ""
+  },
+  {
+   "id": "gltf.validator_errors",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0,
+   "limit": 0,
+   "note": "Khronos glTF Validator 2.0.0-dev.3.10"
+  },
+  {
+   "id": "gltf.validator_warnings",
+   "layer": "L2",
+   "status": "WARN",
+   "value": 1,
+   "limit": 0,
+   "note": "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE"
+  },
+  {
+   "id": "cockpit.screen_visible.SCR_SYS",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "5/5",
+   "limit": "5/5",
+   "note": "pilot gözünden merkez + 4 köşe ışını, ekrandan önce engel yok"
+  },
+  {
+   "id": "cockpit.screen_visible.SCR_RADAR",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "5/5",
+   "limit": "5/5",
+   "note": "pilot gözünden merkez + 4 köşe ışını, ekrandan önce engel yok"
+  },
+  {
+   "id": "cockpit.screen_visible.SCR_HULL",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "5/5",
+   "limit": "5/5",
+   "note": "pilot gözünden merkez + 4 köşe ışını, ekrandan önce engel yok"
+  },
+  {
+   "id": "cockpit.glass_ratio",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 53.6,
+   "limit": null,
+   "note": "pilot çerçevesinde dışarının görünen oranı (%%); Kaşif 50,7"
+  },
+  {
+   "id": "cockpit.hud_zone_block",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 5.4,
+   "limit": 10,
+   "note": "orta HUD bölgesi engeli (%%); Kaşif 9,3"
+  },
+  {
+   "id": "geom.zero_area_faces",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0,
+   "limit": 0,
+   "note": ""
+  },
+  {
+   "id": "geom.loose_verts",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0,
+   "limit": 0,
+   "note": ""
+  },
+  {
+   "id": "geom.backface_visible",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0.0,
+   "limit": 0.005,
+   "note": "7611 pilot gözünden ışın; delik + ters normal"
+  },
+  {
+   "id": "uv.overlap",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0.0,
+   "limit": 0.01,
+   "note": "unique modda ada çakışması"
+  },
+  {
+   "id": "uv.out_of_bounds",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0,
+   "limit": 0,
+   "note": ""
+  },
+  {
+   "id": "uv.texel_density",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 525.4,
+   "limit": 240.0,
+   "note": "px/m medyan; hedef ±30% (WARN ±15%); UV doluluk 22%"
+  },
+  {
+   "id": "repro.geometry_hash",
+   "layer": "L2",
+   "status": "PASS",
+   "value": "14e63311ead649ef",
+   "limit": "14e63311ead649ef",
+   "note": "ayrı süreçte yeniden kurulum"
+  },
+  {
+   "id": "ref.silhouette_iou",
+   "layer": "L2",
+   "status": "SKIP",
+   "value": null,
+   "limit": 0.8,
+   "note": "Faz 1+ (referans çizim karşılaştırması)"
+  },
+  {
+   "id": "mat.emit_area",
+   "layer": "L2",
+   "status": "PASS",
+   "value": 0.0045,
+   "limit": 0.03,
+   "note": "emisyonlu yüzey oranı"
+  },
+  {
+   "id": "three.load",
+   "layer": "L3",
+   "status": "PASS",
+   "value": 97.4,
+   "limit": null,
+   "note": "yükleme ms (swiftshader)"
+  },
+  {
+   "id": "three.materials",
+   "layer": "L3",
+   "status": "PASS",
+   "value": {
+    "MAT_emit": "MeshStandardMaterial",
+    "MAT_body": "MeshStandardMaterial",
+    "MAT_screen": "MeshStandardMaterial"
+   },
+   "limit": "MeshStandardMaterial, FrontSide",
+   "note": ""
+  },
+  {
+   "id": "contract.socket_dir.SOCK_cam_0",
+   "layer": "L3",
+   "status": "PASS",
+   "value": [
+    0,
+    0,
+    -1
+   ],
+   "limit": [
+    0,
+    0,
+    -1
+   ],
+   "note": "Three r128'de okunan yön (düğüm −Z) ile tarifteki yön arası 0.0°"
+  },
+  {
+   "id": "three.calls_lod0",
+   "layer": "L3",
+   "status": "PASS",
+   "value": 5,
+   "limit": 25,
+   "note": "renderer.info"
+  },
+  {
+   "id": "three.normal_side",
+   "layer": "L3",
+   "status": "PASS",
+   "value": 0,
+   "limit": 0.005,
+   "note": "FrontSide⟷DoubleSide, erozyon sonrası (ham 0.050%)"
+  },
+  {
+   "id": "three.fidelity.N1_pilot",
+   "layer": "L3",
+   "status": "WARN",
+   "value": {
+    "lum": 0.0781,
+    "dE": 3.11,
+    "sil_tol": 0.00274,
+    "sil_xor_bilgi": 0.00857
+   },
+   "limit": {
+    "lum": 0.08,
+    "dE": 6.0,
+    "sil_tol": 0.004
+   },
+   "note": "Cycles nötr ⟷ Three r128; siluet 1 px toleranslı (eski XOR/alan ölçütü yalnız bilgi)"
+  },
+  {
+   "id": "three.fidelity.N2_goz_sol",
+   "layer": "L3",
+   "status": "WARN",
+   "value": {
+    "lum": 0.077,
+    "dE": 3.08,
+    "sil_tol": 0.00345,
+    "sil_xor_bilgi": 0.0096
+   },
+   "limit": {
+    "lum": 0.08,
+    "dE": 6.0,
+    "sil_tol": 0.004
+   },
+   "note": "Cycles nötr ⟷ Three r128; siluet 1 px toleranslı (eski XOR/alan ölçütü yalnız bilgi)"
+  },
+  {
+   "id": "three.fidelity.N3_goz_sag_alt",
+   "layer": "L3",
+   "status": "PASS",
+   "value": {
+    "lum": 0.0764,
+    "dE": 2.99,
+    "sil_tol": 0.00149,
+    "sil_xor_bilgi": 0.00717
+   },
+   "limit": {
+    "lum": 0.08,
+    "dE": 6.0,
+    "sil_tol": 0.004
+   },
+   "note": "Cycles nötr ⟷ Three r128; siluet 1 px toleranslı (eski XOR/alan ölçütü yalnız bilgi)"
+  },
+  {
+   "id": "perf.masaüstü 1200×750.n1",
+   "layer": "L4",
+   "status": "PASS",
+   "value": 25.7,
+   "limit": null,
+   "note": "ms_p50; temel ölçüm (karşılaştırılacak önceki revizyon yok)"
+  },
+  {
+   "id": "perf.iPad Pro 11 landscape.n1",
+   "layer": "L4",
+   "status": "PASS",
+   "value": 26.2,
+   "limit": null,
+   "note": "ms_p50; temel ölçüm (karşılaştırılacak önceki revizyon yok)"
+  },
+  {
+   "id": "perf.iPhone 13 landscape.n1",
+   "layer": "L4",
+   "status": "PASS",
+   "value": 26.6,
+   "limit": null,
+   "note": "ms_p50; temel ölçüm (karşılaştırılacak önceki revizyon yok)"
+  },
+  {
+   "id": "perf.Pixel 7 landscape.n1",
+   "layer": "L4",
+   "status": "PASS",
+   "value": 26.9,
+   "limit": null,
+   "note": "ms_p50; temel ölçüm (karşılaştırılacak önceki revizyon yok)"
+  },
+  {
+   "id": "perf.device_real",
+   "layer": "L4",
+   "status": "SKIP",
+   "value": null,
+   "limit": null,
+   "note": "gerçek cihaz ölçümü bench.html ile elle yapılır"
+  }
+ ]
+}
