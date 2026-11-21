@@ -247,3 +247,10 @@ Not: yalnız masaüstü boyutunda görüldü; iPhone yatay boyutunda ve gerçek 
 | offline.json: 8 kokpit GLB'si (git add sonrası üretildi) | Doğrulandı |
 | Oyun içi görsel: sırt sade, katmanlı konsol, ekranlar bir tık küçük, ekran altı neon oturuyor; direk ve kemer neonları hâlâ kopuk | Ekran görüntüsüyle |
 Not: swiftshader; gerçek cihaz test edilmedi.
+
+## 28. Telefon boyutu kokpit kontrolü ve kokpit_dongu testi (1.65.3)
+| Kontrol | Sonuç |
+|---|---|
+| 844×390 yatay boyutunda 4 kokpit (Kaşif, Şahin, Yük, Hayalet): ekranlar yerine oturuyor, HUD sırtı doğru, sayfa hatası yok (`docs/sabah/telefon_boyutu_kokpitler.webp`) | Görsel |
+| Yeni test `kokpit_dongu` (4 kokpit ×3 tur, doku/geometri sabit, hata yok) `run.sh` listesinde | PASS |
+Not: Kaşif'te canlı ekranlar telefon boyutunda en küçük görünenler (yazılar küçük). Emülasyon; gerçek cihaz test edilmedi.
