@@ -31,6 +31,7 @@ BEKLE = {
  'menu_yetenek': [('uyariTemiz', True), ('menudeAcildi', True), ('sekmelerGorunur', True), ('tamEkranDegil', True), ('sekmeVurgusu', True), ('baskaSekmeKapatir', True), ('errs', [])],
  'guvenli_mod': [('adresKalite', True), ('baglamKopar', True), ('kaliteDustu', True), ('sayac', 1), ('uyari', True), ('errs', [])],
  'ipad_kokpit': [('ipadHafif', True), ('masaustuTam', True), ('errs', [])],
+ 'ipad_hiz': [('ipadBudce', True), ('iphoneAyni', True), ('masaustuAyni', True), ('errs', [])],
  'korsan_karargah': [('kosul', True), ('kacmaKara', False), ('kacmaDiger', True), ('errs', [])],
  'zincir_telsiz': [('korsan1', True), ('filo3', True), ('cift', True), ('errs', [])],
  'hesap_kayit': [('dogrulaEkrani', True), ('errs', [])],
