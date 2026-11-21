@@ -23,3 +23,6 @@ Hat: `families/prop/build.py` (14 nesne, 10 yerleşim) → `pipeline/model.py` �
 - Çoğu nesne basit (1–1,5k üçgen altı), ayrıntı düşük: roketler/sonda/konteyner makul; enkaz parçaları çok yalın (40–60 üçgen); patron ini ve uydu tek varyant (kalan 5 ini + 2 uydu varyantı parametreyle ucuz); lav kayasında parlak çatlaklar küçük; texel yoğunluğu büyük nesnelerde düşük (buz devi, monolit, ini: 1–4 px/m, uzaktan görülecekleri için kabul edilebilir ama yakında bulanık).
 - Bulunup düzeltilen hata: bükülü dörtgen yüzlü kuleler 'gizli yüz silme' (cull) adımında kendi yüzlerine ışın çarpıp siliniyordu → props'ta üçgenlere bölme + cull eps'i koordinat büyüklüğüne bağlandı (`core/cleanup.py`).
 - Kalan: asteroit (C2) oyun içi 3B vs 2B sprite karşılaştırması (test düzeneği kuruldu; yeni 3B kaya oyunda sorunsuz yükleniyor ve doğru ışıklanıyor, aynı-açı kıyas kaya alanı rastgele olduğu için eşleştirilemedi), kalan varyantlar, kalite turları.
+
+## Kalite turu (lav / buz / uydu) — Lead notlarına göre tek hedefli
+Lav: çatlaklar büyütüldü ve daha sıcak turuncu emissive, kaya içinde ısı çekirdeği; buz: içten ışıma çekirdeği eklendi (dışarıdan görünmüyor: kristaller opak, gerçek şeffaflık yok → etkisi zayıf); uydu: açık gövde + açık mavi güneş panelleri, gunmetal direkler. Oyun içi doğrulanmadı; varyantlar (lava2/3, sat1/2) bu tura dahil EDİLMEDİ (eski sürümde).

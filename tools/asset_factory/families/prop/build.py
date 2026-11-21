@@ -157,6 +157,7 @@ def L_ice(spec, mats):
         h = 0.55 + rng.random() * 0.6 if i else 1.25
         rr = 0.26 + rng.random() * 0.12
         b.spire((math.cos(a) * r0, math.sin(a) * r0, -0.05), h, rr, 'ice' if i % 2 == 0 else 'white', 5 + i % 3, i + 1, lean=(math.cos(a) * 0.25, math.sin(a) * 0.25), tip=0.12)
+    b.blob((0, 0, 0.35), 0.16, 'glow', 2, 0.1, 3)
     for i in range(4):
         a = i * 1.7 + 0.4
         b.blob((math.cos(a) * 0.62, math.sin(a) * 0.62, 0.0), 0.14, 'white', 2, 0.3, 10 + i)
@@ -208,7 +209,7 @@ def L_lair(spec, mats):
 
 def L_sat(spec, mats):
     P = ['body', 'steel', 'panel', 'dark', 'gold', 'lamp']
-    M = {'body': 'white_paint', 'steel': 'steel_dark', 'panel': 'hay_dark', 'dark': 'yuk_dark', 'gold': 'yuk_hazard', 'lamp': 'emit_red'}
+    M = {'body': 'white_paint', 'steel': 'gunmetal', 'panel': 'ice_blue', 'dark': 'yuk_dark', 'gold': 'yuk_hazard', 'lamp': 'emit_red'}
     b = Bld({k: mats[v] for k, v in M.items()}, P)
     v = spec['params'].get('variant', 0)
     b.box((0, 0, 0), (0.30, 0.30, 0.42), 'body')
@@ -233,11 +234,12 @@ def L_lava(spec, mats):
     sd = spec['params'].get('seed', 1)
     b.blob((0, 0, 0), 0.5, 'rock', 4, 0.45, sd, (1.0, 0.85, 0.8), 1.8)
     rng = random.Random(sd)
+    b.blob((0, 0, 0), 0.40, 'lava', 3, 0.30, sd + 9, (1.0, 0.85, 0.8), 1.8)                  # içten ısı: kayanın içinde parlayan çekirdek (çatlaklardan görünür)
     for i in range(10):                                                                     # parlayan çatlaklar (daha büyük, kabuğun içine gömülü yarıklar)
         a = rng.random() * 6.28; e = rng.random() * 1.6 - 0.8
         d = Vector((math.cos(a) * math.cos(e), math.sin(a) * math.cos(e), math.sin(e)))
         p0 = d * 0.40; p1 = d * 0.58
-        b.box(tuple((p0 + p1) / 2), (0.09, 0.022, 0.26), 'lava', (rng.random() * 2, rng.random() * 2, a))
+        b.box(tuple((p0 + p1) / 2), (0.14, 0.030, 0.34), 'lava', (rng.random() * 2, rng.random() * 2, a))
     return b
 
 
