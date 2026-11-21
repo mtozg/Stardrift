@@ -7499,6 +7499,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     if (save.boss.includes(k) || !BOSS[k] || save.side === 'korsan') return;   /* Korsan tarafında korsan reisleri müttefik: korsan ini çıkmaz */
     lairPos.set(...BOSS[k].at); for (const b of [PLANET, GIANT, PLANET2, PLANET3, ...STATIONS]) if (b.pos.distanceTo(lairPos) < (b.r || 100) + 1500) lairPos.y += 2600;
     lair = new THREE.Group(); const md = window.__olayModel && window.__olayModel('kamp'); if (md){ md.scale.setScalar(520); lair.add(md); }
+    if (window.__glb) window.__glb.prop('lair', lair, { size: 1000, hide: [md] });   /* GLB patron ini (?glb=1); kabuk 'kamp' modeli hazır olunca gizlenir */
     const gl = sprite(glowTexture(255, 60, 60), 900, 0.4); lair.add(gl); lair.position.copy(lairPos); lair.rotation.set(0.3, rand(0, 6), 0.2); scene.add(lair);
     mark = { kind: 'ruin', i: 8, gate: false, found: true, r: 300, ad: 'Korsan ini', label: 'Korsan ini · ' + BOSS[k].ad, pos: lairPos.clone(), group: { position: lairPos.clone() } };
   }
