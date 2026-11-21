@@ -410,7 +410,7 @@ const gemMat = {
   panel: new THREE.MeshStandardMaterial({ color: 0x8a92a4, roughness: 0.45, metalness: 0.3, emissive: 0x101420, flatShading: true })
 };
 function rockMesh(type, r){
-  { const L = ORE3[type]; if (L && L.length){ const t = L[(Math.random() * L.length) | 0], sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: true, alphaTest: 0.35, rotation: rand(0, TAU) })); sp.scale.set(r * 2.7, r * 2.7, 1); return sp; } }
+  { const L = ORE3[type]; if (L && L.length){ const t = L[(Math.random() * L.length) | 0], sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: true, alphaTest: 0.35, rotation: rand(0, TAU) })); sp.scale.set(r * 2.7, r * 2.7, 1); if (window.__glb) window.__glb.rock(sp, type, r); return sp; } }
   const pick = a => a[(Math.random() * a.length) | 0], add = (m, g, mat, sx, sy, sz, pos, quat) => { const c = new THREE.Mesh(g, mat); c.scale.set(sx, sy, sz); c.position.copy(pos); if (quat) c.quaternion.copy(quat); m.add(c); return c; };
   const up = new THREE.Vector3(0, 1, 0);
   let m;
@@ -2726,13 +2726,13 @@ const STSPEC3D = window.__SPEC.ST;   /* veri js/data_gemi.js içinde */
         let ph = 0; EXTRA.push(dt => { ph += dt; const k = 0.5 + 0.5 * Math.sin(ph * 1.6); sh.material.opacity = 0.2 + 0.25 * k; gl.material.opacity = 0.4 + 0.25 * k; pl.intensity = 0.8 + 0.8 * k; });
       }
       st.group.children.slice().forEach(ch => { if (ch.isMesh) ch.visible = false; else if (ch.isSprite) ch.material.opacity = 0.1; });
-      st.group.add(wg); return;
+      st.group.add(wg); if (window.__glb) window.__glb.station(st, key, w, wg); return;
     } catch (e) { console.log('ist3d hata', e); } }
     const mk = (tex, pw, ph) => new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, color: 0xe6eaf2 }));
     const art = new THREE.Group(), tp = mk(top, w, w * {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.0, "fog1": 1.0, "fog2": 1.0}[key + '_top']); tp.rotation.x = -Math.PI / 2; art.add(tp);
     const hs = {"ankora_top": 0.9921, "ankora_side": 0.4556, "demirhan_top": 1.0013, "demirhan_side": 0.5422, "kristal_top": 0.9224, "kristal_side": 0.43, "korsanA_top": 0.9513, "korsanA_side": 0.3387, "korsanB_top": 1.03, "korsanB_side": 0.3962, "korsanC_top": 0.5387, "korsanC_side": 0.435, "harabe": 1.0781, "mars": 0.9953, "buzay": 0.9969, "fog0": 1.0, "fog1": 1.0, "fog2": 1.0}[key + '_side'], s1 = mk(side, w, w * hs), s2 = mk(side, w, w * hs); s2.rotation.y = Math.PI / 2; art.add(s1); art.add(s2);
     st.group.children.slice().forEach(ch => { if (ch.isMesh) ch.visible = false; else if (ch.isSprite) ch.material.opacity = 0.1; });
-    st.group.add(art);
+    st.group.add(art); if (window.__glb) window.__glb.station(st, key, w, art);
   };
   loadArt(A3[key + '_top'], t => { top = t; done(); }); loadArt(A3[key + '_side'], t => { side = t; done(); });
   if (A3[key + '_fr']) loadArt(A3[key + '_fr'], t => { fr = t; t.wrapS = t.wrapT = THREE.RepeatWrapping; done(); });
@@ -2869,6 +2869,7 @@ function dressNpcs(skin){
     n.eng.position.set(0, 0, -L * 0.5); n.eng.scale.set(L * 0.3, L * 0.3, 1);
     n.nav.position.set(0, L * sd.hs * 0.5, -L * 0.2); n.nav.scale.set(L * 0.06, L * 0.06, 1);
     addFlames(n);
+    if (window.__glb) window.__glb.npc(n, def);   /* GLB prototipi (yalnız ?glb=1): hazırsa kabuk modelin yerine geçer */
   }
 }
 for (const type in SHIPS){
@@ -10799,6 +10800,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
         + 'hız ' + Math.round(vel.length()) + ' itiş ' + (+thrustNow).toFixed(1) + ' ateş ' + (+!!firing) + ' lazer ' + (+!!laserOn) + ' | olay ' + evs.join(' ') + '\n'
         + 'hata: ' + (lastErr || '-'); }, 500);
   })();
+  if (window.__glb) EXTRA.push(dt => window.__glb.frame(dt, camera));   /* GLB prototipi: LOD ve asteroit örnekleme (yalnız ?glb=1) */
   requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('sd-ready')));   // açılış perdesi kalkar (index.html)
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
@@ -10806,6 +10808,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },
     wreck: () => wreck(),
+    asteroids: () => asteroids,
+    memInfo: () => ({ geo: renderer.info.memory.geometries, tex: renderer.info.memory.textures }),
     spawn: (ty, pos) => spawnNpc(ty, pos, STATION),
     spawnOre: (pos, k) => spawnOre(pos, k), rigPos: () => rig.position.clone(),
     kill: n => killNpc(n, 'player'), rel: n => rel(n), npcs: () => npcs, fac: () => Object.assign({}, save.fac),
