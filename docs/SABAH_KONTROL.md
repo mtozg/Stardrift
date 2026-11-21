@@ -6,9 +6,36 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 | Aşama | İş | Durum | Commit / PR | Geri alma |
 |---|---|---|---|---|
 | 1 | Şahin r014 ve Yük Devi r015 3B kokpitleri oyunda | Hazır, PR #42 senin onayını bekliyor | 9d92f6f / PR #42 | `git revert 9d92f6f` |
-| 2 | Hayalet 3B kokpit (Asset Factory production → oyuna `CK3.hayalet`) | Asset Factory çalışıyor | - | - |
-| 3 | Başarım rozet çizimleri (10 rozet × 3 kademe) ve oyuna bağlama | Sırada | - | - |
+| 2 | Hayalet 3B kokpit r001 (Asset Factory production → oyuna `CK3.hayalet`) | Hazır, oyunda; Kapı 1 görsel kararın bekliyor | b58af28 | `git revert b58af28` |
+| 3 | Başarım rozet çizimleri (10 rozet × 3 kademe) oyunda; çevrimdışı paket düzeltmesi | Hazır | 1a43723 | `git revert 1a43723` (not: çevrimdışı düzeltmesi de bu commit'te; geri alınırsa Hayalet GLB'leri çevrimdışı pakette olmaz) |
+
+| 4 | Hayalet r003 (derinlik + büyük ekranlar; Mehmet'in geri bildirimi) | Hazır; r001'in yerine | 2c0c30e | `git revert 2c0c30e` (r001'e döner) |
 
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
 - Aşama 2 ve 3: Hazır olunca bu tabloya işlenecek.
+
+## Aşama 1 görseli
+`docs/sabah/asama1_sahin_yuk_kiyas.webp` (Kaşif, Şahin r014, Yük r015, oyun içi).
+
+## Aşama 2: Hayalet (ne gördüm)
+Görsel: `docs/sabah/asama2_hayalet_kiyas.webp` (üstte Kaşif, altta Hayalet).
+- **İyi:** Geniş açık görüş, ortada dikme yok, ince çapraz direkler, tek mor neon, büyük kapitone koltuk (~140 px; Kaşif ~148), ekranlar oturuyor, 4 kokpit döngüsünde bellek sabit (54/118).
+- **Sorunlu (Asset Factory'nin de söylediği):** alt köşelerdeki açık gri altıgen petek güverte göz alıyor; konsol yüzü geniş ve koyu; HUD payı %9,0 (sınır %10); yastıklar tuğla gibi okunabiliyor.
+- **Düzeltme hakkı:** 1 küçük tur (altıgenleri koyu ve alçak yapmak). İstersen söyle.
+- **Benim düzeltmem:** Teslimdeki HUD sırtının sağ kenarı son üç noktada alt kenara kaçmıştı (HUD kokpitin üstüne taşardı); sol kenarın aynasıyla düzelttim.
+
+## Aşama 3: Başarım rozetleri
+Görseller: `docs/sabah/asama3_basarimlar.webp` (oyundaki liste), `docs/sabah/asama3_rozetler_hepsi.webp` (30 rozet).
+- **İyi:** 10 rozet × 3 kademe, tutarlı neon çizgi stili; Bronz/Gümüş/Altın renkli; kilitliyken soluk gri; Kapı Bekçisi tek kademe (Altın).
+- **Zayıf:** Gezgin (halkalı gezegen) küçükte göz gibi okunabiliyor. Düzeltilebilir.
+- **Kod:** yalnız `js/game.js` içinde Başarımlar listesine ikon (`r` anahtarı ve `<img>`); veri, sayaç ve ekonomi değişmedi.
+- **Hata düzeltmesi (bu commit'te):** 1.64.1'de `offline.json` Hayalet GLB'lerini içermiyordu (yeni dosyalar `git add`'den önce listelenmişti). Şimdi Hayalet ve 30 rozet dahil (364 dosya, 43,4 MB). Çevrimdışı oyunda Hayalet kokpiti bunsuz yüklenemezdi.
+
+## Aşama 4: Hayalet r003 (Mehmet'in geri bildirimine göre)
+Görsel: `docs/sabah/asama4_hayalet_r003_kiyas.webp` (üstte Kaşif, altta Hayalet r003).
+- **İstenen:** sorunları çöz, derinlik hissi, ekran yerleşimini değiştir.
+- **Olan:** Ekranlar belirgin büyüdü ve çerçeveli yuvalara oturdu, yan ekranlar içe açılı; konsol 3 kademeli; direkler/kemerler oluklu; altıgen güverte koyu; HUD payı %7,5 (r001'de %9,0); koltuk ~140 px. 4 kokpit döngüsünde bellek sabit (71/110, 50/100, 50/106, 50/100).
+- **Dürüst eksikler (Asset Factory'nin de söylediği):** altıgen hâlâ orta gri; yastıklar hafif ayrık blok; alt kademeler büyük koyu yüz. Ekranlar çok geniş, neredeyse kenardan kenara (televizyon gibi) görünebilir. Derinlik r001'e göre belirgin ama Kaşif kadar katmanlı değil.
+- **Tur hakkı:** Hayalet için r001, r002 (küçük), r003 üretildi; Mehmet kararıyla hak genişletilmişti, r003 son tur. Yeni istek olursa Mehmet onayı gerekir.
+- **Not:** Bu commit PR #42'de DEĞİL, yeni PR'da (#42 yalnız aşama 1 ile birleşmişti).

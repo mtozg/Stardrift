@@ -1720,7 +1720,11 @@ var CK3 = {
       [850, 370], [900, 378], [950, 380], [1000, 382], [1050, 386], [1100, 390], [1150, 394], [1200, 400], [1250, 406], [1300, 412], [1350, 414], [1400, 412], [1450, 388], [1500, 326], [1550, 304], [1600, 300], [2000, 300]] },  /* Yük Devi: Asset Factory teslimi r015 (tools/asset_factory/deliveries/yuk_cockpit/r015, Kapı 1 onaylı). RADAR 276x160 (1,73:1). Orta dikme yok; sırt r015 pilot görüşü alfa maskesinden. Kıskaç ART_claw_* hiyerarşisi modelde (şimdilik statik). */
   yuk: { glb: 'models/cockpit_yuk.glb', glbM: 'models/cockpit_yuk_m.glb', ad: 'YÜK DEVİ', top: 372, scrK: {},
     q: [[[316, 404], [586, 388], [594, 540], [332, 566]], [[662, 378], [938, 378], [938, 538], [662, 538]], [[1014, 388], [1284, 404], [1268, 566], [1006, 540]]],
-    ridge: [[-400, 525], [0, 525], [50, 510], [100, 495], [150, 481], [200, 427], [250, 451], [300, 406], [350, 402], [400, 399], [450, 386], [500, 381], [550, 381], [600, 381], [650, 372], [700, 372], [750, 372], [800, 372], [850, 372], [900, 372], [950, 372], [1000, 381], [1050, 381], [1100, 381], [1150, 386], [1200, 389], [1250, 392], [1300, 395], [1350, 451], [1400, 427], [1450, 481], [1500, 496], [1550, 510], [1600, 525], [2000, 525]] }
+    ridge: [[-400, 525], [0, 525], [50, 510], [100, 495], [150, 481], [200, 427], [250, 451], [300, 406], [350, 402], [400, 399], [450, 386], [500, 381], [550, 381], [600, 381], [650, 372], [700, 372], [750, 372], [800, 372], [850, 372], [900, 372], [950, 372], [1000, 381], [1050, 381], [1100, 381], [1150, 386], [1200, 389], [1250, 392], [1300, 395], [1350, 451], [1400, 427], [1450, 481], [1500, 496], [1550, 510], [1600, 525], [2000, 525]] },
+  /* Hayalet: Asset Factory teslimi r003 (tools/asset_factory/deliveries/hayalet_cockpit/r003; Mehmet geri bildirimiyle: derinlik, büyük ekranlar; Kapı 1 görsel kararı bekliyor). RADAR 2,66:1; sırt simetrik teslimden. */
+  hayalet: { glb: 'models/cockpit_hayalet.glb', glbM: 'models/cockpit_hayalet_m.glb', ad: 'HAYALET', top: 358, scrK: {},
+    q: [[[300, 388], [590, 372], [590, 514], [290, 552]], [[620, 366], [980, 366], [994, 506], [606, 506]], [[1010, 372], [1300, 388], [1310, 552], [1010, 514]]],
+    ridge: [[-400, 520], [0, 520], [50, 515], [100, 512], [150, 478], [200, 438], [250, 438], [300, 376], [350, 373], [400, 371], [450, 368], [500, 365], [550, 361], [600, 360], [650, 358], [700, 358], [750, 358], [800, 358], [850, 358], [900, 358], [950, 358], [1000, 360], [1050, 361], [1100, 365], [1150, 368], [1200, 371], [1250, 373], [1300, 376], [1350, 438], [1400, 438], [1450, 478], [1500, 512], [1550, 515], [1600, 520], [2000, 520]] }
 };
 function ck3Of(id){ return CK3[id || save.ship] || null; }   /* 3B kokpitli gemi çizim kokpitine hiç dönmez: model gelene kadar yükleme yeniden denenir */
 function ck3dSet(){ return !!ck3Of(); }
@@ -7600,16 +7604,16 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   const KD = () => (window.__kadimCount ? window.__kadimCount() : 0), ST = k => ((save.st && save.st[k]) || 0);
   const TIER = ['Bronz', 'Gümüş', 'Altın'], TCOL = ['#c98a5a', '#c5d2e2', '#ffc94d'];
   const BG = [
-    { ad: 'Madenci', d: 'birim cevher sat', f: () => ST('sell'), t: [50, 300, 1000] },
-    { ad: 'Avcı', d: 'düşman gemi düşür', f: () => ST('kill'), t: [10, 50, 150] },
-    { ad: 'Devriye avcısı', d: 'devriye ya da avcı düşür', f: () => ST('avci'), t: [3, 10, 30] },
-    { ad: 'Kaçakçı', d: 'birim kaçak mal sat', f: () => ST('kacak'), t: [10, 50, 150] },
-    { ad: 'Siparişçi', d: 'acil sipariş yetiştir', f: () => ST('sip'), t: [2, 8, 20] },
-    { ad: 'Patron avcısı', d: 'korsan reisi yen', f: () => (save.boss || []).length, t: [1, 3, 6] },
-    { ad: 'Kadim dinleyici', d: 'kalıntı yankısı bul', f: KD, t: [4, 12, 16] },
-    { ad: 'Gezgin', d: 'sistem ziyaret et', f: () => (save.seen || []).length, t: [2, 4, 6] },
-    { ad: 'Üs kurucu', d: 'üs seviyesi', f: () => (save.base ? save.base.lv || 1 : 0), t: [1, 2, 3] },
-    { ad: 'Kapı Bekçisi', d: 'Kadim Bekçi\'yi yen', f: () => (save.bekci ? 1 : 0), t: [1, 1, 1], tek: 1 }
+    { r: 'madenci', ad: 'Madenci', d: 'birim cevher sat', f: () => ST('sell'), t: [50, 300, 1000] },
+    { r: 'avci', ad: 'Avcı', d: 'düşman gemi düşür', f: () => ST('kill'), t: [10, 50, 150] },
+    { r: 'devriye', ad: 'Devriye avcısı', d: 'devriye ya da avcı düşür', f: () => ST('avci'), t: [3, 10, 30] },
+    { r: 'kacakci', ad: 'Kaçakçı', d: 'birim kaçak mal sat', f: () => ST('kacak'), t: [10, 50, 150] },
+    { r: 'siparisci', ad: 'Siparişçi', d: 'acil sipariş yetiştir', f: () => ST('sip'), t: [2, 8, 20] },
+    { r: 'patron', ad: 'Patron avcısı', d: 'korsan reisi yen', f: () => (save.boss || []).length, t: [1, 3, 6] },
+    { r: 'kadim', ad: 'Kadim dinleyici', d: 'kalıntı yankısı bul', f: KD, t: [4, 12, 16] },
+    { r: 'gezgin', ad: 'Gezgin', d: 'sistem ziyaret et', f: () => (save.seen || []).length, t: [2, 4, 6] },
+    { r: 'us', ad: 'Üs kurucu', d: 'üs seviyesi', f: () => (save.base ? save.base.lv || 1 : 0), t: [1, 2, 3] },
+    { r: 'bekci', ad: 'Kapı Bekçisi', d: 'Kadim Bekçi\'yi yen', f: () => (save.bekci ? 1 : 0), t: [1, 1, 1], tek: 1 }
   ];
   const level = b => { const v = b.f() || 0; let n = 0; for (let i = 0; i < 3; i++) if (v >= b.t[i]) n = i + 1; return { v, n }; };
   window.__kutuk = () => BG.map(b => Object.assign({ ad: b.ad }, level(b)));
@@ -7639,7 +7643,8 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     let tot = 0, h = '';
     for (const b of BG){ const { v, n } = level(b); tot += b.tek ? (n ? 3 : 0) : n; const nx = b.t[Math.min(n, 2)];
       const tag = n === 0 ? '<i style="color:#6f7d99">kilitli</i>' : b.tek ? '<i style="color:' + TCOL[2] + '">kazanıldı</i>' : '<i style="color:' + TCOL[n - 1] + '">' + TIER[n - 1] + '</i>';
-      h += '<div class="line"><span>' + b.ad + ' ' + tag + '<span class="dim"><br>' + (b.tek ? b.d : (n >= 3 ? v + ' ' + b.d + ' · en üst kademe' : v + ' / ' + nx + ' ' + b.d)) + '</span></span></div>'; }
+      const ik = '<img src="assets/img/rozet_' + b.r + '_' + (n === 0 ? 1 : (b.tek ? 3 : n)) + '.webp" width="44" height="44" alt="" style="flex:none;' + (n === 0 ? 'filter:grayscale(1);opacity:.28' : '') + '">';   /* 1.65.0: rozet çizimleri (Asset Factory); kilitliyken soluk gri */
+      h += '<div class="line"><span style="display:flex;align-items:center;gap:10px">' + ik + '<span>' + b.ad + ' ' + tag + '<span class="dim"><br>' + (b.tek ? b.d : (n >= 3 ? v + ' ' + b.d + ' · en üst kademe' : v + ' / ' + nx + ' ' + b.d)) + '</span></span></span></div>'; }
     box.insertAdjacentHTML('beforeend', '<div class="sect">Başarımlar · ' + tot + '/30</div>' + h);
   };
 }

@@ -208,3 +208,27 @@ Not: bulut silme gerçek Firebase'e karşı denenmedi (silme başarısız olursa
 | `qa_pr28.js` (Kaşif↔Şahin ×5 masaüstü ve iPhone 13 yatay boyutu): doku sabit (77→56→77→56→77; 62→41→62→41→62), engelli GLB'de toparlanma 10,4 sn, gerçek kayıtta `__ckb.swap` tanımsız | PASS |
 | Oyun içi görsel kontrol (Kaşif / Şahin r014 / Yük r015): ekranlar köşelere oturuyor, HUD sırtı doğru, orta dikme yok | Ekran görüntüsüyle |
 Not: swiftshader sayıları gerçek GPU'dan farklı olabilir; gerçek cihaz (iPhone/iPad) test edilmedi. Yük'te kıskaç statik. Resmî Kapı 2 kaydı (`factory.py approve/deliver`) Mehmet'in açık izni bekliyor.
+
+## 23. Sürüm 1.64.1 test özeti (Hayalet r001 kokpiti)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (b7538903 / 3198e519) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (75/128, 54/118, 54/124, 54/118), sayfa hatası yok | PASS |
+| Oyun içi görsel kontrol: ekranlar oturuyor, HUD doğru, ortada dikme yok, koltuk büyük | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi. Teslimdeki HUD sırtı sağ kenarı düzeltildi (alt kenara kaçan son üç nokta sol kenarın aynasıyla değiştirildi). Altıgen güverte parlak (Asset Factory'nin de bildirdiği 1. sorun).
+
+## 24. Sürüm 1.65.0 test özeti (rozet çizimleri)
+| Test | Sonuç |
+|---|---|
+| kutuk (Başarımlar listesi, 9/30, kademeler) ve ekran görüntüsü: ikonlar kademe rengiyle, kilitliler soluk | PASS |
+| offline.json: 30 rozet ve 8 kokpit GLB'si (Hayalet dahil) listede | Doğrulandı |
+Not: 1.64.1'deki `offline.json` Hayalet GLB'lerini içermiyordu; bu sürümde düzeltildi. Gerçek cihaz test edilmedi.
+
+## 25. Sürüm 1.65.1 test özeti (Hayalet r003)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (3ce380c2 / 55f4cee1) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (71/110, 50/100, 50/106, 50/100), sayfa hatası yok | PASS |
+| offline.json: 8 kokpit GLB'si (git add sonrası üretildi) | Doğrulandı |
+| Oyun içi görsel: ekranlar büyük ve çerçeveli, HUD doğru, ortada dikme yok | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi.
