@@ -20,7 +20,8 @@ for a_ in sys.argv:
 glb = os.path.join(out, 'sd_%s%s.glb' % (spec['id'], SUF))
 meta = json.load(open(os.path.join(out, 'meta.json'), encoding='utf-8'))
 j, b, _ = glb_checks.read_glb(glb)
-B = spec['budget']
+B = dict(spec['budget'])
+B['tris0'] = B.get('check_tris0', B['tris0'])      # ek parametrik parçalar (kıskaç) hedef üstüne üçgen ekler
 res = {'id': spec['id'], 'bytes': os.path.getsize(glb)}
 
 

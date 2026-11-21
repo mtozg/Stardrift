@@ -1,0 +1,86 @@
+<title>Hangar Prototipi ve Yük Dış Modeli</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Yerleşim: tek sütun; pilot görüşü, karar bekleyen konular, ölçümler, Blender ⟷ Three, kıskaç hiyerarşisi, Kapı 2 kararı. */
+:root {
+  --bg: #f2f2ec; --surface: #ffffff; --ink: #1e1f19; --muted: #5d5f52; --line: #dcdcd0;
+  --accent: #a8561c; --good: #2f7a45; --good-soft: #e2f1e6; --warn: #946200; --warn-soft: #f8eed4; --code-bg: #ebebe2;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11120e; --surface: #191a15; --ink: #e4e4da; --muted: #9c9e8e; --line: #2c2d25;
+  --accent: #f0a050; --good: #74d494; --good-soft: #14301d; --warn: #f0bd4f; --warn-soft: #3a2e12; --code-bg: #20211b; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 80px }
+.eyebrow { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent) }
+h1 { font: 700 46px/1.05 var(--f-display); margin: 6px 0 10px; text-wrap: balance }
+h2 { font: 700 28px/1.15 var(--f-display); margin: 48px 0 10px; text-wrap: balance }
+p, li { max-width: 76ch }
+.lede { font-size: 18px; color: var(--muted) }
+code { font: .86em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px }
+figure { margin: 12px 0 18px } figure img { display: block; width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); background: #0a0d14 }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 5px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 10px 0 }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line) }
+th { font: 600 12.5px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 } td.num { text-align: right; white-space: nowrap }
+.pill { display: inline-block; font: 600 12px var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap }
+.p-ok { background: var(--good-soft); color: var(--good) } .p-warn { background: var(--warn-soft); color: var(--warn) }
+pre.tree { background: var(--code-bg); border-radius: 8px; padding: 14px 16px; font: 13.5px/1.55 var(--f-mono); overflow-x: auto }
+.gate { margin-top: 40px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 18px 20px }
+.gate h2 { margin-top: 0 } .gate ol { padding-left: 20px } .gate li { margin: 5px 0 }
+@media (max-width: 760px) { h1 { font-size: 36px } }
+</style>
+
+<main>
+<div class="eyebrow">Asset Factory · hangar koridoru + dış kapı prototipi (Ankora) · Yük Devi dış modeli</div>
+<h1>Hangar Prototipi ve Yük Devi Dış Modeli</h1>
+<p class="lede">Mehmet'in iki onayı: (1) hangar koridoru + dış kapı prototipi (4–6 derleme, sert üst 6), (2) Yük Devi yeniden çizim (kıskaç ×1,6–1,8, çene ×1,5, kalınlık ×1,5). Dosyalar kayıt dışı adaylar. <b>Oyun içi görüntü Lead'in entegrasyonu gelince;</b> aşağıdakiler Blender nötr ışık önizlemesidir. Puanlama yok.</p>
+
+<h2>1. Hangar koridor modülü + dış kapı (Ankora)</h2>
+<p>Ölçüler oyun koduyla aynı: genişlik 9, yükseklik 5,2, segment boyu 7,6 (6 segment). Kaynak sanat: <code>ximg_in</code> (koridor), <code>xdoor_ankora</code> (kapı) düzlemsel doku; palet birebir.</p>
+<figure><img src="img/hangar/m_koridor.webp" alt="Koridor"><figcaption>Koridor modülü ×3 tekrar + sonda kapı (iç görünüm): zemin ızgara kaburgaları, tavan ışık şeritleri, duvar boru demetleri ve dikey kaburgalar, uç çerçeveler.</figcaption></figure>
+<div class="grid2">
+<figure><img src="img/hangar/m_kapi.webp" alt="Kapı önden"><figcaption>Dış kapı önden: iki kanat, yükseltilmiş paneller, çerçeve, kilit gövdesi.</figcaption></figure>
+<figure><img src="img/hangar/m_kapi_aci.webp" alt="Kapı açılı"><figcaption>Dış kapı açılı: derin çerçeve ve kanat kalınlığı.</figcaption></figure>
+</div>
+<div class="tbl"><table>
+<tr><th>Dosya</th><th>Üçgen</th><th>Boyut</th></tr>
+<tr><td>hangar_koridor_ankora.glb (1 modül)</td><td class="num">804</td><td class="num">228 KB</td></tr>
+<tr><td>hangar_kapi_dis_ankora.glb</td><td class="num">420</td><td class="num">204 KB</td></tr>
+</table></div>
+<p>Ortak 1024² albedo + 512² ORM + 512² emissive atlas (GPU ≈ 8,1 MB tek malzeme; iki GLB aynı dokuyu paylaşırsa oyunda bir kez yüklenir). Çizim hâlâ <b>düşük ayrıntılı</b> (kutu ve silindirler); sanat dili dokudan geliyor.</p>
+<h3>Dürüst kalan sorunlar</h3>
+<ul>
+<li>Üçgen bütçesi çok altında (804 / 420): daha fazla ayrıntı (vana, dikiş, ışık gövdeleri, yıpranma) için alan var; bunlar bir sonraki turda.</li>
+<li>Kapı doku izdüşümü kanat panellerine tam hizalı değil (yükseltilmiş iç paneller çizimdeki panellerle üst üste binmiyor).</li>
+<li>Kapı açılma animasyonu/mafsal düğümleri yok (oyundaki kapı şimdi düzlem poster; Lead'in kapı mantığına <code>DOOR_L / DOOR_R</code> düğümleri gerekebilir).</li>
+<li>Oyun içi hangar sahnesine uyum (aydınlatma, yerleşim, 6 segment tekrarı) doğrulanmadı.</li>
+</ul>
+<p>Harcama: 4 derleme eşdeğeri (ölçü + 3 yineleme), sert üst 6 içinde. Yerel süre ≈ 35–50 sn/derleme (ölçüldü).</p>
+
+<h2>2. Yük Devi dış modeli (büyütülmüş kıskaç)</h2>
+<figure><img src="img/yuk_dis/yanyana.webp" alt="Yük kıyas"><figcaption>Yük Devi: sol kaynak çizim, sağ model.</figcaption></figure>
+<figure><img src="img/yuk_dis/persp.webp" alt="Yük açılı"><figcaption>Açılı görünüm: burun altında büyütülmüş kıskaç (kol, piston çifti, dirsek, iki çene).</figcaption></figure>
+<div class="tbl"><table>
+<tr><th>Ölçü</th><th>Değer</th><th>Sınır</th></tr>
+<tr><td>Üçgen LOD0 / LOD1</td><td class="num">3.825 / 1.145</td><td>≤ 4.000 / %30</td></tr>
+<tr><td>Dosya · GPU doku</td><td class="num">321 KB · 6,3 MB</td><td>≤ 0,9 MB · ≤ 8 MB</td></tr>
+<tr><td>Siluet IoU üst / yan</td><td class="num">0,984 / 0,968</td><td>≥ 0,88 / 0,85</td></tr>
+<tr><td>Palet ΔE (5 / üst 3)</td><td class="num">3,4 / 2,8</td><td>≤ 8 / 6</td></tr>
+</table></div>
+<p>Kıskaç: kol uzunluğu kaynaktaki yaklaşık 0,10 L'ye karşı 0,17 L (×1,7), çene açıklığı ×1,5, kol ve piston kalınlığı ×1,5. Kıskaç parametrik; gövde kaynak çizimden. Kokpitteki ART_claw_* (kokpit r015 kapandı) bu ölçeğe göre güncellenmedi; Lead isterse kokpit kıskacı için ayrı küçük iş (kokpit görünümünde kıskaç koltuk arkasında kalıyor).</p>
+<h3>Dürüst kalan sorunlar</h3>
+<ul><li>Gövde yan/alt yüzlerinde kaynak yan çizimin gerilmesi; ön burunda kaynaktaki kabin camları düz doku.</li><li>Kıskaç dokusu gövde çizimine düzlemsel izdüşüm: çene uçları koyu metal, ayrıntısız.</li><li>Oyun içi (G3) ve hangar ölçeği (×1,16) doğrulanmadı.</li></ul>
+<p>Harcama: yaklaşık 2 derleme eşdeğeri (kıskaç ekleme + üçgen bütçesi ayarı). Dosyalar: <code>deliveries/hangar/</code>, <code>deliveries/yuk_dis/</code>.</p>
+</main>

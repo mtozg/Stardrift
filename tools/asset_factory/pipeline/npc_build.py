@@ -219,6 +219,36 @@ else:
         geo.apply_modifier(ob, dc)
     bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()      # dışa bakan normaller
     geo.set_smooth_by_angle(ob, 50)
+if spec.get('claw'):      # Yük Devi: büyütülmüş kıskaç (kollar, piston, çene) — gövdeye birleştirilir; UV düzlemsel (kaynak yan çizim)
+    from mathutils import Matrix
+    C = spec['claw']
+    bmc = bmesh.new(); bmc.from_mesh(ob.data)
+
+    def seg(p0, p1, r0, r1, nseg=10):
+        p0, p1 = Vector(p0), Vector(p1)
+        d = p1 - p0
+        M = Matrix.Translation((p0 + p1) / 2) @ d.to_track_quat('Z', 'Y').to_matrix().to_4x4()
+        bmesh.ops.create_cone(bmc, cap_ends=True, cap_tris=False, segments=nseg, radius1=r0, radius2=r1, depth=d.length, matrix=M)
+
+    root, elbow, wrist = C['root'], C['elbow'], C['wrist']
+    k = C.get('thick', 1.5)
+    seg(root, elbow, 0.014 * k, 0.012 * k)
+    seg(elbow, wrist, 0.012 * k, 0.010 * k)
+    for z_off in (-0.012 * k, 0.012 * k):      # piston çifti (kol boyunca paralel)
+        pa = (root[0] + 0.004, root[1] + z_off * 1.2, root[2] - 0.004); pb = (elbow[0] - 0.004, elbow[1] + z_off * 1.2, elbow[2] + 0.004)
+        seg(pa, pb, 0.005 * k, 0.005 * k, 8)
+    seg((elbow[0] - 0.01, elbow[1], elbow[2]), (elbow[0] + 0.01, elbow[1], elbow[2]), 0.016 * k, 0.016 * k, 12)      # dirsek pimi
+    jr = C.get('jaw', 0.05)
+    for sy in (-1, 1):      # iki çene: kavisli iki parçalı
+        j0 = (wrist[0], wrist[1] + sy * 0.006, wrist[2])
+        j1 = (wrist[0] + jr * 0.55, wrist[1] + sy * jr * 0.85, wrist[2] - jr * 0.55)
+        j2 = (wrist[0] + jr * 1.0, wrist[1] + sy * jr * 0.55, wrist[2] - jr * 1.05)
+        seg(j0, j1, 0.011 * k, 0.009 * k, 8)
+        seg(j1, j2, 0.009 * k, 0.004 * k, 8)
+    seg((wrist[0] - 0.012, wrist[1], wrist[2]), (wrist[0] + 0.012, wrist[1], wrist[2]), 0.015 * k, 0.015 * k, 12)      # bilek
+    bmesh.ops.recalc_face_normals(bmc, faces=bmc.faces)
+    bmc.to_mesh(ob.data); bmc.free()
+    geo.set_smooth_by_angle(ob, 50)
 # merkez: kütle merkezi ≈ sınırlayıcı kutu merkezi (basit)
 cs = [ob.matrix_world @ v.co for v in ob.data.vertices]
 cen = sum(cs, Vector()) / len(cs)
