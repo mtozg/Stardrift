@@ -1,0 +1,173 @@
+<title>Asset Üretim Planı</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* düzen: tek sütun belge; üstte özet sayılar, sonra kabul edilenler, kalan çizimler (grup grup), toplam, risk, paralel işler */
+:root { --bg:#f3f3ef; --surface:#fff; --ink:#1d2024; --muted:#5b6068; --line:#d9dbd6; --accent:#9a5a14; --ok:#2c7a4b; --ok-soft:#e1f1e7; --warn:#8a6100; --warn-soft:#f6ecd0; --bad:#a23a2e; --bad-soft:#f6dfdb; --code:#e9eae5;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif; --f-head:"Barlow Condensed","Arial Narrow",system-ui,sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#14161a; --surface:#1c1f24; --ink:#e6e7e9; --muted:#9aa0a8; --line:#2f333a; --accent:#f0a85a; --ok:#74d494; --ok-soft:#16301f; --warn:#f0c15a; --warn-soft:#3a3013; --bad:#f08a7c; --bad-soft:#3a1c18; --code:#23262c; color-scheme:dark } }
+:root[data-theme="dark"] { --bg:#14161a; --surface:#1c1f24; --ink:#e6e7e9; --muted:#9aa0a8; --line:#2f333a; --accent:#f0a85a; --ok:#74d494; --ok-soft:#16301f; --warn:#f0c15a; --warn-soft:#3a3013; --bad:#f08a7c; --bad-soft:#3a1c18; --code:#23262c; color-scheme:dark }
+* { box-sizing:border-box }
+body { background:var(--bg); color:var(--ink); font:16px/1.55 var(--f-body); padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)) }
+main { max-width:1180px; margin:0 auto; padding-block:28px 80px }
+.eyebrow { font:600 13px var(--f-head); letter-spacing:.16em; text-transform:uppercase; color:var(--accent) }
+h1 { font:700 44px/1.05 var(--f-head); margin:6px 0 10px; text-wrap:balance }
+h2 { font:700 28px/1.15 var(--f-head); margin:44px 0 8px; text-wrap:balance }
+h3 { font:700 20px/1.2 var(--f-head); margin:26px 0 8px; display:flex; flex-wrap:wrap; gap:10px; align-items:baseline }
+.gk { display:inline-grid; place-items:center; min-width:28px; height:28px; border-radius:6px; background:var(--accent); color:var(--surface); font:700 16px var(--f-head) }
+.gs { font:500 14px var(--f-body); color:var(--muted); margin-left:auto }
+p, li { max-width:78ch }
+.lede { font-size:18px; color:var(--muted) }
+.kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:18px 0 }
+.kpi { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px 14px }
+.kpi b { display:block; font:700 30px/1.1 var(--f-head); font-variant-numeric:tabular-nums }
+.kpi span { color:var(--muted); font-size:14px }
+.tbl { overflow-x:auto; border:1px solid var(--line); border-radius:8px; background:var(--surface); margin:8px 0 }
+table { border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums }
+th,td { text-align:left; vertical-align:top; padding:7px 10px; border-bottom:1px solid var(--line) }
+th { font:600 12px var(--f-head); letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:var(--code); white-space:nowrap }
+tr:last-child td { border-bottom:0 }
+td.n,th.n { text-align:right; white-space:nowrap }
+.pill { display:inline-block; font:600 12px var(--f-head); letter-spacing:.04em; padding:1px 8px; border-radius:999px }
+.k-lo { background:var(--ok-soft); color:var(--ok) } .k-mid { background:var(--warn-soft); color:var(--warn) } .k-hi { background:var(--bad-soft); color:var(--bad) }
+.note { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:0 8px 8px 0; padding:14px 18px; margin:14px 0 }
+.two { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px }
+ul { padding-left:20px } li { margin:4px 0 }
+code { font:.88em ui-monospace,Menlo,monospace; background:var(--code); padding:1px 5px; border-radius:4px }
+@media (max-width:760px) { h1 { font-size:34px } .gs { margin-left:0 } }
+</style>
+<main>
+<div class="eyebrow">Asset Factory · Mehmet için onay listesi · hiçbir üretim başlatılmadı</div>
+<h1>Asset Üretim Planı</h1>
+<p class="lede">Neler bitti, neler kaldı, ne kadar sürer, hangisi "şimdikinden iyi olmayabilir". Mehmet grup grup onaylayacak; onay gelmeden üretim yok. Tüm maliyetler tahmindir; birim: bir "derleme eşdeğeri" (bir modelleme/bake/karşılaştırma turu).</p>
+<div class="kpis">
+<div class="kpi"><b>105,5 / 171</b><span>Çekirdek liste (A–J): plan / sert üst</span></div>
+<div class="kpi"><b>131,5 / 212,5</b><span>Karar bekleyenler (K) ve 2B (L) dahil</span></div>
+<div class="kpi"><b>≈ 1,3–1,5×</b><span>Gemi dış turlarında gerçek harcama planın bu kadar üstünde çıktı</span></div>
+<div class="kpi"><b>≈ 15–30 dk</b><span>Bir derleme eşdeğeri, gerçek süre (derleme, bake, oyun içi karşılaştırma, rapor)</span></div>
+</div>
+
+<h2>1. Tamamlanmış ve kabul edilenler</h2>
+<div class="tbl"><table><thead><tr><th>Varlık</th><th>Durum</th><th>Not</th></tr></thead><tbody>
+<tr><td>Kaşif kokpit</td><td><span class="pill k-lo">oyunda / onaylı referans</span></td><td>Dondurulmuş; diğer kokpitlerin kalite çıtası.</td></tr>
+<tr><td>Şahin kokpit</td><td><span class="pill k-lo">entegre (r012) + r014 aday</span></td><td>r014 Kapı 1 görsel onaylı, Kapı 2 kayıtlı; Kapı 3 (oyuna alma) Lead'de.</td></tr>
+<tr><td>Yük kokpit</td><td><span class="pill k-lo">Kapı 2 teslim (r015)</span></td><td>Kapı 3 bekliyor.</td></tr>
+<tr><td>Hayalet kokpit</td><td><span class="pill k-lo">Kapı 2 teslim (r007)</span></td><td>Kapı 3 bekliyor. Cam/kenar sorunları Lead ve Mehmet geri bildirimleriyle kapatıldı.</td></tr>
+<tr><td>Rozetler</td><td><span class="pill k-lo">tamam</span></td><td>2B rozet seti üretildi.</td></tr>
+<tr><td>Aşama 1, grup 1</td><td><span class="pill k-lo">teslim, kapandı</span></td><td>5 asteroit türü, 4 NPC (raider, cargo, corvette, mining), Ankora istasyonu (normal + mobil). Oyunda denenmedi; bkz. B3, C2, D1.</td></tr>
+<tr><td>Kaşif yan ekranlar</td><td><span class="pill k-mid">teslim, doğrulama bekliyor</span></td><td>r2: RADAR yazısı kesilmesi düzeltildi; Lead/Mehmet kontrolü bekleniyor.</td></tr>
+<tr><td>Hangar dış kapısı</td><td><span class="pill k-lo">iyi bulundu</span></td><td>Lead: "kapı iyi". DOOR_L / DOOR_R düğümleri hazır.</td></tr>
+<tr><td>Hangar koridoru (Ankora) r5</td><td><span class="pill k-mid">oyun içi sonucu bekleniyor</span></td><td>r2–r4'te şimdiki koridordan kötü bulundu; r5 koyu bronz-gri, dolu panel, uyarı şeridi, tavan armatürü, sade iniş bölgesi.</td></tr>
+<tr><td>Şahin dış m002</td><td><span class="pill k-lo">aday (Lead: iyi yön)</span></td><td>İkiz motor, damla kanopi. Eksik: kanat ayrıntısı.</td></tr>
+<tr><td>Hayalet dış m001</td><td><span class="pill k-mid">aday</span></td><td>Silüet ve ikiz mor motor doğru okunuyor; ayrıntı şimdikinden geri.</td></tr>
+<tr><td>Yük dış m003</td><td><span class="pill k-mid">aday</span></td><td>Mehmet: "gerçekçiliğe belirgin yaklaştı". Gövde hâlâ kutu biçimli.</td></tr>
+<tr><td>Kaşif dış</td><td><span class="pill k-hi">reddedildi</span></td><td>Pilot (r006) dokuda iyi, gövde biçiminde şimdikinden geri. Karar bekliyor.</td></tr>
+</tbody></table></div>
+<p>Not: yeni dış modeller oyunda varsayılan olarak kapalı; yalnız Lead'in yükleyicisinde (<code>?glb=1</code>) deneniyor. Hiçbiri henüz oyunun asıl görünümünün yerine geçmedi.</p>
+
+<h2>2. Kalan her çizim, grup grup</h2>
+<p>Plan = hedeflenen tur sayısı; sert üst = bu sayıyı geçmemek üzere önerilen sınır. "Şimdikinden iyi olur mu?" sütunu dürüst tahmindir; yeni gemi çalışmalarında gördüğümüz sonuçlara dayanır.</p>
+<section class="grp" id="gA"><h3><span class="gk">A</span>Oyuncu gemileri: dış model sonlandırma<span class="gs">plan 9 · sert 15</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>A1</b> Kaşif dış model (gövde yeniden biçim + hi-poly)</td><td>Pilot hattı çalışıyor; gövde biçimi, kanopi, kanat kesiti, UV ≥%70, mobil varyant</td><td class="n">3</td><td class="n">5</td><td>P1</td><td>Mehmet: pilot devamı onayı</td><td>Oyunda var: çizimden üretilen 3B gövde (iyi, zarif)</td><td><span class="pill k-hi">Riskli: şimdiki gemi güçlü</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>A2</b> Yük Devi dış yenileme</td><td>Pah, panel kabartması, doku yoğunluğu, nozul çekirdeği, mobil varyant</td><td class="n">2</td><td class="n">3,5</td><td>P1</td><td>A1 (hat doğrulanınca)</td><td>Oyunda var; m003 aday (Mehmet: &#x27;belirgin yaklaştı&#x27;)</td><td><span class="pill k-mid">Orta</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>A3</b> Hayalet dış yenileme</td><td>Gövde ayrıntısı, mor şerit dengesi, cam, mobil varyant</td><td class="n">1,5</td><td class="n">2,5</td><td>P1</td><td>A1</td><td>Oyunda var; m001 aday (silüet iyi, ayrıntı geri)</td><td><span class="pill k-mid">Orta</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>A4</b> Şahin dış cila</td><td>Kanat kalınlığı, metal/mat dengesi, mobil varyant</td><td class="n">1</td><td class="n">2</td><td>P1</td><td>A1</td><td>Oyunda var; m002 aday (Lead: iyi yön)</td><td><span class="pill k-lo">Düşük-orta</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>A5</b> 4 gemi için Kapı 2 kayıt + entegrasyon notları</td><td>QC, SHA256, GLB kayıt; oyun içi karşılaştırma sayfası</td><td class="n">1,5</td><td class="n">2</td><td>P1</td><td>A1–A4</td><td>—</td><td><span class="pill k-mid">—</span></td><td>standart</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gB"><h3><span class="gk">B</span>Korsan ve tüccar gemileri (NPC)<span class="gs">plan 7,5 · sert 13,5</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>B1</b> Korsan brute (Kurt) + reaver (Yağmacı)</td><td>Aşama 1&#x27;deki raider ile aynı aile atlası</td><td class="n">3</td><td class="n">5</td><td>P2</td><td>Aşama 1 aile</td><td>Oyunda var (çizimden 3B)</td><td><span class="pill k-mid">Orta</span></td><td>aile atlası (hi-poly gerekmez)</td></tr>
+<tr><td><b>B2</b> Tüccar tanker + courier</td><td>Aynı aile</td><td class="n">2,5</td><td class="n">4,5</td><td>P2</td><td>Aşama 1 aile</td><td>Oyunda var</td><td><span class="pill k-mid">Orta</span></td><td>aile atlası</td></tr>
+<tr><td><b>B3</b> Mevcut 4 NPC (raider, cargo, corvette, mining) oyun içi karşılaştırma + düzeltme</td><td>Teslim edilen prototiplerin oyunda şimdikiyle kıyası</td><td class="n">2</td><td class="n">4</td><td>P2</td><td>Lead&#x27;in yükleyicisi (?glb=1)</td><td>Oyunda var; yeni GLB&#x27;ler henüz oyunda denenmedi</td><td><span class="pill k-mid">Bilinmiyor (ölçülecek)</span></td><td>aile atlası</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gC"><h3><span class="gk">C</span>Asteroit, maden, kaynak<span class="gs">plan 3,5 · sert 6</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>C1</b> Lav kayaları, enkaz/kırık parça seti</td><td>Cevher ailesinden varyant</td><td class="n">2,5</td><td class="n">4</td><td>P2</td><td>Aşama 1 asteroit ailesi</td><td>Oyunda var (kaya mesh&#x27;i + emisyon)</td><td><span class="pill k-lo">Düşük risk</span></td><td>aile atlası</td></tr>
+<tr><td><b>C2</b> Cevher kayaları oyun içi karşılaştırma</td><td>5 tür kaya + pickup: 2B sprite → 3B</td><td class="n">1</td><td class="n">2</td><td>P2</td><td>Lead&#x27;in yükleyicisi</td><td>Oyunda 2B sprite (düz)</td><td><span class="pill k-lo">Düşük risk: 3B döner, sprite&#x27;tan iyi olur</span></td><td>aile atlası</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gD"><h3><span class="gk">D</span>İstasyonlar<span class="gs">plan 17 · sert 27,5</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>D1</b> Ankora: oyun içi karşılaştırma + yenileme</td><td>Prototip teslim edildi; hi-poly ile yenileme</td><td class="n">2</td><td class="n">3,5</td><td>P2</td><td>Kaşif pilot sonucu</td><td>Oyunda var (çizimden 3B)</td><td><span class="pill k-mid">Orta</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>D2</b> Oyuncu üssü, Demirhan, Buzul Durağı, Kristal Kapısı, Lonca Pazarı, Kara Liman (6 istasyon)</td><td>Ankora ailesinden paleti/biçimi ayrı istasyonlar, tanesi ≈2,5</td><td class="n">15</td><td class="n">24</td><td>P3</td><td>D1</td><td>Oyunda var (çizimden 3B)</td><td><span class="pill k-hi">Orta-yüksek: büyük, yakından görülür</span></td><td>hi-poly bake</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gE"><h3><span class="gk">E</span>Kapılar ve hikâye yapıları<span class="gs">plan 9,5 · sert 15</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>E1</b> Geçit kapı çerçeveleri (3 evren)</td><td>Çerçeve modeli; girdap shader oyunda kalır</td><td class="n">4</td><td class="n">6</td><td>P3</td><td>Kapı-girdap sözleşmesi (Lead)</td><td>Oyunda var (prosedürel çerçeve)</td><td><span class="pill k-mid">Orta</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>E2</b> Kadim Kapı (ana görev finali)</td><td></td><td class="n">2</td><td class="n">3</td><td>P3</td><td>E1</td><td>Oyunda var (prosedürel)</td><td><span class="pill k-mid">Orta</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>E3</b> Ücra düşman kapıları (Lonca, Korsan)</td><td></td><td class="n">2</td><td class="n">3,5</td><td>P3</td><td>E1</td><td>Oyunda var</td><td><span class="pill k-mid">Orta</span></td><td>standart</td></tr>
+<tr><td><b>E4</b> Kalıntı (16 noktada aynı model, 3 varyasyon)</td><td></td><td class="n">1,5</td><td class="n">2,5</td><td>P4</td><td>—</td><td>Oyunda var (çizimden 3B)</td><td><span class="pill k-mid">Orta</span></td><td>standart</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gF"><h3><span class="gk">F</span>Patronlar ve lider<span class="gs">plan 21 · sert 33</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>F1</b> Korsan lideri (korsanL)</td><td></td><td class="n">2,5</td><td class="n">4</td><td>P3</td><td>B1</td><td>Oyunda var</td><td><span class="pill k-hi">Orta-yüksek</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>F2</b> Dorak, Zerha, Hiem (3 patron)</td><td>Tanesi ≈2,5</td><td class="n">7,5</td><td class="n">12</td><td>P3</td><td>F1</td><td>Oyunda var (çizimden 3B)</td><td><span class="pill k-hi">Yüksek: sinematik ve büyük</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>F3</b> Verdan (organik, yeşil)</td><td></td><td class="n">3</td><td class="n">5</td><td>P3</td><td>F1</td><td>Oyunda var</td><td><span class="pill k-hi">Yüksek</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>F4</b> Varak ve Morr (kendi gemileri yok)</td><td>Önce konsept; sonra üretim. Şu an Dorak/Zerha modelleri yer tutucu</td><td class="n">8</td><td class="n">12</td><td>P4</td><td>Mehmet&#x27;in konsept kararı</td><td>YOK (yer tutucu)</td><td><span class="pill k-lo">Düşük risk: yer tutucudan iyi olur</span></td><td>hi-poly bake</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gG"><h3><span class="gk">G</span>Çevre ve olay nesneleri<span class="gs">plan 11,5 · sert 19,5</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>G1</b> Buz devleri (oktahedron yerine), kristal monolitler (kutu yerine)</td><td>İkisi de ilkel geometri</td><td class="n">3</td><td class="n">5</td><td>P3</td><td>—</td><td>Yer tutucu (ilkel geometri)</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+<tr><td><b>G2</b> Korsan kampı, terk edilmiş istasyon</td><td></td><td class="n">4</td><td class="n">7</td><td>P4</td><td>—</td><td>Oyunda var (çizimden 3B)</td><td><span class="pill k-mid">Orta</span></td><td>standart</td></tr>
+<tr><td><b>G3</b> Patron inleri (6 varyant)</td><td>Şu an kamp modelinin ×520 kopyası</td><td class="n">3</td><td class="n">5</td><td>P4</td><td>G2</td><td>Yer tutucu</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+<tr><td><b>G4</b> Eski uydu tarlası</td><td>Çapraz düzlem sprite → 3B</td><td class="n">1,5</td><td class="n">2,5</td><td>P4</td><td>—</td><td>2B çapraz düzlem</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gH"><h3><span class="gk">H</span>Küçük nesneler (prop)<span class="gs">plan 4 · sert 6,5</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>H1</b> Roket (güdümlü / güdümsüz, 2 model)</td><td></td><td class="n">1,5</td><td class="n">2,5</td><td>P3</td><td>—</td><td>Düz çizim düzlemi</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+<tr><td><b>H2</b> Kaçak yük konteyneri</td><td></td><td class="n">1</td><td class="n">1,5</td><td>P3</td><td>—</td><td>Yer tutucu (kahverengi kutu)</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+<tr><td><b>H3</b> Kayıp sonda</td><td></td><td class="n">1,5</td><td class="n">2,5</td><td>P3</td><td>—</td><td>YOK (yalnız parıltı)</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gI"><h3><span class="gk">I</span>Hangar, iç mekân, geçiş<span class="gs">plan 14,5 · sert 23</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>I1</b> Hangar koridoru: kalan 5 istasyon + Ankora son rötuş</td><td>Ankora r5 oyun içi sonucu bekleniyor; renk/ayrıntı düzeltmeleri</td><td class="n">3</td><td class="n">5</td><td>P2</td><td>Lead&#x27;in r5 değerlendirmesi</td><td>Oyunda var (prosedürel + çizim dokusu; şimdiki koridor ISTİKRARLI)</td><td><span class="pill k-hi">Yüksek: r2–r4&#x27;te şimdikinden kötüydü</span></td><td>standart + hi-poly dikkatli</td></tr>
+<tr><td><b>I2</b> Hangar adım 3: oyun sahnesi uyumu</td><td>Lead&#x27;in sahnesiyle ışık/ölçek</td><td class="n">1</td><td class="n">1,5</td><td>P2</td><td>Lead</td><td>—</td><td><span class="pill k-mid">—</span></td><td>standart</td></tr>
+<tr><td><b>I3</b> Hangar iç kapı + iç kabuk (şu an onaysız)</td><td>Mehmet&#x27;in onayı olmadan başlamaz</td><td class="n">4</td><td class="n">6</td><td>P4</td><td>I1</td><td>Yok</td><td><span class="pill k-mid">Orta</span></td><td>hi-poly bake</td></tr>
+<tr><td><b>I4</b> İstasyon tünelleri (6 istasyon)</td><td>Yanaşma/kalkış</td><td class="n">5</td><td class="n">8</td><td>P4</td><td>I1</td><td>Oyunda var (prosedürel)</td><td><span class="pill k-hi">Orta-yüksek</span></td><td>standart</td></tr>
+<tr><td><b>I5</b> Kapı geçişi (kapı açılma animasyonu modeli)</td><td>DOOR_L/DOOR_R hazır; oyun tarafı bekliyor</td><td class="n">1,5</td><td class="n">2,5</td><td>P3</td><td>Lead</td><td>Yok</td><td><span class="pill k-mid">—</span></td><td>standart</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gJ"><h3><span class="gk">J</span>Üs eklenti modülleri<span class="gs">plan 8 · sert 12</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>J1</b> Tamirhane, depo, roket, savunma (her biri 3 seviye)</td><td>Önce konsept; çizim denemesi başarısız olmuş</td><td class="n">8</td><td class="n">12</td><td>P5</td><td>Mehmet&#x27;in konsept kararı</td><td>YOK (yalnız veri)</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gK"><h3><span class="gk">K</span>Kararı bekleyenler (karar çıkmadan sayılmaz)<span class="gs">plan 20 · sert 31,5</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>K1</b> Ziyaretçi uygarlık gemileri</td><td>Şu an renklendirilmiş cargo/tanker</td><td class="n">8</td><td class="n">12</td><td>P5</td><td>Konsept kararı</td><td>Yer tutucu</td><td><span class="pill k-lo">Düşük risk</span></td><td>standart</td></tr>
+<tr><td><b>K2</b> Ödül avcısı özel gemisi</td><td>Şu an raider/brute/corvette yeniden kullanımı</td><td class="n">2</td><td class="n">3,5</td><td>P5</td><td>Karar</td><td>Yeniden kullanım</td><td><span class="pill k-mid">—</span></td><td>standart</td></tr>
+<tr><td><b>K3</b> Roket türleri (5 çeşit)</td><td></td><td class="n">3</td><td class="n">5</td><td>P5</td><td>H1</td><td>İki çizimi paylaşıyor</td><td><span class="pill k-mid">—</span></td><td>standart</td></tr>
+<tr><td><b>K4</b> 3B donanım simgeleri</td><td>Şu an 2B SVG</td><td class="n">4</td><td class="n">6</td><td>P5</td><td>Karar</td><td>2B SVG</td><td><span class="pill k-mid">Belirsiz</span></td><td>standart</td></tr>
+<tr><td><b>K5</b> Gemi üstü silah donanımı</td><td></td><td class="n">3</td><td class="n">5</td><td>P5</td><td>Karar</td><td>YOK</td><td><span class="pill k-mid">—</span></td><td>standart</td></tr>
+</tbody></table></div></section>
+<section class="grp" id="gL"><h3><span class="gk">L</span>2B / arayüz görselleri<span class="gs">plan 6 · sert 10</span></h3>
+<div class="tbl"><table><thead><tr><th>Kalem</th><th>İçerik</th><th class="n">Plan</th><th class="n">Sert</th><th>Öncelik</th><th>Bağımlılık</th><th>Oyunda şu an</th><th>Şimdikinden iyi olur mu?</th><th>Hat</th></tr></thead><tbody>
+<tr><td><b>L1</b> Hangar arka planları, menü ve başlık görselleri, ikon setleri, harita/HUD parçaları</td><td>Envanterde 2B olarak &#x27;kapsam dışı&#x27; yazıyordu; sayım yok</td><td class="n">6</td><td class="n">10</td><td>P4</td><td>Mehmet: kapsam kararı + sayım</td><td>Oyunda var (275 görselin çoğu)</td><td><span class="pill k-mid">Bilinmiyor</span></td><td>2B üretim</td></tr>
+</tbody></table></div></section>
+
+<h2>3. Toplam maliyet, süre ve risk</h2>
+<div class="two">
+<div class="note"><b>Toplam.</b> Çekirdek liste (A–J) 105,5 plan / 171 sert üst. Karar bekleyenler (K) ve 2B (L) eklenirse 131,5 / 212,5. Gemi dış çalışmasında plan 16 iken gerçek harcama ≈ 20,5'e çıktı (reddedilen turlar dahil), bu yüzden planın 1,3–1,5 katı beklemek gerçekçi.</div>
+<div class="note"><b>Süre.</b> Bir derleme eşdeğeri ≈ 15–30 dakika gerçek çalışma. Çekirdek liste ≈ 26–53 saat çalışma; takvim, Mehmet'in grup onayları ve Lead'in oyun içi denemelerine bağlı. Büyük gruplar (D, F, I) en uzun süreni oluşturuyor.</div>
+</div>
+<h3>Neden "şimdikinden iyi olmayabilir"?</h3>
+<ul>
+<li><b>Mevcut gemi, istasyon ve patron görünümü yapay zekâ çizimlerinden geliyor</b> (yaklaşık 100 piksel/metre, ışık ve parlama çizimin içinde). Bizim modeller doku ve ışığı kendisi üretiyor; küçük ölçekte ve düz oyun ışığında bu çizimlerin gerisinde kalabilir.</li>
+<li><b>Yüksek risk:</b> oyuncu gemileri (özellikle Kaşif), büyük istasyonlar, patronlar, hangar koridoru ve iç mekân. Bunlar yakından ve sinematikte görülüyor.</li>
+<li><b>Orta risk:</b> NPC'ler (küçük görünüyor), kapı çerçeveleri, kalıntı, kamp, tünel.</li>
+<li><b>Düşük risk (kesin iyileşme):</b> şu an ilkel kutu/oktahedron ya da düz sprite olanlar: cevher kayaları, buz devleri, kristal monolitler, kaçak yük, kayıp sonda, roket, uydu tarlası, patron inleri, Varak ve Morr.</li>
+</ul>
+<h3>Kokpit seviyesi hat (hi-poly bake) önerisi</h3>
+<p>Hi-poly bake: yüksek ayrıntılı kopyayı (panel, cıvata, pah) düşük poligona normal, AO ve kenar parlaması olarak pişirme. Kaşif pilotunda hat çalıştı ve dokuyu belirgin iyileştirdi; kalan fark gövde biçimi. <b>Öneri:</b> A (oyuncu gemileri), D (istasyonlar), E1–E2 (büyük kapılar), F (patronlar), I1/I3 (hangar yüzeyleri) bu hatla; B, C, G, H küçük ya da ucuz olduğu için aile atlasıyla kalsın. Hat için ek iş: UV doluluğu ≥%70, emissive dokusunu küçültme, otomatik 1024 mobil varyant, bake hızlandırma (şu an 2048'de 5–7 dakika).</p>
+
+<h2>4. Kaşif pilot sonucu beklenirken paralel yapılabilecekler</h2>
+<p>Üretim başlatmadan, düşük maliyetle:</p>
+<ul>
+<li><b>Mevcut durum ekran görüntüleri</b> (≈0,5): NPC, istasyon, kaya kuşağı, patron; "şimdiki vs yeni" kıyasının tabanı. Hangar için hazır.</li>
+<li><b>Oyun içi karşılaştırma aracı</b> (≈0,3): gemi karşılaştırmasında kullandığım betiği depoya almak; her teslim aynı açı ve ışıkla ölçülsün.</li>
+<li><b>Hi-poly hattını sağlamlaştırma</b> (≈1–1,5): UV doluluğu, emissive boyutu, mobil varyant, bake süresi.</li>
+<li><b>Konsept metin ve şemaları</b> (≈0,5 / konu): Varak, Morr, üs modülleri, ziyaretçi gemileri. Üretim değil; Mehmet'in seçeceği 2–3 yön.</li>
+<li><b>2B görsel sayımı</b> (L): hangi görsel hangi dosya, kaçı yenilenecek; maliyet tahminini netleştirir.</li>
+<li><b>Aday teslimlerin Kapı 2 hazırlığı</b> (A5): kayıt komutları için Mehmet'in izni gerekir.</li>
+</ul>
+<p>VFX'e bağlı olanlar (kapı girdabı, patlama, kalkan, motor alevi) shader tarafında Lead'de kalır. Bizim modellerde yalnız bağlantı noktaları (<code>ANCH_ENG</code>, <code>ANCH_NAV</code>, <code>ANCH_MUZ</code>) ve kapı düğümleri (<code>DOOR_L</code>, <code>DOOR_R</code>) hazırlanır.</p>
+</main>
