@@ -84,6 +84,15 @@ atlas.paste(door_src.resize((T, T), Image.LANCZOS), (0, 0))                     
 atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.0, 0.10, 0.30, 0.90), (T, T)), door_src), (T, 0))               # 1: duvar
 atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.70, 0.75, 1.0), (T, T)), door_src), (0, T))               # 2: zemin
 atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.0, 0.75, 0.25), (T, T)), door_src), (T, T))              # 3: tavan
+from PIL import ImageDraw
+SY0, SY1 = int(T + 0.92 * T), int(T + 0.99 * T)      # şerit satırları (tile 2/3 alt kenarı)
+haz = Image.new('RGB', (T, SY1 - SY0), (18, 18, 15)); hd = ImageDraw.Draw(haz); hh = SY1 - SY0
+for k in range(-hh, T + hh, 2 * hh // 1):
+    hd.polygon([(k, hh), (k + hh // 1, 0), (k + hh * 3 // 2, 0), (k + hh // 2, hh)], fill=(232, 178, 22))
+atlas.paste(haz, (0, SY0))
+lit = Image.new('RGB', (T, SY1 - SY0), (255, 232, 180)); ld = ImageDraw.Draw(lit)
+ld.rectangle([0, 0, T - 1, 3], fill=(120, 100, 70)); ld.rectangle([0, hh - 4, T - 1, hh - 1], fill=(120, 100, 70))
+atlas.paste(lit, (T, SY0))
 base = np.array(atlas).astype(np.float32) / 255.0
 
 
@@ -91,6 +100,19 @@ class Mesh:
     def __init__(self):
         self.bm = bmesh.new()
         self.uvl = self.bm.loops.layers.uv.verify()
+
+    def strip(self, c, s, which, proj, ext):
+        """şerit kutusu: which='haz' (sarı-siyah) / 'lit' (armatür paneli); düz yerleşim u=ext[0] tekrar"""
+        r = bmesh.ops.create_cube(self.bm, size=1.0)
+        bmesh.ops.transform(self.bm, matrix=Matrix.Translation(Vector(c)) @ Matrix.Diagonal((*s, 1.0)), verts=r['verts'])
+        x0 = 0.0 if which == 'haz' else 0.5
+        for f in self.bm.faces:
+            if not all(v in r['verts'] for v in f.verts):
+                continue
+            for lp in f.loops:
+                p = lp.vert.co
+                u = (p.z if proj == 'x' else p.x) / ext
+                lp[self.uvl].uv = (x0 + 0.01 + 0.48 * (u % 1.0), 1.0 - (SY0 + 0.5 * (SY1 - SY0)) / TEX + 0.0 * p.y)
 
     def box(self, c, s, tile, proj, ext, rot=None):
         """kutu; proj='z' (XY düzlemi, Z normali) / 'x' (YZ) / 'y' (XZ): kaynak karo bu düzleme ölçekli düzlemsel yerleşir (ext = karo ölçüsü m)"""
@@ -109,7 +131,7 @@ class Mesh:
                     u, v = p.z / ext[0], p.y / ext[1]
                 else:
                     u, v = p.x / ext[0], p.z / ext[1]
-                lp[self.uvl].uv = (tx + 0.02 + 0.46 * (u % 1.0), 1.0 - (ty + 0.02 + 0.46 * (1 - (v % 1.0))))
+                lp[self.uvl].uv = (tx + 0.02 + 0.46 * (u % 1.0), 1.0 - (ty + 0.02 + (0.38 if tile >= 2 else 0.46) * (1 - (v % 1.0))))
 
 
 def cyl_x(m, p0, p1, r, tile, seg=10):
@@ -137,41 +159,47 @@ def octa_frame(m, z, w, h, th, depth, tile, ch=1.1):
 def corridor():
     m = Mesh()
     L = XSEG
-    # zemin ve tavan plakaları
+    # zemin: dolu plaka; kenarlarda levha dikişleri; orta bölge (iniş yastığı) sade; kenarlarda sarı-siyah uyarı şeridi
     m.box((0, -OH / 2 - 0.15, L / 2), (OW + 1.2, 0.3, L), 2, 'z', (4.5, 3.8))
-    m.box((0, OH / 2 + 0.15, L / 2), (OW + 1.2, 0.3, L), 3, 'z', (4.5, 3.8))
-    # zemin ızgara kaburgaları (boyuna)
-    for i in range(-4, 5):
-        m.box((i * 0.95, -OH / 2 + 0.06, L / 2), (0.16, 0.12, L - 0.4), 2, 'z', (4.5, 3.8))
-    for k in range(7):   # zemin plakaları (enine bağlantı çıtaları) + tavan kirişleri
-        zz = 0.5 + k * (L - 1.0) / 6
-        m.box((0, -OH / 2 + 0.03, zz), (OW - 0.6, 0.06, 0.1), 0, 'z', (3.0, 3.0))
-        m.box((0, OH / 2 - 0.12, zz), (OW - 0.4, 0.24, 0.22), 1, 'z', (4.5, 3.8))
-    # tavan ışık şeritleri (emissive karo: tavan karosu parlak orta) + kablo kanalları
     for sx in (-1, 1):
-        m.box((sx * 1.6, OH / 2 - 0.08, L / 2), (0.55, 0.1, L - 0.6), 3, 'z', (4.5, 3.8))
-    # duvarlar: taban plaka + dikey kaburga + boru demetleri
+        for k in range(4):
+            for cx, w in ((2.95, 0.95), (3.95, 0.95)):
+                m.box((sx * cx, -OH / 2 + 0.02, 0.1 + 0.95 + k * 1.85), (w, 0.04, 1.75), 2, 'z', (2.0, 1.8))
+        m.strip((sx * (OW / 2 - 0.35), -OH / 2 + 0.005, L / 2), (0.5, 0.012, L - 0.1), 'haz', 'x', 0.8)
+        m.strip((sx * 2.25, -OH / 2 + 0.005, L / 2), (0.12, 0.012, L - 0.1), 'haz', 'x', 0.8)
+    # tavan: dolu plaka, enine kirişler, armatür gövdesi + emissive panel (oyun ışığı armatür konumlarına eklenir)
+    m.box((0, OH / 2 + 0.15, L / 2), (OW + 1.2, 0.3, L), 3, 'z', (4.5, 3.8))
+    for k in range(7):
+        zz = 0.5 + k * (L - 1.0) / 6
+        m.box((0, OH / 2 - 0.1, zz), (OW - 0.4, 0.2, 0.2), 1, 'z', (4.5, 3.8))
+    for sx in (-1, 1):
+        for k in range(4):
+            zz = 0.95 + k * (L - 1.9) / 3
+            m.box((sx * 1.9, OH / 2 - 0.1, zz), (0.9, 0.14, 1.5), 1, 'z', (2.0, 2.0))      # gövde
+            m.strip((sx * 1.9, OH / 2 - 0.185, zz), (0.7, 0.02, 1.3), 'lit', 'z', 0.7)       # emissive panel
+    # duvarlar: dolu panel plakaları + dikey kaburga + zemine yakın sarı-siyah şerit; borular üstte ayrıntı
     for sx in (-1, 1):
         m.box((sx * (OW / 2 + 0.1), 0, L / 2), (0.2, OH + 0.6, L), 1, 'x', (3.8, 5.2))
+        for k in range(4):          # alt ve üst panel plakaları (dikişli)
+            zc = 0.1 + 0.95 + k * 1.85
+            m.box((sx * (OW / 2 - 0.05), -1.35, zc), (0.1, 2.3, 1.75), 1, 'x', (1.75, 2.3))
+            m.box((sx * (OW / 2 - 0.05), 1.05, zc), (0.1, 2.9, 1.75), 1, 'x', (1.75, 2.9))
+            m.box((sx * (OW / 2 - 0.11), 0.0, zc), (0.06, 0.5, 1.2), 0, 'x', (1.2, 0.5))      # iç panel kapak
+        m.strip((sx * (OW / 2 - 0.12), -OH / 2 + 0.3, L / 2), (0.06, 0.26, L - 0.1), 'haz', 'x', 1.0)
         for k in range(5):
-            m.box((sx * (OW / 2 - 0.12), 0, 0.45 + k * (L - 0.9) / 4), (0.34, OH, 0.28), 1, 'x', (1.0, 5.2))
-        for yy in (-1.5, -0.2, 1.1, 2.0):
-            cyl_x(m, (sx * (OW / 2 - 0.35), yy, 0.2), (sx * (OW / 2 - 0.35), yy, L - 0.2), 0.16, 1)
-        m.box((sx * (OW / 2 - 0.22), -OH / 2 + 0.5, L / 2), (0.3, 0.4, L - 0.5), 0, 'x', (3.8, 5.2))
-        # r3 ayrıntı: farklı yarıçaplı ince/kalın borular, kelepçeler, panel kutuları, vana/rakor blokları
-        for yy, rr in ((-2.1, 0.07), (0.45, 0.10), (1.6, 0.07), (2.35, 0.12)):
-            cyl_x(m, (sx * (OW / 2 - 0.30), yy, 0.2), (sx * (OW / 2 - 0.30), yy, L - 0.2), rr, 1, 8)
+            m.box((sx * (OW / 2 - 0.17), 0, 0.45 + k * (L - 0.9) / 4), (0.3, OH, 0.28), 1, 'x', (1.0, 5.2))
+        # boru demetleri (panel üstüne, 5 hat) + kelepçeler + vana/kontrol blokları
+        for yy, rr in ((-1.5, 0.16), (-0.2, 0.16), (1.1, 0.16), (2.0, 0.16), (-2.1, 0.07), (0.45, 0.10), (1.6, 0.07), (2.35, 0.12)):
+            cyl_x(m, (sx * (OW / 2 - 0.40), yy, 0.2), (sx * (OW / 2 - 0.40), yy, L - 0.2), rr, 1, 8)
         for k in range(10):
             zz = 0.55 + k * (L - 1.1) / 9
             for yy in (-1.5, -0.2, 1.1):
-                m.box((sx * (OW / 2 - 0.35), yy, zz), (0.30, 0.34, 0.14), 0, 'x', (1.2, 1.2))      # kelepçe
+                m.box((sx * (OW / 2 - 0.40), yy, zz), (0.34, 0.36, 0.14), 0, 'x', (1.2, 1.2))
             if k % 3 == 1:
-                m.box((sx * (OW / 2 - 0.40), 0.65, zz), (0.4, 0.8, 0.5), 1, 'x', (1.0, 1.0))        # vana kutusu
-                m.box((sx * (OW / 2 - 0.45), 0.65, zz), (0.3, 0.25, 0.3), 0, 'x', (0.5, 0.5))      # kol
+                m.box((sx * (OW / 2 - 0.45), 0.65, zz), (0.4, 0.8, 0.5), 1, 'x', (1.0, 1.0))
+                m.box((sx * (OW / 2 - 0.50), 0.65, zz), (0.3, 0.25, 0.3), 0, 'x', (0.5, 0.5))
             if k % 3 == 0:
-                m.box((sx * (OW / 2 - 0.30), 1.75, zz + 0.3), (0.22, 1.1, 0.7), 1, 'x', (1.0, 1.0))  # kontrol paneli
-        for k in range(4):
-            m.box((sx * (OW / 2 - 0.25), 3.0 - OH / 2 + 0.0, 0.9 + k * 1.9), (0.2, 0.2, 0.9), 0, 'x', (0.6, 0.6))   # üst kablo tepsisi parçaları      # alt panel şeridi (kapı dokusundan sarı-siyah)
+                m.box((sx * (OW / 2 - 0.30), 1.75, zz + 0.3), (0.22, 1.1, 0.7), 1, 'x', (1.0, 1.0))
     # uçlarda sekizgen çerçeve (segment bağlantısı)
     octa_frame(m, 0.14, OW - 0.4, OH - 0.2, 0.42, 0.28, 0)
     octa_frame(m, L - 0.14, OW - 0.4, OH - 0.2, 0.42, 0.28, 0)
@@ -261,6 +289,8 @@ orm[..., 1] = rough
 orm[..., 2] = metal
 em = ((mx > 0.70) & (sat > 0.45)).astype(np.float32)
 em = np.array(Image.fromarray((em * 255).astype(np.uint8)).filter(__import__('PIL.ImageFilter', fromlist=['x']).MaxFilter(3))) / 255.0
+em[SY0:SY1, :T] = 0.0                       # uyarı şeridi sarısı emissive değil
+em[SY0:SY1, T:] = 1.0                       # armatür paneli tam emissive
 emis = rgb * em[..., None]
 
 
