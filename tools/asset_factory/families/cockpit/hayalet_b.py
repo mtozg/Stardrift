@@ -112,6 +112,7 @@ def build(spec, mats):
     screen('SCR_HULL', sc['hull'], 11, 'hull')
 
     def raised_frame(q, bz, lbl, h=0.04):
+        h = 0.055 if A.get('r004') else h
         """r003: kabartma çerçeveli ekran yuvası: dış pah (konsol yüzünden öne), üst yüz, iç duvar (ekran düzlemine) → gerçek oyuk/derinlik."""
         cu = sum(u for u, v in q) / 4
         cv = sum(v for u, v in q) / 4
@@ -282,6 +283,45 @@ def build(spec, mats):
                 v_ = 450 + k_ * 12
                 plate(ua + 8, v_, ub - 8, v_ + 3.5, dark_d, 0.052, 0.004)
 
+    if A.get('r004'):      # r004: Kaşif düzeyinde katmanlı yüzey: üst üste paneller, kasa kalınlığı, oluk, bağlantı parçaları
+        def layered(u0, v0, u1, v1, off, nm):
+            """üç kat: taban plaka (carb) + orta çerçeveli plaka (dark) + küçük üst plaka (mid) + bulonlar"""
+            plate(u0, v0, u1, v1, carb_d, off, 0.010)
+            plate(u0 + 8, v0 + 5, u1 - 8, v1 - 5, dark_d, off + 0.006, 0.008)
+            frame(u0 + 8, v0 + 5, u1 - 8, v1 - 5, mid_d, 2, off + 0.011, 0.005)
+            plate((u0 + u1) / 2 - 24, v0 + 12, (u0 + u1) / 2 + 24, v1 - 12, mid_d, off + 0.014, 0.006)
+            bolts([(u0 + 12, v0 + 9), (u1 - 12, v0 + 9), (u0 + 12, v1 - 9), (u1 - 12, v1 - 9)], off + 0.0175)
+
+        for sd in (-1, 1):
+            uu = (lambda a_, b_: (a_, b_)) if sd < 0 else (lambda a_, b_: (W - b_, W - a_))
+            nm = 'L' if sd < 0 else 'R'
+            for k_, (a_, b_) in enumerate(((250, 330), (345, 425), (440, 545))):      # orta basamakta üç katmanlı panel
+                ua, ub = uu(a_, b_); layered(ua, 570, ub, 610, 0.0535, 'lay_b%d' % k_)
+            for k_, (a_, b_) in enumerate(((200, 300), (312, 430), (442, 535))):      # alt şeritte panel + bağlantı kutusu
+                ua, ub = uu(a_, b_); layered(ua, 626, ub, 656, 0.0775, 'lay_c%d' % k_)
+            # ekran altında menteşe/braket sırası (bağlantı parçaları)
+            q_ = sc['sys'] if sd < 0 else sc['hull']
+            for t_ in (0.1, 0.3, 0.5, 0.7, 0.9):
+                ub_, vb_ = q_[3][0] + (q_[2][0] - q_[3][0]) * t_, q_[3][1] + (q_[2][1] - q_[3][1]) * t_
+                pp = onF(ub_, vb_ + 9, 0.040)
+                mid_d.box((pp.x, pp.y, pp.z), (0.026, 0.026, 0.024))
+                rivets.cyl((pp.x, pp.y - 0.013, pp.z), (pp.x, pp.y - 0.018, pp.z), 0.0045, 6)
+            # omuz bloğu: ikinci kat + üst kapak
+            ua, ub = uu(196, 262); tier(ua, 446, ub, 520, 0.040, 0.03, 'shoulder2_' + nm, mat='hay_dark')
+            for k_ in range(4):
+                plate(ua + 5, 456 + k_ * 16, ub - 5, 458.5 + k_ * 16, mid_d, 0.058, 0.004)
+            # ekran dış kenarı: dikey kasa omuzu (yan ekran ile omuz bloğu arası)
+            ua, ub = uu(274, 288); plate(ua, 400, ub, 540, mid_d, 0.030, 0.012); plate(ua + 3, 410, ub - 3, 530, dark_d, 0.036, 0.006)
+        # radar kepi: ikinci kat + mandallar
+        plate(660, vtop(800) - 5, 940, vtop(800) + 2, dark_d, 0.03, 0.008)
+        for u_ in (650, 950):
+            plate(u_ - 9, vtop(u_) - 7, u_ + 9, vtop(u_) + 1, mid_d, 0.034, 0.008)      # ekran köşesini örtmesin (üstünde kalır)
+        # ekran bandı boyunca kablo oluğu (orta ekran altında, koltuk üstünde): iki ince kanal + kelepçeler
+        for k_, v_ in enumerate((516, 524)):
+            plate(662, v_, 938, v_ + 2.2, dark_d, 0.0455, 0.004)
+        for u_ in lin(690, 910, 6):
+            plate(u_ - 3, 512, u_ + 3, 528, mid_d, 0.048, 0.006)
+
     # ---- koltuk: kapitone siyah deri (Kaşif ayak izi); radar alt kenarı yüksek → geniş görünür alan
     sy = 0.555
     ztop = A['seat']['top_z']
@@ -290,20 +330,30 @@ def build(spec, mats):
     for s_ in (-1, 1):
         nm = 'L' if s_ < 0 else 'R'
         add('seat_wing_v_' + nm, soft_box((s_ * 0.235, sy - 0.012, ztop - 0.215), (0.10, 0.11, 0.26), 0.024, 1), 'hay_leather', smooth=60)
-    # kapitone yastıkçıklar (üç sütun x üç sıra başlıkta; kanatlarda iki sıra) ve aralarında koyu mor iplik
-    pw_, ph_, pd_, pb_ = (0.1055, 0.0685, 0.012, 0.014) if A.get('r002') else (0.100, 0.062, 0.022, 0.010)      # r002: yastıklar neredeyse bitişik, düşük kabartma (tek kapitone yüz)
-    pad = lambda cx, cz, w, h, nm, yy: add(nm, soft_box((cx, yy, cz), (w if not A.get('r002') else pw_, pd_, h if not A.get('r002') else ph_), pb_, 1), 'hay_leather', smooth=60)
-    for r_, dz_ in enumerate((0.045, 0.115, 0.185)):
-        for c_, dx_ in enumerate((-0.108, 0.0, 0.108)):
-            pad(dx_, ztop - dz_, 0.100, 0.062, 'seat_pad_%d%d' % (r_, c_), fyy - 0.004)
-    for s_ in (-1, 1):
-        for r_, dz_ in enumerate((0.080, 0.170)):
-            pad(s_ * 0.235, ztop - dz_, 0.078, 0.074, 'seat_wpad_%d_%d' % (s_ > 0, r_), sy - 0.012 - 0.0555 - 0.004)
-        thread_d.box((s_ * 0.235, sy - 0.012 - 0.0545, ztop - 0.125), (0.082, 0.003, 0.004))
-    for dz_ in (0.080, 0.150):
-        thread_d.box((0, fyy, ztop - dz_), (0.34, 0.003, 0.004))
-    for dx_ in (-0.054, 0.054):
-        thread_d.box((dx_, fyy, ztop - 0.12), (0.004, 0.003, 0.20))
+    if A.get('r004'):      # r004: sade tek yüzlü sırt (yastık/tuğla okunmasın): yalnız ince koyu mor dikiş çizgileri
+        for dx_ in (-0.095, 0.095):
+            thread_d.box((dx_, fyy - 0.0005, ztop - 0.125), (0.003, 0.003, 0.19))
+        thread_d.box((0, fyy - 0.0005, ztop - 0.075), (0.30, 0.003, 0.003))
+        for s_ in (-1, 1):
+            thread_d.box((s_ * 0.235, sy - 0.012 - 0.0555, ztop - 0.13), (0.003, 0.003, 0.17))
+        for dx_ in (-0.17, 0.17):
+            thread_d.box((dx_, fyy - 0.0005, ztop - 0.04), (0.003, 0.003, 0.05))
+    else:
+        # kapitone yastıkçıklar (üç sütun x üç sıra başlıkta; kanatlarda iki sıra) ve aralarında koyu mor iplik
+        pw_, ph_, pd_, pb_ = (0.1055, 0.0685, 0.012, 0.014) if A.get('r002') else (0.100, 0.062, 0.022, 0.010)      # r002: yastıklar neredeyse bitişik, düşük kabartma (tek kapitone yüz)
+        pad = lambda cx, cz, w, h, nm, yy: add(nm, soft_box((cx, yy, cz), (w if not A.get('r002') else pw_, pd_, h if not A.get('r002') else ph_), pb_, 1), 'hay_leather', smooth=60)
+        for r_, dz_ in enumerate((0.045, 0.115, 0.185)):
+            for c_, dx_ in enumerate((-0.108, 0.0, 0.108)):
+                pad(dx_, ztop - dz_, 0.100, 0.062, 'seat_pad_%d%d' % (r_, c_), fyy - 0.004)
+        for s_ in (-1, 1):
+            for r_, dz_ in enumerate((0.080, 0.170)):
+                pad(s_ * 0.235, ztop - dz_, 0.078, 0.074, 'seat_wpad_%d_%d' % (s_ > 0, r_), sy - 0.012 - 0.0555 - 0.004)
+            thread_d.box((s_ * 0.235, sy - 0.012 - 0.0545, ztop - 0.125), (0.082, 0.003, 0.004))
+        for dz_ in (0.080, 0.150):
+            thread_d.box((0, fyy, ztop - dz_), (0.34, 0.003, 0.004))
+        for dx_ in (-0.054, 0.054):
+            thread_d.box((dx_, fyy, ztop - 0.12), (0.004, 0.003, 0.20))
+
 
     # ---- toplu ayrıntı grupları (küçük pah: kenar parlaması)
     for nm, acc, mt, role, bev in (('detail_carbon', carb_d, 'hay_carbon', 'body', True), ('detail_dark', dark_d, 'hay_dark', 'body', True), ('detail_mid', mid_d, 'hay_mid', 'body', True),
