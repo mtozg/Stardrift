@@ -380,8 +380,8 @@
    }
   },
   "yuk_cockpit": {
-   "state": "draft",
-   "rev": 12,
+   "state": "delivered",
+   "rev": 15,
    "history": [
     {
      "t": "2026-11-16T10:45:12+00:00",
@@ -552,10 +552,68 @@
      "from": "modeled",
      "to": "draft",
      "reason": "yeni revizyon r012: Mehmet r011: uçlardaki sarı-siyah bloklar kalın/basit, en alt orta bölge karanlık, ince metal detayı Şahin düzeyine; r012"
+    },
+    {
+     "t": "2026-11-21T08:26:02+00:00",
+     "from": "draft",
+     "to": "draft",
+     "reason": "yeni revizyon r013: Kapı 2 kaydı: r013-r015 revizyonları (Mehmet r012→r015); r015 onaylı"
+    },
+    {
+     "t": "2026-11-21T08:26:02+00:00",
+     "from": "draft",
+     "to": "draft",
+     "reason": "yeni revizyon r014: Kapı 2 kaydı: r013-r015 revizyonları (Mehmet r012→r015); r015 onaylı"
+    },
+    {
+     "t": "2026-11-21T08:26:02+00:00",
+     "from": "draft",
+     "to": "draft",
+     "reason": "yeni revizyon r015: Kapı 2 kaydı: r013-r015 revizyonları (Mehmet r012→r015); r015 onaylı"
+    },
+    {
+     "t": "2026-11-21T08:50:14+00:00",
+     "from": "draft",
+     "to": "modeled",
+     "reason": "model + lookdev render"
+    },
+    {
+     "t": "2026-11-21T10:57:44+00:00",
+     "from": "modeled",
+     "to": "visual_approved",
+     "reason": "onay: Yük r015 Kapı 1 görsel onay: Mehmet 'Onaylıyorum' (2026-11-20/21); Kapı 2 kaydı için izin Mehmet'ten (2026-11-21)",
+     "by": "Mehmet (Lead aktarımı)"
+    },
+    {
+     "t": "2026-11-21T11:04:19+00:00",
+     "from": "visual_approved",
+     "to": "prepared",
+     "reason": "GLB üretildi"
+    },
+    {
+     "t": "2026-11-21T11:04:42+00:00",
+     "from": "prepared",
+     "to": "qc_pass",
+     "reason": "QC WARN (65 PASS, 3 WARN, 0 FAIL)"
+    },
+    {
+     "t": "2026-11-21T11:04:54+00:00",
+     "from": "qc_pass",
+     "to": "tech_approved",
+     "reason": "onay: Yük r015 Kapı 2 teknik onay: QC WARN (koyu doku aralığı, tangent uyarısı kabul); Mehmet izni 2026-11-21",
+     "by": "Mehmet (Lead aktarımı)"
+    },
+    {
+     "t": "2026-11-21T11:04:55+00:00",
+     "from": "tech_approved",
+     "to": "delivered",
+     "reason": "teslim paketi: deliveries/yuk_cockpit/r015"
     }
    ],
    "timings": {
-    "probe": 70.3
+    "model": 1452.6,
+    "prepare": 392.2,
+    "qc": 20.0
    },
    "approvals": [
     {
@@ -574,23 +632,36 @@
       "gltf.validator_warnings",
       "cockpit.hud_zone_block"
      ]
+    },
+    {
+     "t": "2026-11-21T10:57:44+00:00",
+     "gate": "visual",
+     "by": "Mehmet (Lead aktarımı)",
+     "note": "Yük r015 Kapı 1 görsel onay: Mehmet 'Onaylıyorum' (2026-11-20/21); Kapı 2 kaydı için izin Mehmet'ten (2026-11-21)",
+     "accept_warn": []
+    },
+    {
+     "t": "2026-11-21T11:04:54+00:00",
+     "gate": "tech",
+     "by": "Mehmet (Lead aktarımı)",
+     "note": "Yük r015 Kapı 2 teknik onay: QC WARN (koyu doku aralığı, tangent uyarısı kabul); Mehmet izni 2026-11-21",
+     "accept_warn": [
+      "pbr.base_dielectric",
+      "pbr.base_metal",
+      "gltf.validator_warnings"
+     ]
     }
    ],
-   "geometry_hash": "24755e9ccbe63b733bf6c8933be9c50989114bc5aa2adeecf63da2dff5b5d590",
-   "spec_hash": "7a0c5f10c0fb7aa7e85220da3129bbecae65489da1e7e9c19d20feff205f93a0",
-   "fast": true,
+   "geometry_hash": "eea457fb9b075e68bd5383ceb011c5e51fe30606a7a1bd77cdf31579c081f494",
+   "spec_hash": "157dde99bf4296d72a88550f6733982ccf06b39f10c39d2de2cb0efa5b350c11",
+   "fast": false,
    "perf_baseline": {
     "masaüstü 1200×750|1": 13.6,
     "iPad Pro 11 landscape|1": 13.9,
     "iPhone 13 landscape|1": 13.4,
     "Pixel 7 landscape|1": 13.1
    },
-   "notes": [
-    {
-     "t": "2026-11-20T14:41:24+00:00",
-     "text": "r012: uç sarı-siyah bloklar → panel+bant+bulon, küçük sarı vurgu; alt orta bölge aydınlık/etiket/lamba/derz/aşınma; çıplak metal kenarlık, anahtar/düğme altı vida; HUD/ekran/ART/kamera aynı"
-    }
-   ],
+   "notes": [],
    "notes_applied": [
     {
      "rev": 9,
@@ -607,6 +678,15 @@
       {
        "t": "2026-11-20T14:15:29+00:00",
        "text": "r011: orta konsol (radar altı) doldur; kumandalar küçük katmanlı gerçekçi; sarı/turuncu yalnız küçük vurgu; aşınma/derz pilot ölçeğinde okunur; HUD/ekran/ART/kamera aynı"
+      }
+     ]
+    },
+    {
+     "rev": 15,
+     "notes": [
+      {
+       "t": "2026-11-20T14:41:24+00:00",
+       "text": "r012: uç sarı-siyah bloklar → panel+bant+bulon, küçük sarı vurgu; alt orta bölge aydınlık/etiket/lamba/derz/aşınma; çıplak metal kenarlık, anahtar/düğme altı vida; HUD/ekran/ART/kamera aynı"
       }
      ]
     }
