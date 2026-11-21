@@ -20,7 +20,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 
 | 9 | Hayalet r006 (son tur): neon hizası, koyu altıgen, sade dikiş (r004'ün yerine) | Hazır | 28568db | `git revert 28568db` (r004'e döner) |
 
-| 10 | Kaşif yan ekranlar bir tık daha büyük (sol/sağ %15, orta %7) | Hazır | KYSHA | `git revert KYSHA` |
+| 10 | Kaşif yan ekranlar bir tık daha büyük (sol/sağ %15, orta %7) | Hazır | 044761c | `git revert 044761c` |
 
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
