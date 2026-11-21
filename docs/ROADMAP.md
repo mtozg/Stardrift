@@ -68,12 +68,12 @@ Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet
 |---|---|---|
 | B-01e | Unvan görevleri 3. ve 4. kademe | Ertelendi (K35): eskort ve patron avı mevcut sistemlerle çakışıyor; çift gelir olmayacak şekilde yeniden tasarım gerekir |
 | B-02 | Yük Devi r015 ve Şahin r014 kokpitleri | Tamam: oyunda (1.64.0, PR bekliyor). Resmî Kapı 2 kaydı (`factory.py approve/deliver`) Mehmet'in açık izni bekliyor |
-| B-03 | Hayalet kokpiti | r004 oyunda (1.65.3, K49); Kapı 1 görsel kararı bekliyor; direk/kemer neonu hâlâ kopuk; tur hakkı bitti (yeni istek Mehmet onayı) |
+| B-03 | Hayalet kokpiti | r006 oyunda (1.66.2, K52); Hayalet kapandı; Kapı 1 görsel kararı bekliyor |
 | B-05b | Başarım rozet çizimleri (10 rozet × 3 kademe) | Tamam: oyunda (1.65.0, K46); Gezgin ikonu küçükte göz gibi okunuyor (isteğe bağlı düzeltme) |
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | Mehmet'in konsol ekran görüntüsü gerekli |
-| B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |
+| B-09 | `game.js` modülerleştirme | 1. adım tamam (1.66.1, K51: veri dosyaları ayrıldı). Mantığın bölünmesi yüksek risk, ayrı onay gerekir |
 | B-10 | Game Designer içerikleri | Filo Bülteni (1.63.0) ve zincir telsiz sahnesi (1.63.1) tamam; taşıma/eskort şablonları: mevcut `teslim` görevi ve `eskort` sinyaliyle çakıştığı için önerilmiyor (K35'teki çift gelir sorunu); düşürüldü |
-| B-11 | Ölüm ekranı açıkken sayfa yenilenirse bedel alınmıyor (önceden var) | Düşük öncelik; ayrı karar |
+| B-11 | Ölüm ekranı açıkken sayfa yenilenirse bedel alınmıyor | Tamam: 1.66.0 (K50, ekonomi, Mehmet onaylı) |
 
 ## Gerçek cihaz testleri (iPhone / iPad; henüz yapılmadı)
 Liste: [QA_GERCEK_CIHAZ.md](QA_GERCEK_CIHAZ.md). Kapsam: WebGL bağlam sayısı ve hangar↔oyun geçişi, bellek (arka plana atma, 30 sn sonra dönüş), 3B kokpit (Kaşif, Şahin), dokunmatik kontroller (devriye çağrı düğmeleri dahil), iPad 120 Hz hangar animasyonu, 15-30 dk oyun oturumu (ısınma, kare hızı, pil). Test edilmemiş sayılır: bütün performans ve bellek bilgisi swiftshader emülasyonundan.

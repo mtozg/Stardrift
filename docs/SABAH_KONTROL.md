@@ -14,6 +14,12 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 | 5 | Kaşif ekranları %7 büyütüldü (çerçeveye göre küçük kalmıştı) | Hazır | d9055d8 | `git revert d9055d8` |
 | 6 | Hayalet r004: sırt hafif, katmanlı derinlik, ekranlar %7 küçük, neon hizası | Hazır; neon kısmen düzeldi | 60fc45d | `git revert 60fc45d` (r003'e döner) |
 
+| 7 | **EKONOMİ (K50):** ölüm bedeli sayfa yenilenerek atlatılamaz (`dp` bayrağı) | Hazır; Mehmet "onay bekleyen işlere başla" dedi | d9a92da | `git revert d9a92da` |
+
+| 8 | `game.js` modülerleştirme 1. adım: ses ve şekil verileri ayrı dosyalara (davranış aynı) | Hazır, 10 test PASS | cbdf15e | `git revert cbdf15e` |
+
+| 9 | Hayalet r006 (son tur): neon hizası, koyu altıgen, sade dikiş (r004'ün yerine) | Hazır | 28568db | `git revert 28568db` (r004'e döner) |
+
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
 - Aşama 2 ve 3: Hazır olunca bu tabloya işlenecek.
@@ -55,3 +61,9 @@ Görsel: `docs/sabah/asama6_hayalet_r004_kiyas.webp` (üstte Kaşif, altta Hayal
 - **Düzelenler:** koltuk sırtı artık yastık değil, sade tek yüz + ince koyu mor dikiş; konsolda 3 katlı paneller, braketler, kablo oluğu, kalın ekran çerçevesi (r003'e göre belirgin daha katmanlı); ekran + çerçeve %7 küçüldü; ekranların altındaki neon şeritler ekran kenarına artık oturuyor; HUD payı %7,3; bellek sabit (77/135, 56/125, 56/131, 56/125).
 - **Hâlâ sorunlu:** çapraz direklerin neon şeridi hâlâ direk kenarından kopuk/kaymış; üst kemerlerde (sol-üst, sağ-üst) kısa mor çizgiler hâlâ kemeri izlemiyor, havada duruyor; alt güvertede mor ızgara çizgileri fazla parlak, ızgara gibi okunuyor; altıgen orta gri; geniş koyu yüzeyler var.
 - **Tur hakkı:** r001..r004 üretildi; Asset Factory 4 tam derleme kullandı (hak 1+1 idi, kendi iki hatasını düzeltmek için). Neon direk/kemer düzeltmesi için yeni tur Mehmet onayı gerektirir.
+
+## Aşama 9: Hayalet r006 (son tur)
+Görsel: `docs/sabah/asama9_hayalet_r006_kiyas.webp` (üstte Kaşif, altta Hayalet r006).
+- **Düzelenler:** direklerin neonu iç kenarı uçtan uca izliyor; üst kemer neonları kemerin eğrisini izliyor; ekran altı neonu çerçeve önünde köşeden köşeye; havadaki alt köşe şeritleri kaldırıldı; koltuktaki parlak ızgara gitti (2 ince koyu çizgi); HUD %7,3; bellek sabit (76/125, 55/115, 55/121, 55/115).
+- **Kalan (dürüst):** altıgen güverte hâlâ orta-koyu gri petek olarak seçiliyor (tamamen kaybolması için kaldırılması gerekir); geniş koyu yüzeylerde etki ince (düşük kabartma); koltuk iplik tonu biraz parlak olabilir.
+- **Hayalet kapandı:** r001-r006 üretildi. Yeni istek Mehmet onayı gerektirir.

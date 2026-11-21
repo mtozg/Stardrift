@@ -254,3 +254,25 @@ Not: swiftshader; gerçek cihaz test edilmedi.
 | 844×390 yatay boyutunda 4 kokpit (Kaşif, Şahin, Yük, Hayalet): ekranlar yerine oturuyor, HUD sırtı doğru, sayfa hatası yok (`docs/sabah/telefon_boyutu_kokpitler.webp`) | Görsel |
 | Yeni test `kokpit_dongu` (4 kokpit ×3 tur, doku/geometri sabit, hata yok) `run.sh` listesinde | PASS |
 Not: Kaşif'te canlı ekranlar telefon boyutunda en küçük görünenler (yazılar küçük). Emülasyon; gerçek cihaz test edilmedi.
+
+## 29. Sürüm 1.66.0 test özeti (K50 ölüm bedeli yenilemeyle atlatılamaz)
+| Test | Sonuç |
+|---|---|
+| olum_yenile: gemi parçalanınca kayıtta `dp` = 1; ekran açıkken sayfa yenilenince açılışta 2000 kredi (999999 → 997999), `dp` sıfırlanır | PASS |
+| olum_siniri, olum_hesap | PASS |
+Not: ölüm ekranında "Canlan"a basıp ödedikten sonra yenilemede ikinci kez alınmaması kod incelemesiyle doğrulandı (`dp = 0` ödeme anında yazılır), otomatik testte ayrıca denenmedi.
+
+## 30. Sürüm 1.66.1 test özeti (veri ayırma)
+| Test | Sonuç |
+|---|---|
+| Ayrılan veri birebir aynı: STSPEC3D, NPCSPEC3D(+patron) ve 20 ses kaydı (karşılaştırma betiği) | Eşit |
+| kutuk, bildirim, bulten, derin_sinyal, devriye_akis, kargo_kaydi, ozel_ekonomi, hangar_bellek, bekci, unvan_hata | PASS |
+Not: telefon/gerçek cihazda ilk açılış süresi ölçülmedi; iki ek betik dosyası aynı anda indirilir. Çevrimdışı: betikler sürüm adresiyle servis çalışanı tarafından saklanır (değişiklik gerekmedi).
+
+## 31. Sürüm 1.66.2 test özeti (Hayalet r006)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (3a1b9733 / 07cee32b) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (76/125, 55/115, 55/121, 55/115), sayfa hatası yok | PASS |
+| Oyun içi görsel: neonlar kenar eğrisini izliyor, ekran altı neonu oturuyor, koltukta parlak ızgara yok | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi.
