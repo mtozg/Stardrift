@@ -59,7 +59,8 @@ const IPADX = (() => { try { return /iPad/.test(navigator.userAgent) || (navigat
 const TOUCHX = IPADX || Q_DEF === 1;
 window.__lowMem = IPADX || window.__qLevel === 0;
 window.__ipadX = IPADX;
-window.__qCap = () => { let c = QCAP[window.__qLevel]; if (TOUCHX) c = Math.min(c, Math.max(1, Math.sqrt(3.0e6 / Math.max(1, innerWidth * innerHeight)))); return c; };
+const QPIX = [1.0e6, 1.6e6, 2.4e6];   /* dokunmatik cihazda kalite basamağına göre toplam çizim pikseli bütçesi (iPad ekranı iPhone'un ~2,7 katı piksel; dolgu hızı sınırı) */
+window.__qCap = () => { let c = QCAP[window.__qLevel]; if (TOUCHX) c = Math.min(c, Math.max(1, Math.sqrt(QPIX[window.__qLevel] / Math.max(1, innerWidth * innerHeight)))); return c; };
 // kokpit oranı: pencere (üst) büyür, gösterge paneli (alt) küçülür. 0 klasik, 1 dengeli, 2 geniş cam
 const CKB = [1, 0.85, 0.72];
 window.__ckLevel = 2;   /* 'Kokpit görünümü' ayarı kaldırıldı: Geniş cam sabit (eski kayıtlı seçim yok sayılır) */
@@ -8154,7 +8155,7 @@ Object.assign(window.PICON, {"levha": "assets/img/picon_levha.webp", "devre": "a
 // ---- parlama (bloom): parlak şeyler (motor, lazer, patlama, kapı, güneş) etrafa ışık saçar. Yalnızca Yüksek kalitede.
 window.__bloomPref = (() => { try { return localStorage.getItem('sd_bloom') !== '0'; } catch (e) { return true; } })();
 let BLOOM = null;
-const bloomWanted = () => window.__bloomPref && window.__qLevel === 2 && !!THREE.UnrealBloomPass && !window.__noBloom;
+const bloomWanted = () => window.__bloomPref && window.__qLevel === 2 && !!THREE.UnrealBloomPass && !window.__noBloom && !(IPADX || (TOUCHX && innerWidth * innerHeight > 600000));   /* parlama (4x MSAA hedefli, tam çözünürlük) iPad ve büyük dokunmatik ekranlarda kapalı: en pahalı efekt */
 function bloomBuild(){
   try {
     const sz = renderer.getDrawingBufferSize(new THREE.Vector2()); let rt;
