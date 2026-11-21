@@ -11,6 +11,9 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 
 | 4 | Hayalet r003 (derinlik + büyük ekranlar; Mehmet'in geri bildirimi) | Hazır; r001'in yerine | 2c0c30e | `git revert 2c0c30e` (r001'e döner) |
 
+| 5 | Kaşif ekranları %7 büyütüldü (çerçeveye göre küçük kalmıştı) | Hazır | K5SHA | `git revert K5SHA` |
+| 6 | Hayalet r004: sırt hafiflet, Kaşif kadar katmanlı derinlik, ekranlar bir tık küçük | Asset Factory çalışıyor | - | - |
+
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
 - Aşama 2 ve 3: Hazır olunca bu tabloya işlenecek.
@@ -39,3 +42,10 @@ Görsel: `docs/sabah/asama4_hayalet_r003_kiyas.webp` (üstte Kaşif, altta Hayal
 - **Dürüst eksikler (Asset Factory'nin de söylediği):** altıgen hâlâ orta gri; yastıklar hafif ayrık blok; alt kademeler büyük koyu yüz. Ekranlar çok geniş, neredeyse kenardan kenara (televizyon gibi) görünebilir. Derinlik r001'e göre belirgin ama Kaşif kadar katmanlı değil.
 - **Tur hakkı:** Hayalet için r001, r002 (küçük), r003 üretildi; Mehmet kararıyla hak genişletilmişti, r003 son tur. Yeni istek olursa Mehmet onayı gerekir.
 - **Not:** Bu commit PR #42'de DEĞİL, yeni PR'da (#42 yalnız aşama 1 ile birleşmişti).
+
+## Aşama 5: Kaşif ekranları
+Görsel: `docs/sabah/asama5_kasif_ekranlar.webp` (üstte önce, altta sonra).
+Sol/orta/sağ canlı ekran dörtgenleri merkezlerinden %7 büyütüldü (`CK3.kasif.qS = 1.07`, yalnız oyun tarafı; Kaşif modeline dokunulmadı). İçerik çerçeve içinde daha dolgun; kenarlara taşma görmedim. Beğenmezsen `qS` değeri tek sayı (1,05 ya da 1,00 = eski).
+
+## Aşama 6: Hayalet r004 (Mehmet'in 2. geri bildirimi)
+İstenen: koltuk arkasındaki yüzey yastık gibi duruyor, hafiflet; derinlik Kaşif kadar katmanlı; ekranlar bir tık küçülsün. Asset Factory'ye iletildi (son tur). Teslim olursa oyuna eklenir; olmazsa r003 kalır.

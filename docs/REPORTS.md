@@ -232,3 +232,9 @@ Not: 1.64.1'deki `offline.json` Hayalet GLB'lerini içermiyordu; bu sürümde d�
 | offline.json: 8 kokpit GLB'si (git add sonrası üretildi) | Doğrulandı |
 | Oyun içi görsel: ekranlar büyük ve çerçeveli, HUD doğru, ortada dikme yok | Ekran görüntüsüyle |
 Not: swiftshader; gerçek cihaz test edilmedi.
+
+## 26. Sürüm 1.65.2 test özeti (Kaşif ekranları)
+| Test | Sonuç |
+|---|---|
+| Kaşif ekranları %7 büyük: ekran görüntüsüyle önce/sonra karşılaştırıldı, kenarlara taşma yok, sayfa hatası yok | Görsel |
+Not: yalnız masaüstü boyutunda görüldü; iPhone yatay boyutunda ve gerçek cihazda ayrıca bakılmadı.
