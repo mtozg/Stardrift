@@ -51,3 +51,17 @@ Uyarı: taraf değişince oyuncu başka sistemde başlar (Korsan = Kara Liman, L
 
 ## Sonraki
 Aynı sistemde taraf karşılaştırması, kaçak mal, görevler, kalıntı, ölüm ücreti, süre başına kazanç; ardından Öldürme kredisi tablosunun kaynağı (gözlem 2) incelenir. Değer değişikliği önce/sonra tablosuyla ayrıca raporlanacak.
+
+## Tur 3 (kısmi): kaçak mal, kod sabitlerinden hesap (ÖLÇÜM DEĞİL)
+Kaynak: `js/game.js` kaçak pazar bloğu. Alış 90 kredi/birim; satış 150 (Lonca Pazarı istasyonunda 185); satışta +5 XP/birim; gizli bölme: Korsan 10, diğerleri 6 (+yetenek). Yakalanma: birim başı 60 kredi ceza ve mal el konulur, aranma +1 (rüşvet: kayıp beklentisine yakın bedel).
+
+| | Korsan (10 birim) | Diğer (6 birim) |
+|---|---|---|
+| Kâr / sefer, normal istasyon | 10 × 60 = 600 kredi, 50 XP | 6 × 60 = 360 kredi, 30 XP |
+| Kâr / sefer, Lonca Pazarı | 10 × 95 = 950 kredi, 50 XP | 6 × 95 = 570 kredi, 30 XP |
+| Yakalanma kaybı | 900 (mal) + 600 (ceza) + aranma | 540 + 360 + aranma |
+
+Karşılaştırma: 16 titan satışı Ankora'da 421 kredi / 40 XP (ölçüldü), ama cevher **madencilik süresi** gerektirir; kaçak mal yalnızca al-uç-sat. **Hipotez H2 (kaçak baskın) yalnız süre başına kazançla doğrulanır/çürütülür:** bot senaryosu (sefer süresi, yakalanma olasılığı) gerekiyor, henüz yok. Bu tablo değer değiştirmek için yeterli değil.
+
+## Değişiklik durumu
+Bu belgedeki hiçbir şey oyun değerlerini değiştirmedi. Öldürme ödülünün türe bağlanması (Tur 2 bulgusu) önerilmiş, uygulanmamıştır.
