@@ -7663,6 +7663,17 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   };
 }
 
+// ---- İstatistikler (oyun sonu E1, yalnız okuma): mevcut sayaçlardan türeyen özet ve Efsane+ kademesi. Yeni kayıt alanı, ödül ya da ekonomi değişikliği YOK.
+{
+  const fmt = n => Math.round(n).toLocaleString('tr-TR');
+  /* Efsane+: seviye 30 sınırı (32.420 XP) sonrası görüntü kademesi; her 15.000 XP bir kademe (en çok V). Yalnız etiket, XP/ödül değişmez. */
+  window.__efsaneP = xp => { const L30 = 32420; if ((xp || 0) < L30) return 0; return Math.min(5, 1 + Math.floor((xp - L30) / 15000)); };
+  window.__istatistik = () => { const st = save.st || {}, xp = save.xp || 0, ep = window.__efsaneP(xp);
+    return { ep, satir: [['Rütbe', RANKS[rankOf(xp)][0] + (ep ? ' +' + ['', 'I', 'II', 'III', 'IV', 'V'][ep] : '')], ['Toplam XP', fmt(xp)], ['Satılan cevher (birim)', fmt(st.sell || 0)], ['Düşürülen gemi', fmt(st.kill || 0)], ['Devriye / avcı düşürülen', fmt(st.avci || 0)], ['Satılan kaçak mal (birim)', fmt(st.kacak || 0)], ['Acil sipariş', fmt(st.sip || 0)], ['Yenilen korsan reisi', fmt((save.boss || []).length)], ['Kadim yankı', fmt(window.__kadimCount ? window.__kadimCount() : 0)], ['Ziyaret edilen sistem', fmt((save.seen || []).length)], ['Kredi', fmt(save.kredi || 0)]] }; };
+  const _rc5 = renderCt; renderCt = function(){ _rc5(); try { const box = $('ctBox'); if (!box) return; const I = window.__istatistik();
+    box.insertAdjacentHTML('beforeend', '<div class="sect">İstatistikler</div>' + I.satir.map(r => '<div class="line"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('')); } catch (e) { console.warn(e); } };
+}
+
 // ---- görüntü kalitesi: değiştirme ve kasarsa otomatik düşürme
 window.__qSet = (lv, manual) => { window.__qLevel = lv; try { localStorage.setItem('sd_q', String(lv)); if (manual) localStorage.setItem('sd_qm', '1'); } catch (e) {} resize(); };
 {
