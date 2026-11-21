@@ -13,5 +13,6 @@ const boot = require('./_boot.js');
   const html = await p.evaluate(() => { const bx = document.getElementById('ctBox'); return bx ? bx.textContent : ''; });
   const after = await p.evaluate(() => JSON.stringify(Object.keys(window.__sdt.save).sort()));
   R.kayitAlaniDegismedi = before === after;
+  R.atlasMetin = await p.evaluate(() => { const t = window.__kadimMetin(); return Array.isArray(t) && t.length <= 16; });
   R.errs = errs; console.log('@@' + JSON.stringify(R)); await b.close();
 })();
