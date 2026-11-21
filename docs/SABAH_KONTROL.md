@@ -22,7 +22,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 
 | 10 | Kaşif yan ekranlar bir tık daha büyük (sol/sağ %15, orta %7) | Hazır | 044761c | `git revert 044761c` |
 
-| 11 | Hayalet r007: dikmelerde gerçekçilik (fırçalı metal, kenar pahı, cıvata sırası, panel derzi) | Hazır; PR henüz açılmadı (denetim kuralı) | R7SHA | `git revert R7SHA` (r006'ya döner) |
+| 11 | Hayalet r007: dikmelerde gerçekçilik (fırçalı metal, kenar pahı, cıvata sırası, panel derzi) | Hazır; PR henüz açılmadı (denetim kuralı) | c459bfe | `git revert c459bfe` (r006'ya döner) |
 
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
