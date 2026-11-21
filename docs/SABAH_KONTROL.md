@@ -14,7 +14,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 | 5 | Kaşif ekranları %7 büyütüldü (çerçeveye göre küçük kalmıştı) | Hazır | d9055d8 | `git revert d9055d8` |
 | 6 | Hayalet r004: sırt hafif, katmanlı derinlik, ekranlar %7 küçük, neon hizası | Hazır; neon kısmen düzeldi | 60fc45d | `git revert 60fc45d` (r003'e döner) |
 
-| 7 | **EKONOMİ (K50):** ölüm bedeli sayfa yenilenerek atlatılamaz (`dp` bayrağı) | Hazır; Mehmet "onay bekleyen işlere başla" dedi | K50SHA | `git revert K50SHA` |
+| 7 | **EKONOMİ (K50):** ölüm bedeli sayfa yenilenerek atlatılamaz (`dp` bayrağı) | Hazır; Mehmet "onay bekleyen işlere başla" dedi | d9a92da | `git revert d9a92da` |
 
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
