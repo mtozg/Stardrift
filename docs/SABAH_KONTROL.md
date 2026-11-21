@@ -16,6 +16,8 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 
 | 7 | **EKONOMİ (K50):** ölüm bedeli sayfa yenilenerek atlatılamaz (`dp` bayrağı) | Hazır; Mehmet "onay bekleyen işlere başla" dedi | d9a92da | `git revert d9a92da` |
 
+| 8 | `game.js` modülerleştirme 1. adım: ses ve şekil verileri ayrı dosyalara (davranış aynı) | Hazır, 10 test PASS | VERISHA | `git revert VERISHA` |
+
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
 - Aşama 2 ve 3: Hazır olunca bu tabloya işlenecek.

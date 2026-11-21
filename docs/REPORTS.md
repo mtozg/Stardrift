@@ -261,3 +261,10 @@ Not: Kaşif'te canlı ekranlar telefon boyutunda en küçük görünenler (yazı
 | olum_yenile: gemi parçalanınca kayıtta `dp` = 1; ekran açıkken sayfa yenilenince açılışta 2000 kredi (999999 → 997999), `dp` sıfırlanır | PASS |
 | olum_siniri, olum_hesap | PASS |
 Not: ölüm ekranında "Canlan"a basıp ödedikten sonra yenilemede ikinci kez alınmaması kod incelemesiyle doğrulandı (`dp = 0` ödeme anında yazılır), otomatik testte ayrıca denenmedi.
+
+## 30. Sürüm 1.66.1 test özeti (veri ayırma)
+| Test | Sonuç |
+|---|---|
+| Ayrılan veri birebir aynı: STSPEC3D, NPCSPEC3D(+patron) ve 20 ses kaydı (karşılaştırma betiği) | Eşit |
+| kutuk, bildirim, bulten, derin_sinyal, devriye_akis, kargo_kaydi, ozel_ekonomi, hangar_bellek, bekci, unvan_hata | PASS |
+Not: telefon/gerçek cihazda ilk açılış süresi ölçülmedi; iki ek betik dosyası aynı anda indirilir. Çevrimdışı: betikler sürüm adresiyle servis çalışanı tarafından saklanır (değişiklik gerekmedi).

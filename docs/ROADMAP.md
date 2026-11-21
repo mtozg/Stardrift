@@ -71,7 +71,7 @@ Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet
 | B-03 | Hayalet kokpiti | r004 oyunda (1.65.3, K49); Kapı 1 görsel kararı bekliyor; direk/kemer neonu hâlâ kopuk; tur hakkı bitti (yeni istek Mehmet onayı) |
 | B-05b | Başarım rozet çizimleri (10 rozet × 3 kademe) | Tamam: oyunda (1.65.0, K46); Gezgin ikonu küçükte göz gibi okunuyor (isteğe bağlı düzeltme) |
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | Mehmet'in konsol ekran görüntüsü gerekli |
-| B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |
+| B-09 | `game.js` modülerleştirme | 1. adım tamam (1.66.1, K51: veri dosyaları ayrıldı). Mantığın bölünmesi yüksek risk, ayrı onay gerekir |
 | B-10 | Game Designer içerikleri | Filo Bülteni (1.63.0) ve zincir telsiz sahnesi (1.63.1) tamam; taşıma/eskort şablonları: mevcut `teslim` görevi ve `eskort` sinyaliyle çakıştığı için önerilmiyor (K35'teki çift gelir sorunu); düşürüldü |
 | B-11 | Ölüm ekranı açıkken sayfa yenilenirse bedel alınmıyor | Tamam: 1.66.0 (K50, ekonomi, Mehmet onaylı) |
 
