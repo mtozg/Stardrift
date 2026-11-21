@@ -140,6 +140,21 @@ if screens:   # ekran yer tutucusu: tek düz emisyon (≤ 1); oyunda canlı ekra
         o.data.materials.append(ms)
 t0 = tick('materials', t0)
 
+NORM = None      # normalize_length: modeli metre ölçeğinden L=1,0 (burun ekseni) ve merkez orijine ölçekle (bake'ten sonra: doku değişmez); soketler/eklemler aynı dönüşümle
+if PC.get('normalize_length'):
+    _objs = [o for o in [body, live] + screens + arts if o]
+    _lo, _hi = geo.bounds(_objs)
+    _s = 1.0 / (_hi.y - _lo.y)
+    _c = (_lo + _hi) / 2
+    for o in _objs:
+        for v in o.data.vertices:
+            v.co = (v.co - _c) * _s
+        o.data.update()
+    for j in joints.values():
+        j.location = (Vector(j.location) - _c) * _s
+    NORM = (_s, _c)
+    info['normalize'] = {'scale': round(_s, 6), 'length_m_before': round(1.0 / _s, 3)}
+
 # eklemli parçaları ayır: her eklem için tek mesh, köşeler eklemin yerel uzayında (pivot eklem merkezinde), düğüm dönüşümü birim
 art_meshes = []
 if part_joint:
@@ -212,9 +227,10 @@ for jn, j in joints.items():
     if j.parent is None:
         j.parent = bpy.data.objects['LOD0']      # kinematik zincirin kökü LOD0 altında; alt eklemler zaten ebeveynine bağlı
 sock_objs = []
-for e in [o for o in bpy.data.objects if o.type == 'EMPTY' and o.name.startswith('SOCK_')]:
+for e in [o for o in bpy.data.objects if o.type == 'EMPTY' and o.name.startswith(('SOCK_', 'ANCH_'))]:
     sd = json.loads(e['sd_socket'])
-    s = export.socket(root, e.name + '_x', tuple(e.location), tuple(sd['dir']), {'sd_socket_extras': json.dumps(dict(sd['extras'], dir=[round(x, 4) for x in geo.b2g(sd['dir'])]), ensure_ascii=False)})
+    _loc = tuple((Vector(e.location) - NORM[1]) * NORM[0]) if NORM else tuple(e.location)
+    s = export.socket(root, e.name + '_x', _loc, tuple(sd['dir']), {'sd_socket_extras': json.dumps(dict(sd['extras'], dir=[round(x, 4) for x in geo.b2g(sd['dir'])]), ensure_ascii=False)})
     name = e.name
     bpy.data.objects.remove(e)
     s.name = name

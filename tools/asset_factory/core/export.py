@@ -43,10 +43,13 @@ def strip_internal_props(objs):
 
 
 def export_glb(path, objs, quality=90):
+    bpy.context.view_layer.update()
     for o in bpy.context.view_layer.objects:
-        o.select_set(False)
+        if o is not None:
+            o.select_set(False)
     for o in objs:
-        o.select_set(True)
+        if o is not None:
+            o.select_set(True)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_apply=True,
                               export_image_format='WEBP', export_image_quality=quality, export_extras=True,

@@ -1,0 +1,17 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.02,
+  0.018,
+  0.016
+ ],
+ "rough": [
+  0.7,
+  0.9
+ ],
+ "dirt": 0.9,
+ "grime": 1.0,
+ "streaks": 1.2,
+ "bump": 0.02
+}

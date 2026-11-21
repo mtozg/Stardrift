@@ -1,0 +1,55 @@
+{
+ "id": "yuk_ext",
+ "family": "ship",
+ "class": "player_ship",
+ "seed": 7001,
+ "profile": "PRODUCTION",
+ "concept": "Yük Devi dış model: Kapı 1 onaylı konsept c001 (Mehmet 2026-11-21): motor 6, kıskaç aynı, burun kutumsu; gerçekçilik turu",
+ "length_m": 12.0,
+ "materials": [
+  "yuk_paint",
+  "yuk_orange",
+  "yuk_steel",
+  "yuk_dark",
+  "yuk_black",
+  "yuk_rubber",
+  "yuk_glass_ext",
+  "yuk_cont_red",
+  "yuk_cont_blue",
+  "yuk_cont_orange",
+  "yuk_cont_rust",
+  "yuk_hazard",
+  "yuk_soot",
+  "yuk_pale",
+  "emit_amber",
+  "yuk_bare"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "yuk_ext",
+  "scale_m": 12.0
+ },
+ "prepare": {
+  "tex": {
+   "base": 1024,
+   "orm": 512,
+   "normal": 512
+  },
+  "ao_distance": 0.25,
+  "ao_into_base": 0.6,
+  "normalize_length": true,
+  "cull": "exterior"
+ },
+ "material_overrides": {
+  "yuk_paint": {
+   "panels": 0.4,
+   "panel_scale": 3.4,
+   "chips": 1.0
+  }
+ }
+}

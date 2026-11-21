@@ -1,0 +1,16 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.018,
+  0.018,
+  0.018
+ ],
+ "rough": [
+  0.75,
+  0.92
+ ],
+ "dirt": 0.4,
+ "bump": 0.03,
+ "micro_scale": 600.0
+}

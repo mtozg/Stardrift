@@ -1,0 +1,44 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.06,
+  0.1,
+  0.18
+ ],
+ "rough": [
+  0.38,
+  0.66
+ ],
+ "brush": 0.1,
+ "scratch": 0.9,
+ "wear": 2.0,
+ "wear_color": [
+  0.62,
+  0.62,
+  0.6
+ ],
+ "dirt": 0.75,
+ "bump": 0.04,
+ "chips": 1.6,
+ "chip_scale": 11.0,
+ "grime": 0.9,
+ "streaks": 0.8,
+ "wear_radius": 0.02,
+ "_note": "Yük dış model: konteyner/zırh varyantı (yuk_paint türevi)",
+ "tone_var": [
+  0.6,
+  1.2
+ ],
+ "cloud_scale": 2.2,
+ "chip_color": [
+  0.62,
+  0.62,
+  0.6
+ ],
+ "_r010": "Mehmet: düz haki → belirgin leke, boya kırığı (çıplak çelik), akıntı",
+ "panels": 1.0,
+ "panel_scale": 2.4,
+ "dirt_distance": 0.1,
+ "_r013": "ton açıldı x1.22"
+}
