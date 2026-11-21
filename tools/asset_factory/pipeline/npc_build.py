@@ -219,6 +219,17 @@ else:
         geo.apply_modifier(ob, dc)
     bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()      # dışa bakan normaller
     geo.set_smooth_by_angle(ob, 50)
+if spec.get('nozzles'):      # parametrik motor nozulları (arka): voxel kaynaklı düzensizliği temizler
+    from mathutils import Matrix
+    N = spec['nozzles']
+    bmn = bmesh.new(); bmn.from_mesh(ob.data)
+    for (ny_, nz_) in N['centers']:
+        x0 = N['x']
+        res = bmesh.ops.create_cone(bmn, cap_ends=True, cap_tris=False, segments=14, radius1=N['r'] * 1.12, radius2=N['r'], depth=N['len'], matrix=Matrix.Translation((x0 - N['len'] / 2 + 0.01, ny_, nz_)) @ Matrix.Rotation(math.pi / 2, 4, 'Y'))
+        bmesh.ops.create_cone(bmn, cap_ends=True, cap_tris=False, segments=14, radius1=N['r'] * 0.78, radius2=N['r'] * 0.78, depth=0.012, matrix=Matrix.Translation((x0 - N['len'] + 0.004, ny_, nz_)) @ Matrix.Rotation(math.pi / 2, 4, 'Y'))
+    bmesh.ops.recalc_face_normals(bmn, faces=bmn.faces)
+    bmn.to_mesh(ob.data); bmn.free()
+    geo.set_smooth_by_angle(ob, 50)
 if spec.get('claw'):      # Yük Devi: büyütülmüş kıskaç (kollar, piston, çene) — gövdeye birleştirilir; UV düzlemsel (kaynak yan çizim)
     from mathutils import Matrix
     C = spec['claw']
