@@ -129,6 +129,9 @@ def build(spec, mats):
             k.box((sx * 0.155, 0.134 + hy + 0.001, z + (0.04 if i % 2 else -0.04)), (0.074, 0.003, 0.014), 'lastik')      # bağlama kayışı
             k.box((sx * 0.155, 0.134 + hy / 2, z + (0.04 if i % 2 else -0.04)), (0.074, hy + 0.004, 0.012), 'lastik')
             k.box((sx * 0.19, 0.134 + hy / 2, z + 0.055), (0.004, 0.025, 0.010), 'soluk')                       # kimlik plakası (kapak köşesi)
+            k.box((sx * 0.1915, 0.134 + hy * 0.62, z - 0.02), (0.002, 0.012, 0.045 + 0.01 * i), 'soluk')          # stencil işaret bloğu (kod yazısı yerine)
+            k.box((sx * 0.1915, 0.134 + hy * 0.62, z - 0.02), (0.0025, 0.004, 0.030), 'siyah')
+            k.box((sx * 0.1915, 0.134 + hy * 0.28, z + 0.03), (0.002, 0.010, 0.020), 'sari')
         for z in (-0.275, -0.125, 0.025, 0.175):
             k.box((sx * 0.155, 0.19, z), (0.007, 0.075, 0.007), 'metal')
             k.box((sx * 0.195, 0.145, z), (0.020, 0.052, 0.012), 'metal')
@@ -201,6 +204,10 @@ def build(spec, mats):
         k.cyl((sx * 0.185, 0.0, -0.53), (sx * 0.185, 0.0, -0.545), 0.018, 'cekirdek', seg=10)
     # soot streaks on rear hull (is izi): ince koyu plakalar nozul arkasında
     k.box((0, 0.01, -0.502), (0.40, 0.14, 0.003), 'is')
+    k.box((0, 0.1305, -0.46), (0.30, 0.002, 0.14), 'is')                                 # üst gövdede is lekesi
+    k.box((0, -0.1255, -0.46), (0.30, 0.002, 0.14), 'is')
+    for sx in (-1, 1):
+        k.box((sx * 0.1965, 0.0, -0.46), (0.002, 0.18, 0.14), 'is')
     # ---------------- kıskaç kolu: pistonlar, hidrolik, kablo, diş
     def arm(p0, p1, rr):
         k.cyl(p0, p1, rr, 'metal', seg=10)

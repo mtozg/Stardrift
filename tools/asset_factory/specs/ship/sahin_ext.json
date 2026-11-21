@@ -43,5 +43,44 @@
   "ao_into_base": 0.6,
   "normalize_length": true,
   "cull": "exterior"
+ },
+ "material_overrides": {
+  "sahin_hull": {
+   "metallic": 0.3,
+   "rough": [
+    0.22,
+    0.55
+   ],
+   "tone_var": [
+    0.7,
+    1.15
+   ],
+   "wear": 1.6,
+   "chips": 1.2,
+   "grime": 0.7
+  },
+  "sahin_white": {
+   "metallic": 0.25,
+   "rough": [
+    0.22,
+    0.5
+   ],
+   "wear": 1.5
+  },
+  "sahin_mid": {
+   "metallic": 0.55,
+   "rough": [
+    0.28,
+    0.6
+   ],
+   "wear": 1.5
+  },
+  "sahin_red": {
+   "metallic": 0.2,
+   "rough": [
+    0.22,
+    0.4
+   ]
+  }
  }
 }
