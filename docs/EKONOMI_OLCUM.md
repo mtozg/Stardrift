@@ -45,7 +45,7 @@ Uyarı: taraf değişince oyuncu başka sistemde başlar (Korsan = Kara Liman, L
 
 ## Gözlemler (karar değil)
 1. XP tür ve sistem çarpanlarıyla tutarlı büyüyor (raider 30 → lider 120; Kara Liman ×1,5; Lonca ×0,7).
-2. **Öldürme kredisi türe göre neredeyse düz, Lonca'da tersine:** brute ve reaver, raider'dan *az* kredi veriyor (163, 160, 149). Zor hedef daha az kazandırıyor: bu tasarım amacı olamaz; kaynağı (ödül tablosu mu, düşen kayıp mı, rastgelelik mi) incelenecek.
+2. **Öldürme kredisi türe göre neredeyse düz, Lonca'da tersine:** brute ve reaver, raider'dan *az* kredi veriyor (163, 160, 149). Zor hedef daha az kazandırıyor: bu tasarım amacı olamaz; **kaynağı koddan doğrulandı:** `killNpc` içinde korsan ödülü `rand(90, 160) × sistem çarpanı` ve düşman türüne bağlı DEĞİL (XP ise tür çarpanıyla büyüyor). Türler arasındaki küçük fark düşen ek parçalardan ve rastgelelikten geliyor. **Öneri (henüz uygulanmadı):** ödülü XP ile aynı tür çarpanına bağlamak (raider ×1, brute ×1,3, reaver ×1,6, lider ×4). Bu geliri artırır; geç oyun kredi fazlası varsayımı (H1) ölçülmeden uygulanmayacak, önce/sonra tablosuyla raporlanacak.
 3. XP, satıştan gelen kısımda sistemden bağımsız sabit (cevher XP = birim miktarı × birim değeri / 8; fiyat çarpanları XP'yi etkilemiyor). Lonca'da fiyat çarpanı yalnızca krediyi büyütüyor.
 4. Kristal satışı Lonca'da Filo'ya göre +%73: +%25 çarpanından fazla; istasyon fiyat eğrisi/ stok etkisi olabilir (**doğrulanmadı**).
 
