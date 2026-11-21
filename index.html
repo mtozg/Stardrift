@@ -133,6 +133,7 @@ body,button{font-size-adjust:.5}
    service worker ve önbellek temizlenir, sayfa yeniden açılır. Kayıt (localStorage) silinmez. */
 (function(){ try {
   try { localStorage.removeItem('sd_ck3'); } catch (e) {}   /* eski kokpit denemesi ayarı artık yok */
+  var qm = /[?&]q=([012])(?!\d)/.exec(location.search); if (qm) { localStorage.setItem('sd_q', qm[1]); localStorage.setItem('sd_qm', '1'); }   /* ?q=0|1|2: görüntü kalitesini adresle seç (0 Performans); menüye giremeyen cihazlar için */
   var n = +(localStorage.getItem('sd_boot') || 0), force = /[?&]sifirla=1/.test(location.search);
   if (force || n >= 2){
     localStorage.setItem('sd_boot', '0'); if (n >= 2) { localStorage.setItem('sd_nosync', String(Date.now())); }   /* 24 saat sonra kendiliğinden kalkar (game.js) */ var P = [];   /* çökme: indirme ve kokpit denemesi kapanır */   /* çökme saptandı: bu cihazda çevrimdışı paket indirmesi kapanır */
@@ -147,7 +148,7 @@ body,button{font-size-adjust:.5}
 <script>
 /* SÜRÜM: her güncellemede bu numarayı artır. Tarayıcı eski game.js dosyasını önbellekten getirmez,
    ayarlar panelinin altında da bu numara görünür. */
-window.SD_VERSION = '1.67.6';
+window.SD_VERSION = '1.67.7';
 window.SD_FB = { apiKey: "AIzaSyADLoPqH_HEHjSv1mwY23cJZkuce-KOkUo", authDomain: "stardrift-617de.firebaseapp.com", projectId: "stardrift-617de", storageBucket: "stardrift-617de.firebasestorage.app", messagingSenderId: "527698904689", appId: "1:527698904689:web:dfdceeabba807fdf747dd0" };   // Firebase istemci ayarı (gizli değildir; güvenlik Firestore kurallarındadır)
 if (/[?&]tani=1/.test(location.search)) document.write('<script src="js/tani.js?v=' + window.SD_VERSION + '"><\/script>');   /* ölçüm paneli (T1/T2): yalnız ?tani=1 ile yüklenir */
 document.write('<script src="vendor/three-bloom.js?v=' + window.SD_VERSION + '"><\/script>');
