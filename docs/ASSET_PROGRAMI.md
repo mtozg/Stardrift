@@ -3,8 +3,12 @@
 Durum: **denetim aşaması.** Üretim başlamadı; Mehmet öncelik onayı bekleniyor.
 İstek (Mehmet): "Kokpitler bu kadar iyiyken diğer NPC'ler, evrenler, gökyüzü, kapılar gerçekçi durmuyor; eski kalan her şeyi yeniden yapmamız lazım."
 
-## Neden listede yoktu (dürüst not)
-Asset Factory'nin ilk kapsamı yalnız 3B kokpitlerdi. Diğer varlıklar ROADMAP'e hiç girmedi; bunu ben (Lead Developer) kapsamayı unutarak yaptım. Bu dosya ve ROADMAP B-12 bu boşluğu kapatır.
+## Kaynak belge (düzeltme)
+Bu envanter sıfırdan yazılmadı: Asset Factory'nin `tools/asset_factory/INVENTORY.md` (v1.1, 15 Kasım) belgesi bütün varlık kategorilerini, yer tutucuları ve onaylı üretim sırasını (Grup 1-8) zaten içeriyor. Eksik olan, ROADMAP'in bu belgeye bağlantı vermemesi ve Grup 2-8'in hiç başlamamış olmasıydı. Ayrıntılı plan ve maliyet: Asset Factory denetim raporu (`tools/asset_factory/docs/varlik_denetimi.html`, AF dalında).
+
+## Karar (Mehmet, 2026-11-21)
+- **Sanat dili korunur:** renk paleti, siluet ve karakteristik detaylar değişmez; amaç mevcut kaynak sanatı gerçek 3B model ve fiziksel malzemeyle sunmak.
+- **Strateji: Dengeli Geliştirme.** Aşama 1 prensipte onaylı, ama önce **kontrollü prototip** (1 NPC, 1 asteroit türü, Ankora istasyonu) ve gerçek cihaz ölçümü; kalan Aşama 1 için ayrı onay. **Aşama 2 ve sonrası onaylı değil.**
 
 ## Envanter (kod ve dosya adlarından çıkarım; Asset Factory denetimiyle doğrulanacak)
 | Kategori | Dosyalar / tablo | Mevcut yöntem (tahmin) |
