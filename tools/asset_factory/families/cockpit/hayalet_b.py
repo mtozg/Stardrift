@@ -42,6 +42,36 @@ def build(spec, mats):
         return ob
 
     cn = A['console']
+
+    def nquad(rows, front=0.0):
+        """neon şeridi: rows = [(sol, sağ), ...] 3B noktalar (komşu yüzeyin kenarından türetilmiş); yüzün önüne `front` m; normal göze bakar."""
+        bm_ = lamps_d.bm
+        vs = [[bm_.verts.new(a - a.normalized() * front), bm_.verts.new(b - b.normalized() * front)] for a, b in rows]
+        for r0, r1 in zip(vs[:-1], vs[1:]):
+            f = bm_.faces.new((r0[0], r0[1], r1[1], r1[0]))
+            f.normal_update()
+            if f.normal.dot(f.calc_center_median()) > 0:
+                f.normal_flip()
+
+    def npoly(pts, hwf, df, off=0.0, wpx=3.0, front=0.003, i0=0, i1=None):
+        """komşu şeridin (ribbon) kenar eğrisini izleyen neon: aynı nokta dizisi, kenara göre `off` oranında ofset (merkeze bakan yan), genişlik wpx; uçlar şeridin uçlarıyla çakışır."""
+        n_ = len(pts)
+        rows = []
+        for i in range(i0, (n_ if i1 is None else i1)):
+            u, v = pts[i]
+            u2, v2 = pts[min(i + 1, n_ - 1)]
+            u0, v0 = pts[max(i - 1, 0)]
+            tx, ty = u2 - u0, v2 - v0
+            l = math.hypot(tx, ty) or 1.0
+            nx, ny = -ty / l, tx / l
+            t = i / (n_ - 1)
+            hw = hwf(t) if callable(hwf) else hwf
+            if abs(u + nx - 800) > abs(u - nx - 800):
+                nx, ny = -nx, -ny
+            c = hw * off
+            d = df(t) if callable(df) else df
+            rows.append((P(u + nx * (c - wpx / 2), v + ny * (c - wpx / 2), d), P(u + nx * (c + wpx / 2), v + ny * (c + wpx / 2), d)))
+        nquad(rows, front)
     fd = lambda v: cn['d0'] - cn['slope'] * (v - cn['v0'])      # konsol yüzü derinliği (aşağı indikçe pilota yaklaşır)
     ct = cn['top']      # konsol üst kenarı: (u, v) kırık çizgi, soldan sağa
 
@@ -90,7 +120,7 @@ def build(spec, mats):
             bm2.faces.new((vo[k], vo[(k + 1) % 4], vi[(k + 1) % 4], vi[k]))
         add('bezel_' + lbl, bm2, 'hay_dark', eye=True, solid=0.012, toward_eye=True)
         # neon köşe parantezleri (L biçimli) iç çerçeve köşelerinde: sol-alt ve sağ-alt, sol-üst
-        for ci in (0, 3, 2):
+        for ci in (() if A.get('neon2') else (0, 3, 2)):
             pa, pb, pc = rin[ci], rin[(ci + 1) % 4], rin[(ci - 1) % 4]
             for pn in (pb, pc):
                 dpt = (pn - pa).normalized() * 0.05
@@ -134,9 +164,13 @@ def build(spec, mats):
             for k in range(4):
                 bm.faces.new((rs[r0][k], rs[r0][(k + 1) % 4], rs[r1][(k + 1) % 4], rs[r1][k]))
         add('frame3_' + lbl, bm, 'hay_carbon', eye=True)
-        for k in range(4):      # ön kenarda ince mor çizgi yalnız alt kenar (tek neon, az)
-            if k == 2:
-                lamps_d.cyl(C_[2] * 1.0 - C_[2].normalized() * 0.002, C_[3] * 1.0 - C_[3].normalized() * 0.002, 0.0028, 5)
+        if A.get('neon2') and lbl != 'radar':      # alt kenar neonu (radarda koltuk başlığı örter → yok): ön yüz şeridinin (B→C) ortasında, köşeden köşeye (uçlar kenar uçlarıyla çakışır)
+            lerp = lambda a, b, t: a + (b - a) * t
+            nquad([(lerp(B_[3], C_[3], 0.40), lerp(B_[3], C_[3], 0.62)), (lerp(B_[2], C_[2], 0.40), lerp(B_[2], C_[2], 0.62))], 0.0015)
+        elif not A.get('neon2'):
+            for k in range(4):      # ön kenarda ince mor çizgi yalnız alt kenar (tek neon, az)
+                if k == 2:
+                    lamps_d.cyl(C_[2] * 1.0 - C_[2].normalized() * 0.002, C_[3] * 1.0 - C_[3].normalized() * 0.002, 0.0028, 5)
     if A.get('r003'):
         for q_, bz_, l_ in ((sc['radar'], 9, 'radar'), (sc['sys'], 11, 'sys'), (sc['hull'], 11, 'hull')):
             raised_frame(q_, bz_, l_)
@@ -147,7 +181,7 @@ def build(spec, mats):
 
     # ---- konsol ortası: V amblemi + iki havalandırma (radar altı bandı)
     vb = cn['emblem_v']
-    for sg in (-1, 1):
+    for sg in ([] if A.get('neon2') else (-1, 1)):      # neon2: bu V koltuğun arkasında kalıyordu (gizli); radar kepindeki V kullanılır
         lamps_d.box(tuple(P(800 + sg * 12, vb, fd(vb) - 0.010)), (0.006, 0.004, 0.034), rot_z=0.0, skew=sg * 0.45)
     for sg in (-1, 1):
         cxu = 800 + sg * 96
@@ -175,28 +209,38 @@ def build(spec, mats):
     hdr = [(u, 18 + 6 * math.sin((u - 330) / 940 * math.pi) * -1) for u in lin(330, 1270, 24)]
     ribbon(hdr, 13, dC, 'header_beam', 0.024)
     for u_, hw_ in ((800, 18),):
-        lamps_d.box(tuple(P(u_, 36, dC - 0.03)), (0.07, 0.01, 0.012))      # tavan ortası neon çentik
-        lamps_d.box(tuple(P(u_, 50, dC - 0.03)), (0.034, 0.01, 0.008))
+        zz_ = 0.0075 if A.get('neon2') else 0.03      # neon2: kirişin ön yüzüne oturur
+        lamps_d.box(tuple(P(u_, 36, dC - zz_)), (0.07, 0.01, 0.012))      # tavan ortası neon çentik
+        lamps_d.box(tuple(P(u_, 50, dC - zz_)), (0.034, 0.01, 0.008))
     for sd in (-1, 1):
         uu = (lambda u: u) if sd < 0 else (lambda u: W - u)
         nm = 'L' if sd < 0 else 'R'
         pil = [(uu(385 + (A['canopy'].get('pil_dx', 180)) * t), 40 + 295 * t) for t in lin(0, 1.13, 13)]
         ribbon(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, 'pillar_' + nm, 0.022)
         # iç kenar neonu (dar ışık çizgisi, kanat yüzünde)
-        seg = [P(uu(395 + 158 * t + (11 + 8 * t) - 4), 70 + 230 * t, dC - 0.25 * t - 0.014) for t in lin(0.0, 1, 8)]
-        lamps_d.cyl(seg[1], seg[-2], 0.0035, 5)
+        if A.get('neon2'):      # direk iç kenarında, kanat yüzüne oturan şerit: aynı nokta dizisi, uçtan uca
+            npoly(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, off=0.62, wpx=3.0, front=0.003)
+        else:
+            seg = [P(uu(395 + 158 * t + (11 + 8 * t) - 4), 70 + 230 * t, dC - 0.25 * t - 0.014) for t in lin(0.0, 1, 8)]
+            lamps_d.cyl(seg[1], seg[-2], 0.0035, 5)
         # dış kemer (yan pencere çerçevesi)
         arc = [(uu(u), v) for u, v in ((330, 18), (270, 38), (225, 60), (170, 100), (120, 150), (80, 200), (45, 255), (20, 305), (2, 350))]
         ribbon(arc, 10, dC + 0.05, 'arc_' + nm, 0.045 if A.get('r003') else 0.02)
         if A.get('r003'):      # oluklu kemer/direk: yan yüzde koyu oluk (gölge çizgisi)
-            ribbon(arc, 2.5, dC + 0.05 - 0.03, 'arc_groove_' + nm, 0.006)
+            if not A.get('neon2'):
+                ribbon(arc, 2.5, dC + 0.05 - 0.03, 'arc_groove_' + nm, 0.006)
             ribbon(pil, 2.5, lambda t: dC - 0.25 * t * 1.13 - 0.02, 'pillar_groove_' + nm, 0.006)
-        lamps_d.cyl(P(uu(300), 26, dC - 0.015), P(uu(250), 44, dC - 0.015), 0.0045, 5)
-        lamps_d.cyl(P(uu(60), 230, dC + 0.02), P(uu(18), 320, dC + 0.02), 0.0045, 5)
+        if A.get('neon2'):      # kemerin eğrisini izleyen şeritler (merkez hat, kemer ön yüzünde)
+            npoly(arc, 10, dC + 0.05, off=0.55, wpx=3.4, front=0.003, i0=0, i1=4)
+            npoly(arc, 10, dC + 0.05, off=0.55, wpx=3.4, front=0.003, i0=5, i1=9)
+        else:
+            lamps_d.cyl(P(uu(300), 26, dC - 0.015), P(uu(250), 44, dC - 0.015), 0.0045, 5)
+            lamps_d.cyl(P(uu(60), 230, dC + 0.02), P(uu(18), 320, dC + 0.02), 0.0045, 5)
         # yan güverte kenarı: konsol omzundan yan kenara inen profil + neon çizgi
         rim = [(uu(u), v) for u, v in (((270, 436), (190, 476), (90, 524), (0, 570)) if A.get('r003') else ((330, 408), (200, 468), (90, 520), (0, 570)))]
         ribbon(rim, 6, lambda t: fd(480) - 0.012, 'deck_rim_' + nm, 0.014)
-        lamps_d.cyl(P(uu(250), 600, fd(600) - 0.012), P(uu(110), 640, fd(640) - 0.012), 0.0042, 5)
+        if not A.get('neon2'):
+            lamps_d.cyl(P(uu(250), 600, fd(600) - 0.012), P(uu(110), 640, fd(640) - 0.012), 0.0042, 5)
 
     # ---- konsol ayrıntısı: sakin yüzeyler (derz, kabartma plaka, ızgara, bulon, V amblemi) + altıgen güverte
     def onF(u, v, off=0.0):
@@ -245,7 +289,7 @@ def build(spec, mats):
     # V amblemi radar kepi üstünde (küçük, mor)
     vv = vtop(800) - 1.5
     for sg in (-1, 1):
-        lamps_d.box(tuple(onF(800 + sg * 7, vv, 0.014)), (0.004, 0.004, 0.020), skew=sg * 0.5)
+        lamps_d.box(tuple(onF(800 + sg * 7, vv, 0.0385 if A.get('neon2') else 0.014)), (0.004, 0.004, 0.020), skew=sg * 0.5)
     # altıgen güverte: bal peteği (altıgen prizma)
     for sd in (-1, 1):
         uu = (lambda u: u) if sd < 0 else (lambda u: W - u)
@@ -262,11 +306,14 @@ def build(spec, mats):
             r_ += 1
 
     if A.get('r003'):      # r003: kademeli konsol yüzü (ekran bandı → orta basamak → alt şerit), yan panel kasaları, oluklu kemerler
+        tier_box = {}
+
         def tier(u0, v0, u1, v1, off, th, name, acc=None, mat='hay_carbon'):
             if A.get('r004'):      # r004: boyut tek (orta) derinlikte (iki derinlikten hesap bloğu şişirip ekrana bindiriyordu)
                 vm = (v0 + v1) / 2
                 pc = onF((u0 + u1) / 2, vm, off)
                 dm = fd(vm)
+                tier_box[name] = ((pc.x, pc.y, pc.z), (abs(u1 - u0) / F * dm, th, abs(v1 - v0) / F * dm))
                 add(name, soft_box((pc.x, pc.y, pc.z), (abs(u1 - u0) / F * dm, th, abs(v1 - v0) / F * dm), 0.006, 0), mat, smooth=60)
                 return
             pa, pb = onF(u0, v0), onF(u1, v1)
@@ -286,7 +333,10 @@ def build(spec, mats):
             add('duct3_' + nm, tube(duct, 0.0065, 8), 'hay_dark', smooth=60)
             bolts([(uu(250, 530)[0], 640), (uu(250, 530)[1], 640), (uu(250, 530)[0], 576), (uu(250, 530)[1], 576)], 0.0545)
             ea, eb = uu(560, 566)      # tier kenarında ince mor çizgi
-            lamps_d.cyl(P(uu(235, 540)[0], 614, fd(614) - 0.0535), P(uu(235, 540)[1], 614, fd(614) - 0.0535), 0.003, 5)
+            if A.get('neon2'):      # neon2: kademe neonu yok (katmanlı paneller örtüyordu; kontrol: qc/neon_check.py)
+                pass
+            else:
+                lamps_d.cyl(P(uu(235, 540)[0], 614, fd(614) - 0.0535), P(uu(235, 540)[1], 614, fd(614) - 0.0535), 0.003, 5)
         # üst gövde: ekran bandının üstünde omuz kalınlığı (yan panel kasası): ekran kasalarının dışında basamaklı omuz bloğu
         for sd in (-1, 1):
             uu = (lambda a_, b_: (a_, b_)) if sd < 0 else (lambda a_, b_: (W - b_, W - a_))
