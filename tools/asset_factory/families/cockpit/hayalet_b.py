@@ -262,6 +262,12 @@ def build(spec, mats):
 
     if A.get('r003'):      # r003: kademeli konsol yüzü (ekran bandı → orta basamak → alt şerit), yan panel kasaları, oluklu kemerler
         def tier(u0, v0, u1, v1, off, th, name, acc=None, mat='hay_carbon'):
+            if A.get('r004'):      # r004: boyut tek (orta) derinlikte (iki derinlikten hesap bloğu şişirip ekrana bindiriyordu)
+                vm = (v0 + v1) / 2
+                pc = onF((u0 + u1) / 2, vm, off)
+                dm = fd(vm)
+                add(name, soft_box((pc.x, pc.y, pc.z), (abs(u1 - u0) / F * dm, th, abs(v1 - v0) / F * dm), 0.006, 0), mat, smooth=60)
+                return
             pa, pb = onF(u0, v0), onF(u1, v1)
             c = ((pa.x + pb.x) / 2, pa.y - off, (pa.z + pb.z) / 2)
             add(name, soft_box(c, (abs(pb.x - pa.x), th, abs(pa.z - pb.z)), 0.006, 0), mat, smooth=60)
