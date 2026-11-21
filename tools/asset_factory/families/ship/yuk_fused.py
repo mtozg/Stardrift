@@ -141,8 +141,7 @@ def build(spec, mats):
         extra.append(_obj('cowlrib', box_bm((sx * 0.13, 0.0, -0.455), (0.012, 0.29, 0.14)), 'yuk_dark', mats))                      # nozul bloğu dikey kaburga
     for sx in (-1, 1):
         for i, (z0, z1) in enumerate(((-0.30, -0.15), (-0.12, 0.04), (0.06, 0.20))):
-            extra.append(_obj('armor2', box_bm((sx * (HW + 0.010), -0.075 + 0.008 * i, (z0 + z1) / 2), (0.010, 0.085, z1 - z0 - 0.01)), 'yuk_dark', mats))   # alt zırh kuşağı (koyu renk bölgesi)
-        extra.append(_obj('shoulder', box_bm((sx * 0.16, 0.139, -0.20), (0.07, 0.016, 0.22)), 'yuk_orange', mats))                                # omuz kapakları (turuncu bölge)
+            pass
     extra = [e for e in extra if e is not None]
     union_all(hull, steps + [rear, nose, nose_f, belly, pylon] + wings + sponsons + extra)
     core = hull
@@ -156,8 +155,8 @@ def build(spec, mats):
     for sx in (-1, 1):                                                         # kabin yan pencere girintileri: 2 geniş pano (kokpit r015: açılı yan duvar camı)
         for z in (0.345, 0.425):
             xs = 0.188 - (z - 0.30) * 0.30
-            cuts.append(_obj('win', box_bm((sx * xs, 0.052, z), (0.022, 0.070, 0.066)), 'yuk_dark', mats))
-    cuts.append(_obj('wf', box_bm((0, 0.012, 0.52), (0.200, 0.056, 0.030)), 'yuk_dark', mats))     # ön cephe geniş cam girintisi (kokpitteki 4:1 ön cam)
+            cuts.append(_obj('win', box_bm((sx * xs, 0.054, z), (0.022, 0.082, 0.066)), 'yuk_dark', mats))
+    cuts.append(_obj('wf', box_bm((0, 0.016, 0.52), (0.200, 0.066, 0.030)), 'yuk_dark', mats))     # ön cephe geniş cam girintisi (kokpitteki 4:1 ön cam)
     cuts.append(_obj('wt', box_bm((0, 0.118, 0.415), (0.200, 0.012, 0.095)), 'yuk_dark', mats))   # üst ön cam girintisi
     diff_all(core, cuts)
     # ---------------- çekirdeğe geri birleşen çerçeveler: raf rayları + nozul dudakları
@@ -195,10 +194,46 @@ def build(spec, mats):
         grv.append(_obj('lb', box_bm((0.0, -0.10 + D - 0.02, -0.03), (0.0042 * 0, 0.0, 0.0)), 'yuk_dark', mats)) if False else None
     grv = [g for g in grv if g is not None]
     diff_all(hi_core, grv)
+    # ---------------- büyük düz yüzeyleri böl (LOD0 6–8k) + renk bölgeleri gövdeye göre (koyu alt kuşak, turuncu zırh bandı, burun altı)
+    bm = bmesh.new()
+    bm.from_mesh(core.data)
+    cut_len = P.get('split_len', 0.11)
+    for _ in range(2):
+        groups = {}
+        for e in bm.edges:
+            Lg = (e.verts[0].co - e.verts[1].co).length / S
+            c = int(Lg / cut_len)
+            if c >= 1 and any(f.calc_area() / (S * S) > (cut_len * 0.6) ** 2 for f in e.link_faces):
+                groups.setdefault(min(c, 8), []).append(e)
+        for c, es in groups.items():
+            es = [e for e in es if e.is_valid]
+            if es:
+                bmesh.ops.subdivide_edges(bm, edges=es, cuts=c, use_grid_fill=True)
+    zone = P.get('zones', True)
+    if zone:
+        for f in bm.faces:
+            cb = f.calc_center_median()
+            gx, gy, gz = cb.x / S, cb.z / S, -cb.y / S          # Blender → oyun (x, y, z)
+            cur = MATS[f.material_index]
+            if cur not in ('yuk_paint', 'yuk_dark'):
+                continue
+            if gz < -0.335:                                  # motor bloğu: koyu
+                f.material_index = SLOT['yuk_dark']
+            elif gy < -0.088:                                # karın: koyu
+                f.material_index = SLOT['yuk_dark']
+            elif gy < -0.046 and abs(gx) > 0.12 and -0.33 < gz < 0.26:     # alt yan kuşak: koyu gunmetal
+                f.material_index = SLOT['yuk_dark']
+            elif -0.046 <= gy < -0.022 and abs(gx) > 0.15 and -0.33 < gz < 0.27:   # ince turuncu zırh bandı
+                f.material_index = SLOT['yuk_orange']
+            elif gz > 0.31 and gy < 0.0:                     # burun altı: turuncu zırh
+                f.material_index = SLOT['yuk_orange']
+    bm.to_mesh(core.data)
+    bm.free()
     # ---------------- düşük poligon çekirdek: dissolve + decimate
     bm = bmesh.new()
     bm.from_mesh(core.data)
-    bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(P.get('dissolve_deg', 4.0)), verts=bm.verts, edges=bm.edges, use_dissolve_boundaries=False)
+    if P.get('dissolve_deg', 4.0) > 0:
+        bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(P.get('dissolve_deg', 4.0)), verts=bm.verts, edges=bm.edges, use_dissolve_boundaries=False)
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bm.to_mesh(core.data)
     bm.free()
@@ -242,12 +277,12 @@ def build(spec, mats):
     for sx in (-1, 1):
         for z in (0.345, 0.425):
             xs = 0.188 - (z - 0.30) * 0.30
-            small('glass', box_bm((sx * (xs - 0.002), 0.052, z), (0.014, 0.060, 0.056)), 'yuk_glass_ext')
-    small('glassf', box_bm((0, 0.012, 0.518), (0.190, 0.048, 0.016)), 'yuk_glass_ext')
+            small('glass', box_bm((sx * (xs - 0.002), 0.054, z), (0.014, 0.072, 0.056)), 'yuk_glass_ext')
+    small('glassf', box_bm((0, 0.016, 0.518), (0.190, 0.057, 0.016)), 'yuk_glass_ext')
     small('glasst', box_bm((0, 0.116, 0.415), (0.190, 0.008, 0.088)), 'yuk_glass_ext')
     for x in (-0.100, -0.049, 0.049, 0.100):                                  # 4 dikme: iki dış + iki iç (kokpit ön camı gibi: orta bölme geniş)
-        small('mull', box_bm((x, 0.012, 0.526), (0.008, 0.062, 0.012)), 'yuk_steel')
-    small('hdr', box_bm((0, 0.044, 0.526), (0.206, 0.008, 0.012)), 'yuk_dark')
+        small('mull', box_bm((x, 0.016, 0.526), (0.008, 0.072, 0.012)), 'yuk_steel')
+    small('hdr', box_bm((0, 0.054, 0.526), (0.206, 0.008, 0.012)), 'yuk_dark')
     # nozul çekirdekleri (oyuğun dibinde) + içi is
     for x, y in ENG:
         small('core', cyl_bm((x, y, -0.455), (x, y, -0.460), 0.030, None, 16), 'emit_amber')

@@ -1,0 +1,9 @@
+# Yük — bütünleşik gövde SON REVİZE (fused_r009) — Lead kararı: bu turdan sonra Yük için başka tur YOK
+Tek hedefli son revize: (1) koyu dikdörtgen zırh blokları kaldırıldı; renk bölgeleri YÜZ BAZINDA gövdeye yayıldı: üst gövde sıcak kahve-turuncu pas boya, motor bloğu + karın + alt yan kuşak koyu gunmetal, ince turuncu zırh bandı (yan), burun altı turuncu zırh, uyarı kuşakları sarı; (2) büyük düz yüzeyler 0,10 L ızgaraya bölündü (LOD0 3451 → 4124); (3) kokpit cam yüksekliği ≈%18 artırıldı (ön cam 0,056→0,066 L, yan camlar 0,070→0,082 L, dikmeler uzadı); (4) hi-poly perçin ve kenar parlaması artırıldı.
+Sayılar: LOD0 4124 / LOD1 1216 üçgen, GLB 1,87 MB (+ `sd_ship_yuk_m.glb` mobil 1024), UV doluluğu %73,8 ✓, texel ≈93 px/m ✓.
+## Kokpit cam konumu uyumu (kabul ölçütü)
+Kokpit r015 ile karşılaştırma: ön cam 4 dikmeli (iki dış + iki iç, iç/dış oranı 0,49 ≈ kokpit 0,51), orta bölme geniş ✓; yan camlar 2 geniş pano ✓; üstte başlık çubuğu ✓; cam yüksekliği kokpite göre ≈%15 kısaydı → bu turda düzeltildi (şimdi ≈%3 içinde). Ön cam oranı 3,0:1 yerine kokpitteki ≈4:1'e yaklaşık değil (burun genişliği sınırı; yükseklik artınca oran 3,0:1) — KISMEN uyumlu.
+## Hedeften kaçan
+LOD0 4124 (hedef 6–8k ✗): ızgara bölme tek başına üçgeni yeterince artırmadı. Bu tur sonrası Yük için başka tur YOK (Lead).
+## Oyun içi karşılaştırma (karsilastirma/hangar_yuk_fused_r009.webp; sol şimdiki, sağ yeni; açılar birebir aynı değil)
+Yeni: sıcak turuncu-kahve üst gövde, koyu alt kuşak ve motor bloğu (renk bölgeleri gövdeye yayıldı, 'bloklu' izlenim azaldı), sarı kuşaklar, gömülü nozul + alev, kalın kıskaç, gömülü konteynerler. Şimdiki: daha çok küçük ayrıntı, kirli kontrast, parlak 8 motor kümesi. KARAR: ADAY — bütünlük ✓, renk bölgeleri ✓, sıcak ton ✓, küçük ölçek ayrıntı/kontrast hâlâ şimdikinin gerisinde → 'şimdikinden iyi' DEĞİL; Mehmet sabah bakacak.
