@@ -192,7 +192,7 @@ def build(spec, mats):
     # ---- kanopi çerçevesi: ince kanat profilli başlık kirişi, iki çapraz A-direği (aşağıya yakınsayan V), dış kemerler, tavan neon çentiği
     dC = A['canopy']['depth']
 
-    def ribbon(pts, hw, depth, name, solid=0.018, dfun=None):
+    def ribbon(pts, hw, depth, name, solid=0.018, dfun=None, mat='hay_carbon', bevel=0.0):
         """Piksel uzayında bir çizgi boyunca şerit (kanat profili): her noktada teğete dik ±hw px; solidify ile ince kalınlık."""
         rows = []
         for i, (u, v) in enumerate(pts):
@@ -204,7 +204,14 @@ def build(spec, mats):
             w = hw(i / (len(pts) - 1)) if callable(hw) else hw
             d = depth(i / (len(pts) - 1)) if callable(depth) else depth
             rows.append([P(u - nx * w, v - ny * w, d), P(u + nx * w, v + ny * w, d)])
-        return add(name, grid(rows), 'hay_carbon', eye=True, solid=solid)
+        ob_ = add(name, grid(rows), mat, eye=True, solid=solid)
+        if bevel:      # r007: kenar pahı (ışık yakalayan ince kırık kenar)
+            mb = ob_.modifiers.new('bev2', 'BEVEL')
+            mb.width = bevel
+            mb.segments = 2
+            mb.limit_method = 'ANGLE'
+            geo.apply_modifier(ob_, mb)
+        return ob_
 
     hdr = [(u, 18 + 6 * math.sin((u - 330) / 940 * math.pi) * -1) for u in lin(330, 1270, 24)]
     ribbon(hdr, 13, dC, 'header_beam', 0.024)
@@ -216,7 +223,38 @@ def build(spec, mats):
         uu = (lambda u: u) if sd < 0 else (lambda u: W - u)
         nm = 'L' if sd < 0 else 'R'
         pil = [(uu(385 + (A['canopy'].get('pil_dx', 180)) * t), 40 + 295 * t) for t in lin(0, 1.13, 13)]
-        ribbon(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, 'pillar_' + nm, 0.022)
+        if A.get('r007'):      # r007: direk gerçekçiliği: özel malzeme (karbon/metal, aşınma, derz), kenar pahı, civata sırası, enine panel derzleri
+            ribbon(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, 'pillar_' + nm, 0.022, mat='hay_pillar', bevel=0.0022)
+            hwp = lambda t: 11 + 8 * t
+            dfp = lambda t: dC - 0.25 * t * 1.13
+            n_ = len(pil)
+            for i_ in range(1, n_ - 1):      # civata: neonun karşı kenarında (dış kenar), şeridin ön yüzüne oturur
+                u, v = pil[i_]; u2, v2 = pil[i_ + 1]; u0, v0 = pil[i_ - 1]
+                tx, ty = u2 - u0, v2 - v0; l = math.hypot(tx, ty) or 1.0
+                nx, ny = -ty / l, tx / l
+                if abs(u + nx - 800) > abs(u - nx - 800):
+                    nx, ny = -nx, -ny      # (nx,ny) merkeze bakan yan
+                t_ = i_ / (n_ - 1)
+                pb = P(u - nx * hwp(t_) * 0.62, v - ny * hwp(t_) * 0.62, dfp(t_))
+                rivets.cyl(pb, pb - pb.normalized() * 0.0045, 0.0042, 6)
+            for t_ in (0.2, 0.42, 0.64, 0.86):      # enine ince panel derzi (neonun altında kalır; koyu şerit)
+                i_ = t_ * (n_ - 1)
+                i0_ = int(i_); fr = i_ - i0_
+                u = pil[i0_][0] * (1 - fr) + pil[min(i0_ + 1, n_ - 1)][0] * fr
+                v = pil[i0_][1] * (1 - fr) + pil[min(i0_ + 1, n_ - 1)][1] * fr
+                u2, v2 = pil[min(i0_ + 1, n_ - 1)]; u0, v0 = pil[max(i0_ - 1, 0)]
+                tx, ty = u2 - u0, v2 - v0; l = math.hypot(tx, ty) or 1.0
+                nx, ny = -ty / l, tx / l; tx, ty = tx / l, ty / l
+                hw_ = hwp(t_); d_ = dfp(t_) - 0.0012
+                bm_ = dark_d.bm
+                a_ = [P(u - nx * hw_ * 0.97, v - ny * hw_ * 0.97, d_), P(u + nx * hw_ * 0.97, v + ny * hw_ * 0.97, d_),
+                      P(u + nx * hw_ * 0.97 + tx * 1.6, v + ny * hw_ * 0.97 + ty * 1.6, d_), P(u - nx * hw_ * 0.97 + tx * 1.6, v - ny * hw_ * 0.97 + ty * 1.6, d_)]
+                f_ = bm_.faces.new([bm_.verts.new(p_) for p_ in a_])
+                f_.normal_update()
+                if f_.normal.dot(f_.calc_center_median()) > 0:
+                    f_.normal_flip()
+        else:
+            ribbon(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, 'pillar_' + nm, 0.022)
         # iç kenar neonu (dar ışık çizgisi, kanat yüzünde)
         if A.get('neon2'):      # direk iç kenarında, kanat yüzüne oturan şerit: aynı nokta dizisi, uçtan uca
             npoly(pil, lambda t: 11 + 8 * t, lambda t: dC - 0.25 * t * 1.13, off=0.62, wpx=3.0, front=0.003)
