@@ -1,0 +1,26 @@
+{
+ "kind": "metal",
+ "metallic": 0.5,
+ "base": [
+  0.17,
+  0.175,
+  0.19
+ ],
+ "rough": [
+  0.4,
+  0.7
+ ],
+ "brush": 0.5,
+ "scratch": 0.6,
+ "wear": 0.8,
+ "wear_color": [
+  0.4,
+  0.4,
+  0.43
+ ],
+ "dirt": 0.35,
+ "bump": 0.02,
+ "_note": "Hayalet dış: açık panel",
+ "panels": 0.35,
+ "panel_scale": 3.4
+}

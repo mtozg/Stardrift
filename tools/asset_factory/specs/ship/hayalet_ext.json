@@ -1,0 +1,44 @@
+{
+ "id": "hayalet_ext",
+ "family": "ship",
+ "class": "player_ship",
+ "seed": 7004,
+ "profile": "PRODUCTION",
+ "concept": "Hayalet dış model: Kapı 1 onaylı konsept c001 (Mehmet 2026-11-21): ikiz motor, cam yönü konsepttekiyle",
+ "length_m": 6.0,
+ "materials": [
+  "hayalet_hull",
+  "hayalet_panel",
+  "hay_dark",
+  "hayalet_glass",
+  "emit_violet2",
+  "steel_dark",
+  "gunmetal",
+  "yuk_rubber",
+  "yuk_soot",
+  "emit_violet",
+  "emit_amber",
+  "emit_red"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "hayalet_ext",
+  "scale_m": 6.0
+ },
+ "prepare": {
+  "tex": {
+   "base": 1024,
+   "orm": 512,
+   "normal": 512
+  },
+  "ao_distance": 0.15,
+  "ao_into_base": 0.6,
+  "normalize_length": true,
+  "cull": "exterior"
+ }
+}
