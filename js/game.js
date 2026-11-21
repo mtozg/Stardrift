@@ -6159,8 +6159,10 @@ window.__facDep = () => curSt ? facLv(curSt, 'dep') : 0;
 {
   let shown = false;
   const lost = e => { if (e && e.preventDefault) e.preventDefault(); if (shown) return; shown = true; try { persist(); } catch (er) {}
-    const c = document.createElement('div'); c.style.cssText = 'position:fixed;inset:0;z-index:99;background:#04070e;color:#e8edff;display:flex;align-items:center;justify-content:center;font:700 16px var(--font);text-align:center;padding:20px'; c.textContent = 'Grafik bağlantısı koptu (bellek dolmuş olabilir). Oyun yeniden yükleniyor…'; document.body.appendChild(c); setTimeout(() => location.reload(), 1600); };
+    try { localStorage.setItem('sd_lost', String((+localStorage.getItem('sd_lost') || 0) + 1)); localStorage.setItem('sd_q', '0'); localStorage.setItem('sd_qm', '1'); } catch (er) {}   /* güvenli mod: grafik bağlantısı koparsa yeniden açılış Performans kalitesiyle (bellek ihtiyacı en düşük) */
+    const c = document.createElement('div'); c.style.cssText = 'position:fixed;inset:0;z-index:99;background:#04070e;color:#e8edff;display:flex;align-items:center;justify-content:center;font:700 16px var(--font);text-align:center;padding:20px'; c.textContent = 'Grafik bağlantısı koptu (bellek dolmuş olabilir). Oyun düşük görüntü kalitesiyle yeniden yükleniyor…'; document.body.appendChild(c); setTimeout(() => location.reload(), 1600); };
   glc.addEventListener('webglcontextlost', lost);
+  setTimeout(() => { try { localStorage.removeItem('sd_lost'); } catch (e) {} }, 60000);   /* 60 sn sorunsuz çalıştıysa kopma sayacı sıfırlanır */
   window.addEventListener('pagehide', () => { try { persist(); } catch (e) {} });
   document.addEventListener('visibilitychange', () => { if (document.hidden){ try { persist(); } catch (e) {} } });
   if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(resize, 120));
