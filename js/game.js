@@ -166,6 +166,7 @@ function spaceEnv(){ if (_spEnv !== null) return _spEnv || undefined; _spEnv = f
     const sg = x.createRadialGradient(80, 28, 2, 80, 28, 30); sg.addColorStop(0, 'rgba(255,244,220,1)'); sg.addColorStop(1, 'rgba(255,244,220,0)'); x.fillStyle = sg; x.fillRect(40, 0, 80, 70);
     const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; const pm = new THREE.PMREMGenerator(renderer); _spEnv = pm.fromEquirectangular(t).texture; pm.dispose(); } catch (e) { _spEnv = false; }
   return _spEnv || undefined; }
+window.__spaceEnv = spaceEnv;
 const stationGroup = new THREE.Group(); scene.add(stationGroup);
 const stationLights = [];
 {

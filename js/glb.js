@@ -37,13 +37,18 @@
     var m = G.index[key] || {};
     return { key: key, root: root, lod0: lod0, lod1: lod1, anch: anch, rot: m.rot || null, s: m.s || 1, gltf: gltf };
   }
+  /* karanlık görünüm düzeltmesi: GLB malzemelerine oyunun uzay yansıma haritası verilir (yalnız bu modeller; sahne ortamı değişmez). Dosyada kendi haritası varsa dokunulmaz. Metallik yalnız metalik doku yoksa düşürülür. */
+  function envVer(root){
+    var env = window.__spaceEnv && window.__spaceEnv(); if (!env) return;
+    root.traverse(function(o){ if (!o.isMesh || !o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ if (m.isMeshStandardMaterial && !m.envMap){ m.envMap = env; m.envMapIntensity = 1.2; if (!m.metalnessMap) m.metalness = Math.min(m.metalness, 0.4); m.needsUpdate = true; } }); });   /* tam metal (1,0) + koyu uzay haritası = simsiyah: yansıma haritası + metalliği 0,4'e indirme (oyun içi 4 değişken denemesinde okunur biçim veren en sade ayar) */
+  }
   G.load = function(key){
     return G.ready.then(function(){
       if (!G.index[key]) return Promise.reject(new Error('model listede yok: ' + key));
       var c = cache[key];
       if (c){ if (c.p) return c.p; if (c.fail && performance.now() - c.fail < RETRY) return Promise.reject(c.err); }
       c = cache[key] = {};
-      c.p = loader().then(function(L){ return new Promise(function(res, rej){ L.load(url(key), function(g){ try { var p = prep(key, g); G.stats.yuklenen++; res(p); } catch (e) { rej(e); } }, undefined, rej); }); })
+      c.p = loader().then(function(L){ return new Promise(function(res, rej){ L.load(url(key), function(g){ try { var p = prep(key, g); envVer(p.root); G.stats.yuklenen++; res(p); } catch (e) { rej(e); } }, undefined, rej); }); })
         .catch(function(e){ G.stats.basarisiz++; c.p = null; c.fail = performance.now(); c.err = e; try { console.warn('[glb] ' + key + ': ' + ((e && e.message) || e)); } catch (x) {} throw e; });
       return c.p;
     });
@@ -160,6 +165,7 @@
   };
 
   // test/tanı için kısa durum
+  G.kayaMalzemeleri = function(){ return Object.keys(ims).map(function(k){ return ims[k].m.material; }); };   // yalnız test için
   G.durum = function(){
     var modes = [0, 0, 0]; npcs.forEach(function(n){ if (n._glb) modes[n._glb.mode] = (modes[n._glb.mode] || 0) + 1; });
     return { npcGlb: npcs.length, lod: modes, kayaOrnek: G.stats.kayaOrnek, kayaKumeleri: G.stats.kayaKumeleri, yuklenen: G.stats.yuklenen, basarisiz: G.stats.basarisiz, istasyon: stations.length, model: Object.keys(G.index) };
