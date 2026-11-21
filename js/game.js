@@ -10142,7 +10142,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
       const f = fee(), st = (typeof STATION !== 'undefined' && STATION) ? STATION.ad : 'ana istasyon';
       D.innerHTML = '<h2>GEMİ PARÇALANDI</h2><p>Kargon uzaya saçıldı. Kurtarma ekibi gövdeni toplayıp yeniden birleştirebilir.<br>Canlanma yeri: <b>' + st + '</b></p><p class="ls">Kurtarma ve onarım ücreti: kredinin %10\'u (en az 50, en fazla 2000).</p><button>' + (f > 0 ? 'CANLAN · ' + f + ' KREDİ' : 'CANLAN · ÜCRETSİZ') + '</button>';
       D.classList.add('on'); requestAnimationFrame(() => D.classList.add('vis')); window.__menuOn = true;
-      D.querySelector('button').onclick = () => { const c = fee(); save.kredi -= c; persist(); rebuild(c); };
+      D.querySelector('button').onclick = () => { const c = fee(); save.kredi -= c; save.dp = 0; persist(); rebuild(c); };
     }
     function rebuild(paid){
       OFF.forEach(o => { o.x = (Math.random() - 0.5) * 300; o.y = (Math.random() - 0.5) * 180; o.r = (Math.random() - 0.5) * 5; });
@@ -10165,13 +10165,14 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     wreck = function(){
       if (window.__dead) return; window.__dead = true;
       flashAt(rig.position.clone(), 50, 8); burst(rig.position, 0xffd0a0, 40, 90, 1.0); sfxBoom(1); shake = 1;
-      for (const k in cargo) cargo[k] = 0; persist();
+      for (const k in cargo) cargo[k] = 0; save.dp = 1; persist();   /* 1.66.0 (K50, EKONOMİ): bedel ödenmeden sayfa yenilenirse açılışta bedel alınır (eskiden yenilemek bedeli atlatıyordu) */
       vel.set(0, 0, 0); hp.hull = 1; hp.shield = 0; lock = null; boostBtn = false; laserOn = false; thrustOn = false;
       for (const n of npcs) if (n.tgt === 'player'){ n.state = 'roam'; n.tgt = null; n.truce = time + 30; }
       setTimeout(show, 900);
     };
     window.__deathShow = show;
     if (TESTM) window.__feeT = fee;
+    if (save.dp){ const c0 = fee(); save.kredi -= c0; save.dp = 0; persist(); setTimeout(() => { try { toast('Önceki ölümün kurtarma ücreti alındı: ' + c0 + ' kredi', 4200); } catch (e) {} }, 2500); }   /* ölüm ekranı açıkken yenilenmiş oyun */
   })();
 
   // =====  BİLDİRİM PANELİ: mesaj kutusu yerine. Bilgi, uyarı, telsiz ve toplanan cevherler kayda girer; geriye dönük okunur.

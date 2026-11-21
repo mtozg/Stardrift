@@ -73,7 +73,7 @@ Aşama 1-A/1-B/1-C/1-D (bölgeler, hedef renkleri, devriye çağrısı, rüşvet
 | B-08 | Firebase kuralları ve kayıt kodu güvenliği | Mehmet'in konsol ekran görüntüsü gerekli |
 | B-09 | `game.js` modülerleştirme | Büyük mimari değişiklik, Mehmet onayı gerekli |
 | B-10 | Game Designer içerikleri | Filo Bülteni (1.63.0) ve zincir telsiz sahnesi (1.63.1) tamam; taşıma/eskort şablonları: mevcut `teslim` görevi ve `eskort` sinyaliyle çakıştığı için önerilmiyor (K35'teki çift gelir sorunu); düşürüldü |
-| B-11 | Ölüm ekranı açıkken sayfa yenilenirse bedel alınmıyor (önceden var) | Düşük öncelik; ayrı karar |
+| B-11 | Ölüm ekranı açıkken sayfa yenilenirse bedel alınmıyor | Tamam: 1.66.0 (K50, ekonomi, Mehmet onaylı) |
 
 ## Gerçek cihaz testleri (iPhone / iPad; henüz yapılmadı)
 Liste: [QA_GERCEK_CIHAZ.md](QA_GERCEK_CIHAZ.md). Kapsam: WebGL bağlam sayısı ve hangar↔oyun geçişi, bellek (arka plana atma, 30 sn sonra dönüş), 3B kokpit (Kaşif, Şahin), dokunmatik kontroller (devriye çağrı düğmeleri dahil), iPad 120 Hz hangar animasyonu, 15-30 dk oyun oturumu (ısınma, kare hızı, pil). Test edilmemiş sayılır: bütün performans ve bellek bilgisi swiftshader emülasyonundan.

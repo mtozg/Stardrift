@@ -254,3 +254,10 @@ Not: swiftshader; gerçek cihaz test edilmedi.
 | 844×390 yatay boyutunda 4 kokpit (Kaşif, Şahin, Yük, Hayalet): ekranlar yerine oturuyor, HUD sırtı doğru, sayfa hatası yok (`docs/sabah/telefon_boyutu_kokpitler.webp`) | Görsel |
 | Yeni test `kokpit_dongu` (4 kokpit ×3 tur, doku/geometri sabit, hata yok) `run.sh` listesinde | PASS |
 Not: Kaşif'te canlı ekranlar telefon boyutunda en küçük görünenler (yazılar küçük). Emülasyon; gerçek cihaz test edilmedi.
+
+## 29. Sürüm 1.66.0 test özeti (K50 ölüm bedeli yenilemeyle atlatılamaz)
+| Test | Sonuç |
+|---|---|
+| olum_yenile: gemi parçalanınca kayıtta `dp` = 1; ekran açıkken sayfa yenilenince açılışta 2000 kredi (999999 → 997999), `dp` sıfırlanır | PASS |
+| olum_siniri, olum_hesap | PASS |
+Not: ölüm ekranında "Canlan"a basıp ödedikten sonra yenilemede ikinci kez alınmaması kod incelemesiyle doğrulandı (`dp = 0` ödeme anında yazılır), otomatik testte ayrıca denenmedi.
