@@ -139,6 +139,10 @@ def build(spec, mats):
         extra.append(_obj('strut', tbox_bm((sx * 0.17, -0.11), 0.06, 0.04, 0.05, 0.03, -0.02, 0.12), 'yuk_dark', mats))                # sponson bağlantı dikmesi
     for sx in (-1, 0, 1):
         extra.append(_obj('cowlrib', box_bm((sx * 0.13, 0.0, -0.455), (0.012, 0.29, 0.14)), 'yuk_dark', mats))                      # nozul bloğu dikey kaburga
+    for sx in (-1, 1):
+        for i, (z0, z1) in enumerate(((-0.30, -0.15), (-0.12, 0.04), (0.06, 0.20))):
+            extra.append(_obj('armor2', box_bm((sx * (HW + 0.010), -0.075 + 0.008 * i, (z0 + z1) / 2), (0.010, 0.085, z1 - z0 - 0.01)), 'yuk_dark', mats))   # alt zırh kuşağı (koyu renk bölgesi)
+        extra.append(_obj('shoulder', box_bm((sx * 0.16, 0.139, -0.20), (0.07, 0.016, 0.22)), 'yuk_orange', mats))                                # omuz kapakları (turuncu bölge)
     extra = [e for e in extra if e is not None]
     union_all(hull, steps + [rear, nose, nose_f, belly, pylon] + wings + sponsons + extra)
     core = hull
@@ -149,11 +153,11 @@ def build(spec, mats):
     ENG = [(x, y) for y in (0.07, -0.05) for x in (-0.125, 0.0, 0.125)]
     for x, y in ENG:
         cuts.append(_obj('noz', cyl_bm((x, y, -0.56), (x, y, -0.44), 0.047, 0.041, 20), 'yuk_dark', mats))
-    for sx in (-1, 1):                                                         # kabin yan pencere girintileri
-        for z in (0.335, 0.395, 0.455):
+    for sx in (-1, 1):                                                         # kabin yan pencere girintileri: 2 geniş pano (kokpit r015: açılı yan duvar camı)
+        for z in (0.345, 0.425):
             xs = 0.188 - (z - 0.30) * 0.30
-            cuts.append(_obj('win', box_bm((sx * xs, 0.055, z), (0.020, 0.066, 0.052)), 'yuk_dark', mats))
-    cuts.append(_obj('wf', box_bm((0, 0.012, 0.52), (0.150, 0.052, 0.030)), 'yuk_dark', mats))     # ön cephe geniş cam girintisi
+            cuts.append(_obj('win', box_bm((sx * xs, 0.052, z), (0.022, 0.070, 0.066)), 'yuk_dark', mats))
+    cuts.append(_obj('wf', box_bm((0, 0.012, 0.52), (0.200, 0.056, 0.030)), 'yuk_dark', mats))     # ön cephe geniş cam girintisi (kokpitteki 4:1 ön cam)
     cuts.append(_obj('wt', box_bm((0, 0.118, 0.415), (0.200, 0.012, 0.095)), 'yuk_dark', mats))   # üst ön cam girintisi
     diff_all(core, cuts)
     # ---------------- çekirdeğe geri birleşen çerçeveler: raf rayları + nozul dudakları
@@ -194,7 +198,7 @@ def build(spec, mats):
     # ---------------- düşük poligon çekirdek: dissolve + decimate
     bm = bmesh.new()
     bm.from_mesh(core.data)
-    bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(4.0), verts=bm.verts, edges=bm.edges, use_dissolve_boundaries=False)
+    bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(P.get('dissolve_deg', 4.0)), verts=bm.verts, edges=bm.edges, use_dissolve_boundaries=False)
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bm.to_mesh(core.data)
     bm.free()
@@ -203,6 +207,11 @@ def build(spec, mats):
     m.ratio = P.get('core_ratio', 0.5)
     with bpy.context.temp_override(object=core, active_object=core, selected_objects=[core], selected_editable_objects=[core]):
         bpy.ops.object.modifier_apply(modifier=m.name)
+    if P.get('bevel_m', 0) > 0:                                             # düşük poligonda gerçek pah (siluet + kenar parlaması)
+        mb = core.modifiers.new('bev', 'BEVEL')
+        mb.width = P['bevel_m']; mb.segments = P.get('bevel_seg', 2); mb.limit_method = 'ANGLE'; mb.angle_limit = math.radians(P.get('bevel_angle', 20))
+        with bpy.context.temp_override(object=core, active_object=core, selected_objects=[core], selected_editable_objects=[core]):
+            bpy.ops.object.modifier_apply(modifier=mb.name)
     geo.set_smooth_by_angle(core, 38)
     geo.set_smooth_by_angle(hi_core, 38)
     core.name = 'core'
@@ -222,20 +231,23 @@ def build(spec, mats):
         for i, col in enumerate(cols[sx]):
             z = -0.20 + i * 0.145
             lz, hy = sizes[i]
-            small('cont', box_bm((sx * 0.155, 0.1155 + hy / 2 - 0.0, z), (0.070, hy, lz)), col)
+            for tgt in (core, hi_core):                                         # konteynerler gövdeye GÖMÜLÜ: rafın içine oturan, gövdeyle tek yüzey (union)
+                tgt_c = _obj('cont', box_bm((sx * 0.155, 0.1155 + hy / 2 - 0.016, z), (0.072, hy + 0.016, lz)), col, mats)
+                boolean(tgt, tgt_c, 'UNION'); bpy.data.objects.remove(tgt_c)
             for r in (-1, 0, 1):
-                small('contrib', box_bm((sx * 0.155, 0.1155 + hy / 2, z + r * 0.04), (0.0725, hy + 0.001, 0.005)), 'yuk_dark')
-            small('strap', box_bm((sx * 0.155, 0.1155 + hy / 2, z + (0.04 if i % 2 else -0.04)), (0.074, hy + 0.004, 0.012)), 'yuk_rubber')
+                small('contrib', box_bm((sx * 0.155, 0.1155 + hy / 2 - 0.0165, z + r * 0.04), (0.0745, hy - 0.002, 0.005)), 'yuk_dark')
+            small('strap', box_bm((sx * 0.155, 0.1155 + hy / 2 - 0.0165, z + (0.04 if i % 2 else -0.04)), (0.076, hy - 0.001, 0.012)), 'yuk_rubber')
             small('plate', box_bm((sx * 0.1915 - 0.0, 0.1155 + hy * 0.62, z - 0.02), (0.002, 0.012, 0.05)), 'yuk_pale')
     # pencere camları (oyuk içine oturur) + dikmeler
     for sx in (-1, 1):
-        for z in (0.335, 0.395, 0.455):
+        for z in (0.345, 0.425):
             xs = 0.188 - (z - 0.30) * 0.30
-            small('glass', box_bm((sx * (xs - 0.002), 0.055, z), (0.014, 0.052, 0.040)), 'yuk_glass_ext')
-    small('glassf', box_bm((0, 0.012, 0.518), (0.140, 0.046, 0.016)), 'yuk_glass_ext')
+            small('glass', box_bm((sx * (xs - 0.002), 0.052, z), (0.014, 0.060, 0.056)), 'yuk_glass_ext')
+    small('glassf', box_bm((0, 0.012, 0.518), (0.190, 0.048, 0.016)), 'yuk_glass_ext')
     small('glasst', box_bm((0, 0.116, 0.415), (0.190, 0.008, 0.088)), 'yuk_glass_ext')
-    for x in (-0.05, 0.0, 0.05):
-        small('mull', box_bm((x, 0.012, 0.525), (0.006, 0.060, 0.010)), 'yuk_steel')
+    for x in (-0.100, -0.049, 0.049, 0.100):                                  # 4 dikme: iki dış + iki iç (kokpit ön camı gibi: orta bölme geniş)
+        small('mull', box_bm((x, 0.012, 0.526), (0.008, 0.062, 0.012)), 'yuk_steel')
+    small('hdr', box_bm((0, 0.044, 0.526), (0.206, 0.008, 0.012)), 'yuk_dark')
     # nozul çekirdekleri (oyuğun dibinde) + içi is
     for x, y in ENG:
         small('core', cyl_bm((x, y, -0.455), (x, y, -0.460), 0.030, None, 16), 'emit_amber')
@@ -257,17 +269,17 @@ def build(spec, mats):
         for p in (p0, p1):
             small('joint', cyl_bm((p[0] - 0.006, p[1], p[2]), (p[0] + 0.006, p[1], p[2]), rr * 1.5, None, 10), 'yuk_dark')
     root, elb, wr = (0.0, -0.08, 0.44), (0.0, -0.17, 0.50), (0.0, -0.20, 0.585)
-    arm(root, elb, 0.03); arm(elb, wr, 0.026)
+    arm(root, elb, 0.046); arm(elb, wr, 0.040)
     for dx in (-0.032, 0.032):
-        small('pist', cyl_bm((dx, -0.085, 0.445), (dx, -0.165, 0.505), 0.008, None, 6), 'yuk_bare')
-        small('pistb', cyl_bm((dx, -0.085, 0.445), (dx, -0.120, 0.470), 0.012, None, 6), 'yuk_black')
-    small('wrist', cyl_bm((0.0, wr[1], wr[2]), (0.0, wr[1] - 0.02, wr[2] + 0.02), 0.035, None, 10), 'yuk_steel')
+        small('pist', cyl_bm((dx * 1.35, -0.085, 0.445), (dx * 1.35, -0.165, 0.505), 0.013, None, 8), 'yuk_bare')
+        small('pistb', cyl_bm((dx * 1.35, -0.085, 0.445), (dx * 1.35, -0.120, 0.470), 0.020, None, 8), 'yuk_black')
+    small('wrist', cyl_bm((0.0, wr[1], wr[2]), (0.0, wr[1] - 0.02, wr[2] + 0.02), 0.052, None, 10), 'yuk_steel')
     for sx in (-1, 1):
         j0 = (sx * 0.015, wr[1] - 0.01, wr[2] + 0.015)
         j1 = (sx * 0.065, wr[1] - 0.045, wr[2] + 0.06)
         j2 = (sx * 0.035, wr[1] - 0.095, wr[2] + 0.095)
-        small('jaw', cyl_bm(j0, j1, 0.016, 0.012, 8), 'yuk_steel')
-        small('jaw2', cyl_bm(j1, j2, 0.012, 0.006, 8), 'yuk_orange')
+        small('jaw', cyl_bm(j0, j1, 0.026, 0.020, 8), 'yuk_steel')
+        small('jaw2', cyl_bm(j1, j2, 0.020, 0.010, 8), 'yuk_orange')
     socks = []
     for i, (x, y) in enumerate(ENG, 1):
         socks.append({'name': 'ANCH_ENG_%d' % i, 'loc': tuple(geo.g2b(Vector((x, y, -0.460)) * S)), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}})
