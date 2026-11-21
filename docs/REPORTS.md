@@ -238,3 +238,12 @@ Not: swiftshader; gerçek cihaz test edilmedi.
 |---|---|
 | Kaşif ekranları %7 büyük: ekran görüntüsüyle önce/sonra karşılaştırıldı, kenarlara taşma yok, sayfa hatası yok | Görsel |
 Not: yalnız masaüstü boyutunda görüldü; iPhone yatay boyutunda ve gerçek cihazda ayrıca bakılmadı.
+
+## 27. Sürüm 1.65.3 test özeti (Hayalet r004)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (e7ffaeb3 / 3dfc0848) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (77/135, 56/125, 56/131, 56/125), sayfa hatası yok | PASS |
+| offline.json: 8 kokpit GLB'si (git add sonrası üretildi) | Doğrulandı |
+| Oyun içi görsel: sırt sade, katmanlı konsol, ekranlar bir tık küçük, ekran altı neon oturuyor; direk ve kemer neonları hâlâ kopuk | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi.
