@@ -10833,4 +10833,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     tp: (v, dz) => { rig.position.copy(v).add(V(0, 0, dz || 0)); }, stop: () => vel.set(0, 0, 0), speed: v => vel.set(0, 0, -(v || 0)).applyQuaternion(rig.quaternion),
     hg: () => ({ id: hgId, mem: hgR ? Object.assign({}, hgR.info.memory) : null }), hgSet: id => hgSet(id), hgOpen: () => { try { hgStart(); } catch (e) { return String(e); } return !!hgS; },
     dockAt: st => { if (docked) undock(); rig.position.copy(st.pos).add(V(0, 0, (st.r || 40) + 30)); vel.set(0, 0, 0); tryDock(); return docked && curSt === st; } };
+  /* ekonomi ölçüm defteri (YALNIZ test kaydı): kredi ve XP değişimleri, değişimi yapan işlevlerin zinciriyle birlikte window.__ledger'a yazılır. Gerçek kayıtta tanımsız; oyun mantığına dokunmaz. */
+  if (TESTM){ const L = window.__ledger = []; for (const k of ['kredi', 'xp']){ let v = save[k] || 0; Object.defineProperty(save, k, { enumerable: true, configurable: true, get: () => v,
+      set: n => { if (n !== v){ let st = ''; try { st = (new Error().stack || '').split('\n').slice(2, 6).map(x => (x.match(/at (?:async )?([^\s(]+)/) || [])[1]).filter(Boolean).join('<'); } catch (e) {} L.push({ t: +time.toFixed(1), k, d: Math.round((n - v) * 100) / 100, s: st }); } v = n; } }); } }
 })();
