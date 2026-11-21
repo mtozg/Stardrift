@@ -219,17 +219,59 @@ else:
         geo.apply_modifier(ob, dc)
     bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()      # dışa bakan normaller
     geo.set_smooth_by_angle(ob, 50)
-if spec.get('nozzles'):      # parametrik motor nozulları (arka): voxel kaynaklı düzensizliği temizler
+if spec.get('engines'):      # gerçek motor nozulları: arka kesitte kaynak maskelerden konum/sayı (auto) ya da spec.engines.centers; koyu metal kovan + parlayan iç disk
     from mathutils import Matrix
-    N = spec['nozzles']
-    bmn = bmesh.new(); bmn.from_mesh(ob.data)
-    for (ny_, nz_) in N['centers']:
-        x0 = N['x']
-        res = bmesh.ops.create_cone(bmn, cap_ends=True, cap_tris=False, segments=14, radius1=N['r'] * 1.12, radius2=N['r'], depth=N['len'], matrix=Matrix.Translation((x0 - N['len'] / 2 + 0.01, ny_, nz_)) @ Matrix.Rotation(math.pi / 2, 4, 'Y'))
-        bmesh.ops.create_cone(bmn, cap_ends=True, cap_tris=False, segments=14, radius1=N['r'] * 0.78, radius2=N['r'] * 0.78, depth=0.012, matrix=Matrix.Translation((x0 - N['len'] + 0.004, ny_, nz_)) @ Matrix.Rotation(math.pi / 2, 4, 'Y'))
-    bmesh.ops.recalc_face_normals(bmn, faces=bmn.faces)
-    bmn.to_mesh(ob.data); bmn.free()
+    E = spec['engines']
+    cs0 = [v.co.copy() for v in ob.data.vertices]
+    xmin0 = min(c.x for c in cs0)
+    if E.get('centers'):
+        cen_list = [tuple(c) for c in E['centers']]
+        rN = E['r']
+    else:
+        i0 = max(1, int(E.get('slice', 0.05) * NX))
+        yrows = np.where(top_xy[i0])[0]
+        zrows = np.where(side_xz[i0])[0]
+        # y aralıkları (üst maske)
+        groups, g0 = [], None
+        for j in yrows:
+            if g0 is None:
+                g0 = prev = j
+            elif j - prev > 1:
+                groups.append((g0, prev)); g0 = prev = j
+            else:
+                prev = j
+        if g0 is not None:
+            groups.append((g0, prev))
+        step = E.get('step', 0.105)
+        ycs = []
+        for (ja, jb) in groups:
+            wd = (jb - ja + 1) * (ht / NY)
+            if wd < E.get('minw', 0.06):
+                continue
+            n = max(1, int(round(wd / step)))
+            yc = -(((ja + jb) / 2 + 0.5) / NY * ht - ht / 2)
+            ycs += [yc + (k - (n - 1) / 2) * step for k in range(n)]
+        zlo, zhi = (zs[zrows].min(), zs[zrows].max()) if len(zrows) else (-0.05, 0.05)
+        nr = max(1, int(round((zhi - zlo) / step)))
+        zcs = [(zlo + zhi) / 2 + (k - (nr - 1) / 2) * step for k in range(nr)]
+        cen_list = [(y, z) for y in ycs for z in zcs][:E.get('maxn', 9)]
+        rN = E.get('r', step * 0.44)
+    bme = bmesh.new(); bme.from_mesh(ob.data)
+    ntag = bme.faces.layers.int.new('noz')
+    ln = E.get('len', 0.055)
+    for (ny_, nz_) in cen_list:
+        M1 = Matrix.Translation((xmin0 - ln / 2 + 0.012, ny_, nz_)) @ Matrix.Rotation(-math.pi / 2, 4, 'Y')
+        res = bmesh.ops.create_cone(bme, cap_ends=False, segments=16, radius1=rN * 0.86, radius2=rN * 1.08, depth=ln, matrix=M1)
+        for f_ in set(l.face for v_ in res['verts'] for l in v_.link_loops):
+            f_[ntag] = 1
+        M2 = Matrix.Translation((xmin0 - ln + 0.014, ny_, nz_)) @ Matrix.Rotation(-math.pi / 2, 4, 'Y')
+        res2 = bmesh.ops.create_cone(bme, cap_ends=True, cap_tris=False, segments=16, radius1=rN * 0.80, radius2=rN * 0.80, depth=0.008, matrix=M2)
+        for f_ in set(l.face for v_ in res2['verts'] for l in v_.link_loops):
+            f_[ntag] = 2
+    bmesh.ops.recalc_face_normals(bme, faces=bme.faces)
+    bme.to_mesh(ob.data); bme.free()
     geo.set_smooth_by_angle(ob, 50)
+    NOZ_N = len(cen_list)
 if spec.get('claw'):      # Yük Devi: büyütülmüş kıskaç (kollar, piston, çene) — gövdeye birleştirilir; UV düzlemsel (kaynak yan çizim)
     from mathutils import Matrix
     C = spec['claw']
@@ -342,7 +384,8 @@ if PROBE:
 
 # ---- UV + albedo: kaynak çizimler DOĞRUDAN atlasa yerleştirilir (üst çizim + yan çizim), UV düzlemsel izdüşüm → pişirme yok, palet birebir
 TEX = spec['budget'].get('tex', 512)
-WTX = min(TEX, int((TEX - 6 - 2) / (ht + hs)))      # üst+yan çizim dikeyde yan yana sığacak en büyük genişlik
+RES = 84 if spec.get('engines') else 0      # nozul/parlama karoları için alt şerit
+WTX = min(TEX, int((TEX - 6 - 2 - RES) / (ht + hs)))      # üst+yan çizim dikeyde yan yana sığacak en büyük genişlik
 HTX = int(round(WTX * ht))
 HSX = int(round(WTX * hs))
 GAP = 6
@@ -366,6 +409,14 @@ for _ in range(24):
     nz = k & (cnt > 0)
     rgb[nz] = acc[nz] / cnt[nz][..., None]
     filled = filled | nz
+if spec.get('engines'):
+    gc = np.array(spec['engines'].get('glow', [255, 150, 70]), np.uint8)
+    atlas[TEX - 76:TEX - 8, 8:76, :3] = np.array([44, 46, 52], np.uint8)            # koyu gunmetal kovan karosu
+    atlas[TEX - 76:TEX - 70, 8:76, :3] = np.array([92, 96, 104], np.uint8)          # kenar halkası
+    atlas[TEX - 76:TEX - 8, 84:152, :3] = gc                                          # parlayan iç disk karosu (emissive eşiğini geçer)
+    atlas[TEX - 76:TEX - 8, 8:152, 3] = 255
+    for _c in range(3):
+        rgb[TEX - 76:TEX - 8, 8:152, _c] = atlas[TEX - 76:TEX - 8, 8:152, _c]
 tgt_img = bpy.data.images.new('sd_base', TEX, TEX, alpha=False)
 tgt_img.colorspace_settings.name = 'sRGB'
 bl = np.concatenate([rgb / 255.0, np.ones((TEX, TEX, 1), np.float32)], -1)[::-1]      # Blender: satır 0 = alt
@@ -374,7 +425,13 @@ ao_img = None
 # UV (düzlemsel): yukarı bakan yüzler üst çizim bölgesine, diğerleri yan çizim bölgesine
 bmu = bmesh.new(); bmu.from_mesh(ob.data); bmu.normal_update()
 uvl = bmu.loops.layers.uv.verify()
+noz_l = bmu.faces.layers.int.get('noz')
 for f in bmu.faces:
+    if noz_l is not None and f[noz_l]:
+        tx0 = 40 if f[noz_l] == 1 else 118
+        for lp in f.loops:
+            lp[uvl].uv = (tx0 / TEX, 1.0 - (TEX - 42) / TEX)
+        continue
     top_mode = abs(f.normal.z) >= spec.get('top_thr', 0.5)
     for lp in f.loops:
         c = lp.vert.co
