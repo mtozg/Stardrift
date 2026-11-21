@@ -233,11 +233,12 @@ def build(spec, mats):
         d_ = tube(duct, 0.0055, 8)
         add('duct_' + ('L' if sd < 0 else 'R'), d_, 'hay_dark', smooth=60)
         # omuzda havalandırma ızgarası (referanstaki yan ızgara): çerçeve + ince dilimler
-        gu0, gu1 = sorted((uu(268), uu(328)))
-        plate(gu0, 470, gu1, 536, mid_d, 0.0065, 0.008)
-        for k_ in range(9):
-            v_ = 478 + k_ * 6.6
-            plate(gu0 + 4, v_, gu1 - 4, v_ + 2.4, dark_d, 0.0105, 0.004)
+        if not A.get('r004'):      # r004: ızgara omuz bloğuna (ekran dışı) taşındı; bu konum ekran sol kenarına bindiği için kaldırıldı
+            gu0, gu1 = sorted((uu(268), uu(328)))
+            plate(gu0, 470, gu1, 536, mid_d, 0.0065, 0.008)
+            for k_ in range(9):
+                v_ = 478 + k_ * 6.6
+                plate(gu0 + 4, v_, gu1 - 4, v_ + 2.4, dark_d, 0.0105, 0.004)
         # ekranlar arası dikey derzler
     for u_ in (300, 600, 1000, 1300):
         plate(u_ - 1, 510, u_ + 1, 656, dark_d, 0.0085, 0.004)
