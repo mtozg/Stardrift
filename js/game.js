@@ -10823,6 +10823,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
+    faceTo: v => { const m = new THREE.Matrix4().lookAt(rig.position, v, V(0, 1, 0)); rig.quaternion.setFromRotationMatrix(m); },   /* test: bakışı hedefe çevir */
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },
     wreck: () => wreck(),
