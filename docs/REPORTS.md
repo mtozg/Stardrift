@@ -268,3 +268,11 @@ Not: ölüm ekranında "Canlan"a basıp ödedikten sonra yenilemede ikinci kez a
 | Ayrılan veri birebir aynı: STSPEC3D, NPCSPEC3D(+patron) ve 20 ses kaydı (karşılaştırma betiği) | Eşit |
 | kutuk, bildirim, bulten, derin_sinyal, devriye_akis, kargo_kaydi, ozel_ekonomi, hangar_bellek, bekci, unvan_hata | PASS |
 Not: telefon/gerçek cihazda ilk açılış süresi ölçülmedi; iki ek betik dosyası aynı anda indirilir. Çevrimdışı: betikler sürüm adresiyle servis çalışanı tarafından saklanır (değişiklik gerekmedi).
+
+## 31. Sürüm 1.66.2 test özeti (Hayalet r006)
+| Test | Sonuç |
+|---|---|
+| GLB SHA256 öneki teslimle aynı (3a1b9733 / 07cee32b) | Eşleşti |
+| Kaşif → Şahin → Yük → Hayalet döngüsü ×3: doku/geometri sabit (76/125, 55/115, 55/121, 55/115), sayfa hatası yok | PASS |
+| Oyun içi görsel: neonlar kenar eğrisini izliyor, ekran altı neonu oturuyor, koltukta parlak ızgara yok | Ekran görüntüsüyle |
+Not: swiftshader; gerçek cihaz test edilmedi.
