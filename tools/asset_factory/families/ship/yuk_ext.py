@@ -157,6 +157,23 @@ def build(spec, mats):
     for sx in (-1, 1):
         k.box((sx * 0.178, 0.126, 0.285), (0.016, 0.016, 0.016), 'isik')                                        # köşe seyir lambaları
         k.box((sx * 0.178, 0.126, -0.345), (0.016, 0.016, 0.016), 'isik')
+    # ---------------- r3: kademeli panel kabartması (gövde yanları, üst/alt, arka blok) — pah yerine çıkıntı basamakları; deterministik yerleşim
+    import random
+    rng = random.Random(7311)
+    for sx in (-1, 1):
+        for i, z in enumerate((-0.335, -0.255, -0.105, 0.045, 0.195, 0.265)):
+            h = 0.10 + 0.04 * ((i * 7 + (sx > 0)) % 3)
+            k.box((sx * (HW + 0.0065), -0.035 + 0.02 * (i % 2), z), (0.006, h, 0.050 + 0.012 * (i % 3)), 'boya')         # yan kabartma plakası
+        k.box((sx * (HW + 0.003), -0.075, -0.07), (0.004, 0.012, 0.62), 'metal')                                          # yan boyuna kuşak
+        k.box((sx * (HW + 0.003), 0.095, -0.07), (0.004, 0.010, 0.62), 'koyu')
+        for z in (-0.22, 0.0, 0.18, 0.28):
+            k.box((sx * 0.100, 0.1325, z), (0.060, 0.006, 0.055), 'boya')                                                  # üst güverte kademe plakaları
+        for z in (-0.18, 0.05):
+            k.box((sx * 0.125, -0.1275, z), (0.050, 0.005, 0.07), 'koyu')                                                  # alt panel plakaları
+    for z in (-0.44, -0.38):
+        k.box((0.0, 0.1385, z), (0.28, 0.005, 0.05), 'boya')                                                               # arka blok üst
+        for sx in (-1, 1):
+            k.box((sx * 0.1985, 0.0, z), (0.005, 0.16, 0.05), 'boya')
     # ---------------- yan paneller: kapaklar, menteşeler, havalandırma, uyarı plakaları
     for sx in (-1, 1):
         for i in range(4):
