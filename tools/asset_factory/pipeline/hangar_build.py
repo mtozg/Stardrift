@@ -74,7 +74,12 @@ def recolor(im, ref, strength=0.9):
     L = to_lab(a)
     L2 = (L - m0) / s0 * (s1 * 0.8 + s0 * 0.2) + m1
     L2[..., 0] = np.clip(L2[..., 0], 2, 98)
-    out = from_lab(strength * L2 + (1 - strength) * L)
+    L3 = strength * L2 + (1 - strength) * L
+    if ST in WARM:      # r5: albedo luminansı ×0.5, kroma ×0.6 (oyun içi referans koyu düşük doygun bronz-gri)
+        Y = ((L3[..., 0] + 16) / 116) ** 3 * 0.50
+        L3[..., 0] = 116 * np.cbrt(Y) - 16
+        L3[..., 1:] *= 0.6
+    out = from_lab(L3)
     return Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8))
 
 
@@ -89,6 +94,7 @@ SY0, SY1 = int(T + 0.92 * T), int(T + 0.99 * T)      # şerit satırları (tile 
 haz = Image.new('RGB', (T, SY1 - SY0), (18, 18, 15)); hd = ImageDraw.Draw(haz); hh = SY1 - SY0
 for k in range(-hh, T + hh, 2 * hh // 1):
     hd.polygon([(k, hh), (k + hh // 1, 0), (k + hh * 3 // 2, 0), (k + hh // 2, hh)], fill=(232, 178, 22))
+ImageDraw.Draw(haz).rectangle([T - 44, 0, T - 1, hh], fill=(26, 24, 21))
 atlas.paste(haz, (0, SY0))
 lit = Image.new('RGB', (T, SY1 - SY0), (255, 232, 180)); ld = ImageDraw.Draw(lit)
 ld.rectangle([0, 0, T - 1, 3], fill=(120, 100, 70)); ld.rectangle([0, hh - 4, T - 1, hh - 1], fill=(120, 100, 70))
@@ -106,15 +112,22 @@ class Mesh:
         r = bmesh.ops.create_cube(self.bm, size=1.0)
         bmesh.ops.transform(self.bm, matrix=Matrix.Translation(Vector(c)) @ Matrix.Diagonal((*s, 1.0)), verts=r['verts'])
         x0 = 0.0 if which == 'haz' else 0.5
+        if which == 'dark':
+            for f in self.bm.faces:
+                if all(v in r['verts'] for v in f.verts):
+                    for lp in f.loops:
+                        lp[self.uvl].uv = ((T - 22) / TEX, 1.0 - (SY0 + 0.5 * (SY1 - SY0)) / TEX)
+            return
         for f in self.bm.faces:
             if not all(v in r['verts'] for v in f.verts):
                 continue
             for lp in f.loops:
                 p = lp.vert.co
                 u = (p.z if proj == 'x' else p.x) / ext
-                lp[self.uvl].uv = (x0 + 0.01 + 0.48 * (u % 1.0), 1.0 - (SY0 + 0.5 * (SY1 - SY0)) / TEX + 0.0 * p.y)
+                lp[self.uvl].uv = (x0 + 0.01 + 0.40 * (u % 1.0), 1.0 - (SY0 + 0.5 * (SY1 - SY0)) / TEX + 0.0 * p.y)
 
     def box(self, c, s, tile, proj, ext, rot=None):
+        ext = (1.2, 1.2) if tile == 0 else (2.4, 2.4)      # r5: tüm kutularda aynı dünya ölçeği (m/karo)
         """kutu; proj='z' (XY düzlemi, Z normali) / 'x' (YZ) / 'y' (XZ): kaynak karo bu düzleme ölçekli düzlemsel yerleşir (ext = karo ölçüsü m)"""
         r = bmesh.ops.create_cube(self.bm, size=1.0)
         M = Matrix.Translation(Vector(c)) @ Matrix.Diagonal((*s, 1.0))
@@ -160,22 +173,23 @@ def corridor():
     m = Mesh()
     L = XSEG
     # zemin: dolu plaka; kenarlarda levha dikişleri; orta bölge (iniş yastığı) sade; kenarlarda sarı-siyah uyarı şeridi
-    m.box((0, -OH / 2 - 0.15, L / 2), (OW + 1.2, 0.3, L), 2, 'z', (4.5, 3.8))
+    m.box((0, -OH / 2 - 0.15, L / 2), (OW + 1.2, 0.3, L), 2, 'y', (4.5, 3.8))
+    m.strip((0, -OH / 2 + 0.006, L / 2), (4.4, 0.012, L - 0.1), 'dark', 'x', 1.0)      # iniş yastığı bölgesi: koyu sade
     for sx in (-1, 1):
         for k in range(4):
             for cx, w in ((2.95, 0.95), (3.95, 0.95)):
-                m.box((sx * cx, -OH / 2 + 0.02, 0.1 + 0.95 + k * 1.85), (w, 0.04, 1.75), 2, 'z', (2.0, 1.8))
+                m.box((sx * cx, -OH / 2 + 0.02, 0.1 + 0.95 + k * 1.85), (w, 0.04, 1.75), 2, 'y', (2.0, 1.8))
         m.strip((sx * (OW / 2 - 0.35), -OH / 2 + 0.005, L / 2), (0.5, 0.012, L - 0.1), 'haz', 'x', 0.8)
         m.strip((sx * 2.25, -OH / 2 + 0.005, L / 2), (0.12, 0.012, L - 0.1), 'haz', 'x', 0.8)
     # tavan: dolu plaka, enine kirişler, armatür gövdesi + emissive panel (oyun ışığı armatür konumlarına eklenir)
-    m.box((0, OH / 2 + 0.15, L / 2), (OW + 1.2, 0.3, L), 3, 'z', (4.5, 3.8))
+    m.box((0, OH / 2 + 0.15, L / 2), (OW + 1.2, 0.3, L), 3, 'y', (4.5, 3.8))
     for k in range(7):
         zz = 0.5 + k * (L - 1.0) / 6
-        m.box((0, OH / 2 - 0.1, zz), (OW - 0.4, 0.2, 0.2), 1, 'z', (4.5, 3.8))
+        m.box((0, OH / 2 - 0.1, zz), (OW - 0.4, 0.2, 0.2), 1, 'y', (4.5, 3.8))
     for sx in (-1, 1):
         for k in range(4):
             zz = 0.95 + k * (L - 1.9) / 3
-            m.box((sx * 1.9, OH / 2 - 0.1, zz), (0.9, 0.14, 1.5), 1, 'z', (2.0, 2.0))      # gövde
+            m.box((sx * 1.9, OH / 2 - 0.1, zz), (0.9, 0.14, 1.5), 1, 'y', (2.0, 2.0))      # gövde
             m.strip((sx * 1.9, OH / 2 - 0.185, zz), (0.7, 0.02, 1.3), 'lit', 'z', 0.7)       # emissive panel
     # duvarlar: dolu panel plakaları + dikey kaburga + zemine yakın sarı-siyah şerit; borular üstte ayrıntı
     for sx in (-1, 1):
