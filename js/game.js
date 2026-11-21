@@ -4021,7 +4021,8 @@ function mkShip3D(id){
   const v = document.getElementById('hgVw'); if (v) v.style.display = 'none';
   return g;
 }
-function mkShip(id){
+function mkShip(id){ const g = mkShip0(id); if (window.__glb && window.__glb.ship) window.__glb.ship(g, id, (SPECS3D[id] && SPECS3D[id].len) || 4.4); return g; }   /* GLB dış modeli (yalnız ?glb=1): hazırsa kabuğun yerine geçer */
+function mkShip0(id){
   if (!window.__no3d){ try { if (id === 'kasif') return mkShip3D(id); if (SPECS3D[id] && SHIPART[id]) return mkShipGen(id); } catch (e) { console.log('3d hata', e); } }
   if (SHIPART[id]) return mkShipArt(id);
   const g = new THREE.Group();
@@ -4059,6 +4060,7 @@ function mkShip(id){
 // 1.55.0 (S1-03): hangarda gemi değişince eski model GPU'dan bırakılır. Ortak dokular (artTex önbelleği, boş doku, hangar ortam haritası) korunur.
 function hgFree(root){
   const keep = new Set(Object.values(artTex)); if (blankTex) keep.add(blankTex); if (hgEnv) keep.add(hgEnv);
+  { const gl = root.userData && root.userData.glb; if (gl && gl.r){ root.userData.gone = true; root.remove(gl.r); } }   /* GLB gemisi önbelleği paylaşılır: atılmaz */
   const seen = new Set(), free = x => { if (x && !seen.has(x) && !keep.has(x)){ seen.add(x); try { x.dispose(); } catch (e) {} } };
   root.traverse(o => { if (o.geometry) free(o.geometry); const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
     for (const m of ms){ for (const k in m){ const v = m[k]; if (v && v.isTexture) free(v); } if (m.uniforms) for (const k in m.uniforms){ const v = m.uniforms[k] && m.uniforms[k].value; if (v && v.isTexture) free(v); } free(m); } });

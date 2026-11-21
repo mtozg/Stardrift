@@ -104,6 +104,22 @@
     return e;
   }
 
+  // ---------- oyuncu gemisi (hangar, sinema, hiper atlama: mkShip grubu) ----------
+  // game.js mkShip sonunda çağırır: GLB hazırsa kabuk gövdenin yerine geçer; yoksa hiçbir şey olmaz. Boyut: oyundaki gemi boyu (SPECS3D len; GLB L=1).
+  G.ship = function(g, id, len){
+    var key = 'ship_' + id;
+    G.ready.then(function(){ if (!G.index[key]) return; return G.load(key); }).then(function(p){
+      if (!p || g.userData.glb || g.userData.gone) return;
+      var r = inst(p); r.scale.setScalar(len * p.s); r.userData.glb = true;
+      r.rotation.y = window.__glbShipYaw !== undefined ? window.__glbShipYaw : Math.PI;   // AF modeli burun +Z, oyun gövdesi tersi: 180 derece
+      r.traverse(function(o){ o.userData.shared = true; });   // game.js hgFree önbellekteki geometri/malzemeyi atmasın
+      var fb = []; g.children.forEach(function(c){ fb.push(c); c.visible = false; });
+      g.add(r); g.userData.glb = { r: r, fb: fb, p: p, lod0: byName(r, 'LOD0') || r, lod1: byName(r, 'LOD1') };
+      if (g.userData.glb.lod1 && g.userData.glb.lod1 !== g.userData.glb.lod0) g.userData.glb.lod1.visible = false;
+      G.stats.gemi = (G.stats.gemi || 0) + 1;
+    }).catch(function(){});
+  };
+
   // ---------- istasyon ----------
   var stations = [];
   G.station = function(st, key, w, prev){
