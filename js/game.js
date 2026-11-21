@@ -3998,12 +3998,12 @@ const SPECS3D={
   claw:{base:[.811,-.1375],wrist:[.918,-.121],c:[.959,-.130],R:.043},
   pods:[{u0:0.20,u1:0.02,r:0.044,type:'tube',at:[[.095,-.115],[.095,0],[.095,.115],[.012,-.115],[.012,0],[.012,.115],[-.07,-.115],[-.07,.115]]}], glow:0xffa050 },
  hayalet:{ len:4.9, yc:1-62/175, zc:0.019, u0:0.10,u1:0.96,
-  hull:{ TOP:[[.10,.02],[.2,.035],[.55,.037],[.7,.03],[.8,.015],[.9,-.005],[.96,-.02]],
-         BOT:[[.10,-.03],[.2,-.037],[.9,-.037],[.96,-.033]],
+  hull:{ TOP:[[.10,.02],[.2,.045],[.55,.048],[.7,.036],[.8,.018],[.9,-.005],[.96,-.02]],   /* gövde kalınlığı ×1,3 (kaynak yan çizimde ≈0,10 L, loft 0,074 L idi) */
+         BOT:[[.10,-.03],[.2,-.048],[.9,-.048],[.96,-.036]],
          HW:[[.10,.06],[.2,.07],[.5,.075],[.7,.06],[.8,.04],[.9,.03],[.96,.012]],
          NN:[[0,2.8],[1,2.2]] },
   wings:[{poly:[[.57,.075],[.265,.255],[.22,.25],[.35,.075]],y:-0.015,th:0.012,dih:0.14}],
-  pods:[{u0:0.28,u1:0.06,r:0.0165,type:'tube',at:[[0.0185,-0.032],[0.0185,0.032],[-0.0185,-0.032],[-0.0185,0.032]]}], glow:0xc9a8ff, gain:1.15 }
+  pods:[{u0:0.247,u1:0.06,r:0.0165,type:'tube',at:[[0.0185,-0.032],[0.0185,0.032],[-0.0185,-0.032],[-0.0185,0.032]]}], glow:0xc9a8ff, gain:1.15 }
 };
 
 function mkShipGen(id){
@@ -6255,7 +6255,7 @@ setTimeout(() => {
 
 // ---- hangarda gemi boyları: Kaşif biraz küçük, Yük Devi biraz büyük
 {
-  const HS = { kasif: 0.86, yuk: 1.16 };
+  const HS = { kasif: 0.86, yuk: 1.16, hayalet: 0.88 };
   const _hs = hgSet;
   hgSet = function(id){ _hs(id); if (hgM && !hgM.userData.hsd){ hgM.userData.hsd = 1; const k = HS[hgId]; if (k) hgM.scale.multiplyScalar(k); } };
 }
@@ -10833,4 +10833,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
     tp: (v, dz) => { rig.position.copy(v).add(V(0, 0, dz || 0)); }, stop: () => vel.set(0, 0, 0), speed: v => vel.set(0, 0, -(v || 0)).applyQuaternion(rig.quaternion),
     hg: () => ({ id: hgId, mem: hgR ? Object.assign({}, hgR.info.memory) : null }), hgSet: id => hgSet(id), hgOpen: () => { try { hgStart(); } catch (e) { return String(e); } return !!hgS; },
     dockAt: st => { if (docked) undock(); rig.position.copy(st.pos).add(V(0, 0, (st.r || 40) + 30)); vel.set(0, 0, 0); tryDock(); return docked && curSt === st; } };
+  /* ekonomi ölçüm defteri (YALNIZ test kaydı): kredi ve XP değişimleri, değişimi yapan işlevlerin zinciriyle birlikte window.__ledger'a yazılır. Gerçek kayıtta tanımsız; oyun mantığına dokunmaz. */
+  if (TESTM){ const L = window.__ledger = []; for (const k of ['kredi', 'xp']){ let v = save[k] || 0; Object.defineProperty(save, k, { enumerable: true, configurable: true, get: () => v,
+      set: n => { if (n !== v){ let st = ''; try { st = (new Error().stack || '').split('\n').slice(2, 6).map(x => (x.match(/at (?:async )?([^\s(]+)/) || [])[1]).filter(Boolean).join('<'); } catch (e) {} L.push({ t: +time.toFixed(1), k, d: Math.round((n - v) * 100) / 100, s: st }); } v = n; } }); } }
 })();
