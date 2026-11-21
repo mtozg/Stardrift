@@ -61,7 +61,19 @@ info['tris_after_cull'] = geo.tri_count(occ)
 t0 = tick('cull_hidden', t0)
 
 hi = None
-if PC.get('hipoly'):
+if roles.get('hi'):      # aile kendi hi-poly'sini üretti (bütünleşik gövde: oluklu çekirdek + aynı küçük parçalar)
+    hi = cleanup.join_role(roles['hi'], 'HI')
+    hi.hide_render = True
+    info['hipoly_tris'] = geo.tri_count([hi])
+    if PC.get('hipoly', {}).get('extra'):
+        from core import hipoly as _hp
+        HPx = PC['hipoly']
+        _ob, _n = _hp.make_high(hi, panel=HPx.get('panel', 1.2), seed=HPx.get('seed', 3), relief=tuple(HPx.get('relief', (0.008, 0.02))), inset=HPx.get('inset', 0.05), bevel=HPx.get('bevel', 0.005), rivet_r=HPx.get('rivet_r', 0.024), rivet_h=HPx.get('rivet_h', 0.014), rivet_p=HPx.get('rivet_p', 0.4), frac=HPx.get('frac', 0.3))
+        bpy.data.objects.remove(hi)
+        hi = _ob
+        hi.hide_render = True
+        info['hipoly_tris'] = _n
+elif PC.get('hipoly'):
     from core import hipoly
     HP = PC['hipoly']
     hi, hi_tris = hipoly.make_high(body, panel=HP.get('panel', 0.9), seed=HP.get('seed', 1), relief=tuple(HP.get('relief', (0.012, 0.03))), inset=HP.get('inset', 0.045),

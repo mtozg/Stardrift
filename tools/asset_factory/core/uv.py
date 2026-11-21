@@ -10,8 +10,10 @@ def unwrap_unique(ob, tex_size, margin_px_at_1024=4, name='UVMap', shape='CONCAV
     me.uv_layers.new(name=name)
     margin = margin_px_at_1024 / 1024.0      # STANDARDS §5: 1024²'de ≥ 4 px (oran sabit; hızlı modda 512² → 2 px)
     vl = bpy.context.view_layer
+    vl.update()
     for o in vl.objects:
-        o.select_set(False)
+        if o is not None:
+            o.select_set(False)
     ob.select_set(True)
     vl.objects.active = ob
     bpy.ops.object.mode_set(mode='EDIT')

@@ -78,6 +78,9 @@ def bake(ob, size, samples=32, ao_samples=96, margin=12, log=print, ao_distance=
     """size: tek sayı ya da {'base','orm','normal'} sözlüğü (ORM kanalları aynı boyutta pişer)."""
     sizes = size if isinstance(size, dict) else {'base': size, 'orm': size, 'normal': size}
     sc = bpy.context.scene
+    if sc.world is None:
+        sc.world = bpy.data.worlds.new('SD_World')
+        sc.world.use_nodes = True
     sc.render.engine = 'CYCLES'
     sc.cycles.device = 'CPU'
     sc.cycles.use_denoising = False
