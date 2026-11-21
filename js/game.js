@@ -7553,17 +7553,21 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   const GP = V(-600, 2400, -12500), bar = window.__bossBar;
   let G = null, gg = [], gph = 1, gSalvoT = 0, gSalvoHit = 0;
   const step = () => (window.__mqCur && window.__mqCur()) || null;
-  const active = () => curSys === 0 && !save.bekci && !!(step() && step().bekci);
+  const chal = () => !!save.bekci && !!save.bekciOn && (save.bekciZ || 0) < 2;   /* meydan okuma: ilk yenişten sonra isteğe bağlı, 2 kademe (Gümüş, Altın) */
+  const active = () => curSys === 0 && ((!save.bekci && !!(step() && step().bekci)) || chal());
   const mk = (ty, pos) => { const g = spawnNpc(ty, pos, STATION); g.gd = true; g.state = 'attack'; g.tgt = 'player'; g.atkT = time; g.provoked = true; return g; };
   function gSpawn(){
     const dir = rig.position.clone().sub(GP).normalize(), p = GP.clone().addScaledVector(dir, 500);
-    G = mk('boss3', p); G.leader = true; G.boss = 6; G.name = '★ Kadim Bekçi'; G.hull = G.hullMax = Math.round(2600 * (SYSC.hull || 1));
+    G = mk('boss3', p); G.leader = true; G.boss = 6; G.name = '★ Kadim Bekçi'; G.hull = G.hullMax = Math.round(2600 * (SYSC.hull || 1) * (chal() ? 1.5 + 0.5 * (save.bekciZ || 0) : 1));   /* meydan okuma: dayanıklılık x1,5 (Gümüş) / x2 (Altın) */
     gg = ['brute', 'raider', 'reaver'].map(ty => mk(ty, p.clone().add(V(rand(-120, 120), rand(-50, 50), rand(-120, 120)))));
     gph = 1; gSalvoT = time + 8; gSalvoHit = 0; bar.querySelector('span').textContent = 'KADİM BEKÇİ'; bar.classList.add('on');
     eco.radioT = -9; radio('Kadim Bekçi', 'Kapı yalnız hak edene açılır. Hak ettiğini göster, pilot.', '#c9a7ff'); toast('Kadim Kapı\'nın Bekçisi uyandı', 4200); sfxP('patron_giris', 1) || blip(180, 0.5); shake = 0.5;
   }
   function gClear(){ for (const n of [G, ...gg]){ const i = npcs.indexOf(n); if (i >= 0){ npcs.splice(i, 1); disposeNpc3(n); scene.remove(n.g); } } G = null; gg = []; bar.classList.remove('on'); }
   function gWin(){
+    if (save.bekci){   /* meydan okuma zaferi: yalnız rozet kademesi (kredi/XP/parça yok) */
+      save.bekciZ = Math.min(2, (save.bekciZ || 0) + 1); save.bekciOn = 0; persist(); sfxP('patron_olum', 1); shake = 1;
+      setTimeout(() => { toast('Kadim Bekçi yine düştü! Bekçi ' + (save.bekciZ >= 2 ? 'Altın' : 'Gümüş') + ' rozeti kazandın.', 6500); eco.radioT = -9; radio('Kadim Bekçi', 'Kapı seni yine tanıdı.', '#c9a7ff'); }, 900); return; }
     save.bekci = 1; persist(); sfxP('patron_olum', 1); shake = 1;
     setTimeout(() => { toast('Kadim Bekçi düştü! Bekçi rozeti kazandın. Ödülünü istasyonda Görevler\'den al.', 6500); eco.radioT = -9; radio('Kadim Bekçi', 'Kapı seni tanıdı. Yıldızlar artık sana emanet.', '#c9a7ff'); }, 900);
   }
@@ -7670,6 +7674,11 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
   window.__efsaneP = xp => { const L30 = 32420; if ((xp || 0) < L30) return 0; return Math.min(5, 1 + Math.floor((xp - L30) / 15000)); };
   window.__istatistik = () => { const st = save.st || {}, xp = save.xp || 0, ep = window.__efsaneP(xp);
     return { ep, satir: [['Rütbe', RANKS[rankOf(xp)][0] + (ep ? ' +' + ['', 'I', 'II', 'III', 'IV', 'V'][ep] : '')], ['Toplam XP', fmt(xp)], ['Satılan cevher (birim)', fmt(st.sell || 0)], ['Düşürülen gemi', fmt(st.kill || 0)], ['Devriye / avcı düşürülen', fmt(st.avci || 0)], ['Satılan kaçak mal (birim)', fmt(st.kacak || 0)], ['Acil sipariş', fmt(st.sip || 0)], ['Yenilen korsan reisi', fmt((save.boss || []).length)], ['Kadim yankı', fmt(window.__kadimCount ? window.__kadimCount() : 0)], ['Ziyaret edilen sistem', fmt((save.seen || []).length)], ['Kredi', fmt(save.kredi || 0)]] }; };
+  const _rc7 = renderCt; renderCt = function(){ _rc7(); try { const box = $('ctBox'); if (!box || !window.__kadimMetin) return; const T = window.__kadimMetin(), n = T.length;
+    if (!n) return; box.insertAdjacentHTML('beforeend', '<div class="sect">Kadim Atlas · ' + n + '/16 yankı</div>' + T.map((t, i) => '<div class="line"><span><span class="dim">' + (i + 1) + '.</span> ' + t.replace(/</g, '&lt;') + '</span></div>').join('') + (n < 16 ? '<div class="line"><span class="dim">Daha ' + (16 - n) + ' yankı bekliyor: kalıntı sinyallerini bul.</span></div>' : '')); } catch (e) { console.warn(e); } };
+  const _rc6 = renderCt; renderCt = function(){ _rc6(); try { const box = $('ctBox'); if (!box || !save.bekci) return; const z = save.bekciZ || 0, done = z >= 2;
+    box.insertAdjacentHTML('beforeend', '<div class="sect">Kadim Bekçi · meydan okuma</div><div class="line"><span style="display:flex;align-items:center;gap:10px">' + (z ? '<img src="assets/img/rozet_bekci_' + (z + 1) + '.webp" width="44" height="44" alt="" style="flex:none">' : '') + '<span>' + (done ? 'Bekçi Altın kazanıldı' : (z ? 'Bekçi Gümüş kazanıldı · ' : '') + 'Sıradaki: Bekçi ' + (z ? 'Altın' : 'Gümüş')) + '<span class="dim"><br>' + (done ? 'Tüm kademeler tamam.' : 'Bekçi ' + (z ? '×2' : '×1,5') + ' dayanıklı döner. Ödül yalnız rozet. Kapı\'nın yanına (Filo bölgesi) git; ' + (save.bekciOn ? 'meydan okuma AÇIK' : 'önce aç') + '.') + '</span></span></span>' + (done ? '' : '<button class="act' + (save.bekciOn ? '' : ' go') + '" data-bkc="1">' + (save.bekciOn ? 'Vazgeç' : 'Meydan oku') + '</button>') + '</div>');
+    const bt = box.querySelector('button[data-bkc]'); if (bt) bt.onclick = () => { save.bekciOn = save.bekciOn ? 0 : 1; persist(); renderCt(); }; } catch (e) { console.warn(e); } };
   const _rc5 = renderCt; renderCt = function(){ _rc5(); try { const box = $('ctBox'); if (!box) return; const I = window.__istatistik();
     box.insertAdjacentHTML('beforeend', '<div class="sect">İstatistikler</div>' + I.satir.map(r => '<div class="line"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('')); } catch (e) { console.warn(e); } };
 }
@@ -7743,6 +7752,7 @@ window.__olayModel = function(key){
   const ruinsOf = k => k === curSys ? save.ruin : k === 0 ? (HOME && HOME.ruin) : (save.sysd[k] && save.sysd[k].ruin);
   const count = () => { let n = 0; for (let k = 0; k < 4; k++){ const a = ruinsOf(k); if (a) n += a.filter(i => i < 4).length; } return Math.min(TOTAL, n); };
   window.__kadimCount = count;
+  window.__kadimMetin = () => FRAG.slice(0, count());   /* Kadim Atlas (yalnız okuma): şimdiye kadar duyulan yankı metinleri */
   // kapının kendisi: büyük, mor, yavaş dönen halkalar
   const ktx = (u, r) => { const t = new THREE.TextureLoader().load(u); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; if (r){ t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(r[0], r[1]); } return t; };
   const KS = ktx('assets/img/gate_kadim_yuzey.webp', [12, 1]), KE = ktx('assets/img/gate_kadim_enerji.webp');
