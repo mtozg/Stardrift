@@ -1,0 +1,39 @@
+<title>Asset Sabah Raporu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#f3f3ef;--surface:#fff;--ink:#1d2024;--muted:#5b6068;--line:#d9dbd6;--accent:#9a5a14;--ok:#2c7a4b;--warn:#8a6100;--bad:#a23a2e;--code:#e9eae5}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#14161a;--surface:#1c1f24;--ink:#e6e7e9;--muted:#9aa0a8;--line:#2f333a;--accent:#f0a85a;--ok:#74d494;--warn:#f0c15a;--bad:#f08a7c;--code:#23262c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14161a;--surface:#1c1f24;--ink:#e6e7e9;--muted:#9aa0a8;--line:#2f333a;--accent:#f0a85a;--ok:#74d494;--warn:#f0c15a;--bad:#f08a7c;--code:#23262c;color-scheme:dark}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1000px;margin:0 auto;padding-block:28px 70px}h1{font-size:34px;margin:6px 0 8px}h2{font-size:22px;margin:34px 0 8px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}th{background:var(--code);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}tr:last-child td{border-bottom:0}
+.k{color:var(--ok);font-weight:600}.a{color:var(--warn);font-weight:600}.r{color:var(--bad);font-weight:600}.lede{color:var(--muted)}
+</style>
+<main><h1>Asset Sabah Raporu</h1>
+<p class="lede">Gece boyunca teslim edilenler, harcama ve öneriler. Tüm değerlendirmeler benim kendi oyun içi hangar karşılaştırmamdır (şimdiki vs yeni); son karar Mehmet ve Lead'in.</p>
+<h2>1. Gemiler (dış model): öneri</h2>
+<div class="tbl"><table><tr><th>Gemi</th><th>Son sürüm</th><th>Durum</th><th>Öneri</th></tr>
+<tr><td>Şahin</td><td>m002</td><td class="a">aday (Lead: iyi yön)</td><td>Oyuna alınabilir; en olgun. Kanatlar hâlâ düz levha.</td></tr>
+<tr><td>Hayalet</td><td>m001</td><td class="a">aday</td><td>Silüet/ikiz motor doğru; ayrıntı şimdikinin gerisinde. Beklet.</td></tr>
+<tr><td>Yük Devi</td><td>bütünleşik r009 (+_m)</td><td class="a">aday</td><td>Bütünlük, renk bölgeleri, sıcak ton iyi; küçük ayrıntı/kontrast şimdikinin gerisinde. Mehmet "belirgin yaklaştı" dedi. Şahin'den sonra düşünülebilir.</td></tr>
+<tr><td>Kaşif</td><td>bütünleşik r002</td><td class="r">oyuna alınmasın</td><td>Şimdiki Kaşif daha zarif. Şimdiki kalsın (Lead kararı).</td></tr></table></div>
+<p>Hiçbir gemi "şimdikinden iyi" ölçütünü tam geçmedi. Yeni modeller oyunda varsayılan kapalı; yalnız Lead'in <code>?glb=1</code> yükleyicisinde.</p>
+<h2>2. Parti 1 (küçük nesneler ve çevre): 24 GLB</h2>
+<div class="tbl"><table><tr><th>Nesne</th><th>Durum</th></tr>
+<tr><td>Kristal monolit (mor/yeşil)</td><td class="k">kabul (Lead oyunda: çok iyi)</td></tr>
+<tr><td>Buz devi</td><td class="a">aday (düz/mat, içten ışıma zayıf)</td></tr>
+<tr><td>Uydu ×3</td><td class="a">aday (kontrast artırıldı, oyunda tekrar denenmeli)</td></tr>
+<tr><td>Lav kayası ×3</td><td class="a">aday (emissive artırıldı)</td></tr>
+<tr><td>Roket ×2, konteyner, sonda, patron ini ×6, enkaz ×4</td><td class="a">oyun içi karşılaştırma bekliyor (Lead'in kancaları)</td></tr></table></div>
+<h2>3. Harcama (derleme eşdeğeri)</h2>
+<div class="tbl"><table><tr><th>Kalem</th><th>Plan</th><th>Sert</th><th>Gerçek</th><th>Aşım</th></tr>
+<tr><td>Gemi dış (yeni plan)</td><td>16</td><td>28 (22→26→28)</td><td>≈29</td><td class="r">≈1 (onaylı)</td></tr>
+<tr><td>Parti 1</td><td>15</td><td>25</td><td>≈8,5</td><td>yok</td></tr>
+<tr><td>Hangar r3–r5</td><td>7</td><td>10</td><td>≈7</td><td>yok</td></tr></table></div>
+<p>Bütçe harcamadan durdum. Hiçbir yeni grup başlatılmadı.</p>
+<h2>4. Önerilen sonraki adımlar (onay gerekir)</h2>
+<ul><li><b>Parti 2:</b> NPC (B) ve asteroit oyun içi kıyası (C2); önce Lead'in karşılaştırması. Maliyet tahminleri <code>asset_uretim_plani.html</code> belgesinde.</li>
+<li><b>Hangar koridoru:</b> r5 oyun içi sonucu bekleniyor; "şimdikinden iyi" riski yüksek.</li>
+<li><b>Hi-poly hattı</b> çalışıyor; büyük yüzeyli işler (istasyon, patron) için kullanılabilir ama gemide "şimdikinden iyi" garanti etmedi.</li></ul>
+<p>Dürüst özet: üretim hattı ve oyun içi kıyas düzeneği hazır; ancak yapay zekâ çizimine dayanan şimdiki oyuncu gemilerini ayrıntıda geçmek bu yöntemle zor oldu. En güvenli kazançlar şu an ilkel yer tutucuların yerini alan nesnelerde (kristal, buz, kaya, roket).</p></main>
