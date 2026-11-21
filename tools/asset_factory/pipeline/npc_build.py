@@ -122,33 +122,117 @@ bpy.context.view_layer.objects.active = ob
 ob.select_set(True)
 T0 = tick('mesh', T0)
 
-# ---- Remesh (voxel) → yumuşat → decimate
-rm = ob.modifiers.new('rm', 'REMESH')
-rm.mode = 'VOXEL'
-rm.voxel_size = spec.get('remesh', 1.6) * cell
-rm.use_smooth_shade = True
-geo.apply_modifier(ob, rm)
-sm = ob.modifiers.new('sm', 'SMOOTH')
-sm.factor = 0.55
-sm.iterations = spec.get('smooth_iter', 10)
-geo.apply_modifier(ob, sm)
-tgt = spec['budget']['tris0']
-cur = len(ob.data.polygons) * 1  # üçgen sayısı ≈ çokgen (remesh üçgen/dörtgen karışık)
-bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.triangulate(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()
-ntri = len(ob.data.polygons)
-if ntri > tgt:
-    dc = ob.modifiers.new('dec', 'DECIMATE')
-    dc.decimate_type = 'COLLAPSE'
-    dc.ratio = tgt / ntri
-    geo.apply_modifier(ob, dc)
-bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()      # dışa bakan normaller
-geo.set_smooth_by_angle(ob, 50)
+# ---- PARAMETRİK yol (spec.param='ankora'): halka + göbek + kollar + güneş panelleri; ölçüler kaynak maskelerden ölçüldü
+def build_ankora():
+    from mathutils import Matrix
+    P = spec['dims']
+    bmp = bmesh.new()
+
+    def sweep_ring(R, rw, h, nseg, prof):
+        rings = []
+        for i in range(nseg):
+            a = 2 * math.pi * i / nseg
+            ca, sa = math.cos(a), math.sin(a)
+            rings.append([bmp.verts.new(((R + po * rw) * ca, (R + po * rw) * sa, pz * h)) for po, pz in prof])
+        n = len(prof)
+        for i in range(nseg):
+            for k in range(n):
+                try:
+                    bmp.faces.new((rings[i][k], rings[(i + 1) % nseg][k], rings[(i + 1) % nseg][(k + 1) % n], rings[i][(k + 1) % n]))
+                except ValueError:
+                    pass
+
+    def lathe(profile, nseg):
+        rows = []
+        for i in range(nseg):
+            a = 2 * math.pi * i / nseg
+            rows.append([bmp.verts.new((r * math.cos(a), r * math.sin(a), z)) for r, z in profile])
+        for i in range(nseg):
+            for k in range(len(profile) - 1):
+                try:
+                    bmp.faces.new((rows[i][k], rows[(i + 1) % nseg][k], rows[(i + 1) % nseg][k + 1], rows[i][k + 1]))
+                except ValueError:
+                    pass
+
+    def box(c, sz, rot=0.0):
+        r_ = bmesh.ops.create_cube(bmp, size=1.0)
+        bmesh.ops.transform(bmp, matrix=Matrix.Translation(c) @ Matrix.Rotation(rot, 4, 'Z') @ Matrix.Diagonal((*sz, 1.0)), verts=r_['verts'])
+
+    R, rw, rh = P['ring_r'], P['ring_w'], P['ring_h']
+    prof = [(-0.5, -0.30), (-0.42, -0.5), (0.42, -0.5), (0.5, -0.30), (0.5, 0.30), (0.42, 0.5), (-0.42, 0.5), (-0.5, 0.30)]
+    sweep_ring(R, rw, rh, P.get('ring_seg', 160), prof)
+    sweep_ring(R - rw * 0.62, rw * 0.22, rh * 0.62, 120, prof)
+    hr, hh = P['hub_r'], P['hub_h']
+    lathe([(0.0, -hh), (hr * 0.5, -hh), (hr * 0.8, -hh * 0.6), (hr, -hh * 0.25), (hr, hh * 0.25), (hr * 0.8, hh * 0.6), (hr * 0.5, hh), (0.0, hh)], 64)
+    lathe([(0.0, hh), (hr * 0.42, hh), (hr * 0.34, hh * 1.5), (hr * 0.2, hh * 1.9), (0.0, hh * 2.0)], 40)
+    lathe([(0.0, -hh), (hr * 0.42, -hh), (hr * 0.34, -hh * 1.5), (hr * 0.2, -hh * 1.9), (0.0, -hh * 2.0)], 40)
+    box((0, 0, hh * 2.0 + P['ant_h'] / 2), (0.006, 0.006, P['ant_h']))
+    box((0, 0, -hh * 2.0 - P['ant_h'] * 0.4), (0.006, 0.006, P['ant_h'] * 0.8))
+    for k in range(4):
+        a = math.pi / 4 + k * math.pi / 2
+        L = (R - rw * 0.4) - hr * 0.8
+        c = (math.cos(a) * (hr * 0.8 + L / 2), math.sin(a) * (hr * 0.8 + L / 2), 0)
+        box(c, (L, P['spoke_w'], P['spoke_h']), a)
+        box(c, (L * 0.96, P['spoke_w'] * 1.5, P['spoke_h'] * 0.35), a)
+    for k in range(12):
+        a = k * math.pi / 6
+        box((math.cos(a) * hr * 1.7, math.sin(a) * hr * 1.7, 0), (hr * 1.4, 0.006, 0.006), a)
+    for sx, sy in ((1, 1), (-1, -1)):
+        a = math.atan2(sy, sx)
+        box((P['panel_c'] * sx, P['panel_c'] * sy, 0), (P['panel_l'], P['panel_w'], 0.006), a + math.pi / 2)
+        box((math.cos(a) * (R + rw * 0.5 + 0.05), math.sin(a) * (R + rw * 0.5 + 0.05), 0), (0.10, 0.012, 0.012), a)
+    return bmp
+
+
+if spec.get('param') == 'ankora':
+    bm_p = build_ankora()
+    bmesh.ops.recalc_face_normals(bm_p, faces=bm_p.faces)
+    bmesh.ops.triangulate(bm_p, faces=bm_p.faces)
+    me2 = bpy.data.meshes.new('hull2')
+    bm_p.to_mesh(me2)
+    bm_p.free()
+    bpy.data.objects.remove(ob, do_unlink=True)
+    ob = bpy.data.objects.new('hull', me2)
+    bpy.context.scene.collection.objects.link(ob)
+    bpy.context.view_layer.objects.active = ob
+    ob.select_set(True)
+    geo.set_smooth_by_angle(ob, 45)
+else:
+    # ---- Remesh (voxel) → yumuşat → decimate
+    rm = ob.modifiers.new('rm', 'REMESH')
+    rm.mode = 'VOXEL'
+    rm.voxel_size = spec.get('remesh', 1.6) * cell
+    rm.use_smooth_shade = True
+    geo.apply_modifier(ob, rm)
+    sm = ob.modifiers.new('sm', 'SMOOTH')
+    sm.factor = 0.55
+    sm.iterations = spec.get('smooth_iter', 10)
+    geo.apply_modifier(ob, sm)
+    tgt = spec['budget']['tris0']
+    cur = len(ob.data.polygons) * 1  # üçgen sayısı ≈ çokgen (remesh üçgen/dörtgen karışık)
+    bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.triangulate(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()
+    ntri = len(ob.data.polygons)
+    if ntri > tgt:
+        dc = ob.modifiers.new('dec', 'DECIMATE')
+        dc.decimate_type = 'COLLAPSE'
+        dc.ratio = tgt / ntri
+        geo.apply_modifier(ob, dc)
+    bm = bmesh.new(); bm.from_mesh(ob.data); bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()      # dışa bakan normaller
+    geo.set_smooth_by_angle(ob, 50)
 # merkez: kütle merkezi ≈ sınırlayıcı kutu merkezi (basit)
 cs = [ob.matrix_world @ v.co for v in ob.data.vertices]
 cen = sum(cs, Vector()) / len(cs)
+if spec.get('param'):      # parametrik: sınırlayıcı kutu merkezi (köşe ortalaması ince bölgelere kayıyor)
+    cen = Vector(((min(c.x for c in cs) + max(c.x for c in cs)) / 2, (min(c.y for c in cs) + max(c.y for c in cs)) / 2, (min(c.z for c in cs) + max(c.z for c in cs)) / 2))
 for v in ob.data.vertices:
     v.co -= cen
 CEN = cen.copy()
+if spec.get('param'):      # uzunluk 1,0'a normalize (IoU doğru ölçülsün)
+    _xs = [v.co.x for v in ob.data.vertices]
+    _k = 1.0 / (max(_xs) - min(_xs))
+    for v in ob.data.vertices:
+        v.co *= _k
+    CEN = CEN * _k
 T0 = tick('remesh', T0)
 tris0 = len(ob.data.polygons)
 

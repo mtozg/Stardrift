@@ -130,11 +130,23 @@ for idx, (name, sp, tris, nv) in enumerate(items):
     # UV: ön (y<0 yüzler) ve arka yüzler aynı karoyu düzlemsel kullanır; kaynak sprite çerçevesi = gövde 1.0 birim (ölçek sonrası bbox)
     bm = bmesh.new(); bm.from_mesh(ob.data); bm.normal_update()
     uvl = bm.loops.layers.uv.verify()
+    nsp = len(spec['sprites'])
+    if spec.get('noise') and name.startswith('AST_'):      # r002: düzensiz kaya silüeti (belirlenimli gürültü ile yüzey kaydırma)
+        rg = np.random.default_rng(100 + idx)
+        ph = rg.random((3, 4)) * 6.28
+        for vtx in bm.verts:
+            q = vtx.co
+            d_ = sum(math.sin(q.x * (4 + 3 * k) * 2 + q.y * (5 + 2 * k) * 2 + q.z * (3 + 4 * k) * 2 + ph[0][k]) for k in range(3)) / 3.0
+            vtx.co += vtx.normal * (d_ * spec['noise'])
     for f in bm.faces:
+        back = f.normal.y > 0.15 and spec.get('back_tile') and name.startswith('AST_')
+        rr, cc = (divmod((idx + 1) % nsp, 4)) if back else (r, c)
         for lp in f.loops:
             p = lp.vert.co
-            u = (c + (p.x + 0.5)) / 4.0
-            v = 1.0 - (r + (0.5 - p.z)) / 4.0
+            u = (cc + (p.x + 0.5)) / 4.0
+            if back:
+                u = (cc + (0.5 - p.x)) / 4.0      # arka yüz: komşu varyasyonun aynalı karosu (yansıma görünümü kırılır)
+            v = 1.0 - (rr + (0.5 - p.z)) / 4.0
             lp[uvl].uv = (u, v)
     bm.to_mesh(ob.data); bm.free()
     objs.append(ob)
