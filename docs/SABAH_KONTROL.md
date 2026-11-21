@@ -12,7 +12,7 @@ Ekonomi (rütbe, XP, kredi, fiyat) bu aşamaların hiçbirinde değişmez. Ekono
 | 4 | Hayalet r003 (derinlik + büyük ekranlar; Mehmet'in geri bildirimi) | Hazır; r001'in yerine | 2c0c30e | `git revert 2c0c30e` (r001'e döner) |
 
 | 5 | Kaşif ekranları %7 büyütüldü (çerçeveye göre küçük kalmıştı) | Hazır | d9055d8 | `git revert d9055d8` |
-| 6 | Hayalet r004: sırt hafif, katmanlı derinlik, ekranlar %7 küçük, neon hizası | Hazır; neon kısmen düzeldi | R4SHA | `git revert R4SHA` (r003'e döner) |
+| 6 | Hayalet r004: sırt hafif, katmanlı derinlik, ekranlar %7 küçük, neon hizası | Hazır; neon kısmen düzeldi | 60fc45d | `git revert 60fc45d` (r003'e döner) |
 
 ## Nasıl bakarsın
 - Aşama 1: Hangarda Şahin ve Yük Devi'yi seç, kokpite gir.
