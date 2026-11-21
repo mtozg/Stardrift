@@ -1,0 +1,15 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.055,
+  0.02,
+  0.13
+ ],
+ "rough": [
+  0.65,
+  0.85
+ ],
+ "bump": 0.01,
+ "_note": "Hayalet r004: daha koyu mor iplik (sade dikiş)"
+}

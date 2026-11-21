@@ -203,6 +203,12 @@ def build(spec, mats):
         return P(u, v, fd(v) - off)
 
     def plate(u0, v0, u1, v1, acc, off=0.006, depth=0.008):
+        if A.get('r004'):      # r004: ölçü tek derinlikte hesaplanır (yüz eğimli; iki farklı derinlikteki köşelerden boyut çıkarmak uzun plakaları şişiriyordu)
+            vm = (v0 + v1) / 2
+            pc = onF((u0 + u1) / 2, vm, off)
+            dm = fd(vm)
+            acc.box((pc.x, pc.y, pc.z), (abs(u1 - u0) / F * dm, depth, abs(v1 - v0) / F * dm))
+            return
         pa, pb = onF(u0, v0), onF(u1, v1)
         acc.box(((pa.x + pb.x) / 2, pa.y - off, (pa.z + pb.z) / 2), (abs(pb.x - pa.x), depth, abs(pa.z - pb.z)))
 
@@ -357,7 +363,7 @@ def build(spec, mats):
 
     # ---- toplu ayrıntı grupları (küçük pah: kenar parlaması)
     for nm, acc, mt, role, bev in (('detail_carbon', carb_d, 'hay_carbon', 'body', True), ('detail_dark', dark_d, 'hay_dark', 'body', True), ('detail_mid', mid_d, 'hay_mid', 'body', True),
-                                   ('detail_neon', lamps_d, 'emit_violet', 'emit_live', False), ('detail_thread', thread_d, 'hay_thread', 'body', False),
+                                   ('detail_neon', lamps_d, 'emit_violet', 'emit_live', False), ('detail_thread', thread_d, 'hay_thread2' if A.get('r004') else 'hay_thread', 'body', False),
                                    ('detail_rivets', rivets, 'hay_mid', 'body', False), ('detail_hex', hexes, 'hay_hex' if A.get('r002') else 'hay_dark', 'body', False)):
         if not acc.empty():
             add(nm, Soft(acc.bm, 0.0018, 0) if bev else acc.bm, mt, role=role, smooth=60)
