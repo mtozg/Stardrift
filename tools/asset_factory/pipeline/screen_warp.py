@@ -104,6 +104,11 @@ def main(src, dst, k=1.18, relax=0.5):
         order = [top[0], top[1], bot[1], bot[0]]
         qo = q[order]
         nq = new_quad(qo, k, relax)
+        # r2: büyüme DIŞA doğru: RADAR'a bakan iç kenar eski konumunda kalır (RADAR köşeleri/yazıları örtülmesin)
+        rc = corners['SCR_RADAR'].mean(0)[0]
+        inner_old = qo[:, 0].max() if qo[:, 0].mean() < rc else qo[:, 0].min()
+        inner_new = nq[:, 0].max() if qo[:, 0].mean() < rc else nq[:, 0].min()
+        nq[:, 0] += inner_old - inner_new
         H = homography(qo, nq)
         Hin = homography(qo, np.array([[0, 0], [1, 0], [1, 1], [0, 1]], float))
         jobs[nm] = (qo, nq, H, Hin, order)
@@ -132,6 +137,8 @@ def main(src, dst, k=1.18, relax=0.5):
                 r = np.maximum(np.abs(st[:, 0] - 0.5), np.abs(st[:, 1] - 0.5)) * 2
                 w = 1 - smoothstep(1.0, 2.1, r)
                 w = np.where(np.abs(d - depth[nm]) < 0.45, w, 0.0)
+                rx0, rx1 = corners['SCR_RADAR'][:, 0].min() - 18, corners['SCR_RADAR'][:, 0].max() + 18      # RADAR bandı (±18 px) dokunulmaz
+                w = np.where((uv[:, 0] > rx0) & (uv[:, 0] < rx1) & (uv[:, 1] > corners['SCR_RADAR'][:, 1].min() - 60), 0.0, w)
                 if nd.get('name') == nm:
                     w = np.ones(len(P))            # ekran mesh'i: tam dönüşüm
                 w = np.where(ok, w, 0.0)

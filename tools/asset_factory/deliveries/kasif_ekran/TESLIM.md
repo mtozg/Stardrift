@@ -13,3 +13,9 @@ Ekran köşeleri (1600×656; TL,TR,BR,BL), ESKİ → YENİ:
 - SCR_HULL: [[1032,393],[1206,411],[1257,525],[1042,504]] → [[1013,382],[1249,392],[1279,537],[1019,525]]
 - SCR_RADAR: değişmedi [[628,369],[974,370],[975,508],[624,508]]
 Oyunda Kaşif için hiza referansı (qc/ingame_cockpit.js REF) ve varsa CKP/scrK dörtgenleri bu yeni köşelere güncellenmeli (güncellenene dek hiza testi ~57 px sapma gösterir; görsel doğru).
+
+
+## r2 (RADAR kırpma düzeltmesi; geçerli dosyalar bu klasörün kökünde, r1 r1/ altında)
+Büyüme DIŞA doğru: RADAR'a bakan iç kenar eski yerinde kaldı; RADAR bandı (±18 px) gövde tepeleri taşımasından muaf. RADAR yazıları ("RADAR", "ANKORA SİSTEMİ") tam görünür (oyun içi doğrulandı).
+YENİ köşeler: SCR_SYS [[332,392],[565,382],[561,525],[302,537]], SCR_HULL [[1032,382],[1267,392],[1298,537],[1038,525]] (RADAR aynı).
+cockpit_kasif.glb 3912048 B 1db86bd1e8feb178…; cockpit_kasif_m.glb 2526448 B 9b0c533c459ef043…
