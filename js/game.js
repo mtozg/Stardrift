@@ -8937,8 +8937,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   });
   // devriye hareketi: çağrı ve tarama sırasında yanına gelir, takipte peşine düşer
   { const _tp = thinkPatrol; thinkPatrol = function(n){ if (!(n.rev > time)){ if (HL && HL.q === n){ setDest(n, rig.position, 140); n.spdMul = 1; return; } if (n.chaseT > time){ setDest(n, rig.position, 90); n.spdMul = 1.3; return; } } return _tp.apply(this, arguments); }; }
-  // tüccar ve madenciler korsan oyuncudan kaçar (600 m)
-  { let fT = 0; EXTRA.push(dt => { fT -= dt; if (fT > 0) return; fT = 0.5; if (save.side !== 'korsan' || docked) return;
+  // tüccar ve madenciler korsan oyuncudan kaçar (600 m); Korsan bölgesi (Kara Liman) hariç
+  { let fT = 0; EXTRA.push(dt => { fT -= dt; if (fT > 0) return; fT = 0.5; if (save.side !== 'korsan' || docked) return; if ((ZONE[curSys] || {}).tip === 'korsan') return;   /* 1.66.7: Kara Liman korsanın karargahı, siviller orada kaçmaz */
       for (let i = 0; i < npcs.length; i++){ const n = npcs[i]; if (n.hostile || (n.role !== 'trader' && n.role !== 'miner') || n.sg || n.escort) continue;
         if (n.pos.distanceTo(rig.position) < 600){ if (!(n.alertT > 0) && near(n.pos, 1500) && Math.random() < 0.35){ eco.radioT = -9; radio(n.name, 'Korsan! Kaçıyoruz!', '#ffb454'); } n.alertT = Math.max(n.alertT || 0, 6); } } }); }
   // itibarı yüksek korsan oyuncuya korsan gemileri selam verir (patronlar hariç)
