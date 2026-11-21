@@ -8,8 +8,8 @@
  "length_m": 20.0,
  "materials": [
   "white_paint",
-  "steel_dark",
-  "hay_dark",
+  "gunmetal",
+  "ice_blue",
   "yuk_dark",
   "yuk_hazard",
   "emit_red"
