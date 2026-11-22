@@ -55,7 +55,11 @@ def build(spec, mats):
         a = w / 2 + 0.002
         arch = [(-a, hd + 0.01, z), (-a - 0.001, hu - ch - 0.01, z), (-(a - ch * 0.8), hu + 0.002, z), (0, hu + 0.004, z), (a - ch * 0.8, hu + 0.002, z), (a + 0.001, hu - ch - 0.01, z), (a, hd + 0.01, z)]
         k.poly(arch, 0.0035, 'koyu', 6)
-    k.poly([(0.0, 0.1385, -0.01), (0.0, 0.1415, 0.09), (0.0, 0.1225, 0.2)], 0.0030, 'koyu', 6)                           # boyuna orta kemer
+    k.poly([(0.0, 0.1385, -0.01), (0.0, 0.1415, 0.09), (0.0, 0.1225, 0.2)], 0.0030, 'koyu', 6)
+    for sx in (-1, 1):                                                  # kanopi taban contası (kauçuk) + iç taban çerçevesi
+        k.box((sx * 0.0485, 0.073, 0.095), (0.008, 0.007, 0.235), 'lastik')
+    k.box((0, 0.071, -0.027), (0.098, 0.007, 0.009), 'lastik'); k.box((0, 0.066, 0.215), (0.060, 0.007, 0.009), 'lastik')
+    k.box((0, 0.112, 0.10), (0.060, 0.003, 0.20), 'cam')                  # iç yansıtıcı panel (kokpit tavanı gibi)                           # boyuna orta kemer
     for sx in (-1, 1):
         k.box((sx * 0.0485, 0.0755, 0.09), (0.006, 0.006, 0.23), 'kirmizi')                                            # kenar boyunca kırmızı şerit
         k.box((sx * 0.0515, 0.0725, 0.09), (0.004, 0.004, 0.23), 'metal')

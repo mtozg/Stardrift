@@ -1,0 +1,1 @@
+# Şahin m003 — ön uç cam dokunuşu (Mehmet 2026-11-22). Cam malzemesi: metalik 0,75 / pürüz 0,03–0,10 (oyun yansıma haritasını alır), koyu mavi, ton gradyanı; kanopi taban contası (kauçuk) + iç yansıtıcı panel. Oyun içi: kanopi koyu, yansımalı, çerçeveli okunuyor. Kokpit cam uyumu: kemer düzeni r012/r014'e göre (önceki tur). Kalan: iç yansıma tam şeffaflık değil (tek malzeme).

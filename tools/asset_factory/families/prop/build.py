@@ -158,6 +158,12 @@ def L_ice(spec, mats):
         rr = 0.26 + rng.random() * 0.12
         b.spire((math.cos(a) * r0, math.sin(a) * r0, -0.05), h, rr, 'ice' if i % 2 == 0 else 'white', 5 + i % 3, i + 1, lean=(math.cos(a) * 0.25, math.sin(a) * 0.25), tip=0.12)
     b.blob((0, 0, 0.35), 0.16, 'glow', 2, 0.1, 3)
+    for i in range(9):                                                   # her kristalin tabanında parlayan halka + yüzeyde ince emissive damar (içten ışıma dışarıdan okunur)
+        a = i * 2 * math.pi / 9
+        r0 = 0.0 if i == 0 else 0.30
+        bx, by = math.cos(a) * r0, math.sin(a) * r0
+        b.box((bx * 0.8, by * 0.8, 0.08), (0.20, 0.035, 0.035), 'glow', (0, 0, a))
+        b.box((bx * 0.9 + 0.02, by * 0.9, 0.32 + 0.04 * (i % 3)), (0.03, 0.03, 0.34), 'glow', (0.0, 0.1, a))
     for i in range(4):
         a = i * 1.7 + 0.4
         b.blob((math.cos(a) * 0.62, math.sin(a) * 0.62, 0.0), 0.14, 'white', 2, 0.3, 10 + i)
@@ -221,17 +227,27 @@ def L_sat(spec, mats):
     M = {'body': 'white_paint', 'steel': 'gunmetal', 'panel': 'ice_blue', 'dark': 'yuk_dark', 'gold': 'yuk_hazard', 'lamp': 'emit_red'}
     b = Bld({k: mats[v] for k, v in M.items()}, P)
     v = spec['params'].get('variant', 0)
-    b.box((0, 0, 0), (0.30, 0.30, 0.42), 'body')
-    b.box((0, 0, 0.23), (0.34, 0.34, 0.04), 'gold')
-    b.box((0, 0, -0.23), (0.34, 0.34, 0.04), 'steel')
+    b.box((0, 0, 0), (0.42, 0.42, 0.56), 'body')
+    b.box((0, 0, 0.31), (0.47, 0.47, 0.06), 'gold')
+    b.box((0, 0, -0.31), (0.47, 0.47, 0.06), 'steel')
+    for sx in (-1, 1):
+        for z in (-0.15, 0.0, 0.15):
+            b.box((sx * 0.215, 0.0, z), (0.02, 0.30, 0.07), 'dark')            # gövde panel kapakları
+        b.box((sx * 0.215, 0.0, 0.22), (0.02, 0.30, 0.02), 'gold')
     b.cyl((0.18, 0, 0), (0.45, 0, 0), 0.012, 'steel', None, 8)
     b.cyl((-0.18, 0, 0), (-0.45, 0, 0), 0.012, 'steel', None, 8)
-    b.box((0.85, 0, 0), (0.80, 0.02, 0.30), 'panel')
-    b.box((-0.85, 0.0, 0.0), (0.80, 0.02, 0.30) if v != 1 else (0.5, 0.02, 0.30), 'panel', (0, 0.0, 0.0) if v != 2 else (0.4, 0, 0))
+    b.box((0.95, 0, 0), (0.95, 0.04, 0.50), 'panel')
+    b.box((-0.95, 0.0, 0.0), (0.95, 0.04, 0.50) if v != 1 else (0.6, 0.04, 0.50), 'panel', (0, 0.0, 0.0) if v != 2 else (0.4, 0, 0))
+    for sx in (-1, 1):
+        for q in range(1, 4):
+            b.box((sx * (0.55 + q * 0.22), 0.0, 0.0), (0.02, 0.046, 0.52), 'dark')   # panel ızgara çizgileri
+        b.box((sx * 0.95, 0.0, 0.0), (0.95, 0.046, 0.02), 'dark')
     for i in range(1, 4):
         b.box((0.85, 0.012, 0.0), (0.012, 0.004, 0.30), 'dark') if False else None
     b.cyl((0, 0.15, 0.2), (0, 0.4, 0.25), 0.02, 'steel', None, 8)
-    b.cyl((0, 0.4, 0.25), (0, 0.45, 0.27), 0.16, 'body', 0.02, 20)                          # çanak
+    b.cyl((0, 0.4, 0.25), (0, 0.55, 0.30), 0.26, 'body', 0.03, 24)                          # çanak (büyük)
+    b.cyl((0, 0.55, 0.30), (0, 0.62, 0.32), 0.02, 'steel', None, 8)
+    b.cyl((0, 0.15, 0.2), (0, 0.4, 0.25), 0.02, 'gold', None, 8)
     b.box((0.10, -0.16, 0.1), (0.05, 0.02, 0.05), 'lamp')
     return b
 

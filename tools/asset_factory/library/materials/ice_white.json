@@ -1,14 +1,14 @@
 {
  "kind": "dielectric",
- "metallic": 0.0,
+ "metallic": 0.15,
  "base": [
-  0.82,
   0.88,
-  0.94
+  0.94,
+  1.0
  ],
  "rough": [
-  0.35,
-  0.6
+  0.15,
+  0.35
  ],
  "tone_var": [
   0.8,
