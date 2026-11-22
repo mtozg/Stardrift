@@ -20,7 +20,7 @@ const sizinti = async p => { const geo = () => p.evaluate(() => window.__sdt.mem
     await p.evaluate(() => { const t = window.__sdt; t.undock(); const v = t.rigPos(); v.z -= 150; const n = t.spawn('raider', v); n.state = 'idle'; });
     await p.waitForTimeout(3000);
     const s = await p.evaluate(() => { const g = window.__glb, n = window.__sdt.npcs()[0]; return { var: !!g, dur: g && g.durum(), glbYok: !n._glb, kabuk: n.g.children.filter(c => !c.isSprite).length > 0, bayrak: localStorage.getItem('sd_glb') }; });
-    R.modelYokYedek = s.var && s.dur.npcGlb === 0 && s.glbYok && s.kabuk && s.dur.model.length === 0; R.bayrakKalici = s.bayrak === '1'; R.errsB = errs; await b.close(); }
+    R.modelYokYedek = s.var && s.dur.npcGlb === 0 && s.glbYok && s.kabuk && s.dur.model.length === 0; R.bayrakKalici = s.bayrak !== '0';   // 1.68.0: varsayılan açık; kapatma işareti yok R.errsB = errs; await b.close(); }
   // C) açık + sahte modeller: LOD, asteroit, istasyon, sızıntı
   { const { p, b, errs } = await boot({}, '?glb=1', async pg => rota(pg, true));
     await p.evaluate(() => { const t = window.__sdt; t.undock(); const v = t.rigPos(); v.z -= 100; const n = t.spawn('raider', v); n.state = 'idle'; n.vel.set(0, 0, 0); window.__n0 = n; });
