@@ -104,6 +104,79 @@
     return e;
   }
 
+  // ---------- kırılan kaya parçaları: cevher alınan parça (PICK_<tür>) ve enkaz (prop_debris0..3) ----------
+  // parent'a (sprite/mesh) çocuk olarak eklenir; parent'ın kendi görünümü GLB hazırsa gizlenir. size: dünya boyutu (parent ölçeğine göre göreli).
+  var pickProto = {};
+  function pickOf(type){
+    return G.load('ast_' + type).then(function(p){
+      if (pickProto[type]) return pickProto[type];
+      var n = byName(p.root, 'PICK_' + type); if (!n) return null;
+      var c = n.clone(true); c.position.set(0, 0, 0); c.rotation.set(0, 0, 0); c.scale.set(1, 1, 1);
+      var bb = new T.Box3().setFromObject(c), sz = bb.getSize(new T.Vector3()), mx = Math.max(sz.x, sz.y, sz.z, 1e-4), ctr = bb.getCenter(new T.Vector3());
+      var w = new T.Group(); c.position.sub(ctr); w.add(c); w.userData.unit = 1 / mx; return (pickProto[type] = w);
+    });
+  }
+  function hideVis(o){ if (o.isSprite || o.isMesh){ if (!invis) invis = new T.MeshBasicMaterial({ visible: false }); if (o.isSprite) o.material.visible = false; else { o.userData.glbMat = o.material; o.material = invis; } } }
+  G.pick = function(parent, type, size){
+    if (G.kapali || !G.index['ast_' + type]) return;
+    pickOf(type).then(function(w){ if (!w || !parent) return; var r = w.clone(true), ps = parent.scale, u = size * w.userData.unit; r.scale.set(u / ps.x, u / ps.y, u / ps.z); r.userData.glb = true;   // parent ölçeği iptal edilir: dünya boyutu = size
+       r.traverse(function(o){ o.userData.shared = true; }); parent.add(r); hideVis(parent); }).catch(function(){});
+  };
+  var debrisN = ['debris0', 'debris1', 'debris2', 'debris3'];
+  G.debris = function(parent, type, size){   // type: 'hurda' ise enkaz çeşitleri, değilse o cevherin PICK parçası
+    if (G.kapali) return;
+    if (type === 'hurda'){ var k = debrisN[(Math.random() * debrisN.length) | 0]; if (!G.index['prop_' + k]) return;
+      G.load('prop_' + k).then(function(p){ if (!p || !parent) return; var r = inst(p), ps = parent.scale, u = size * p.s; r.scale.set(u / ps.x, u / ps.y, u / ps.z); r.userData.glb = true; r.traverse(function(o){ o.userData.shared = true; }); parent.add(r); hideVis(parent); }).catch(function(){}); }
+    else G.pick(parent, type, size);
+  };
+
+  // ---------- küçük nesneler (prop): roket, kaçak yük, sonda, buz devi, monolit, ini, uydu, lav kayası, enkaz ----------
+  // Sözleşme (AF): ölçek = EN BÜYÜK boyut 1,0; merkez orijin; yukarı +Y; uzun eksen +Z; çapa yok. Anahtar: prop_<ad> (sd_prop_<ad>.glb).
+  // spec: { pos: Vector3 (yerel), rot: Euler, size: en büyük boyut (dünya birimi), hide: [Mesh] (kabuk parçaları, GLB hazırsa görünmez olur) }
+  var invis = null;
+  G.prop = function(key, parent, spec){
+    var k = 'prop_' + key;
+    G.ready.then(function(){ if (!G.index[k]) return; return G.load(k); }).then(function(p){
+      if (!p || !parent || G.kapali) return;
+      var r = inst(p); r.userData.glb = true; r.scale.setScalar(spec.size * p.s);
+      if (spec.pos) r.position.copy(spec.pos); if (spec.rot) r.rotation.copy(spec.rot); if (spec.yaw) r.rotation.y += spec.yaw;
+      var l1 = byName(r, 'LOD1'), l0 = byName(r, 'LOD0'); if (l1 && l0 && l1 !== l0) l1.visible = false;
+      r.traverse(function(o){ o.userData.shared = true; });
+      parent.add(r); G.stats.prop = (G.stats.prop || 0) + 1; (G.props || (G.props = [])).push({ key: key, obj: r });   // props: test için konum listesi
+      (spec.hide || []).forEach(function(o){ if (!o) return; if (o.isMesh){ if (!invis) invis = new T.MeshBasicMaterial({ visible: false }); o.userData.glbMat = o.material; o.material = invis; } else o.visible = false; });
+      if (spec.done) spec.done(r);
+    }).catch(function(){});
+  };
+
+  // ---------- oyuncu gemisi (hangar, sinema, hiper atlama: mkShip grubu) ----------
+  // game.js mkShip sonunda çağırır: GLB hazırsa kabuk gövdenin yerine geçer; yoksa hiçbir şey olmaz. Boyut: oyundaki gemi boyu (SPECS3D len; GLB L=1).
+  G.ship = function(g, id, len){
+    var key = 'ship_' + id;
+    G.ready.then(function(){ if (!G.index[key]) return; return G.load(key); }).then(function(p){
+      if (!p || g.userData.glb || g.userData.gone) return;
+      var r = inst(p); r.scale.setScalar(len * p.s); r.userData.glb = true;
+      r.rotation.y = window.__glbShipYaw !== undefined ? window.__glbShipYaw : (id === 'kasif' ? 0 : Math.PI);   // AF modeli burun +Z, oyun gövdesi tersi: 180 derece
+      r.traverse(function(o){ o.userData.shared = true; });   // game.js hgFree önbellekteki geometri/malzemeyi atmasın
+      var th = g.userData.thr, keep = new Set(); if (th){ th.parts.forEach(function(q){ keep.add(q.outer); keep.add(q.inner); keep.add(q.halo); keep.add(q.hot); }); if (th.pl) keep.add(th.pl); }
+      var fb = []; g.children.forEach(function(c){ if (keep.has(c)) return; fb.push(c); c.visible = false; });
+      g.add(r);
+      // motor alevi: kabuk gövdenin nozul konumları yerine modelin ANCH_ENG çapaları (yön: modelde -Z = kuyruk)
+      if (th && p.anch.eng.length){
+        var Y = new T.Vector3(0, 1, 0), ang = r.rotation.y, d = new T.Vector3(0, 0, -1).applyAxisAngle(Y, ang), rot = Math.atan2(d.z, -d.x) + (window.__glbFlameFlip ? Math.PI : 0);   // alev yerel -X yönüne uzar (kabuk gövdede kuyruk -X)
+        th.parts.forEach(function(q, i){
+          var a = p.anch.eng[i], os = [q.outer, q.inner, q.halo, q.hot];
+          os.forEach(function(o){ o.visible = !!a; }); if (!a) return;
+          var v = a.clone().multiplyScalar(len * p.s).applyAxisAngle(Y, ang); q.r = Math.max(0.02, len * 0.045);
+          q.outer.position.copy(v); q.inner.position.copy(v); q.halo.position.copy(v); q.hot.position.copy(v);
+          q.outer.rotation.y = q.inner.rotation.y = rot;
+        });
+        if (th.pl && p.anch.eng[0]) th.pl.position.copy(p.anch.eng[0].clone().multiplyScalar(len * p.s).applyAxisAngle(Y, ang)).addScaledVector(d, len * 0.1);
+      } g.userData.glb = { r: r, fb: fb, p: p, lod0: byName(r, 'LOD0') || r, lod1: byName(r, 'LOD1') };
+      if (g.userData.glb.lod1 && g.userData.glb.lod1 !== g.userData.glb.lod0) g.userData.glb.lod1.visible = false;
+      G.stats.gemi = (G.stats.gemi || 0) + 1;
+    }).catch(function(){});
+  };
+
   // ---------- istasyon ----------
   var stations = [];
   G.station = function(st, key, w, prev){

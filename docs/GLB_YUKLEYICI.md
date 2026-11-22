@@ -1,8 +1,11 @@
-# GLB yükleyici (prototip hazırlığı, varsayılan KAPALI)
+# GLB yükleyici (1.68.0: VARSAYILAN AÇIK, yalnız kabul edilen modeller)
 
 Sürüm 1.67.0. Amaç: Asset Factory'nin gerçek 3B modelleri (NPC, asteroit, istasyon) geldiğinde oyunda hemen denenebilsin. **Bu sürümde oyun deneyimi değişmez:** yükleyici varsayılan olarak kapalıdır ve hiçbir model oyuna eklenmedi.
 
-## Açma / kapama
+## Durum (1.68.0)
+Yükleyici **varsayılan AÇIK**. `models/glb/index.json` yalnız **kabul edilen** modelleri listeler: Aşama 1 cevher kayaları (`ast_demir/buz/kristal/titan/hurda`, kırılan parçalar `PICK_*` dahil), enkaz (`prop_debris0..3`), kristal monolit (`prop_monolith_green`), lav kayası (`prop_lava`). Diğer modeller (gemiler, istasyonlar, hangar, buz devi, uydu, patron ini, roket, konteyner, sonda) kabul edilene kadar listede YOKTUR. `?glb=0` kapatır (kalıcı), `?glb=1` geri açar; grafik bağlantısı koptuysa (güvenli mod) o cihazda otomatik kapalı kalır.
+
+## Açma / kapama (eski prototip notu aşağıda geçerlidir, varsayılan değişti)
 - `?glb=1` açar (ve bu cihazda hatırlar), `?glb=0` kapatır. Kapalıyken `js/glb.js` hiç indirilmez.
 - Model listesi `models/glb/index.json` dosyasından okunur. Dosya yoksa ya da liste boşsa hiçbir şey denenmez; oyun bugünkü gibi çalışır.
 

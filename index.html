@@ -148,12 +148,14 @@ body,button{font-size-adjust:.5}
 <script>
 /* SÜRÜM: her güncellemede bu numarayı artır. Tarayıcı eski game.js dosyasını önbellekten getirmez,
    ayarlar panelinin altında da bu numara görünür. */
-window.SD_VERSION = '1.67.12';
+window.SD_VERSION = '1.68.0';
 window.SD_FB = { apiKey: "AIzaSyADLoPqH_HEHjSv1mwY23cJZkuce-KOkUo", authDomain: "stardrift-617de.firebaseapp.com", projectId: "stardrift-617de", storageBucket: "stardrift-617de.firebasestorage.app", messagingSenderId: "527698904689", appId: "1:527698904689:web:dfdceeabba807fdf747dd0" };   // Firebase istemci ayarı (gizli değildir; güvenlik Firestore kurallarındadır)
 if (/[?&]tani=1/.test(location.search)) document.write('<script src="js/tani.js?v=' + window.SD_VERSION + '"><\/script>');   /* ölçüm paneli (T1/T2): yalnız ?tani=1 ile yüklenir */
 document.write('<script src="vendor/three-bloom.js?v=' + window.SD_VERSION + '"><\/script>');
-var glbOn = false; try { if (/[?&]glb=0/.test(location.search)) localStorage.removeItem('sd_glb'); else if (/[?&]glb=1/.test(location.search)) localStorage.setItem('sd_glb', '1'); glbOn = localStorage.getItem('sd_glb') === '1'; } catch (e) {}
-if (glbOn) document.write('<script src="js/glb.js?v=' + window.SD_VERSION + '"><\/script>');   /* GLB prototipi: VARSAYILAN KAPALI (?glb=1 açar, ?glb=0 kapatır) */
+var glbOn = true; try { var ipx = /iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (/[?&]glb=0/.test(location.search)) localStorage.setItem('sd_glb', '0'); else if (/[?&]glb=1/.test(location.search)) localStorage.setItem('sd_glb', '1');
+  var gf = localStorage.getItem('sd_glb'); glbOn = gf === '1' || (gf !== '0' && !ipx && !(+localStorage.getItem('sd_lost') > 0)); } catch (e) {}   /* 1.68.0: otomatik AÇIK; iPad ve bellek sorunu (sd_lost) olan cihazda otomatik KAPALI (açılış doku belleği ~+13 MB, iPad çökme geçmişi); ?glb=1 zorla açar, ?glb=0 kapatır (kalıcı) */
+if (glbOn) document.write('<script src="js/glb.js?v=' + window.SD_VERSION + '"><\/script>');   /* GLB modelleri: models/glb/index.json'daki KABUL edilmiş modeller; yoksa/bozuksa kabuk model */
 document.write('<script src="js/data_gemi.js?v=' + window.SD_VERSION + '"><\/script>');
 document.write('<script src="js/data_ses.js?v=' + window.SD_VERSION + '"><\/script>');
 document.write('<script src="js/game.js?v=' + window.SD_VERSION + '"><\/script>');
