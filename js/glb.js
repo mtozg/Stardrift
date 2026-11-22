@@ -42,13 +42,17 @@
     var env = window.__spaceEnv && window.__spaceEnv(); if (!env) return;
     root.traverse(function(o){ if (!o.isMesh || !o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ if (m.isMeshStandardMaterial && !m.envMap){ m.envMap = env; m.envMapIntensity = 1.2; if (!m.metalnessMap) m.metalness = Math.min(m.metalness, 0.4); m.needsUpdate = true; } }); });   /* tam metal (1,0) + koyu uzay haritası = simsiyah: yansıma haritası + metalliği 0,4'e indirme (oyun içi 4 değişken denemesinde okunur biçim veren en sade ayar) */
   }
+  /* kaya: metal değil (ORM haritasındaki metal kanalı yüzünden koyu/siyah çıkıyordu): metalik 0, mat; doku (renk) aynen kalır */
+  function kayaMat(root){
+    root.traverse(function(o){ if (!o.isMesh || !o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ if (!m.isMeshStandardMaterial) return; m.metalness = 0.02; m.metalnessMap = null; m.roughness = 1; m.envMapIntensity = 1.4; m.needsUpdate = true; }); });
+  }
   G.load = function(key){
     return G.ready.then(function(){
       if (!G.index[key]) return Promise.reject(new Error('model listede yok: ' + key));
       var c = cache[key];
       if (c){ if (c.p) return c.p; if (c.fail && performance.now() - c.fail < RETRY) return Promise.reject(c.err); }
       c = cache[key] = {};
-      c.p = loader().then(function(L){ return new Promise(function(res, rej){ L.load(url(key), function(g){ try { var p = prep(key, g); envVer(p.root); G.stats.yuklenen++; res(p); } catch (e) { rej(e); } }, undefined, rej); }); })
+      c.p = loader().then(function(L){ return new Promise(function(res, rej){ L.load(url(key), function(g){ try { var p = prep(key, g); envVer(p.root); if (/^ast_/.test(key)) kayaMat(p.root); G.stats.yuklenen++; res(p); } catch (e) { rej(e); } }, undefined, rej); }); })
         .catch(function(e){ G.stats.basarisiz++; c.p = null; c.fail = performance.now(); c.err = e; try { console.warn('[glb] ' + key + ': ' + ((e && e.message) || e)); } catch (x) {} throw e; });
       return c.p;
     });
