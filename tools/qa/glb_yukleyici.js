@@ -11,7 +11,7 @@ const sizinti = async p => { const geo = () => p.evaluate(() => window.__sdt.mem
 (async () => {
   const R = {};
   // A) kapalı
-  { const { p, b, errs } = await boot(); const reqs = []; p.on('request', r => reqs.push(r.url()));
+  { const { p, b, errs } = await boot({}, '?glb=0'); const reqs = []; p.on('request', r => reqs.push(r.url()));
     await p.evaluate(() => window.__sdt.undock()); await p.waitForTimeout(1500);
     R.kapaliIzYok = await p.evaluate(() => typeof window.__glb === 'undefined') && !reqs.some(u => /glb\.js|models\/glb/.test(u));
     R.geoTaban = await sizinti(p); R.errsA = errs; await b.close(); }
@@ -44,7 +44,7 @@ const sizinti = async p => { const geo = () => p.evaluate(() => window.__sdt.mem
     const gc = await sizinti(p); R.geoAcik = gc; R.sizintiYok = (gc[1] - gc[0]) <= (R.geoTaban[1] - R.geoTaban[0]) * 1.1 + 8; R.errsC = errs; await b.close(); }
   // D) ?glb=0 bayrağı siler
   { const { p, b, errs } = await boot({}, '?glb=1', async pg => rota(pg, true)); await p.goto((process.env.BASE || 'http://localhost:8771/') + '?glb=0'); await p.waitForTimeout(2500);
-    R.glb0Kapatir = await p.evaluate(() => typeof window.__glb === 'undefined' && localStorage.getItem('sd_glb') === null); R.errsD = errs; await b.close(); }
+    R.glb0Kapatir = await p.evaluate(() => typeof window.__glb === 'undefined' && localStorage.getItem('sd_glb') === '0'); R.errsD = errs; await b.close(); }
   R.errs = [].concat(R.errsA, R.errsB, R.errsC, R.errsD); delete R.errsA; delete R.errsB; delete R.errsC; delete R.errsD;
   console.log('@@' + JSON.stringify(R));
 })();
