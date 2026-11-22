@@ -29,3 +29,6 @@ Lav: çatlaklar büyütüldü ve daha sıcak turuncu emissive, kaya içinde ıs�
 
 ## Kalite turu 2 (ini / enkaz)
 Patron ini: seed'e göre 4 gerçek yerleşim (iki kule, tek büyük blok, üç konteyner, iki direk); varyant 4–5 hâlâ eski yerleşim. Enkaz: kırık kaburga/kablo kütükleri eklendi (hâlâ yalın). Oyun içi doğrulanmadı.
+
+## Buz/uydu revizesi (r009; Mehmet 2026-11-22)
+Buz: kristal tabanlarında parlayan halkalar + yüzeyde emissive damarlar, daha açık/parlak buz rengi, kenar parlaması artırıldı; uydu: ~%40 büyük gövde, büyük çanak, panel ızgara çizgileri, açık metal. Gerçek şeffaflık yok (tek malzeme). Oyun içi doğrulanmadı.
