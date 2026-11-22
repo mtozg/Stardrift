@@ -30,7 +30,7 @@ BEKLE = {
  'derin_kural': [('uzak14k', 2), ('orta7k', 0), ('yakin3k', 0), ('sinirAlti', 0), ('sinirUstu', 2), ('lonca14k', 2), ('korsan14k', 0), ('baskasiEtkilenmedi', '0:0'), ('errs', [])],
  'menu_yetenek': [('uyariTemiz', True), ('menudeAcildi', True), ('sekmelerGorunur', True), ('tamEkranDegil', True), ('sekmeVurgusu', True), ('baskaSekmeKapatir', True), ('errs', [])],
  'guvenli_mod': [('adresKalite', True), ('baglamKopar', True), ('kaliteDustu', True), ('sayac', 1), ('uyari', True), ('errs', [])],
- 'ipad_kokpit': [('ipadHafif', True), ('masaustuTam', True), ('errs', [])],
+ 'ipad_kokpit': [('ipadHafif', True), ('masaustuTam', True), ('ipadGlbKapali', True), ('masaustuGlbAcik', True), ('errs', [])],
  'istatistik': [('efsane', [0, 0, 1, 2, 5]), ('satirSayisi', 11), ('rutbe', 'Efsane +I'), ('kayitAlaniDegismedi', True), ('atlasMetin', True), ('errs', [])],
  'bekci_meydan': [('kapaliBekciYok', True), ('acikBekciVar', True), ('hull1', 3900), ('z1', [1, 0]), ('gwinOdul1', False), ('hull2', 5200), ('z2', [2, 0]), ('gwinOdul2', False), ('rozet', 3), ('hullOran', 1.33), ('errs', [])],
  'korsan_karargah': [('kosul', True), ('kacmaKara', False), ('kacmaDiger', True), ('errs', [])],
