@@ -32,10 +32,6 @@
  "prop_lava": {
   "url": "models/glb/prop_lava.glb"
  },
- "ship_sahin": {
-  "url": "models/glb/ship_sahin.glb",
-  "urlM": "models/glb/ship_sahin_m.glb"
- },
  "ship_yuk": {
   "url": "models/glb/ship_yuk.glb",
   "urlM": "models/glb/ship_yuk_m.glb"
