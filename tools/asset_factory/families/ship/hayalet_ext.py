@@ -66,6 +66,19 @@ def build(spec, mats):
             k.box((x + math.cos(ang) * r * 1.12, y + math.sin(ang) * r * 1.12, -0.52), (0.006, 0.006, 0.060), 'metal')
         k.cyl((x, y, -0.44), (x, y, -0.452), r * 1.22, 'panel', seg=16, cap=False)
     k.box((0, 0.0, -0.40), (0.10, 0.045, 0.06), 'gri')                                                                                               # nacelle bağlantı bloğu
+    for sx in (-1, 1):                                                       # gövde altı: servis kapakları, havalandırma, iniş yuvası, kablo
+        for z in (-0.25, -0.05, 0.12):
+            k.box((sx * 0.030, -0.0405, z), (0.040, 0.004, 0.08), 'panel')
+            k.box((sx * 0.030, -0.0425, z), (0.030, 0.003, 0.004), 'koyu')
+        k.cyl((sx * 0.05, -0.040, -0.12), (sx * 0.05, -0.040, 0.20), 0.004, 'celik', None, 6)
+    for i in range(7):
+        k.box((0.0, -0.0415, -0.30 + i * 0.012), (0.07, 0.003, 0.006), 'koyu')
+    k.box((0.0, -0.043, 0.05), (0.05, 0.006, 0.10), 'metal')
+    for sx in (-1, 1):                                                       # kanat üstü: panel sıraları + perçin sıraları
+        for t in (0.25, 0.5, 0.75):
+            k.box((sx * (0.07 + 0.24 * t), -0.0115 - 0.008 * t, 0.07 - 0.29 * t - 0.08), (0.05, 0.0025, 0.004), 'koyu')
+        for q in range(5):
+            k.box((sx * (0.10 + 0.04 * q), -0.0118 - 0.005 * q, -0.02 - 0.045 * q), (0.004, 0.003, 0.004), 'celik')
     # ---------------- gövde yüzey ayrıntıları: panjur, kapaklar, gravür çizgileri, pitot
     for z in (-0.28, -0.12, 0.02, 0.14):
         k.box((0, 0.0555, z), (0.11, 0.0025, 0.003), 'koyu')

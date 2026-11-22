@@ -1,1 +1,8 @@
-{"kind": "emit", "emission": [0.6, 0.3, 1.0]}
+{
+ "kind": "emit",
+ "emission": [
+  0.55,
+  0.28,
+  1.0
+ ]
+}

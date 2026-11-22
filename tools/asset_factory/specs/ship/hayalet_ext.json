@@ -32,13 +32,37 @@
  },
  "prepare": {
   "tex": {
-   "base": 1024,
-   "orm": 512,
-   "normal": 512
+   "base": 2048,
+   "orm": 1024,
+   "normal": 2048
   },
   "ao_distance": 0.15,
   "ao_into_base": 0.6,
   "normalize_length": true,
-  "cull": "exterior"
+  "cull": "exterior",
+  "uv_angle": 88,
+  "uv_margin": 0.0,
+  "bake_samples": 10,
+  "ao_samples": 48,
+  "hipoly": {
+   "panel": 0.5,
+   "frac": 0.55,
+   "relief": [
+    0.008,
+    0.022
+   ],
+   "inset": 0.04,
+   "bevel": 0.005,
+   "rivet_r": 0.02,
+   "rivet_h": 0.012,
+   "rivet_p": 0.45,
+   "k_edge": 4.0,
+   "k_cav": 4.0,
+   "cav_dark": 0.3,
+   "edge_light": 0.5,
+   "edge_metal": 0.8,
+   "cage": 0.06,
+   "ray": 0.2
+  }
  }
 }

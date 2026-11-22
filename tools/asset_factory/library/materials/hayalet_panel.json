@@ -1,18 +1,18 @@
 {
  "kind": "metal",
- "metallic": 0.5,
+ "metallic": 0.65,
  "base": [
-  0.17,
-  0.175,
-  0.19
+  0.24,
+  0.25,
+  0.28
  ],
  "rough": [
-  0.4,
-  0.7
+  0.2,
+  0.45
  ],
  "brush": 0.5,
  "scratch": 0.6,
- "wear": 0.8,
+ "wear": 1.6,
  "wear_color": [
   0.4,
   0.4,
@@ -20,7 +20,9 @@
  ],
  "dirt": 0.35,
  "bump": 0.02,
- "_note": "Hayalet dış: açık panel",
- "panels": 0.35,
- "panel_scale": 3.4
+ "_note": "Hayalet d\u0131\u015f: a\u00e7\u0131k panel",
+ "panels": 0.0,
+ "panel_scale": 3.4,
+ "chips": 1.0,
+ "grime": 0.7
 }

@@ -1,16 +1,21 @@
 {
  "kind": "dielectric",
- "metallic": 0.0,
+ "metallic": 0.75,
  "base": [
   0.04,
-  0.02,
-  0.09
+  0.015,
+  0.1
  ],
  "rough": [
-  0.05,
-  0.16
+  0.03,
+  0.1
  ],
  "dirt": 0.1,
  "bump": 0.0,
- "scratch": 0.15
+ "scratch": 0.2,
+ "tone_var": [
+  0.5,
+  1.7
+ ],
+ "cloud_scale": 1.2
 }
