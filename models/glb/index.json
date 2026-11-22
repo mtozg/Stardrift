@@ -1,13 +1,43 @@
 {
-  "ast_demir": { "url": "models/glb/ast_demir.glb" },
-  "ast_buz": { "url": "models/glb/ast_buz.glb" },
-  "ast_kristal": { "url": "models/glb/ast_kristal.glb" },
-  "ast_titan": { "url": "models/glb/ast_titan.glb" },
-  "ast_hurda": { "url": "models/glb/ast_hurda.glb" },
-  "prop_debris0": { "url": "models/glb/prop_debris0.glb" },
-  "prop_debris1": { "url": "models/glb/prop_debris1.glb" },
-  "prop_debris2": { "url": "models/glb/prop_debris2.glb" },
-  "prop_debris3": { "url": "models/glb/prop_debris3.glb" },
-  "prop_monolith_green": { "url": "models/glb/prop_monolith_green.glb" },
-  "prop_lava": { "url": "models/glb/prop_lava.glb" }
+ "ast_demir": {
+  "url": "models/glb/ast_demir.glb"
+ },
+ "ast_buz": {
+  "url": "models/glb/ast_buz.glb"
+ },
+ "ast_kristal": {
+  "url": "models/glb/ast_kristal.glb"
+ },
+ "ast_titan": {
+  "url": "models/glb/ast_titan.glb"
+ },
+ "ast_hurda": {
+  "url": "models/glb/ast_hurda.glb"
+ },
+ "prop_debris0": {
+  "url": "models/glb/prop_debris0.glb"
+ },
+ "prop_debris1": {
+  "url": "models/glb/prop_debris1.glb"
+ },
+ "prop_debris2": {
+  "url": "models/glb/prop_debris2.glb"
+ },
+ "prop_debris3": {
+  "url": "models/glb/prop_debris3.glb"
+ },
+ "prop_monolith_green": {
+  "url": "models/glb/prop_monolith_green.glb"
+ },
+ "prop_lava": {
+  "url": "models/glb/prop_lava.glb"
+ },
+ "ship_sahin": {
+  "url": "models/glb/ship_sahin.glb",
+  "urlM": "models/glb/ship_sahin_m.glb"
+ },
+ "ship_yuk": {
+  "url": "models/glb/ship_yuk.glb",
+  "urlM": "models/glb/ship_yuk_m.glb"
+ }
 }
