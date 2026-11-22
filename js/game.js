@@ -618,6 +618,7 @@ function addDebris(p, vel, sc, life, type){
   if (debris.length > 90){ const o = debris.shift(); scene.remove(o.mesh); }
   const dt_ = ORP[type], m = dt_ ? new THREE.Sprite(new THREE.SpriteMaterial({ map: dt_, transparent: true, depthWrite: false, rotation: rand(0, TAU) })) : new THREE.Mesh(tmpl[(Math.random() * tmpl.length) | 0], astMat[type]);
   if (dt_) m.scale.set(sc * 2.4, sc * 2.4, 1); else m.scale.set(sc * rand(0.7, 1.3), sc * rand(0.7, 1.3), sc * rand(0.7, 1.3)); m.position.copy(p); m.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU)); scene.add(m);
+  if (window.__glb) window.__glb.debris(m, type, sc * (dt_ ? 1.2 : 1.6));   /* GLB kırık parça / enkaz (?glb=1): dünya boyutu */
   debris.push({ mesh: m, s0: m.scale.clone(), vel, spin: V(rand(-2.5, 2.5), rand(-2.5, 2.5), rand(-2.5, 2.5)), life, max: life });
 }
 function updateDebris(dt){
@@ -797,6 +798,7 @@ function oreVis(type){
 function spawnOre(p, type){
   const m = oreVis(type);
   m.position.copy(p).add(V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).multiplyScalar(6)); scene.add(m);
+  if (window.__glb) window.__glb.pick(m, type, 3.4);   /* GLB cevher parçası (?glb=1): dünya boyutu 3,4 birim */
   const gl = sprite(oreGlowTex, m.isSprite ? 1.3 : 7, 0.55); gl.material.color.setHex(ORE[type].hex); m.add(gl);
   ores.push({ mesh: m, vel: V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize().multiplyScalar(rand(8, 22)), type, life: 90 });
 }
@@ -4027,7 +4029,8 @@ function mkShip3D(id){
   const v = document.getElementById('hgVw'); if (v) v.style.display = 'none';
   return g;
 }
-function mkShip(id){
+function mkShip(id){ const g = mkShip0(id); if (window.__glb && window.__glb.ship) window.__glb.ship(g, id, (SPECS3D[id] && SPECS3D[id].len) || 4.4); return g; }   /* GLB dış modeli (yalnız ?glb=1): hazırsa kabuğun yerine geçer */
+function mkShip0(id){
   if (!window.__no3d){ try { if (id === 'kasif') return mkShip3D(id); if (SPECS3D[id] && SHIPART[id]) return mkShipGen(id); } catch (e) { console.log('3d hata', e); } }
   if (SHIPART[id]) return mkShipArt(id);
   const g = new THREE.Group();
@@ -4065,6 +4068,7 @@ function mkShip(id){
 // 1.55.0 (S1-03): hangarda gemi değişince eski model GPU'dan bırakılır. Ortak dokular (artTex önbelleği, boş doku, hangar ortam haritası) korunur.
 function hgFree(root){
   const keep = new Set(Object.values(artTex)); if (blankTex) keep.add(blankTex); if (hgEnv) keep.add(hgEnv);
+  { const gl = root.userData && root.userData.glb; if (gl && gl.r){ root.userData.gone = true; root.remove(gl.r); } }   /* GLB gemisi önbelleği paylaşılır: atılmaz */
   const seen = new Set(), free = x => { if (x && !seen.has(x) && !keep.has(x)){ seen.add(x); try { x.dispose(); } catch (e) {} } };
   root.traverse(o => { if (o.geometry) free(o.geometry); const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
     for (const m of ms){ for (const k in m){ const v = m[k]; if (v && v.isTexture) free(v); } if (m.uniforms) for (const k in m.uniforms){ const v = m.uniforms[k] && m.uniforms[k].value; if (v && v.isTexture) free(v); } free(m); } });
@@ -7350,7 +7354,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
       const st1 = satTex(), pm1 = new THREE.MeshBasicMaterial({ map: st1.top, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, color: 0xdfe3ee }), pm2 = new THREE.MeshBasicMaterial({ map: st1.side, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, color: 0xdfe3ee });
       for (let i = 0; i < 9; i++){
         const g = new THREE.Group(), W0 = rand(52, 70), tp = new THREE.Mesh(new THREE.PlaneGeometry(W0, W0 * 0.9962), pm1); tp.rotation.x = -Math.PI / 2; g.add(tp);
-        g.add(new THREE.Mesh(new THREE.PlaneGeometry(W0, W0 * 0.3312), pm2));
+        const tp2 = new THREE.Mesh(new THREE.PlaneGeometry(W0, W0 * 0.3312), pm2); g.add(tp2); if (window.__glb) window.__glb.prop('sat', g, { size: W0, hide: [tp, tp2] });   /* GLB uydu (?glb=1) */
         const pos = c.clone().add(V(rand(-260, 260), rand(-80, 80), rand(-260, 260))); g.position.copy(pos); g.rotation.set(rand(0, 6), rand(0, 6), rand(0, 6)); scene.add(g);
         const hpv = 260; asteroids.push({ mesh: g, pos: g.position, r: 26, type: 'demir', hp: hpv, max: hpv, units: 5, salvage: true, vel: V(rand(-1, 1), rand(-1, 1), rand(-1, 1)), spin: V(rand(-0.2, 0.2), rand(-0.2, 0.2), rand(-0.2, 0.2)) });
       }
@@ -7360,7 +7364,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
       const mt = SM(0x3a1810, 0xff4a10, { emissiveIntensity: 0.55, roughness: 0.9, metalness: 0.1 });
       for (let i = 0; i < 12; i++){
         const r = rand(9, 17), m = new THREE.Mesh(tmpl[(Math.random() * tmpl.length) | 0], mt); m.scale.setScalar(r); const p = c0.clone().addScaledVector(dir, rand(-1400, 1400)).add(V(rand(-120, 120), rand(-60, 60), rand(-120, 120)));
-        m.position.copy(p); scene.add(m); m.add(sprite(glowTexture(255, 120, 40), 3.2, 0.7));
+        m.position.copy(p); scene.add(m); m.add(sprite(glowTexture(255, 120, 40), 3.2, 0.7)); if (window.__glb) window.__glb.prop('lava', m, { size: 2.2, hide: [m] });   /* GLB lav kayası (m ölçeği r; boyut 2,2 birim) */
         const a = { mesh: m, pos: m.position, r, type: 'demir', hp: r * r * 0.16 * (SYSC.rock || 1), max: r * r * 0.16 * (SYSC.rock || 1), units: Math.round(r / 3), vel: dir.clone().multiplyScalar(rand(28, 42)), spin: V(rand(-0.6, 0.6), rand(-0.6, 0.6), rand(-0.6, 0.6)), lava: true };
         asteroids.push(a); lav.push(a);
       }
@@ -7372,7 +7376,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
       const spires = [];
       for (let i = 0; i < 6; i++){
         const h = rand(180, 380), w = h * rand(0.12, 0.2), m = new THREE.Mesh(new THREE.OctahedronGeometry(1, 0), im); m.scale.set(w, h, w);
-        const p = c.clone().add(V(rand(-1, 1), 0, rand(-1, 1)).normalize().multiplyScalar(rand(150, b.r + 250))); p.y += rand(-60, 60); m.position.copy(p); m.rotation.set(rand(-0.35, 0.35), rand(0, 6), rand(-0.35, 0.35)); FG.add(m);
+        const p = c.clone().add(V(rand(-1, 1), 0, rand(-1, 1)).normalize().multiplyScalar(rand(150, b.r + 250))); p.y += rand(-60, 60); m.position.copy(p); m.rotation.set(rand(-0.35, 0.35), rand(0, 6), rand(-0.35, 0.35)); FG.add(m); if (window.__glb) window.__glb.prop('ice', FG, { pos: m.position, rot: m.rotation, size: h * 2, hide: [m] });   /* GLB buz devi (?glb=1) */
         spires.push({ p, w: w * 0.8 + 10, h }); FG.add(at(sprite(glowTexture(150, 220, 255), h * 1.1, 0.18), p.clone()));
       }
       for (let i = 0; i < 14; i++){ const s0 = spires[i % spires.length]; mkRock(s0.p.clone().add(V(rand(-1, 1), rand(-0.6, 0.6), rand(-1, 1)).normalize().multiplyScalar(s0.w + rand(40, 110))), 'buz', rand(9, 16), V(0, 0, 0), 6); }
@@ -7382,7 +7386,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     } else if (k === 3){   // Zümrüt: kristal monolitler + sis bulutları
       const mm = new THREE.MeshStandardMaterial({ color: 0x1f5a3f, emissive: 0x18ff9a, emissiveIntensity: 0.35, roughness: 0.25, metalness: 0.3, flatShading: true });
       const b1 = beltBy(x => x.c.distanceTo(STATIONS[0].pos) * (x.rich ? 0.6 : 1)), c1 = b1.c.clone().add(V(0, 200, 0)), lights = [];
-      for (let i = 0; i < 4; i++){ const a = i / 4 * TAU, m = new THREE.Mesh(new THREE.BoxGeometry(26, 200, 26), mm); m.position.copy(c1).add(V(Math.cos(a) * 160, 0, Math.sin(a) * 160)); m.rotation.y = a; FG.add(m);
+      for (let i = 0; i < 4; i++){ const a = i / 4 * TAU, m = new THREE.Mesh(new THREE.BoxGeometry(26, 200, 26), mm); m.position.copy(c1).add(V(Math.cos(a) * 160, 0, Math.sin(a) * 160)); m.rotation.y = a; FG.add(m); if (window.__glb) window.__glb.prop('monolith_green', FG, { pos: m.position, rot: m.rotation, size: 200, hide: [m] });   /* GLB monolit (?glb=1) */
         const pl = new THREE.PointLight(0x40ffa8, 1.4, 700); pl.position.copy(m.position).add(V(0, 120, 0)); FG.add(pl); lights.push(pl); FG.add(at(sprite(glowTexture(80, 255, 170), 160, 0.5), m.position.clone().add(V(0, 110, 0)))); }
       let ph = 0; tickers.push(dt => { ph += dt; for (const [i, l] of lights.entries()) l.intensity = 0.8 + 0.8 * Math.max(0, Math.sin(ph * 1.4 - i * 0.9)); });
       mark('Kristal monolitler', c1, 'Dört monolit, ritimle parlıyor. Kimin diktiği bilinmiyor.');
@@ -7505,6 +7509,7 @@ const rankOf = xp => { let r = 0; for (let i = 0; i < RANKS.length; i++) if (xp 
     if (save.boss.includes(k) || !BOSS[k] || save.side === 'korsan') return;   /* Korsan tarafında korsan reisleri müttefik: korsan ini çıkmaz */
     lairPos.set(...BOSS[k].at); for (const b of [PLANET, GIANT, PLANET2, PLANET3, ...STATIONS]) if (b.pos.distanceTo(lairPos) < (b.r || 100) + 1500) lairPos.y += 2600;
     lair = new THREE.Group(); const md = window.__olayModel && window.__olayModel('kamp'); if (md){ md.scale.setScalar(520); lair.add(md); }
+    if (window.__glb) window.__glb.prop('lair', lair, { size: 1000, hide: [md] });   /* GLB patron ini (?glb=1); kabuk 'kamp' modeli hazır olunca gizlenir */
     const gl = sprite(glowTexture(255, 60, 60), 900, 0.4); lair.add(gl); lair.position.copy(lairPos); lair.rotation.set(0.3, rand(0, 6), 0.2); scene.add(lair);
     mark = { kind: 'ruin', i: 8, gate: false, found: true, r: 300, ad: 'Korsan ini', label: 'Korsan ini · ' + BOSS[k].ad, pos: lairPos.clone(), group: { position: lairPos.clone() } };
   }
@@ -10850,6 +10855,8 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
+    debris: (p, v, sc, life, type) => addDebris(p, v, sc, life, type),   /* test */
+    faceTo: v => { const m = new THREE.Matrix4().lookAt(rig.position, v, V(0, 1, 0)); rig.quaternion.setFromRotationMatrix(m); },   /* test: bakışı hedefe çevir */
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },
     wreck: () => wreck(),
