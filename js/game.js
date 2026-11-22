@@ -613,6 +613,7 @@ function addDebris(p, vel, sc, life, type){
   if (debris.length > 90){ const o = debris.shift(); scene.remove(o.mesh); }
   const dt_ = ORP[type], m = dt_ ? new THREE.Sprite(new THREE.SpriteMaterial({ map: dt_, transparent: true, depthWrite: false, rotation: rand(0, TAU) })) : new THREE.Mesh(tmpl[(Math.random() * tmpl.length) | 0], astMat[type]);
   if (dt_) m.scale.set(sc * 2.4, sc * 2.4, 1); else m.scale.set(sc * rand(0.7, 1.3), sc * rand(0.7, 1.3), sc * rand(0.7, 1.3)); m.position.copy(p); m.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU)); scene.add(m);
+  if (window.__glb) window.__glb.debris(m, type, sc * (dt_ ? 1.2 : 1.6));   /* GLB kırık parça / enkaz (?glb=1): dünya boyutu */
   debris.push({ mesh: m, s0: m.scale.clone(), vel, spin: V(rand(-2.5, 2.5), rand(-2.5, 2.5), rand(-2.5, 2.5)), life, max: life });
 }
 function updateDebris(dt){
@@ -792,6 +793,7 @@ function oreVis(type){
 function spawnOre(p, type){
   const m = oreVis(type);
   m.position.copy(p).add(V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).multiplyScalar(6)); scene.add(m);
+  if (window.__glb) window.__glb.pick(m, type, 3.4);   /* GLB cevher parçası (?glb=1): dünya boyutu 3,4 birim */
   const gl = sprite(oreGlowTex, m.isSprite ? 1.3 : 7, 0.55); gl.material.color.setHex(ORE[type].hex); m.add(gl);
   ores.push({ mesh: m, vel: V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize().multiplyScalar(rand(8, 22)), type, life: 90 });
 }
@@ -10824,6 +10826,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   // test kancası (yalnız test kaydında, ':test' anahtarı): otomatik testlerin kayıt/kargo durumunu okuması için. Gerçek kayıtta tanımsız.
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
+    debris: (p, v, sc, life, type) => addDebris(p, v, sc, life, type),   /* test */
     faceTo: v => { const m = new THREE.Matrix4().lookAt(rig.position, v, V(0, 1, 0)); rig.quaternion.setFromRotationMatrix(m); },   /* test: bakışı hedefe çevir */
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },

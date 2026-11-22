@@ -104,6 +104,32 @@
     return e;
   }
 
+  // ---------- kırılan kaya parçaları: cevher alınan parça (PICK_<tür>) ve enkaz (prop_debris0..3) ----------
+  // parent'a (sprite/mesh) çocuk olarak eklenir; parent'ın kendi görünümü GLB hazırsa gizlenir. size: dünya boyutu (parent ölçeğine göre göreli).
+  var pickProto = {};
+  function pickOf(type){
+    return G.load('ast_' + type).then(function(p){
+      if (pickProto[type]) return pickProto[type];
+      var n = byName(p.root, 'PICK_' + type); if (!n) return null;
+      var c = n.clone(true); c.position.set(0, 0, 0); c.rotation.set(0, 0, 0); c.scale.set(1, 1, 1);
+      var bb = new T.Box3().setFromObject(c), sz = bb.getSize(new T.Vector3()), mx = Math.max(sz.x, sz.y, sz.z, 1e-4), ctr = bb.getCenter(new T.Vector3());
+      var w = new T.Group(); c.position.sub(ctr); w.add(c); w.userData.unit = 1 / mx; return (pickProto[type] = w);
+    });
+  }
+  function hideVis(o){ if (o.isSprite || o.isMesh){ if (!invis) invis = new T.MeshBasicMaterial({ visible: false }); if (o.isSprite) o.material.visible = false; else { o.userData.glbMat = o.material; o.material = invis; } } }
+  G.pick = function(parent, type, size){
+    if (G.kapali || !G.index['ast_' + type]) return;
+    pickOf(type).then(function(w){ if (!w || !parent) return; var r = w.clone(true), ps = parent.scale, u = size * w.userData.unit; r.scale.set(u / ps.x, u / ps.y, u / ps.z); r.userData.glb = true;   // parent ölçeği iptal edilir: dünya boyutu = size
+       r.traverse(function(o){ o.userData.shared = true; }); parent.add(r); hideVis(parent); }).catch(function(){});
+  };
+  var debrisN = ['debris0', 'debris1', 'debris2', 'debris3'];
+  G.debris = function(parent, type, size){   // type: 'hurda' ise enkaz çeşitleri, değilse o cevherin PICK parçası
+    if (G.kapali) return;
+    if (type === 'hurda'){ var k = debrisN[(Math.random() * debrisN.length) | 0]; if (!G.index['prop_' + k]) return;
+      G.load('prop_' + k).then(function(p){ if (!p || !parent) return; var r = inst(p), ps = parent.scale, u = size * p.s; r.scale.set(u / ps.x, u / ps.y, u / ps.z); r.userData.glb = true; r.traverse(function(o){ o.userData.shared = true; }); parent.add(r); hideVis(parent); }).catch(function(){}); }
+    else G.pick(parent, type, size);
+  };
+
   // ---------- küçük nesneler (prop): roket, kaçak yük, sonda, buz devi, monolit, ini, uydu, lav kayası, enkaz ----------
   // Sözleşme (AF): ölçek = EN BÜYÜK boyut 1,0; merkez orijin; yukarı +Y; uzun eksen +Z; çapa yok. Anahtar: prop_<ad> (sd_prop_<ad>.glb).
   // spec: { pos: Vector3 (yerel), rot: Euler, size: en büyük boyut (dünya birimi), hide: [Mesh] (kabuk parçaları, GLB hazırsa görünmez olur) }
