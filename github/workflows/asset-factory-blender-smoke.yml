@@ -1,0 +1,38 @@
+
+name: Asset Factory - Blender Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blender-smoke-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Stardrift
+        uses: actions/checkout@v4
+
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends blender
+
+      - name: Verify Blender
+        run: |
+          blender --version
+          blender --background --factory-startup --python-expr 'import bpy; print("STARD RIFT BLENDER READY", bpy.app.version_string)'
+
+      - name: Upload report
+        if: always()
+        run: |
+          blender --version > blender-smoke-report.txt 2>&1 || true
+          python3 --version >> blender-smoke-report.txt
+      - name: Save report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stardrift-blender-smoke-report
+          path: blender-smoke-report.txt
