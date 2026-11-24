@@ -2,8 +2,11 @@
 name: Asset Factory - Blender Smoke Test
 
 on:
+  push:
+    branches:
+      - asset-factory/blender-runner-bootstrap
   workflow_dispatch:
-
+  
 permissions:
   contents: read
 
