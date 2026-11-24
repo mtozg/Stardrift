@@ -1,8 +1,8 @@
 import bpy, math, os
 from mathutils import Vector
 
-src = "build/asteroid/sd_env_rock_crystal_r003.glb"
-out = "build/asteroid/asteroid_preview_r003.png"
+src = "build/asteroid/sd_env_rock_crystal_r004.glb"
+out = "build/asteroid/asteroid_preview_r004.png"
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 bpy.ops.import_scene.gltf(filepath=src)
@@ -17,10 +17,10 @@ radius = max((maxs - mins).length / 2, 1.0)
 def aim(obj, point):
     obj.rotation_euler = (Vector(point) - obj.location).to_track_quat("-Z", "Y").to_euler()
 
-bpy.ops.object.camera_add(location=center + Vector((radius*0.42, -radius*2.75, radius*0.63)))
+bpy.ops.object.camera_add(location=center + Vector((radius*2.0, -radius*2.5, radius*1.0)))
 cam = bpy.context.object
 aim(cam, center)
-cam.data.lens = 72
+cam.data.lens = 68
 bpy.context.scene.camera = cam
 
 for loc, energy, size in [
