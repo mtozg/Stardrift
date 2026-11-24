@@ -9,7 +9,7 @@ from mathutils import Vector
 random.seed(241124)
 OUT = "build/asteroid"
 os.makedirs(OUT, exist_ok=True)
-GLB = os.path.join(OUT, "sd_env_rock_crystal_r001.glb")
+GLB = os.path.join(OUT, "sd_env_rock_crystal_r002.glb")
 QC = os.path.join(OUT, "qc_report.json")
 
 bpy.ops.object.select_all(action="SELECT")
@@ -31,9 +31,31 @@ def material(name, color, metallic, roughness, emission=0.0):
         s.default_value = emission
     return m
 
-rock_mat = material("MAT_body", (0.105, 0.115, 0.13), 0.12, 0.92)
-crystal_mat = material("MAT_crystal", (0.015, 0.48, 0.58), 0.32, 0.28, 0.12)
-amber_mat = material("MAT_mineral", (0.72, 0.19, 0.035), 0.35, 0.4, 0.04)
+rock_mat = material("MAT_body", (0.12, 0.105, 0.085), 0.04, 0.96)
+# Layered procedural stone: mottled mineral color, fine grain and chipped micro-relief.
+nt = rock_mat.node_tree
+nodes, links = nt.nodes, nt.links
+bsdf = nodes.get("Principled BSDF")
+noise = nodes.new("ShaderNodeTexNoise")
+noise.inputs["Scale"].default_value = 19.0
+noise.inputs["Detail"].default_value = 5.0
+noise.inputs["Roughness"].default_value = 0.82
+ramp = nodes.new("ShaderNodeValToRGB")
+ramp.color_ramp.elements[0].position = 0.19
+ramp.color_ramp.elements[0].color = (0.035, 0.032, 0.028, 1)
+ramp.color_ramp.elements[1].position = 0.82
+ramp.color_ramp.elements[1].color = (0.24, 0.21, 0.17, 1)
+mid = ramp.color_ramp.elements.new(0.51)
+mid.color = (0.105, 0.09, 0.072, 1)
+bump = nodes.new("ShaderNodeBump")
+bump.inputs["Strength"].default_value = 0.34
+bump.inputs["Distance"].default_value = 0.075
+links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
+links.new(ramp.outputs["Color"], bsdf.inputs["Base Color"])
+links.new(noise.outputs["Fac"], bump.inputs["Height"])
+links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+crystal_mat = material("MAT_crystal", (0.035, 0.19, 0.20), 0.12, 0.48, 0.015)
+amber_mat = material("MAT_mineral", (0.28, 0.105, 0.035), 0.08, 0.72, 0.0)
 
 parts = []
 def add_part(obj, mat, name):
@@ -48,10 +70,10 @@ core = bpy.context.object
 core.scale = (1.55, 1.28, 1.12)
 bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 tex = bpy.data.textures.new("TX_rock_silhouette", type="CLOUDS")
-tex.noise_scale = 0.34
+tex.noise_scale = 0.23
 mod = core.modifiers.new("Silhouette breakup", "DISPLACE")
 mod.texture = tex
-mod.strength = 0.17
+mod.strength = 0.25
 bpy.context.view_layer.objects.active = core
 bpy.ops.object.modifier_apply(modifier=mod.name)
 add_part(core, rock_mat, "body_core")
@@ -68,7 +90,7 @@ shards = 0
 for _ in range(5):
     th = random.uniform(0.55, 2.6)
     ph = random.uniform(0, math.tau)
-    center, normal = surface(th, ph, 0.025)
+    center, normal = surface(th, ph, -0.015)
     tangent = normal.cross(Vector((0, 0, 1)))
     if tangent.length < 0.01:
         tangent = normal.cross(Vector((0, 1, 0)))
@@ -78,10 +100,10 @@ for _ in range(5):
         angle = random.uniform(0, math.tau)
         direction = tangent * math.cos(angle) + bitangent * math.sin(angle)
         pos = center + direction * random.uniform(0.02, 0.09)
-        depth = random.uniform(0.18, 0.32)
-        bpy.ops.mesh.primitive_cone_add(vertices=5, radius1=random.uniform(0.045, 0.075),
+        depth = random.uniform(0.12, 0.23)
+        bpy.ops.mesh.primitive_cone_add(vertices=5, radius1=random.uniform(0.035, 0.055),
                                         radius2=0.004, depth=depth,
-                                        location=pos + normal * depth * 0.34)
+                                        location=pos + normal * depth * 0.22)
         shard = bpy.context.object
         shard.rotation_mode = "QUATERNION"
         shard.rotation_quaternion = normal.to_track_quat("Z", "Y")
@@ -93,11 +115,11 @@ veins = 0
 for _ in range(5):
     th = random.uniform(0.8, 2.35)
     ph = random.uniform(0, math.tau)
-    p1, n1 = surface(th - 0.055, ph - 0.09, 0.018)
-    p2, n2 = surface(th + 0.055, ph + 0.09, 0.018)
+    p1, n1 = surface(th - 0.055, ph - 0.09, 0.002)
+    p2, n2 = surface(th + 0.055, ph + 0.09, 0.002)
     vec = p2 - p1
     mid = (p1 + p2) * 0.5
-    bpy.ops.mesh.primitive_cylinder_add(vertices=5, radius=0.012,
+    bpy.ops.mesh.primitive_cylinder_add(vertices=5, radius=0.007,
                                         depth=vec.length, location=mid)
     vein = bpy.context.object
     vein.rotation_mode = "QUATERNION"
@@ -142,7 +164,7 @@ with open(GLB, "rb") as f:
     magic, version, declared = struct.unpack("<4sII", f.read(12))
 report = {
     "asset_id": "env_rock_crystal",
-    "revision": "r001",
+    "revision": "r002",
     "generator": "Blender Python",
     "blender_version": bpy.app.version_string,
     "file": os.path.basename(GLB),
@@ -154,7 +176,7 @@ report = {
     "mineral_veins": veins,
     "target_env_rock_lod0_triangles": 400,
     "target_env_rock_glb_bytes": 40960,
-    "status": "prototype_pending_visual_and_mobile_qc"
+    "status": "prototype_r002_pending_visual_and_mobile_qc"
 }
 with open(QC, "w", encoding="utf-8") as f:
     json.dump(report, f, indent=2)
