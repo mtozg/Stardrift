@@ -31,7 +31,7 @@ cr.elements[0].position=0.18; cr.elements[0].color=(0.018,0.019,0.021,1)
 cr.elements[1].position=0.83; cr.elements[1].color=(0.34,0.29,0.23,1)
 e=cr.elements.new(0.43); e.color=(0.075,0.065,0.058,1)
 e=cr.elements.new(0.64); e.color=(0.22,0.075,0.045,1)
-l.new(large.outputs["Fac"],r.inputs["Fac"]); l.new(r.outputs["Color"],bs.inputs["Base Color"])
+l.new(large.outputs["Fac"],r.inputs["Fac"])
 b=n.new("ShaderNodeBump"); b.inputs["Strength"].default_value=0.48; b.inputs["Distance"].default_value=0.11
 l.new(fine.outputs["Fac"],b.inputs["Height"]); l.new(b.outputs["Normal"],bs.inputs["Normal"])
 # Fine grain also roughens the surface; avoid a plastic highlight.
