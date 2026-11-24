@@ -18,8 +18,9 @@ def make_mat(name, color, metallic, roughness):
     return m
 
 # Iron-rich, weathered rock: dark gunmetal, oxidized red-brown patches, chipped relief.
-rock=make_mat("MAT_body",(0.105,0.09,0.078),0.18,0.88)
+rock=make_mat("MAT_body",(0.075,0.055,0.045),0.18,0.88)
 nt=rock.node_tree; n=nt.nodes; l=nt.links; bs=n.get("Principled BSDF")
+bs.inputs["Base Color"].default_value=(0.075,0.055,0.045,1)
 coord=n.new("ShaderNodeTexCoord")
 large=n.new("ShaderNodeTexNoise"); large.inputs["Scale"].default_value=3.8; large.inputs["Detail"].default_value=5.0; large.inputs["Roughness"].default_value=0.78
 fine=n.new("ShaderNodeTexNoise"); fine.inputs["Scale"].default_value=28.0; fine.inputs["Detail"].default_value=4.0; fine.inputs["Roughness"].default_value=0.82
@@ -47,7 +48,7 @@ def add(obj,mat,name):
     obj.name=name; obj.data.materials.append(mat); parts.append(obj); return obj
 
 # Rugged, asymmetrical iron core. Dense enough to carry a broken silhouette within the mobile budget.
-bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1)
+bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=1)
 core=bpy.context.object
 core.scale=(1.42,1.20,1.08)
 bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
@@ -58,6 +59,8 @@ bpy.context.view_layer.objects.active=core; bpy.ops.object.modifier_apply(modifi
 # Add a second, finer displacement pass for chipped edges and impact scars.
 tex2=bpy.data.textures.new("TX_chipped_edges",type="CLOUDS"); tex2.noise_scale=0.075; tex2.noise_depth=1
 d=core.modifiers.new("Small chipped relief","DISPLACE"); d.texture=tex2; d.strength=0.075
+bpy.ops.object.modifier_apply(modifier=d.name)
+d=core.modifiers.new("Mobile triangle budget","DECIMATE"); d.ratio=0.68
 bpy.ops.object.modifier_apply(modifier=d.name)
 add(core,rock,"iron_rock_body")
 
