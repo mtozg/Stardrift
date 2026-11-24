@@ -30,7 +30,7 @@ jobs:
           mkdir -p build/asteroid
           blender --background --factory-startup --python tools/asset_factory/generators/asteroid_crystal.py
 
-      - name: Validate GLB and report
+      - name: Render asteroid preview\n        run: |\n          blender --background --factory-startup --python tools/asset_factory/generators/render_asteroid_preview.py\n\n      - name: Validate GLB and report
         run: |
           python3 - <<'PY'
           import json, os, struct
