@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/asset-factory-asteroid.yml"
       - "tools/asset_factory/generators/asteroid_crystal.py"
+      - "tools/asset_factory/generators/render_asteroid_preview.py"
   workflow_dispatch:
 
 permissions:
@@ -30,7 +31,11 @@ jobs:
           mkdir -p build/asteroid
           blender --background --factory-startup --python tools/asset_factory/generators/asteroid_crystal.py
 
-      - name: Render asteroid preview\n        run: |\n          blender --background --factory-startup --python tools/asset_factory/generators/render_asteroid_preview.py\n\n      - name: Validate GLB and report
+      - name: Render asteroid preview
+        run: |
+          blender --background --factory-startup --python tools/asset_factory/generators/render_asteroid_preview.py
+
+      - name: Validate GLB and report
         run: |
           python3 - <<'PY'
           import json, os, struct
