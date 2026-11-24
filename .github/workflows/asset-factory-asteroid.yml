@@ -24,7 +24,7 @@ jobs:
       - name: Install Blender
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends blender python3-numpy
+          sudo apt-get install -y --no-install-recommends blender python3-numpy libegl1 libgl1 xvfb
 
       - name: Generate asteroid GLB
         run: |
@@ -33,7 +33,7 @@ jobs:
 
       - name: Render asteroid preview
         run: |
-          blender --background --factory-startup --python tools/asset_factory/generators/render_asteroid_preview.py
+          xvfb-run -a blender --background --factory-startup --python tools/asset_factory/generators/render_asteroid_preview.py
 
       - name: Validate GLB and report
         run: |
