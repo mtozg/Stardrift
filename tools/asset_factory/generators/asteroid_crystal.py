@@ -40,8 +40,6 @@ l.new(fine.outputs["Fac"],rough.inputs["Value"]); l.new(rough.outputs["Result"],
 
 crystal=make_mat("MAT_crystal",(0.34,0.012,0.028),0.12,0.24)
 p=crystal.node_tree.nodes.get("Principled BSDF")
-p.inputs["Transmission"].default_value=0.18
-p.inputs["IOR"].default_value=1.46
 # Slight internal red depth, no self-illumination.
 crystal_dark=make_mat("MAT_crystal_shadow",(0.12,0.006,0.014),0.08,0.31)
 parts=[]
