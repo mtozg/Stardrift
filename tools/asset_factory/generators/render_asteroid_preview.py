@@ -24,9 +24,9 @@ cam.data.lens = 72
 bpy.context.scene.camera = cam
 
 for loc, energy, size in [
-    (center + Vector((radius*1.0, -radius*2.0, radius*2.2)), 1500, radius*1.6),
-    (center + Vector((-radius*2.0, -radius*0.4, radius*0.8)), 700, radius*2.0),
-    (center + Vector((radius*0.3, radius*2.0, radius*1.0)), 900, radius*1.8),
+    (center + Vector((radius*1.0, -radius*2.0, radius*2.2)), 520, radius*1.6),
+    (center + Vector((-radius*2.0, -radius*0.4, radius*0.8)), 260, radius*2.0),
+    (center + Vector((radius*0.3, radius*2.0, radius*1.0)), 360, radius*1.8),
 ]:
     bpy.ops.object.light_add(type="AREA", location=loc)
     light = bpy.context.object
