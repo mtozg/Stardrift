@@ -17,16 +17,16 @@ radius = max((maxs - mins).length / 2, 1.0)
 def aim(obj, point):
     obj.rotation_euler = (Vector(point) - obj.location).to_track_quat("-Z", "Y").to_euler()
 
-bpy.ops.object.camera_add(location=center + Vector((radius*2.7, -radius*3.5, radius*2.0)))
+bpy.ops.object.camera_add(location=center + Vector((radius*0.42, -radius*2.75, radius*0.63)))
 cam = bpy.context.object
 aim(cam, center)
-cam.data.lens = 55
+cam.data.lens = 72
 bpy.context.scene.camera = cam
 
 for loc, energy, size in [
-    (center + Vector((radius*2, -radius*2, radius*3)), 1100, radius*2),
-    (center + Vector((-radius*3, -radius, radius)), 850, radius*2.5),
-    (center + Vector((radius, radius*3, radius*1.5)), 1300, radius*2),
+    (center + Vector((radius*1.0, -radius*2.0, radius*2.2)), 1500, radius*1.6),
+    (center + Vector((-radius*2.0, -radius*0.4, radius*0.8)), 700, radius*2.0),
+    (center + Vector((radius*0.3, radius*2.0, radius*1.0)), 900, radius*1.8),
 ]:
     bpy.ops.object.light_add(type="AREA", location=loc)
     light = bpy.context.object
