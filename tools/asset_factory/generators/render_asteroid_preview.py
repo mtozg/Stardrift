@@ -1,7 +1,7 @@
 import bpy, math, os
 from mathutils import Vector
 
-src = "build/asteroid/sd_env_rock_crystal_r001.glb"
+src = "build/asteroid/sd_env_rock_crystal_r002.glb"
 out = "build/asteroid/asteroid_preview.png"
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
