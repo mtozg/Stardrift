@@ -1,0 +1,56 @@
+name: Asset Factory - Crystal Asteroid Production
+
+on:
+  push:
+    branches:
+      - asset-factory/asteroid-v1-blender
+    paths:
+      - ".github/workflows/asset-factory-asteroid.yml"
+      - "tools/asset_factory/generators/asteroid_crystal.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-asteroid:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout Stardrift
+        uses: actions/checkout@v4
+
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends blender
+
+      - name: Generate asteroid GLB
+        run: |
+          mkdir -p build/asteroid
+          blender --background --factory-startup --python tools/asset_factory/generators/asteroid_crystal.py
+
+      - name: Validate GLB and report
+        run: |
+          python3 - <<'PY'
+          import json, os, struct
+          glb = "build/asteroid/sd_env_rock_crystal_r001.glb"
+          qc = "build/asteroid/qc_report.json"
+          assert os.path.isfile(glb), "GLB was not generated"
+          assert os.path.isfile(qc), "QC report was not generated"
+          with open(glb, "rb") as f:
+              magic, version, length = struct.unpack("<4sII", f.read(12))
+          assert magic == b"glTF" and version == 2, "Invalid GLB header"
+          assert length == os.path.getsize(glb), "GLB length mismatch"
+          report = json.load(open(qc, encoding="utf-8"))
+          assert report["glb_header_valid"], "Blender-side GLB validation failed"
+          assert all(v > 0 for v in report["lod_triangles"].values()), "An LOD has no triangles"
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Upload GLB and QC report
+        uses: actions/upload-artifact@v4
+        with:
+          name: stardrift-env-rock-crystal-r001
+          path: build/asteroid/
+          if-no-files-found: error
