@@ -1,8 +1,8 @@
 import bpy, math, os
 from mathutils import Vector
 
-src = "build/asteroid/sd_env_rock_crystal_r002.glb"
-out = "build/asteroid/asteroid_preview.png"
+src = "build/asteroid/sd_env_rock_crystal_r003.glb"
+out = "build/asteroid/asteroid_preview_r003.png"
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 bpy.ops.import_scene.gltf(filepath=src)
