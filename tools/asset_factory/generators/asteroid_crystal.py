@@ -4,7 +4,7 @@ from mathutils import Vector
 random.seed(241126)
 OUT = "build/asteroid"
 os.makedirs(OUT, exist_ok=True)
-GLB = os.path.join(OUT, "sd_env_rock_crystal_r003.glb")
+GLB = os.path.join(OUT, "sd_env_rock_crystal_r004.glb")
 QC = os.path.join(OUT, "qc_report.json")
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
@@ -77,9 +77,9 @@ base=surface_point(patch_normal)*0.99
 # Embedded dark crystal roots, clustered tightly at the seam.
 shards=0
 specs=[
- (-0.23,-0.06,0.46,0.105),(-0.13,0.04,0.63,0.12),(-0.02,-0.03,0.78,0.13),
- (0.12,0.04,0.58,0.115),(0.23,-0.02,0.69,0.12),(0.02,0.17,0.48,0.09),
- (-0.19,0.16,0.39,0.085),(0.20,0.17,0.43,0.09),(0.00,-0.18,0.52,0.10),
+ (-0.23,-0.06,0.72,0.11),(-0.13,0.04,0.91,0.13),(-0.02,-0.03,1.02,0.14),
+ (0.12,0.04,0.84,0.12),(0.23,-0.02,0.94,0.13),(0.02,0.17,0.69,0.10),
+ (-0.19,0.16,0.62,0.095),(0.20,0.17,0.67,0.10),(0.00,-0.18,0.78,0.11),
 ]
 def make_shard(pos, direction, length, radius, idx):
     # Irregular hexagonal prism tapering to a sharp point; crystal roots sit below the rock surface.
@@ -140,6 +140,6 @@ bpy.context.view_layer.objects.active=lod0
 bpy.ops.export_scene.gltf(filepath=GLB,export_format="GLB",use_selection=True,export_apply=True)
 def tris(obj): return sum(max(0,len(poly.vertices)-2) for poly in obj.data.polygons)
 with open(GLB,"rb") as f: magic,version,declared=struct.unpack("<4sII",f.read(12))
-report={"asset_id":"env_rock_crystal","revision":"r003","generator":"Blender Python","blender_version":bpy.app.version_string,"file":os.path.basename(GLB),"glb_bytes":os.path.getsize(GLB),"glb_header_valid":magic==b"glTF" and version==2 and declared==os.path.getsize(GLB),"lod_triangles":{o.name:tris(o) for o in lods},"material_slots":len(lod0.data.materials),"crystal_shards":shards,"mineral_veins":0,"target_env_rock_lod0_triangles":400,"target_env_rock_glb_bytes":40960,"status":"prototype_r003_pending_visual_approval"}
+report={"asset_id":"env_rock_crystal","revision":"r004","generator":"Blender Python","blender_version":bpy.app.version_string,"file":os.path.basename(GLB),"glb_bytes":os.path.getsize(GLB),"glb_header_valid":magic==b"glTF" and version==2 and declared==os.path.getsize(GLB),"lod_triangles":{o.name:tris(o) for o in lods},"material_slots":len(lod0.data.materials),"crystal_shards":shards,"mineral_veins":0,"target_env_rock_lod0_triangles":400,"target_env_rock_glb_bytes":40960,"status":"prototype_r004_pending_visual_approval"}
 with open(QC,"w",encoding="utf-8") as f: json.dump(report,f,indent=2)
 print(json.dumps(report,indent=2))
