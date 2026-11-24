@@ -40,7 +40,7 @@ jobs:
           python3 - <<'PY'
           import json, os, struct
           print("FILES:", os.listdir("build/asteroid"))
-          glb = "build/asteroid/sd_env_rock_crystal_r003.glb"
+          glb = "build/asteroid/sd_env_rock_crystal_r004.glb"
           qc = "build/asteroid/qc_report.json"
           assert os.path.isfile(glb), "GLB was not generated"
           assert os.path.isfile(qc), "QC report was not generated"
@@ -58,6 +58,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: stardrift-env-rock-crystal-r003
+          name: stardrift-env-rock-crystal-r004
           path: build/asteroid/
           if-no-files-found: error
