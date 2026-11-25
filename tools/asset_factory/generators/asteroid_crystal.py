@@ -2,38 +2,49 @@ import bpy, json, math, os, random, struct
 from mathutils import Vector
 OUT="build/asteroid"
 os.makedirs(OUT,exist_ok=True)
-GLB=OUT+"/sd_env_rock_variants_r009.glb"
-QC=OUT+"/qc_report_r009.json"
+GLB=OUT+"/sd_env_rock_variants_r010.glb"
+QC=OUT+"/qc_report_r010.json"
 
 # Clean scene
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 
-# Weathered iron material: procedural detail is baked into the render only;
-# exported GLB keeps a simple metallic-roughness material.
-mat=bpy.data.materials.new("MAT_asteroid_weathered_iron")
-mat.diffuse_color=(.055,.052,.047,1)
-mat.use_nodes=True
-nodes=mat.node_tree.nodes
-links=mat.node_tree.links
-bs=nodes.get("Principled BSDF")
-bs.inputs["Base Color"].default_value=(.105,.095,.083,1)
-bs.inputs["Metallic"].default_value=.12
-bs.inputs["Roughness"].default_value=.92
-noise=nodes.new("ShaderNodeTexNoise")
-noise.inputs["Scale"].default_value=10.5
-noise.inputs["Detail"].default_value=9
-noise.inputs["Roughness"].default_value=.78
-ramp=nodes.new("ShaderNodeValToRGB")
-ramp.color_ramp.elements[0].color=(.008,.009,.010,1)
-ramp.color_ramp.elements[1].color=(.16,.145,.12,1)
-bump=nodes.new("ShaderNodeBump")
-bump.inputs["Strength"].default_value=.78
-bump.inputs["Distance"].default_value=.16
-links.new(noise.outputs["Fac"],ramp.inputs["Fac"])
-links.new(ramp.outputs["Color"],bs.inputs["Base Color"])
-links.new(noise.outputs["Fac"],bump.inputs["Height"])
-links.new(bump.outputs["Normal"],bs.inputs["Normal"])
+# Export-safe metallic-roughness material: no procedural nodes leave in GLB.
+export_mat=bpy.data.materials.new("MAT_asteroid_weathered_iron")
+export_mat.diffuse_color=(.075,.068,.058,1)
+export_mat.use_nodes=True
+ebs=export_mat.node_tree.nodes.get("Principled BSDF")
+ebs.inputs["Base Color"].default_value=(.075,.068,.058,1)
+ebs.inputs["Metallic"].default_value=.18
+ebs.inputs["Roughness"].default_value=.94
+
+# Render-only material: restrained mineral variation, no toy-like high-frequency bump.
+render_mat=bpy.data.materials.new("MAT_preview_iron_regolith")
+render_mat.diffuse_color=(.055,.052,.047,1)
+render_mat.use_nodes=True
+rn=render_mat.node_tree.nodes
+rl=render_mat.node_tree.links
+rbs=rn.get("Principled BSDF")
+rbs.inputs["Metallic"].default_value=.16
+rbs.inputs["Roughness"].default_value=.96
+rnoise=rn.new("ShaderNodeTexNoise")
+rnoise.inputs["Scale"].default_value=4.2
+rnoise.inputs["Detail"].default_value=5
+rnoise.inputs["Roughness"].default_value=.72
+rramp=rn.new("ShaderNodeValToRGB")
+rramp.color_ramp.elements[0].position=.22
+rramp.color_ramp.elements[0].color=(.012,.014,.016,1)
+rramp.color_ramp.elements[1].position=.78
+rramp.color_ramp.elements[1].color=(.105,.091,.073,1)
+mid=rramp.color_ramp.elements.new(.52)
+mid.color=(.038,.037,.034,1)
+rbump=rn.new("ShaderNodeBump")
+rbump.inputs["Strength"].default_value=.24
+rbump.inputs["Distance"].default_value=.035
+rl.new(rnoise.outputs["Fac"],rramp.inputs["Fac"])
+rl.new(rramp.outputs["Color"],rbs.inputs["Base Color"])
+rl.new(rnoise.outputs["Fac"],rbump.inputs["Height"])
+rl.new(rbump.outputs["Normal"],rbs.inputs["Normal"])
 
 # Irregular, fused rock masses. Metaballs create a genuinely lumpy 3D body,
 # rather than a deformed sphere. Crater bowls are sculpted into the fused shell.
@@ -47,8 +58,8 @@ variant_info={}
 for name,seed,scale,chunks in variants:
     rng=random.Random(seed)
     mb=bpy.data.metaballs.new("META_"+name)
-    mb.resolution=.038
-    mb.render_resolution=.032
+    mb.resolution=.026
+    mb.render_resolution=.022
     mb.threshold=.62
     obj=bpy.data.objects.new("META_"+name,mb)
     bpy.context.collection.objects.link(obj)
@@ -76,7 +87,7 @@ for name,seed,scale,chunks in variants:
     # Voxel remesh fuses the lobes into one continuous, rough mass.
     rem=rock.modifiers.new("Fused rock surface","REMESH")
     rem.mode="VOXEL"
-    rem.voxel_size=.038
+    rem.voxel_size=.026
     bpy.context.view_layer.objects.active=rock
     bpy.ops.object.modifier_apply(modifier=rem.name)
     smooth=rock.modifiers.new("Very light rock relaxation","SMOOTH")
@@ -86,31 +97,31 @@ for name,seed,scale,chunks in variants:
 
     # Multi-scale displacement: broad fracture planes + small-scale erosion.
     tex=bpy.data.textures.new("erosion_"+name,type="CLOUDS")
-    tex.noise_scale=.14
+    tex.noise_scale=.22
     tex.noise_depth=2
     disp=rock.modifiers.new("Eroded surface","DISPLACE")
     disp.texture=tex
-    disp.strength=.26
+    disp.strength=.105
     disp.mid_level=.52
     bpy.ops.object.modifier_apply(modifier=disp.name)
     tex2=bpy.data.textures.new("pitting_"+name,type="CLOUDS")
-    tex2.noise_scale=.045
+    tex2.noise_scale=.075
     tex2.noise_depth=2
     disp2=rock.modifiers.new("Fine pitting","DISPLACE")
     disp2.texture=tex2
-    disp2.strength=.085
+    disp2.strength=.035
     disp2.mid_level=.52
     bpy.ops.object.modifier_apply(modifier=disp2.name)
 
     # Actual crater bowls with raised broken rims, distributed over the body.
     center=rock.location.copy()
-    crater_count=18+rng.randrange(9)
+    crater_count=8+rng.randrange(6)
     directions=[]
     for j in range(crater_count):
         z=rng.uniform(-.92,.92)
         a=rng.random()*math.tau
         d=Vector((math.sqrt(1-z*z)*math.cos(a),math.sqrt(1-z*z)*math.sin(a),z))
-        directions.append((d,rng.uniform(.10,.30),rng.uniform(.08,.21)))
+        directions.append((d,rng.uniform(.16,.34),rng.uniform(.10,.24)))
     for v in rock.data.vertices:
         p=v.co
         radial=Vector((p.x/scale[0],p.y/scale[1],p.z/scale[2]))
@@ -125,10 +136,10 @@ for name,seed,scale,chunks in variants:
                 rim=depth*.32*math.exp(-(((x-1.0)/.19)**2))
                 broken=depth*.055*math.sin(x*29+seed)*math.exp(-((x-1.0)/.32)**2)
                 offset+=bowl+rim+broken
-        offset+=.026*math.sin(p.x*31+p.y*17)*math.cos(p.z*27)+.012*math.sin(p.x*57-p.z*43)
+        offset+=.008*math.sin(p.x*17+p.y*11)*math.cos(p.z*19)+.004*math.sin(p.x*31-p.z*23)
         v.co += v.normal*offset
     rock.data.update()
-    rock.data.materials.append(mat)
+    rock.data.materials.append(render_mat)
     for poly in rock.data.polygons:
         poly.use_smooth=False
 
@@ -158,6 +169,9 @@ for name,seed,scale,chunks in variants:
         bpy.context.view_layer.objects.active=ob
         bpy.ops.object.modifier_apply(modifier=mod.name)
         lods.append(ob)
+    for lod_ob in lods:
+        lod_ob.data.materials.clear()
+        lod_ob.data.materials.append(export_mat)
     export_objects.extend(lods)
     variant_info[name]={
         "construction":"fused_metaball_rock_mass_with_sculpted_craters",
@@ -178,14 +192,14 @@ bpy.ops.export_scene.gltf(filepath=GLB,export_format="GLB",use_selection=True,ex
 with open(GLB,"rb") as f:
     magic,version,size=struct.unpack("<4sII",f.read(12))
 report={
- "revision":"r009",
+ "revision":"r010",
  "status":"preview_pending_visual_approval",
- "method":"fused irregular rock masses; voxel-remeshed; multi-scale erosion; true crater displacement",
+ "method":"fused irregular rock masses; broad geological erosion; sculpted impact basins; restrained micro-pitting; export-safe PBR material",
  "glb_bytes":os.path.getsize(GLB),
  "glb_header_valid":magic==b"glTF" and version==2 and size==os.path.getsize(GLB),
- "targets":{"lod0":400,"lod1":150,"lod2":50,"glb_bytes":40960},
+ "targets":{"lod0":400,"lod1":150,"lod2":50,"glb_bytes":40960,"export_material_nodes":"principled_only"},
  "variants":variant_info
 }
 json.dump(report,open(QC,"w"),indent=2)
-bpy.ops.wm.save_as_mainfile(filepath=OUT+"/asteroid_scene_r009.blend")
+bpy.ops.wm.save_as_mainfile(filepath=OUT+"/asteroid_scene_r010.blend")
 print(json.dumps(report,indent=2))
