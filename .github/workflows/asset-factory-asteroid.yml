@@ -1,61 +1,41 @@
-name: Asset Factory - Asteroid Silhouette Study r006
-
+name: Asset Factory - Asteroid Crater Sculpt r007
 on:
   push:
-    branches:
-      - asset-factory/asteroid-v1-blender
-    paths:
-      - ".github/workflows/asset-factory-asteroid.yml"
-      - "tools/asset_factory/generators/asteroid_crystal.py"
-      - "tools/asset_factory/generators/render_asteroid_preview.py"
+    branches: [asset-factory/asteroid-v1-blender]
+    paths: [.github/workflows/asset-factory-asteroid.yml, tools/asset_factory/generators/asteroid_crystal.py, tools/asset_factory/generators/render_asteroid_preview.py]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   build-asteroid:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - name: Checkout Stardrift
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Install Blender
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends blender python3-numpy libegl1 libgl1 xvfb
-
-      - name: Generate crystal-free asteroid variants
+      - name: Generate crater sculpt variants
         run: |
           mkdir -p build/asteroid
           blender --background --factory-startup --python tools/asset_factory/generators/asteroid_crystal.py
-
-      - name: Render comparison preview
-        run: |
-          xvfb-run -a blender --background --factory-startup --python tools/asset_factory/generators/render_asteroid_preview.py
-
-      - name: Validate GLB and report
+      - name: Render preview
+        run: xvfb-run -a blender --background --python tools/asset_factory/generators/render_asteroid_preview.py
+      - name: Validate and package
         run: |
           python3 - <<'PY'
-          import json, os, struct
-          glb = "build/asteroid/sd_env_rock_variants_r006.glb"
-          qc = "build/asteroid/qc_report_r006.json"
-          png = "build/asteroid/asteroid_preview_r006.png"
-          assert all(os.path.isfile(p) for p in (glb, qc, png)), "Missing output"
-          with open(glb, "rb") as f:
-              magic, version, length = struct.unpack("<4sII", f.read(12))
-          assert magic == b"glTF" and version == 2 and length == os.path.getsize(glb), "Invalid GLB"
-          report = json.load(open(qc, encoding="utf-8"))
-          assert report["glb_header_valid"], "Blender-side GLB validation failed"
-          assert len(report["variants"]) == 3, "Expected three asteroid silhouettes"
-          print(json.dumps(report, indent=2))
+          import json,os,struct
+          glb='build/asteroid/sd_env_rock_variants_r007.glb';qc='build/asteroid/qc_report_r007.json';png='build/asteroid/asteroid_preview_r007.png'
+          assert all(os.path.isfile(x) for x in (glb,qc,png))
+          with open(glb,'rb') as f: magic,version,length=struct.unpack('<4sII',f.read(12))
+          assert magic==b'glTF' and version==2 and length==os.path.getsize(glb)
+          report=json.load(open(qc));assert report['glb_header_valid'] and len(report['variants'])==3
+          print(json.dumps(report,indent=2))
           PY
-
-      - name: Upload preview, GLB and QC
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: stardrift-env-rock-r006
+          name: stardrift-env-rock-r007
           path: build/asteroid/
           if-no-files-found: error
