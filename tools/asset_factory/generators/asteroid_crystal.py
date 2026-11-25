@@ -36,4 +36,4 @@ for o in alllod:o.select_set(True)
 bpy.context.view_layer.objects.active=alllod[0];bpy.ops.export_scene.gltf(filepath=GLB,export_format="GLB",use_selection=True,export_apply=True)
 with open(GLB,"rb") as f:magic,ver,size=struct.unpack("<4sII",f.read(12))
 report={"revision":"r007","status":"crater_sculpt_preview_pending_visual_approval","glb_bytes":os.path.getsize(GLB),"glb_header_valid":magic==b"glTF" and ver==2 and size==os.path.getsize(GLB),"targets":{"lod0":400,"lod1":150,"lod2":50,"glb_bytes":40960},"variants":qc}
-json.dump(report,open(QC,"w"),indent=2);print(json.dumps(report,indent=2))
+json.dump(report,open(QC,"w"),indent=2);bpy.ops.wm.save_as_mainfile(filepath=OUT+"/asteroid_scene_r007.blend");print(json.dumps(report,indent=2))
