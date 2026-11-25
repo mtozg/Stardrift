@@ -1,4 +1,4 @@
-name: Asset Factory - Asteroid Weathered Sculpt R010 r010
+name: Asset Factory - Asteroid Weathered Sculpt R011 r011
 on:
   push:
     branches: [asset-factory/asteroid-v1-blender]
@@ -29,10 +29,10 @@ jobs:
         run: |
           python3 - <<'PY'
           import json,os,struct
-          glb='build/asteroid/sd_env_rock_variants_r010.glb'
-          qc='build/asteroid/qc_report_r010.json'
-          png='build/asteroid/asteroid_preview_r010.png'
-          scene='build/asteroid/asteroid_scene_r010.blend'
+          glb='build/asteroid/sd_env_rock_variants_r011.glb'
+          qc='build/asteroid/qc_report_r011.json'
+          png='build/asteroid/asteroid_preview_r011.png'
+          scene='build/asteroid/asteroid_scene_r011.blend'
           assert all(os.path.isfile(x) for x in (glb,qc,png,scene))
           with open(glb,'rb') as f: magic,version,length=struct.unpack('<4sII',f.read(12))
           assert magic==b'glTF' and version==2 and length==os.path.getsize(glb)
@@ -44,6 +44,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: stardrift-env-rock-r010
+          name: stardrift-env-rock-r011
           path: build/asteroid/
           if-no-files-found: error
