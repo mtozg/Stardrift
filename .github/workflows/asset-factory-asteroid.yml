@@ -1,4 +1,4 @@
-name: Asset Factory - Crystal Asteroid Preview r005
+name: Asset Factory - Asteroid Silhouette Study r006
 
 on:
   push:
@@ -26,12 +26,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends blender python3-numpy libegl1 libgl1 xvfb
 
-      - name: Generate asteroid GLB
+      - name: Generate crystal-free asteroid variants
         run: |
           mkdir -p build/asteroid
           blender --background --factory-startup --python tools/asset_factory/generators/asteroid_crystal.py
 
-      - name: Render asteroid preview
+      - name: Render comparison preview
         run: |
           xvfb-run -a blender --background --factory-startup --python tools/asset_factory/generators/render_asteroid_preview.py
 
@@ -39,25 +39,23 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, os, struct
-          print("FILES:", os.listdir("build/asteroid"))
-          glb = "build/asteroid/sd_env_rock_crystal_r005.glb"
-          qc = "build/asteroid/qc_report.json"
-          assert os.path.isfile(glb), "GLB was not generated"
-          assert os.path.isfile(qc), "QC report was not generated"
+          glb = "build/asteroid/sd_env_rock_variants_r006.glb"
+          qc = "build/asteroid/qc_report_r006.json"
+          png = "build/asteroid/asteroid_preview_r006.png"
+          assert all(os.path.isfile(p) for p in (glb, qc, png)), "Missing output"
           with open(glb, "rb") as f:
               magic, version, length = struct.unpack("<4sII", f.read(12))
-          assert magic == b"glTF" and version == 2, "Invalid GLB header"
-          assert length == os.path.getsize(glb), "GLB length mismatch"
+          assert magic == b"glTF" and version == 2 and length == os.path.getsize(glb), "Invalid GLB"
           report = json.load(open(qc, encoding="utf-8"))
           assert report["glb_header_valid"], "Blender-side GLB validation failed"
-          assert all(v > 0 for v in report["lod_triangles"].values()), "An LOD has no triangles"
+          assert len(report["variants"]) == 3, "Expected three asteroid silhouettes"
           print(json.dumps(report, indent=2))
           PY
 
-      - name: Upload GLB and QC report
+      - name: Upload preview, GLB and QC
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: stardrift-env-rock-crystal-r005
+          name: stardrift-env-rock-r006
           path: build/asteroid/
           if-no-files-found: error
