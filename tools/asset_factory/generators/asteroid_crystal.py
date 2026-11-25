@@ -3,7 +3,7 @@ from mathutils import Vector
 OUT="build/asteroid"
 os.makedirs(OUT,exist_ok=True)
 GLB=OUT+"/sd_env_rock_variants_r009.glb"
-QC=OUT+"/qc_report_r008.json"
+QC=OUT+"/qc_report_r009.json"
 
 # Clean scene
 bpy.ops.object.select_all(action="SELECT")
@@ -144,7 +144,7 @@ for name,seed,scale,chunks in variants:
     bpy.context.collection.objects.link(lod0)
     lod0.name="LOD0_"+name
     dec=lod0.modifiers.new("LOD0 triangle budget","DECIMATE")
-    dec.ratio=min(.95,360/max(1,len(lod0.data.polygons)))
+    dec.ratio=min(.95,190/max(1,len(lod0.data.polygons)))
     bpy.context.view_layer.objects.active=lod0
     bpy.ops.object.modifier_apply(modifier=dec.name)
     lods=[lod0]
@@ -178,7 +178,7 @@ bpy.ops.export_scene.gltf(filepath=GLB,export_format="GLB",use_selection=True,ex
 with open(GLB,"rb") as f:
     magic,version,size=struct.unpack("<4sII",f.read(12))
 report={
- "revision":"r008",
+ "revision":"r009",
  "status":"preview_pending_visual_approval",
  "method":"fused irregular rock masses; voxel-remeshed; multi-scale erosion; true crater displacement",
  "glb_bytes":os.path.getsize(GLB),
@@ -187,5 +187,5 @@ report={
  "variants":variant_info
 }
 json.dump(report,open(QC,"w"),indent=2)
-bpy.ops.wm.save_as_mainfile(filepath=OUT+"/asteroid_scene_r008.blend")
+bpy.ops.wm.save_as_mainfile(filepath=OUT+"/asteroid_scene_r009.blend")
 print(json.dumps(report,indent=2))
