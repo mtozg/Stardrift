@@ -38,9 +38,9 @@ links.new(bump.outputs["Normal"],bs.inputs["Normal"])
 # Irregular, fused rock masses. Metaballs create a genuinely lumpy 3D body,
 # rather than a deformed sphere. Crater bowls are sculpted into the fused shell.
 variants=[
- ("ASTEROID_MASSIVE", 811, (-1.45,1.22,1.12), 9),
- ("ASTEROID_SPLIT",   812, (-1.28,1.48,.98), 10),
- ("ASTEROID_RUGGED",  813, (-1.38,1.26,1.34), 11),
+ ("ASTEROID_MASSIVE", 811, (1.45,1.22,1.12), 9),
+ ("ASTEROID_SPLIT",   812, (1.28,1.48,.98), 10),
+ ("ASTEROID_RUGGED",  813, (1.38,1.26,1.34), 11),
 ]
 export_objects=[]
 variant_info={}
@@ -64,6 +64,8 @@ for name,seed,scale,chunks in variants:
         el.co=pos
         el.radius=rng.uniform(.48,.92)
         el.stiffness=rng.uniform(1.7,2.4)
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
     bpy.context.view_layer.objects.active=obj
     bpy.ops.object.convert(target="MESH")
     rock=bpy.context.object
