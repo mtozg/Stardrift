@@ -5,6 +5,7 @@ os.makedirs(OUT,exist_ok=True)
 GLB=OUT+"/sd_env_rock_variants_r010.glb"
 QC=OUT+"/qc_report_r010.json"
 
+# R010 production preview pass
 # Clean scene
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
