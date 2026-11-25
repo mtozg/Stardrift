@@ -1,8 +1,8 @@
 import bpy
 from mathutils import Vector
 
-bpy.ops.wm.open_mainfile(filepath="build/asteroid/asteroid_scene_r008.blend")
-out="build/asteroid/asteroid_preview_r008.png"
+bpy.ops.wm.open_mainfile(filepath="build/asteroid/asteroid_scene_r009.blend")
+out="build/asteroid/asteroid_preview_r009.png"
 
 # Dense sculpt meshes only; exported LOD meshes remain hidden in this preview.
 for ob in bpy.context.scene.objects:
