@@ -2,8 +2,8 @@ import bpy, json, math, os, random, struct
 from mathutils import Vector
 OUT="build/asteroid"
 os.makedirs(OUT,exist_ok=True)
-GLB=OUT+"/sd_env_rock_variants_r010.glb"
-QC=OUT+"/qc_report_r010.json"
+GLB=OUT+"/sd_env_rock_variants_r011.glb"
+QC=OUT+"/qc_report_r011.json"
 
 # R010 production preview pass
 # Clean scene
@@ -12,10 +12,10 @@ bpy.ops.object.delete(use_global=False)
 
 # Export-safe metallic-roughness material: no procedural nodes leave in GLB.
 export_mat=bpy.data.materials.new("MAT_asteroid_weathered_iron")
-export_mat.diffuse_color=(.075,.068,.058,1)
+export_mat.diffuse_color=(.10,.075,.052,1)
 export_mat.use_nodes=True
 ebs=export_mat.node_tree.nodes.get("Principled BSDF")
-ebs.inputs["Base Color"].default_value=(.075,.068,.058,1)
+ebs.inputs["Base Color"].default_value=(.10,.075,.052,1)
 ebs.inputs["Metallic"].default_value=.18
 ebs.inputs["Roughness"].default_value=.94
 
@@ -34,14 +34,14 @@ rnoise.inputs["Detail"].default_value=5
 rnoise.inputs["Roughness"].default_value=.72
 rramp=rn.new("ShaderNodeValToRGB")
 rramp.color_ramp.elements[0].position=.22
-rramp.color_ramp.elements[0].color=(.012,.014,.016,1)
+rramp.color_ramp.elements[0].color=(.012,.016,.020,1)
 rramp.color_ramp.elements[1].position=.78
-rramp.color_ramp.elements[1].color=(.105,.091,.073,1)
+rramp.color_ramp.elements[1].color=(.22,.105,.045,1)
 mid=rramp.color_ramp.elements.new(.52)
-mid.color=(.038,.037,.034,1)
+mid.color=(.075,.064,.048,1)
 rbump=rn.new("ShaderNodeBump")
-rbump.inputs["Strength"].default_value=.24
-rbump.inputs["Distance"].default_value=.035
+rbump.inputs["Strength"].default_value=.16
+rbump.inputs["Distance"].default_value=.022
 rl.new(rnoise.outputs["Fac"],rramp.inputs["Fac"])
 rl.new(rramp.outputs["Color"],rbs.inputs["Base Color"])
 rl.new(rnoise.outputs["Fac"],rbump.inputs["Height"])
@@ -140,6 +140,18 @@ for name,seed,scale,chunks in variants:
         offset+=.008*math.sin(p.x*17+p.y*11)*math.cos(p.z*19)+.004*math.sin(p.x*31-p.z*23)
         v.co += v.normal*offset
     rock.data.update()
+    # Exportable vertex colour: charcoal iron with restrained natural rust patches.
+    color_attr=rock.data.color_attributes.new(name="COLOR_0", type="FLOAT_COLOR", domain="POINT")
+    for idx, vert in enumerate(rock.data.vertices):
+        p=vert.co
+        n=(math.sin(p.x*3.1+p.z*1.7)*math.sin(p.y*2.7-p.z*2.2)+1.0)*0.5
+        rust=(math.sin(p.x*1.8+p.y*2.3+p.z*1.4)+1.0)*0.5
+        rust=max(0.0,min(1.0,(rust-.60)*2.2))
+        variation=.82+.24*n
+        base=(.055*variation,.067*variation,.073*variation)
+        rust_col=(.20*variation,.082*variation,.032*variation)
+        mix=rust*.62
+        color_attr.data[idx].color=(base[0]*(1-mix)+rust_col[0]*mix,base[1]*(1-mix)+rust_col[1]*mix,base[2]*(1-mix)+rust_col[2]*mix,1.0)
     rock.data.materials.append(render_mat)
     for poly in rock.data.polygons:
         poly.use_smooth=False
@@ -193,14 +205,14 @@ bpy.ops.export_scene.gltf(filepath=GLB,export_format="GLB",use_selection=True,ex
 with open(GLB,"rb") as f:
     magic,version,size=struct.unpack("<4sII",f.read(12))
 report={
- "revision":"r010",
- "status":"preview_pending_visual_approval",
- "method":"fused irregular rock masses; broad geological erosion; sculpted impact basins; restrained micro-pitting; export-safe PBR material",
+ "revision":"r011",
+ "status":"final_prototype_ready_for_visual_review",
+ "method":"fused irregular rock masses; broad geological erosion; sculpted impact basins; restrained micro-pitting; charcoal iron and restrained rust vertex colours; export-safe PBR material",
  "glb_bytes":os.path.getsize(GLB),
  "glb_header_valid":magic==b"glTF" and version==2 and size==os.path.getsize(GLB),
  "targets":{"lod0":400,"lod1":150,"lod2":50,"glb_bytes":40960,"export_material_nodes":"principled_only"},
  "variants":variant_info
 }
 json.dump(report,open(QC,"w"),indent=2)
-bpy.ops.wm.save_as_mainfile(filepath=OUT+"/asteroid_scene_r010.blend")
+bpy.ops.wm.save_as_mainfile(filepath=OUT+"/asteroid_scene_r011.blend")
 print(json.dumps(report,indent=2))
