@@ -1,5 +1,8 @@
 import bpy
 from mathutils import Vector
+bpy.ops.wm.open_mainfile(filepath="build/asteroid/asteroid_scene_r007.blend")
+import bpy
+from mathutils import Vector
 out="build/asteroid/asteroid_preview_r007.png"
 positions={"SCULPT_ASTEROID_FLAT":-3.15,"SCULPT_ASTEROID_ELONGATED":0,"SCULPT_ASTEROID_JAGGED":3.15}
 for name,x in positions.items():bpy.data.objects[name].location.x=x
