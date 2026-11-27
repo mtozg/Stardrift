@@ -281,15 +281,15 @@ def build(spec, mats):
     small('glassf', box_bm((0, 0.016, 0.518), (0.190, 0.057, 0.016)), 'yuk_glass_ext')
     small('glasst', box_bm((0, 0.116, 0.415), (0.190, 0.008, 0.088)), 'yuk_glass_ext')
     for x in (-0.100, -0.049, 0.049, 0.100):                                  # 4 dikme: iki dış + iki iç (kokpit ön camı gibi: orta bölme geniş)
-        small('mull', box_bm((x, 0.016, 0.526), (0.008, 0.072, 0.012)), 'yuk_steel')
-    small('hdr', box_bm((0, 0.054, 0.526), (0.206, 0.008, 0.012)), 'yuk_dark')
-    small('gk1', box_bm((0, -0.019, 0.5255), (0.206, 0.006, 0.012)), 'yuk_rubber')                    # ön cam alt contası
+        small('mull', box_bm((x, 0.016, 0.5235), (0.004, 0.066, 0.004)), 'yuk_steel')
+    small('hdr', box_bm((0, 0.050, 0.5235), (0.200, 0.004, 0.004)), 'yuk_dark')
+    small('gk1', box_bm((0, -0.019, 0.5255), (0.200, 0.003, 0.005)), 'yuk_rubber')                    # ön cam alt contası
     for sx in (-1, 1):
-        small('gk2', box_bm((sx * 0.1035, 0.016, 0.5255), (0.006, 0.072, 0.012)), 'yuk_rubber')       # ön cam yan contaları
+        small('gk2', box_bm((sx * 0.1035, 0.016, 0.5255), (0.003, 0.068, 0.005)), 'yuk_rubber')       # ön cam yan contaları
         for z in (0.345, 0.425):
             xs = 0.188 - (z - 0.30) * 0.30
-            small('gk3', box_bm((sx * (xs + 0.001), 0.054 + 0.043, z), (0.010, 0.005, 0.066)), 'yuk_rubber')   # yan cam üst contası
-            small('gk4', box_bm((sx * (xs + 0.001), 0.054 - 0.043, z), (0.010, 0.005, 0.066)), 'yuk_rubber')
+            small('gk3', box_bm((sx * (xs + 0.001), 0.054 + 0.043, z), (0.005, 0.003, 0.066)), 'yuk_rubber')   # yan cam üst contası
+            small('gk4', box_bm((sx * (xs + 0.001), 0.054 - 0.043, z), (0.005, 0.003, 0.066)), 'yuk_rubber')
     # nozul çekirdekleri (oyuğun dibinde) + içi is
     for x, y in ENG:
         small('core', cyl_bm((x, y, -0.455), (x, y, -0.460), 0.030, None, 16), 'emit_amber')

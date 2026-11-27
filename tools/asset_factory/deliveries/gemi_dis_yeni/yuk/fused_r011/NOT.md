@@ -1,0 +1,1 @@
+# Yük fused_r011 — cam entegrasyonu (Lead): kalın conta/dikme/başlık blokları inceltildi (0,003–0,005 L), camlar oyuklara oturuyor (gövde yüzeyiyle UNION'lı oyuk içinde), dikmeler ince. Gerisi r010. Oyun içi kıyas yapılmadı (bu ufak düzeltme). Mobil _m var.
