@@ -1,0 +1,4 @@
+# Parti 2 / B — NPC ikinci grup (npc_brute, npc_reaver, npc_tanker, npc_courier)
+Aşama 1 NPC hattıyla (kaynak üst+yan çizim → hull → atlas; LOD0 ≤3k, LOD1 ≤%30, 1 malzeme, ≈0,13–0,2 MB). Tüm teknik kapılar GEÇTİ (QC: IoU üst ≥0,93, yan ≥0,88; ΔE; çapalar). Yanyana görseller: yanyana_*.webp (kaynak | model). Bu klasörde Aşama 1 NPC'leri (raider/cargo/corvette/mining) de duruyor (aynı dosyalar).
+## Oyun içi karşılaştırma: YAPILAMADI
+Test düzeneğim (spawn ile NPC'yi kameraya getirme) NPC'leri görüntüye getiremedi (ekran görüntülerinde gemi yok; ikinci oturumda taraf seçim ekranı). Lead'in sahnesinde (?glb=1, npc_<tür> anahtarları: raider, brute, reaver, corvette, cargo, tanker, courier, mining) kıyas yapılmalı. Beklenti: küçük/uzak göründüklerinden 'şimdikinden iyi' olması belirsiz (Aşama 1 notu).
