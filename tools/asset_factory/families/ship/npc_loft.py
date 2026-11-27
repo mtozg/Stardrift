@@ -99,7 +99,7 @@ def build(spec, mats):
             parts.append(obj('gunb', box_bm((sx * 0.135, -0.025, 0.24), (0.075, 0.075, 0.20)), 'dark'))
             ENG.append((sx * 0.17, 0.0))
         ENG.append((0.0, 0.0))
-        parts.append(obj('top', tbox_bm((0.0, 0.205), 0.36, 0.20, 0.040, 0.026, -0.30, 0.26), 'acc'))                         # üst zırh kapağı
+        parts.append(obj('top', tbox_bm((0.0, 0.200), 0.30, 0.18, 0.034, 0.024, -0.30, 0.10), 'hull'))                         # üst zırh kapağı
         parts.append(obj('glac', tbox_bm((0.0, 0.07), 0.30, 0.12, 0.10, 0.05, 0.20, 0.42), 'hull'))                           # eğimli ön zırh (glacis)
         for x, y in ENG:
             parts.append(obj('nac', cyl_bm((x, y, -0.505), (x, y, -0.34), 0.075, 0.070, 22), 'dark'))
