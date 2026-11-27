@@ -1,0 +1,28 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.1,
+ "base": [
+  0.075,
+  0.062,
+  0.055
+ ],
+ "rough": [
+  0.65,
+  0.9
+ ],
+ "tone_var": [
+  0.75,
+  1.25
+ ],
+ "scratch": 0.3,
+ "wear": 1.0,
+ "wear_color": [
+  0.2,
+  0.16,
+  0.13
+ ],
+ "dirt": 0.8,
+ "bump": 0.04,
+ "grime": 1.2,
+ "streaks": 1.3
+}

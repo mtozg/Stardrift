@@ -7,7 +7,10 @@ from PIL import Image
 from qc import glb_checks
 
 
-def main(src, dst, maxe=1024):
+TIERS = {'std': {'base': 1024, 'normal': 1024, 'orm': 512, 'emit': 256}, 'hd': {'base': 2048, 'normal': 1024, 'orm': 1024, 'emit': 512}}
+
+
+def main(src, dst, maxe=1024, tier=None):
     j, b, _ = glb_checks.read_glb(src)
     views = []      # her bufferView için yeni bayt dizisi
     imgv = {im['bufferView']: im for im in j.get('images', [])}
@@ -17,8 +20,12 @@ def main(src, dst, maxe=1024):
         data = b[o:o + bv['byteLength']]
         if i in imgv:
             im = Image.open(io.BytesIO(data))
-            if max(im.size) > maxe:
-                k = maxe / max(im.size)
+            nm = (imgv[i].get('name') or '')
+            lim = maxe
+            if tier:
+                lim = next((v for k_, v in TIERS[tier].items() if k_ in nm), maxe)
+            if max(im.size) > lim:
+                k = lim / max(im.size)
                 small = im.resize((round(im.size[0] * k), round(im.size[1] * k)), Image.LANCZOS)
                 buf = io.BytesIO()
                 q = 88 if 'base' in (imgv[i].get('name') or '') else 92      # teslim kodlaması: base q88, ORM/normal q92 (ICC yok)
@@ -44,4 +51,8 @@ def main(src, dst, maxe=1024):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 1024)
+    a3 = sys.argv[3] if len(sys.argv) > 3 else '1024'
+    if a3 in TIERS:
+        main(sys.argv[1], sys.argv[2], 2048, a3)
+    else:
+        main(sys.argv[1], sys.argv[2], int(a3))
