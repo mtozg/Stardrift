@@ -237,10 +237,8 @@ def build(spec, mats):
         if f.material_index != slot['hull']:
             continue
         cb = f.calc_center_median(); gx, gy, gz = cb.x / S, cb.z / S, -cb.y / S
-        if int((gz + 0.6) / 0.16) % 3 == 0:
-            f.material_index = slot['acc2']
-        elif abs(gx) < 0.035 and gy > 0:
-            f.material_index = slot['acc']
+        if int((gz + 0.6) / 0.16) % 5 == 0:          # ince koyu panel kuşağı (düz renk bant DEĞİL: gerçekçi derz/koyu zırh kuşağı)
+            f.material_index = slot['dark']
     bmz.to_mesh(core.data); bmz.free()
     # hi-poly: oluklar
     hi = core.copy(); hi.data = core.data.copy(); geo.collection('Asset').objects.link(hi); hi.name = 'hi_core'; hi['sd_role'] = 'hi'
