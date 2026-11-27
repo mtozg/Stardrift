@@ -143,6 +143,10 @@ if hi is not None:      # normal: hi-poly'den pişir; eğrilik maskeleriyle albe
     info['hipoly_baked'] = True
     t0 = tick('hipoly_bake', t0)
 
+if PC.get('ao_lift') or PC.get('metal_max') is not None or PC.get('rough_min'):      # oyun içi ışık: AO yalnız çatlakta, metal ~0, pürüzlülük ≥ eşik (parlak yüzey koyu uzayı yansıtıp siyaha düşer)
+    for _k, _fn in (('ao', lambda a_: a_ + (1.0 - a_) * float(PC.get('ao_lift', 0))), ('metal', lambda a_: np.minimum(a_, float(PC['metal_max'])) if PC.get('metal_max') is not None else a_), ('rough', lambda a_: np.maximum(a_, float(PC['rough_min'])) if PC.get('rough_min') else a_)):
+        _px = bake.pixels(imgs[_k]); _px[..., :3] = np.clip(_fn(_px[..., :3]), 0, 1); imgs[_k].pixels = _px.ravel().tolist()
+    info['orm_fix'] = {'ao_lift': PC.get('ao_lift'), 'metal_max': PC.get('metal_max'), 'rough_min': PC.get('rough_min')}
 orm = bake.compose_orm(imgs, tex['orm'])
 # normal: float → 8 bit doğrusal görüntü (glTF/WebP)
 nrm = bpy.data.images.new('sd_normal', tex['normal'], tex['normal'], alpha=False)
