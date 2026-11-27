@@ -61,7 +61,8 @@ def from_lab(L):
     return a.reshape(sh)
 
 
-WARM = {'ankora': (34, 9, 24)}      # (min L, a, b): sıcak amber/bronz (oyun içi Ankora hangarı)
+import os as _os
+WARM = {'ankora': ((34, 2, 6) if _os.environ.get('HANGAR_NOTR') else (34, 9, 24))}      # (min L, a, b): sıcak amber/bronz (oyun içi Ankora hangarı)
 
 
 def recolor(im, ref, strength=0.9):
