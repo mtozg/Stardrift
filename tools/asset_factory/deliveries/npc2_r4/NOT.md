@@ -1,0 +1,3 @@
+# NPC r4 (8 tip) — Lead r3 geri bildirimine göre
+Yapılan: albedo r3'e göre +%22 (kroma -%28, pastel/oyuncak olmasın diye ilk denemem geri alındı), ince koyu panel kuşakları, güçlü emissive motor çekirdeği/nav ışıkları (nav gövde zarfına oturtuldu), emissive yan/üst ışık şeritleri, daha çok aşınma/kir.
+DÜRÜST DEĞERLENDİRME: renk artık daha az oyuncak ama GEOMETRİ hâlâ kutu/blok ağırlıklı (tanker, kargo, brute) → Mehmet'in "LEGO/oyuncak" eleştirisini tam gidermiyor. Oyun içi 50-150 m okunurluk Lead'in testine bağlı. Gerçek çözüm: ana gövdeleri bölümlü loft + bevel + panel kabartmasıyla yeniden kurmak (Yük/Hayalet gibi), ayrı bir tur.
