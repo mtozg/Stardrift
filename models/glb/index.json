@@ -35,5 +35,9 @@
  "ship_yuk": {
   "url": "models/glb/ship_yuk.glb",
   "urlM": "models/glb/ship_yuk_m.glb"
+ },
+ "ship_hayalet": {
+  "url": "models/glb/ship_hayalet.glb",
+  "urlM": "models/glb/ship_hayalet_m.glb"
  }
 }
