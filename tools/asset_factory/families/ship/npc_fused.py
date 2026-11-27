@@ -253,9 +253,10 @@ def build(spec, mats):
         h = o.copy(); h.data = o.data.copy(); geo.collection('Asset').objects.link(h); h['sd_role'] = 'hi'; out_hi.append(h)
     for x, y in ENG:
         small('core', cyl_bm((x, y, -0.470), (x, y, -0.484), 0.045, None, 14), 'glow')
-    navs = [(0.32 if kind != 'tanker' else 0.24, 0.0, 0.2), (-0.32 if kind != 'tanker' else -0.24, 0.0, 0.2), (0.0, 0.1, -0.4)]
+    _w, _hu, _hd, _ = env(0.2)
+    navs = [(_w / 2, 0.0, 0.2), (-_w / 2, 0.0, 0.2), (0.0, _hu, -0.4)]
     for p in navs:
-        small('nav', box_bm(p, (0.05, 0.05, 0.05)), 'glow')
+        small('nav', box_bm(p, (0.04, 0.04, 0.04)), 'glow')
     for sx in (-1, 1):                                                              # emissive seyir/gövde ışık şeritleri
         zc = secs[len(secs) // 2][0]; w_, hu_, hd_, _ = env(zc)
         small('strip', box_bm((sx * w_ / 2 * 1.01, 0.0, zc), (0.012, 0.022, 0.30)), 'glow')
