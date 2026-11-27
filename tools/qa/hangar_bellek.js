@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, serviceWorkers: 'block' });
   await ctx.addInitScript(pre => { try { if (!sessionStorage.getItem('i')){ sessionStorage.setItem('i', '1'); localStorage.setItem('sd_nointro', '1'); localStorage.setItem('sd-key', 'kayip-yildizlar:test'); localStorage.setItem('kayip-yildizlar:test', pre); } window.__noFbk = 1; } catch (e) {} }, pre);
   const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
-  await p.goto('' + (process.env.BASE || 'http://localhost:8771/') + ''); await p.waitForTimeout(3000);
+  await p.goto('' + (process.env.BASE || 'http://localhost:8771/') + '?glb=0'); await p.waitForTimeout(3000);
   await p.evaluate(() => { const g = document.getElementById('titleGo'); g && g.click(); }); await p.waitForTimeout(1500);
   let calm = 0; for (let k = 0; k < 40 && calm < 5; k++){ const m = await p.evaluate(() => { const g = document.querySelector('#ctrlSel [data-go]'); g && g.click(); return !!(window.__menuOn || document.getElementById('ctrlSel') || document.getElementById('sideSel')); }); calm = m ? 0 : calm + 1; await p.waitForTimeout(600); }
   await p.evaluate(() => { const t = window.__sdt; t.dockAt(t.stations()[0]); });

@@ -192,7 +192,7 @@
       for (var i = 0; i < n; i++){ var c = inst(a[0]); c.rotation.y = Math.PI / 2; c.position.x = i * SEG; root.add(c); }
       if (a[1]){ var d = inst(a[1]); d.rotation.y = Math.PI / 2; d.position.x = LEN - 0.34; root.add(d); }
       root.traverse(function(o){ o.userData.shared = true; });   // sinema temizliği önbellek geometrisini atmasın
-      scene.add(root); corr.forEach(function(o){ if (o) o.visible = false; });
+      root.traverse(function(o){ if (o.isMesh && o.material){ o.material.envMapIntensity = 0.25; o.material.needsUpdate = true; } }); scene.children.forEach(function(l){ if (l.isLight && !l.userData.hgDim){ l.userData.hgDim = 1; l.intensity *= 0.45; } });   /* GLB koridorda sahne ışığı prosedürel kabuğa göre ayarlıydı; fazla parlak/bakır görünüyordu */ scene.add(root); corr.forEach(function(o){ if (o) o.visible = false; });
       G.stats.hangar = (G.stats.hangar || 0) + 1;
     }).catch(function(){});
   };
