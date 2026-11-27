@@ -6,7 +6,15 @@ import bpy, bmesh
 from mathutils import Vector, Matrix
 from core import geo
 from families.ship.yuk_ext import orient_outward
-from families.ship.yuk_fused import loft_bm, box_bm, cyl_bm, tbox_bm, ring_bm, boolean, union_all, diff_all
+from families.ship.yuk_fused import loft_bm as _loft_bm, box_bm, cyl_bm, tbox_bm, ring_bm, boolean, union_all, diff_all
+
+def loft_bm(secs):
+    """pah kesit yüksekliği/genişliğine sığmazsa kesit kendini keser (Boolean bozulur) → pahı sınırla"""
+    out = []
+    for z, w, hu, hd, ch, y0 in secs:
+        out.append((z, w, hu, hd, min(ch, (hu + hd) / 2 * 0.92, w / 2 * 0.92), y0))
+    return _loft_bm(out)
+
 
 NAMES = ['hull', 'acc', 'dark', 'glow', 'glass', 'acc2']
 PAL = {
