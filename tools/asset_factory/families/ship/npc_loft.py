@@ -284,7 +284,7 @@ def build(spec, mats):
             elif h in (5, 6):
                 f.material_index = sl('dark')
         else:
-            if h in (0, 1, 2, 3):
+            if h in ((0, 1) if kind in ('cargo', 'tanker', 'mining') else (0, 1, 2, 3)):
                 f.material_index = sl('acc')
             elif h in (4, 5, 6):
                 f.material_index = sl('acc2')

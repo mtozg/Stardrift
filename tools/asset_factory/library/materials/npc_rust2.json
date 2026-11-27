@@ -1,9 +1,9 @@
 {
  "kind": "dielectric",
- "metallic": 0.5,
+ "metallic": 0.04,
  "rough": [
-  0.25,
-  0.55
+  0.72,
+  0.92
  ],
  "tone_var": [
   0.45,
