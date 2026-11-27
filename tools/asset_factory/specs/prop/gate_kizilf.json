@@ -1,0 +1,77 @@
+{
+ "id": "gate_kizilf",
+ "family": "prop",
+ "class": "prop",
+ "seed": 9100,
+ "profile": "PRODUCTION",
+ "concept": "Parti 2/E geçit kapısı çerçevesi: kizil",
+ "length_m": 18.0,
+ "materials": [
+  "crystal_green",
+  "emit_amber",
+  "emit_cyan",
+  "emit_green",
+  "emit_lava",
+  "emit_red",
+  "gunmetal",
+  "ice_blue",
+  "ice_white",
+  "lava_rock",
+  "red_paint",
+  "rock_dark",
+  "steel_dark",
+  "yuk_cont_rust",
+  "yuk_dark",
+  "yuk_hazard",
+  "yuk_orange",
+  "yuk_paint"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "gatef",
+  "palette": "kizil",
+  "scale_m": 8.0
+ },
+ "prepare": {
+  "tex": {
+   "base": 2048,
+   "orm": 1024,
+   "normal": 2048
+  },
+  "ao_distance": 0.2,
+  "ao_into_base": 0.6,
+  "normalize_length": true,
+  "normalize_axis": "max",
+  "cull": "exterior",
+  "uv_angle": 80,
+  "uv_margin": 3,
+  "bake_samples": 8,
+  "ao_samples": 32,
+  "hipoly": {
+   "extra": true,
+   "panel": 0.45,
+   "frac": 0.8,
+   "relief": [
+    0.008,
+    0.02
+   ],
+   "inset": 0.04,
+   "bevel": 0.004,
+   "rivet_r": 0.02,
+   "rivet_h": 0.012,
+   "rivet_p": 0.5,
+   "k_edge": 4.0,
+   "k_cav": 4.0,
+   "cav_dark": 0.35,
+   "edge_light": 0.5,
+   "edge_metal": 0.7,
+   "cage": 0.05,
+   "ray": 0.2
+  }
+ }
+}

@@ -384,6 +384,9 @@ def build(spec, mats):
     elif lay == 'lava': b = L_lava(spec, mats)
     elif lay == 'debris': b = L_debris(spec, mats)
     elif lay == 'gate': return L_gate(spec, mats)
+    elif lay == 'gatef':
+        from families.prop import gate_fused
+        return gate_fused.build(spec, mats)
     else: raise ValueError(lay)
     objs = b.finish(P.get('scale_m', 10.0), up_z=lay in ('ice', 'monolith', 'lair', 'lava'))
     return {'objects': objs, 'sockets': []}
