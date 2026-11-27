@@ -1,0 +1,3 @@
+# Şahin Çatal catal_r005 — gerçekçilik turu
+Kanopi gömülü/alçak (kasa UNION, cam kasadan düşük, çevre panel çizgisi, yan camlar, giriş kapağı); ölçek ipuçları (pencere sırası, kapaklar+tutamak, korkuluk, merdiven, iniş ayağı); radyatör derinliği (kalın çerçeve, ızgara arkası plaka, ısı borusu, braket); ön uç sensör/kapak/kenet; alt gövde ısı kalkanı plakaları+kablo kanalı; hi-poly kabartma 1,8–5,5 cm; kırmızı bloklar → şeritler.
+(a–g) puanı: 3,5/4/3,5/3/4/4,5/3,5 = 26/35. STD 12,3 MB / HD 33,3 MB GPU, 16 195 tri, 1 malzeme, 2 draw call, Khronos 0 hata. Oyun içi kıyas: ingame_simdiki_vs_yeni.png.

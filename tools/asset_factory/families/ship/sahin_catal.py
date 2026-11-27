@@ -114,8 +114,8 @@ def build(spec, mats):
     # kapsül altı reaktör kaportası
     parts.append(_obj('reactor', loft([(-1.35, 0.40, 0.0, 0.40, 2.6, 0, -0.34), (-0.6, 0.60, 0.0, 0.62, 3.0, 0, -0.30), (0.5, 0.56, 0.0, 0.52, 3.0, 0, -0.28), (1.2, 0.30, 0.0, 0.30, 2.6, 0, -0.26)]), 'cat_gun', mats))
     # kokpit kasası (titanyum pah) — cam bu kasanın içine oturur
-    parts.append(_obj('cframe', loft([(0.7, 0.26, 0.04, 0.0, 2.4, 0, 0.62), (1.2, 0.50, 0.17, 0.0, 2.6, 0, 0.60), (2.2, 0.46, 0.17, 0.0, 2.6, 0, 0.56), (3.0, 0.22, 0.06, 0.0, 2.4, 0, 0.50)]), 'cat_titan', mats))
-    parts.append(_obj('glass', loft([(0.85, 0.22, 0.10, 0.0, 2.4, 0, 0.64), (1.25, 0.43, 0.19, 0.0, 2.6, 0, 0.625), (2.15, 0.40, 0.19, 0.0, 2.6, 0, 0.58), (2.85, 0.17, 0.08, 0.0, 2.4, 0, 0.53)]), 'sahin_glass', mats))
+    parts.append(_obj('cframe', loft([(0.55, 0.30, 0.05, 0.08, 2.4, 0, 0.53), (0.9, 0.46, 0.085, 0.14, 2.8, 0, 0.535), (1.3, 0.47, 0.105, 0.14, 2.8, 0, 0.51), (2.2, 0.41, 0.10, 0.14, 2.8, 0, 0.44), (3.0, 0.20, 0.07, 0.08, 2.4, 0, 0.30)]), 'cat_titan', mats))   # kasa: gövdeye UNION, pah/dikiş/conta
+    parts.append(_obj('glass', loft([(0.80, 0.22, 0.08, 0.0, 2.6, 0, 0.55), (1.05, 0.38, 0.105, 0.0, 2.8, 0, 0.54), (1.4, 0.40, 0.115, 0.0, 2.8, 0, 0.525), (2.15, 0.34, 0.11, 0.0, 2.8, 0, 0.455), (2.75, 0.14, 0.06, 0.0, 2.6, 0, 0.335)]), 'sahin_glass', mats))
     # ağır top: nose'da halkalı yuva + kılıf + namlu (hepsi ortak eksende)
     parts.append(_obj('mount', tube((0, -0.05, 3.5), (0, -0.05, 3.9), 0.24, 0.22, 32), 'cat_titan', mats))
     parts.append(_obj('shroud', tube((0, -0.05, 3.85), (0, -0.05, 4.7), 0.15, 0.13, 24), 'cat_gun', mats))
@@ -158,6 +158,10 @@ def build(spec, mats):
                 v.co.x += cx
         for x in (cx - 0.3, cx + 0.3):
             grv.append(_obj('bl', box_bm((x, 0.46 - D, -1.0), (0.010, 0.06, 4.6)), 'cat_gun', mats))
+    for sx in (-1, 1):                                                                  # kanopi çevresi panel/dikiş çizgisi (camı izler)
+        grv.append(_obj('cl', box_bm((sx * 0.50, 0.46, 1.8), (0.012, 0.08, 2.5)), 'cat_gun', mats))
+    for z in (0.55, 3.0):
+        grv.append(_obj('cl', box_bm((0.0, 0.42, z), (1.0, 0.08, 0.012)), 'cat_gun', mats))
     diff_all(hi_core, grv)
     # ------------------------------------------------------------ ızgara bölme + malzeme bölgeleri
     bm = bmesh.new(); bm.from_mesh(core.data)
@@ -189,12 +193,8 @@ def build(spec, mats):
             f.material_index = SLOT['cat_gun']
         elif cur == 'cat_ceramic' and gy < (0.05 if in_boom else 0.12) - (0.0 if False else 0.0) and gy < (0.05 if in_boom else 0.05):  # alt yarı titanyum
             f.material_index = SLOT['cat_titan']
-        elif cur == 'cat_ceramic' and in_boom and gy > 0.2 and 0.75 < gz < 2.1:
-            f.material_index = SLOT['cat_red']                               # kiriş üstü büyük kırmızı kimlik bloğu (uzaktan okunur)
         elif cur == 'cat_ceramic' and in_boom and gy > 0.2 and -2.35 < gz < -1.45:
             f.material_index = SLOT['cat_ceramic3']                           # koyu kontrast bandı
-        elif cur == 'cat_ceramic' and (not in_boom) and gy > 0.35 and -1.15 < gz < -0.45:
-            f.material_index = SLOT['cat_red']                               # kapsül sırtı kırmızı blok
         elif cur == 'cat_ceramic' and (not in_boom) and gy > 0.25 and 0.2 < gz < 0.6 and abs(gx) > 0.3:
             f.material_index = SLOT['cat_ceramic3']
         elif cur == 'cat_ceramic':
@@ -245,11 +245,14 @@ def build(spec, mats):
     for sx in (-1, 1):
         ox = sx * (BX + 0.84)
         small('rad', plate(outline, ox, 0.11), 'cat_ceramic')
+        cz_ = sum(z for z, _ in outline) / len(outline); cy_ = sum(y for _, y in outline) / len(outline)
+        inner = [(cz_ + (z - cz_) * 0.88, cy_ + (y - cy_) * 0.88) for z, y in outline]
+        small('radback', plate(inner, ox + sx * 0.06, 0.02), 'cat_gun')                 # ızgara arkası koyu derinlik plakası
         for face in (1, -1):                               # dış (sx) ve iç yüz
             fx = ox + sx * face * 0.07
             for (za, ya), (zb, yb) in zip(outline, outline[1:] + outline[:1]):       # titanyum kenar kuşağı (kalınlık görünsün)
                 zc, yc = (za + zb) / 2, (ya + yb) / 2; ln = math.hypot(zb - za, yb - ya); ang = math.atan2(yb - ya, zb - za)
-                bmf = box_bm((0, 0, 0), (0.05, 0.09, ln))
+                bmf = box_bm((0, 0, 0), (0.08, 0.10, ln))
                 for v in bmf.verts:
                     z_, y_ = v.co.z, v.co.y
                     v.co.z = z_ * math.cos(ang) - y_ * math.sin(ang) + zc
@@ -273,11 +276,13 @@ def build(spec, mats):
         for z, y in ((ZR(-2.7), YR(-0.25)), (ZR(-1.6), YR(0.1)), (ZR(-0.7), YR(-0.2))):                      # servis kapağı ve havalandırma yarıkları
             small('rvent', box_bm((fx, y, z), (0.02, 0.34, 0.14)), 'cat_gun')
         small('radtip', plate([(-3.92, YR(-0.58)), (-3.92, YR(0.58)), (-3.78, YR(0.58)), (-3.78, YR(-0.58))], ox, 0.13), 'cat_red')
-        small('radband', plate([(ZR(-2.0), YR(-1.05)), (ZR(-1.2), YR(-0.7)), (ZR(-1.2), YR(1.2)), (ZR(-2.0), YR(1.55))], ox, 0.115), 'cat_red')
+        small('radband', plate([(ZR(-2.2), YR(-1.0)), (ZR(-1.75), YR(-0.9)), (ZR(-1.75), YR(1.4)), (ZR(-2.2), YR(1.5))], ox, 0.115), 'cat_red')      # ince kimlik şeridi
         for z in (ZR(-3.2), ZR(-1.8), ZR(-0.4)):                                                  # mafsal: kirişe bağlanan 3 destek
             small('hing', tube((sx * (BX + 0.56), 0.0, z), (ox - sx * 0.02, 0.0, z), 0.06, None, 12), 'cat_titan')
             small('hingk', box_bm((ox - sx * 0.07, 0.0, z), (0.10, 0.16, 0.18)), 'cat_gun')
             small('hingb', tube((ox - sx * 0.14, 0.0, z), (ox - sx * 0.07, 0.0, z), 0.085, None, 12), 'cat_titan')
+            for dy in (-0.16, 0.16):                                                  # braket payandaları (gusset)
+                small('gus', box_bm((sx * (BX + 0.70), dy, z), (0.22, 0.05, 0.05)), 'cat_titan')
         # bağlantı kirişi üst nervür ve kablo kanalı (yapısal donanım)
         for k in range(3):
             small('srib', box_bm((sx * (0.95 + 0.34 * k), 0.34 - 0.02 * k, -0.3 - 0.05 * k), (0.045, 0.07, 1.3 - 0.1 * k)), 'cat_titan')
@@ -305,18 +310,18 @@ def build(spec, mats):
     small('ant1', tube((0.12, 0.64, -1.0), (0.20, 1.1, -1.1), 0.014, 0.007, 6), 'cat_gun')
     small('ant2', tube((-0.20, 0.62, 0.0), (-0.28, 0.90, 0.05), 0.010, 0.006, 6), 'cat_gun')
     # kapsül kırmızı işaretleri (az): burun şeridi + gövde yan sancak
-    small('mark1', box_bm((0.0, 0.595, -0.55), (0.62, 0.012, 0.20)), 'cat_red')
-    small('mark2', box_bm((0.0, 0.595, -0.20), (0.34, 0.012, 0.08)), 'cat_red')
+    for zz in (-0.62, -0.42):
+        small('mark1', box_bm((0.0, 0.60, zz), (0.70, 0.012, 0.09)), 'cat_red')
     for sx in (-1, 1):
         small('idl', box_bm((sx * 0.84, 0.18, 0.1), (0.012, 0.10, 0.60)), 'cat_red')
         small('seyir', box_bm((sx * (BX + 0.58), 0.0, 3.2), (0.04, 0.04, 0.05)), 'emit_red' if sx < 0 else 'emit_blue')
     for sx in (-1, 1):
-        small('bmark', box_bm((sx * BX, 0.545, -0.8), (0.34, 0.010, 0.22)), 'cat_red')
-        small('bmark2', box_bm((sx * BX, 0.545, -0.4), (0.34, 0.010, 0.06)), 'cat_red')
+        for dx in (-0.13, 0.13):
+            small('bmark', box_bm((sx * BX + dx, 0.497, 1.45), (0.10, 0.012, 1.5)), 'cat_red')      # kiriş üstü iki uzun kimlik şeridi
     for sx in (-1, 1):
-        small('ncol', tube((sx * BX, 0.0, -3.12), (sx * BX, 0.0, -3.04), 0.76, None, 36, cap=False), 'cat_red')       # nacelle kimlik halkası
+        small('ncol', tube((sx * BX, 0.0, -3.14), (sx * BX, 0.0, -3.0), 0.76, None, 36, cap=False), 'cat_red')       # nacelle kimlik halkası
         small('ncol2', tube((sx * BX, 0.0, 2.2), (sx * BX, 0.0, 2.28), 0.40, None, 32, cap=False), 'cat_red')
-        small('podstripe', box_bm((sx * 0.80, 0.02, 0.9), (0.014, 0.07, 1.6)), 'cat_red')                         # kapsül yan kimlik şeridi
+        small('podstripe', box_bm((sx * 0.80, 0.02, 0.9), (0.014, 0.14, 1.8)), 'cat_red')                         # kapsül yan kimlik şeridi
     small('tailnav', box_bm((0.0, 0.62, -1.45), (0.06, 0.04, 0.05)), 'emit_red')
     # ------------------------------------------------------------ insan ölçeği ipuçları: pencere sırası, bakım kapakları + tutamak, korkuluk, stencil
     for sx in (-1, 1):
@@ -340,6 +345,31 @@ def build(spec, mats):
             small('rung', box_bm((cx - sx * 0.61, -0.1 + q * 0.15 - 0.15, -1.9), (0.03, 0.02, 0.22)), 'cat_gun')
     small('stencil1', box_bm((0.0, 0.59, 0.7), (0.34, 0.01, 0.05)), 'cat_red')
     small('stencil2', box_bm((0.0, 0.59, 0.82), (0.20, 0.01, 0.03)), 'cat_ceramic')
+    # ------------------------------------------------------------ ek ayrıntı: kokpit yan camları ve girişi, iniş ayağı yuvaları, alt gövde plakaları, ön uç donanımı
+    for sx in (-1, 1):
+        for z0 in (1.55, 2.05):                                                         # dar yan camlar (gövdeye oturan)
+            small('swin', box_bm((sx * (pod_w(z0) - 0.07), 0.355 - (z0 - 1.55) * 0.18, z0), (0.02, 0.07, 0.30)), 'sahin_glass')
+    small('door', box_bm((pod_w(1.1) - 0.012, 0.12, 1.1), (0.03, 0.62, 0.50)), 'cat_gun')   # kokpit giriş kapağı (sancak)
+    small('doorh', box_bm((pod_w(1.1) + 0.012, 0.12, 1.28), (0.02, 0.14, 0.03)), 'cat_titan')
+    for q in range(3):
+        small('step', box_bm((pod_w(1.1) + 0.004, -0.22 - q * 0.17, 1.1), (0.05, 0.03, 0.30)), 'cat_titan')
+    for sx in (-1, 1):
+        cx = sx * BX
+        for z in (-3.0, 1.2):                                                           # iniş ayağı yuvası + ayak
+            small('gbay', box_bm((cx, -0.50 * 1.1, z), (0.50, 0.03, 0.55)), 'cat_gun')
+            small('gleg', tube((cx, -0.50 * 1.1, z), (cx, -0.50 * 1.1 - 0.12, z), 0.06, 0.07, 12), 'cat_titan')
+            small('gfoot', box_bm((cx, -0.50 * 1.1 - 0.13, z), (0.22, 0.03, 0.26)), 'cat_gun')
+        for z in (-2.6, -1.6, -0.6, 0.4, 1.4):                                          # kiriş alt ısı kalkanı plakaları
+            small('bplate', box_bm((cx, -0.50 * 1.1 - 0.004, z), (0.50, 0.03, 0.78)), 'cat_heat')
+        small('btray', tube((cx + 0.2, -0.50 * 1.1 - 0.02, -3.2), (cx + 0.2, -0.50 * 1.1 - 0.02, 2.2), 0.025, None, 8), 'cat_gun')
+        small('nclamp', tube((cx, -0.02, 2.88), (cx, -0.02, 2.95), 0.27, None, 24, cap=False), 'cat_titan')      # kiriş burnu kenet halkası
+        small('nclamp2', tube((cx, -0.02, 3.18), (cx, -0.02, 3.24), 0.20, None, 24, cap=False), 'cat_titan')
+        small('nsens', box_bm((cx, 0.17, 3.05), (0.20, 0.02, 0.22)), 'sahin_glass')                               # sensör paneli
+    for z in (-0.6, 0.5):                                                               # kapsül alt ısı kalkanı plakaları
+        small('pplate', box_bm((0.0, -0.80 - 0.1 * (z + 0.6), z), (0.60, 0.03, 0.8)), 'cat_heat')
+    small('nsensor', box_bm((0.0, 0.10, 3.28), (0.28, 0.02, 0.20)), 'sahin_glass')      # kapsül burnu sensör paneli
+    small('nhatch', box_bm((0.0, 0.02, 2.75), (0.40, 0.025, 0.34)), 'cat_titan')
+    small('nclamp3', tube((0.0, -0.01, 3.05), (0.0, -0.01, 3.11), 0.36, None, 24, cap=False), 'cat_titan')
     # ------------------------------------------------------------ soketler
     socks = []
     for i, (x, y) in enumerate(ENG, 1):
