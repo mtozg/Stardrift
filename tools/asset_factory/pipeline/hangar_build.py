@@ -88,9 +88,46 @@ def recolor(im, ref, strength=0.9):
 door_src = Image.open(os.path.join(REPO, 'assets/img/xdoor_%s.webp' % ST)).convert('RGB')
 atlas = Image.new('RGB', (TEX, TEX))
 atlas.paste(door_src.resize((T, T), Image.LANCZOS), (0, 0))                                                            # 0: kapı (istasyonun kendi kapı çizimi)
-atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.0, 0.10, 0.30, 0.90), (T, T)), door_src), (T, 0))               # 1: duvar
-atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.70, 0.75, 1.0), (T, T)), door_src), (0, T))               # 2: zemin
-atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.0, 0.75, 0.25), (T, T)), door_src), (T, T))              # 3: tavan
+def steel_tile(seed, base_rgb, plates=(4, 3), dark=0.55):
+    """r7: sade gri-çelik panel dokusu: ince panel dikişi, perçin, hafif çizik; bakır/lif YOK"""
+    rng = np.random.RandomState(seed)
+    n = T
+    img = np.ones((n, n, 3), np.float32) * np.array(base_rgb, np.float32) / 255.0
+    px, py = n // plates[0], n // plates[1]
+    for j in range(plates[1]):
+        for i in range(plates[0]):
+            tone = 1.0 + rng.uniform(-0.07, 0.07)
+            if rng.rand() < 0.22:
+                tone *= dark
+            img[j * py:(j + 1) * py, i * px:(i + 1) * px] *= tone
+    for i in range(plates[0] + 1):
+        x = min(i * px, n - 1); img[:, max(0, x - 1):x + 2] *= 0.35
+    for j in range(plates[1] + 1):
+        y = min(j * py, n - 1); img[max(0, y - 1):y + 2, :] *= 0.35
+    for j in range(plates[1]):
+        for i in range(plates[0]):
+            for dx, dy in ((9, 9), (px - 10, 9), (9, py - 10), (px - 10, py - 10)):
+                cx, cy = i * px + dx, j * py + dy
+                img[cy - 2:cy + 3, cx - 2:cx + 3] *= 0.6
+                img[cy - 2:cy - 1, cx - 2:cx + 1] *= 1.5
+    for _ in range(40):         # ince çizikler (yatay/dikey, nötr ton)
+        if rng.rand() < 0.5:
+            y = rng.randint(0, n); x0 = rng.randint(0, n - 60); img[y, x0:x0 + rng.randint(20, 60)] *= rng.uniform(0.75, 1.25)
+        else:
+            x = rng.randint(0, n); y0 = rng.randint(0, n - 60); img[y0:y0 + rng.randint(20, 60), x] *= rng.uniform(0.75, 1.25)
+    img *= (1.0 + rng.normal(0, 0.012, (n, n, 1))).astype(np.float32)
+    g = img.mean(-1, keepdims=True); img = g + (img - g) * 0.8      # nötre yakın
+    return Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8))
+
+
+if ST == 'ankora':
+    atlas.paste(steel_tile(1, (118, 124, 130), (4, 3)), (T, 0))           # 1: duvar (gri-çelik)
+    atlas.paste(steel_tile(2, (62, 66, 70), (3, 3), 0.7), (0, T))         # 2: zemin (koyu panel)
+    atlas.paste(steel_tile(3, (96, 102, 108), (4, 4)), (T, T))            # 3: tavan
+else:
+    atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.0, 0.10, 0.30, 0.90), (T, T)), door_src), (T, 0))
+    atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.70, 0.75, 1.0), (T, T)), door_src), (0, T))
+    atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.0, 0.75, 0.25), (T, T)), door_src), (T, T))
 from PIL import ImageDraw
 SY0, SY1 = int(T + 0.92 * T), int(T + 0.99 * T)      # şerit satırları (tile 2/3 alt kenarı)
 haz = Image.new('RGB', (T, SY1 - SY0), (18, 18, 15)); hd = ImageDraw.Draw(haz); hh = SY1 - SY0
@@ -189,9 +226,9 @@ def corridor():
         m.strip((sx * 2.25, -OH / 2 + 0.005, L / 2), (0.12, 0.012, L - 0.1), 'haz', 'x', 0.8)
     # tavan: dolu plaka, enine kirişler, armatür gövdesi + emissive panel (oyun ışığı armatür konumlarına eklenir)
     m.box((0, OH / 2 + 0.15, L / 2), (OW + 1.2, 0.3, L), 3, 'y', (4.5, 3.8))
-    for k in range(7):
-        zz = 0.5 + k * (L - 1.0) / 6
-        m.box((0, OH / 2 - 0.1, zz), (OW - 0.4, 0.2, 0.2), 1, 'y', (4.5, 3.8))
+    for k in range(1, 3):
+        zz = k * L / 3
+        m.box((0, OH / 2 - 0.06, zz), (OW - 0.4, 0.12, 0.14), 1, 'y', (4.5, 3.8))
     for sx in (-1, 1):
         for k in range(4):
             zz = 0.95 + k * (L - 1.9) / 3
@@ -200,29 +237,16 @@ def corridor():
     # duvarlar: dolu panel plakaları + dikey kaburga + zemine yakın sarı-siyah şerit; borular üstte ayrıntı
     for sx in (-1, 1):
         m.box((sx * (OW / 2 + 0.1), 0, L / 2), (0.2, OH + 0.6, L), 1, 'x', (3.8, 5.2))
-        for k in range(4):          # alt ve üst panel plakaları (dikişli)
+        for k in range(4):          # düz panel plakaları (dikiş yok)
             zc = 0.1 + 0.95 + k * 1.85
             m.box((sx * (OW / 2 - 0.05), -1.35, zc), (0.1, 2.3, 1.75), 1, 'x', (1.75, 2.3))
             m.box((sx * (OW / 2 - 0.05), 1.05, zc), (0.1, 2.9, 1.75), 1, 'x', (1.75, 2.9))
-            m.box((sx * (OW / 2 - 0.11), 0.0, zc), (0.06, 0.5, 1.2), 0, 'x', (1.2, 0.5))      # iç panel kapak
         m.strip((sx * (OW / 2 - 0.12), -OH / 2 + 0.3, L / 2), (0.06, 0.26, L - 0.1), 'haz', 'x', 1.0)
-        for k in range(5):
-            m.box((sx * (OW / 2 - 0.17), 0, 0.45 + k * (L - 0.9) / 4), (0.3, OH, 0.28), 1, 'x', (1.0, 5.2))
-        # boru demetleri (panel üstüne, 5 hat) + kelepçeler + vana/kontrol blokları
-        for yy, rr in ((-1.5, 0.16), (1.1, 0.16), (2.0, 0.12)):
-            cyl_x(m, (sx * (OW / 2 - 0.40), yy, 0.2), (sx * (OW / 2 - 0.40), yy, L - 0.2), rr, 1, 8)
-        for k in range(10):
-            zz = 0.55 + k * (L - 1.1) / 9
-            for yy in (-1.5, 1.1):
-                m.box((sx * (OW / 2 - 0.40), yy, zz), (0.30, 0.30, 0.12), 0, 'x', (1.2, 1.2))
-            if False:
-                m.box((sx * (OW / 2 - 0.45), 0.65, zz), (0.4, 0.8, 0.5), 1, 'x', (1.0, 1.0))
-                m.box((sx * (OW / 2 - 0.50), 0.65, zz), (0.3, 0.25, 0.3), 0, 'x', (0.5, 0.5))
-            if k % 3 == 0:
-                m.box((sx * (OW / 2 - 0.30), 1.75, zz + 0.3), (0.22, 1.1, 0.7), 1, 'x', (1.0, 1.0))
+    # segment başına tek ince boru hattı, yalnız bir tarafta
+    cyl_x(m, (-(OW / 2 - 0.30), 1.6, 0.0), (-(OW / 2 - 0.30), 1.6, L), 0.07, 1, 8)
+    for k in range(5):
+        m.box((-(OW / 2 - 0.30), 1.6, 0.4 + k * (L - 0.8) / 4), (0.18, 0.18, 0.08), 0, 'x', (0.8, 0.8))
     # uçlarda sekizgen çerçeve (segment bağlantısı)
-    octa_frame(m, 0.14, OW - 0.4, OH - 0.2, 0.42, 0.28, 0)
-    octa_frame(m, L - 0.14, OW - 0.4, OH - 0.2, 0.42, 0.28, 0)
     return m
 
 
