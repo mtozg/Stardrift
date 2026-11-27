@@ -35,7 +35,7 @@ def _rot_z(bm, ang, c):
 
 
 def build(spec, mats):
-    return build_akbaba(spec, mats)
+    return {'akbaba': build_akbaba, 'kurt': build_kurt}[spec['params'].get('kind', 'akbaba')](spec, mats)
 
 
 def build_akbaba(spec, mats):
@@ -220,5 +220,160 @@ def build_akbaba(spec, mats):
     for i, p in enumerate(((0.0, 0.58, 4.2), (-1.55, 0.35, -2.9), (CX, 1.34, -1.4)), 1):
         socks.append({'name': 'ANCH_NAV_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, 0.0, 1.0), 'extras': {'kind': 'nav'}})
     for i, p in enumerate(((-0.4, -0.35, 4.35), (0.4, -0.35, 4.35)), 1):
+        socks.append({'name': 'ANCH_MUZ_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, -1.0, 0.0), 'extras': {'kind': 'muzzle'}})
+    return {'objects': out_body + out_hi, 'sockets': socks}
+
+
+def build_kurt(spec, mats):
+    """KURT (brute, ağır zırhlı korsan): geniş kama gövde, katmanlı zırh, yan sponson+taret, arkada 3 kafes motor kulesi, sırtta kayışlı yakıt tankları."""
+    P = spec['params']; D = 0.012
+    hs = [(-3.6, 1.5, 0.75, 0.65, 4.0), (-2.6, 2.0, 0.90, 0.70, 4.0), (-0.5, 2.1, 0.95, 0.70, 4.0), (1.5, 1.6, 0.80, 0.60, 3.8), (3.0, 0.9, 0.55, 0.45, 3.4), (4.0, 0.35, 0.30, 0.25, 3.0), (4.5, 0.10, 0.09, 0.09, 2.4)]
+    hull = _obj('hull', loft(hs), 'pir_gray2', mats)
+
+    def hw(z):
+        for a, b in zip(hs, hs[1:]):
+            if a[0] <= z <= b[0]:
+                t = (z - a[0]) / (b[0] - a[0]); return a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t
+        return hs[0][1], hs[0][2]
+    parts = []
+    # katmanlı üst zırh plakaları (üst üste, hafif eğimli)
+    for (z0, z1, w, y) in ((-1.9, 0.2, 1.7, 0.96), (0.1, 1.7, 1.3, 0.84), (-3.1, -1.8, 1.4, 0.76)):
+        parts.append(_obj('plateT', box_bm((0.0, y, (z0 + z1) / 2), (w, 0.14, z1 - z0)), 'pir_gray', mats))
+    # yan sponsonlar (yuvarlatılmış kare loft) + omuz kalkanı
+    for sx in (-1, 1):
+        sp = [(-1.8, 0.40, 0.45, 0.40, 3.6, sx * 2.05, -0.10), (-0.6, 0.55, 0.55, 0.45, 3.6, sx * 2.1, -0.08), (1.4, 0.50, 0.50, 0.42, 3.6, sx * 2.0, -0.06), (2.4, 0.26, 0.28, 0.24, 3.0, sx * 1.8, -0.02)]
+        parts.append(_obj('spon', loft(sp), 'pir_gray', mats))
+        parts.append(_obj('tur', tube((sx * 2.0, 0.40, 0.6), (sx * 2.0, 0.66, 0.6), 0.34, 0.28, 24), 'cat_titan', mats))
+    # motor bloğu + 3 kule tabanı
+    parts.append(_obj('eblk', box_bm((0.0, 0.0, -3.55), (3.2, 1.3, 0.8)), 'cat_titan', mats))
+    # sırt yakıt tankları (kayışlı, turuncu-kahve) iki yanda
+    for sx in (-1, 1):
+        parts.append(_obj('tank', loft([(-2.3, 0.28, 0.28, 0.28, 2.0, sx * 1.0, 1.25), (-1.7, 0.36, 0.36, 0.36, 2.0, sx * 1.0, 1.25), (0.0, 0.36, 0.36, 0.36, 2.0, sx * 1.0, 1.25), (0.5, 0.22, 0.22, 0.22, 2.0, sx * 1.0, 1.25)], 28), 'pir_orange', mats))
+        parts.append(_obj('tmnt', box_bm((sx * 1.0, 1.0, -1.1), (0.6, 0.2, 1.4)), 'cat_titan', mats))
+    union_all(hull, parts)
+    core = hull
+    ENG = [(0.0, 0.0, 0.62), (-1.05, 0.05, 0.42), (1.05, 0.05, 0.42)]
+    diff_all(core, [_obj('noz', tube((x, y, -4.5), (x, y, -3.95), r * 0.9, r * 0.8, 32), 'cat_heat', mats) for x, y, r in ENG])
+    cuts = []
+    for z in (-1.2, 0.2, 1.4):
+        cuts.append(_obj('hat', box_bm((0.0, 1.02, z), (0.5, 0.05, 0.42)), 'cat_gun', mats))
+    for sx in (-1, 1):
+        for k in range(4):
+            cuts.append(_obj('louv', box_bm((sx * 2.1, 0.1, -1.3 + k * 0.4), (0.06, 0.4, 0.14)), 'cat_gun', mats))
+    diff_all(core, cuts)
+    hi_core = core.copy(); hi_core.data = core.data.copy(); geo.collection('Asset').objects.link(hi_core); hi_core.name = 'hi_core'; hi_core['sd_role'] = 'hi'
+    grv = []
+    for z in (-3.0, -2.2, -1.4, -0.6, 0.2, 1.0, 1.8, 2.6):
+        w, h = hw(z)
+        grv.append(_obj('rg', ring_bm(z, 0.012, w * 2, h, h * 0.8, 0.25, D), 'cat_gun', mats))
+    diff_all(hi_core, grv)
+    bm = bmesh.new(); bm.from_mesh(core.data)
+    cl = P.get('split_len', 0.4)
+    for _ in range(2):
+        groups = {}
+        for e in bm.edges:
+            Lg = (e.verts[0].co - e.verts[1].co).length
+            c = int(Lg / cl)
+            if c >= 1 and any(f.calc_area() > (cl * 0.6) ** 2 for f in e.link_faces):
+                groups.setdefault(min(c, 8), []).append(e)
+        for c, es in groups.items():
+            es = [e for e in es if e.is_valid]
+            if es:
+                bmesh.ops.subdivide_edges(bm, edges=es, cuts=c, use_grid_fill=True)
+    for f in bm.faces:
+        cb = f.calc_center_median(); gx, gy, gz = cb.x, cb.z, -cb.y
+        cur = MATS[f.material_index]
+        if cur in ('pir_gray', 'pir_gray2'):
+            if gz > 3.3:
+                f.material_index = SLOT['pir_orange']
+            elif gz < -3.9:
+                f.material_index = SLOT['cat_heat']
+            elif gy < -0.1:
+                f.material_index = SLOT['cat_titan'] if int((gz + 6) / 0.8) % 2 else SLOT['pir_gray2']      # alt gövde: koyu kalkan şeritleri
+            else:
+                h = (int((gx + 4.0) / 0.55) * 73856093 ^ int((gz + 6.0) / 0.5) * 19349663 ^ int((gy + 2.0) / 0.4) * 83492791) % 16
+                if h in (0, 1, 2):
+                    f.material_index = SLOT['pir_gray'] if cur == 'pir_gray2' else SLOT['pir_gray2']
+                elif h == 3:
+                    f.material_index = SLOT['pir_orange']
+                elif h == 4:
+                    f.material_index = SLOT['cat_titan']
+    bm.to_mesh(core.data); bm.free()
+    if P.get('bevel_m', 0) > 0:
+        mb = core.modifiers.new('bev', 'BEVEL'); mb.width = P['bevel_m']; mb.segments = 2; mb.limit_method = 'ANGLE'; mb.angle_limit = math.radians(30)
+        with bpy.context.temp_override(object=core, active_object=core, selected_objects=[core], selected_editable_objects=[core]):
+            bpy.ops.object.modifier_apply(modifier=mb.name)
+    geo.set_smooth_by_angle(core, 40); geo.set_smooth_by_angle(hi_core, 40)
+    core.name = 'core'; core['sd_role'] = 'body'
+    out_body, out_hi = [core], [hi_core]
+
+    def small(name, bm_, mat):
+        o = _obj(name, bm_, mat, mats)
+        geo.set_smooth_by_angle(o, 35)
+        out_body.append(o)
+        h = o.copy(); h.data = o.data.copy(); geo.collection('Asset').objects.link(h); h['sd_role'] = 'hi'; out_hi.append(h)
+        return o
+    # köprü: dar, alçak, gömülü kanopi
+    small('cframe', loft([(2.4, 0.46, 0.05, 0.10, 3.0, 0, 0.60), (2.9, 0.70, 0.09, 0.14, 3.2, 0, 0.60), (3.5, 0.50, 0.07, 0.12, 3.0, 0, 0.52)]), 'cat_titan')
+    small('glass', loft([(2.55, 0.34, 0.06, 0.0, 3.0, 0, 0.62), (2.95, 0.56, 0.085, 0.0, 3.2, 0, 0.615), (3.4, 0.36, 0.06, 0.0, 3.0, 0, 0.54)]), 'sahin_glass')
+    # 3 kafes motor kulesi + nozul
+    for (x, y, r) in ENG:
+        small('bell', tube((x, y, -4.5), (x, y, -4.0), r, r * 0.85, 36, cap=False), 'cat_heat')
+        small('ncore', tube((x, y, -4.43), (x, y, -4.40), r * 0.55, None, 28), 'emit_redhot')
+        small('nblue', tube((x, y, -4.435), (x, y, -4.425), r * 0.2, None, 18), 'emit_blue')
+        small('nlip', tube((x, y, -4.56), (x, y, -4.49), r * 1.12, r * 1.10, 36, cap=False), 'cat_titan')
+        for k in range(6):
+            a = k * math.pi / 3
+            small('lat', tube((x + math.cos(a) * r * 1.35, y + math.sin(a) * r * 1.35, -3.3), (x + math.cos(a) * r * 1.1, y + math.sin(a) * r * 1.1, -4.4), 0.035, None, 8), 'cat_gun')
+        for z in (-3.7, -4.05):
+            small('latr', tube((x, y, z), (x, y, z + 0.03), r * 1.3, None, 32, cap=False), 'cat_gun')
+    # sponson taret namluları
+    for sx in (-1, 1):
+        small('barrel', tube((sx * 2.0, 0.55, 0.9), (sx * 2.0, 0.55, 2.6), 0.08, 0.065, 12), 'cat_gun')
+        small('shroud', tube((sx * 2.0, 0.55, 0.6), (sx * 2.0, 0.55, 1.3), 0.16, 0.14, 16), 'cat_titan')
+        small('muz', tube((sx * 2.0, 0.55, 2.55), (sx * 2.0, 0.55, 2.72), 0.11, 0.08, 12), 'cat_gun')
+    # tank kayışları
+    for sx in (-1, 1):
+        for k in range(4):
+            small('strap', tube((sx * 1.0, 1.25, -2.1 + k * 0.55), (sx * 1.0, 1.25, -2.1 + k * 0.55 + 0.08), 0.375, None, 28, cap=False), 'cat_titan')
+    # prow ram sırtı ve kancalar
+    small('ram', box_bm((0.0, 0.05, 3.9), (0.20, 0.5, 0.9)), 'cat_titan')
+    for sx in (-1, 1):
+        small('hook', tube((sx * 0.4, -0.4, 2.6), (sx * 0.5, -0.45, 4.2), 0.08, 0.055, 12), 'cat_gun')
+        small('hookt', box_bm((sx * 0.5, -0.45, 4.25), (0.22, 0.05, 0.12)), 'cat_titan')
+    # ölçek ipuçları: pencere sıraları, hatch+tutamak, korkuluk, merdiven, iniş ayakları, turuncu X hatch
+    for sx in (-1, 1):
+        for k in range(6):
+            zz = -1.0 + k * 0.30
+            small('win', box_bm((sx * (hw(zz)[0] + 0.004 - 0.1), 0.62, zz), (0.03, 0.09, 0.14)), 'emit_blue')
+        small('hatchp', box_bm((sx * (hw(0.8)[0] - 0.01), 0.15, 0.8), (0.035, 0.5, 0.5)), 'cat_titan')
+        small('hatchh', box_bm((sx * (hw(0.8)[0] + 0.012), 0.15, 0.95), (0.02, 0.12, 0.03)), 'cat_gun')
+        small('ohatch', box_bm((sx * 2.55, 0.0, -0.5), (0.035, 0.8, 1.0)), 'pir_orange')
+        small('oxa', _rot_z(box_bm((sx * 2.57, 0.0, -0.5), (0.02, 0.06, 1.2)), 0.7, (sx * 2.57, 0.0, -0.5)), 'cat_gun')
+        small('gleg', tube((sx * 1.3, -0.62, 0.8), (sx * 1.4, -0.95, 0.8), 0.07, 0.08, 10), 'cat_titan')
+        small('gfoot', box_bm((sx * 1.4, -0.97, 0.8), (0.32, 0.04, 0.40)), 'cat_gun')
+        small('gleg2', tube((sx * 1.3, -0.62, -2.2), (sx * 1.4, -0.95, -2.2), 0.07, 0.08, 10), 'cat_titan')
+        small('gfoot2', box_bm((sx * 1.4, -0.97, -2.2), (0.32, 0.04, 0.40)), 'cat_gun')
+    for q in range(5):
+        small('post', tube((-0.6 + q * 0.3, 0.98, 1.9), (-0.6 + q * 0.3, 1.16, 1.9), 0.014, None, 6), 'cat_gun')
+    small('rail', tube((-0.6, 1.16, 1.9), (0.6, 1.16, 1.9), 0.012, None, 6), 'cat_gun')
+    for q in range(4):
+        small('step', box_bm((0.5 + q * 0.0, 0.2 - q * 0.17, 3.05 - 0.9), (0.05, 0.03, 0.28)), 'cat_titan')
+    for z in (-2.2, -0.2, 1.8):
+        small('bplate', box_bm((0.0, -0.70, z), (1.5, 0.03, 1.2)), 'cat_heat')
+    small('tray', tube((0.5, -0.72, -3.0), (0.5, -0.72, 3.0), 0.025, None, 8), 'cat_gun')
+    small('ant1', tube((0.3, 1.0, -2.4), (0.4, 1.7, -2.5), 0.02, 0.01, 6), 'cat_gun')
+    small('ant2', tube((-0.5, 1.0, -0.6), (-0.6, 1.5, -0.7), 0.016, 0.008, 6), 'cat_gun')
+    for z in (-0.2, 0.5):
+        small('mark', box_bm((0.0, 1.03, z), (1.0, 0.012, 0.14)), 'pir_orange')
+    small('nav1', box_bm((-2.6, 0.3, 1.8), (0.05, 0.05, 0.05)), 'emit_red')
+    small('nav2', box_bm((2.6, 0.3, 1.8), (0.05, 0.05, 0.05)), 'emit_blue')
+    small('nav3', box_bm((0.0, 1.0, -3.0), (0.05, 0.05, 0.05)), 'emit_red')
+    socks = []
+    for i, (x, y, r) in enumerate(ENG, 1):
+        socks.append({'name': 'ANCH_ENG_%d' % i, 'loc': tuple(geo.g2b(Vector((x, y, -4.43)))), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}})
+    for i, p in enumerate(((-2.6, 0.3, 1.8), (2.6, 0.3, 1.8), (0.0, 1.0, -3.0)), 1):
+        socks.append({'name': 'ANCH_NAV_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, 0.0, 1.0), 'extras': {'kind': 'nav'}})
+    for i, p in enumerate(((-2.0, 0.55, 2.7), (2.0, 0.55, 2.7)), 1):
         socks.append({'name': 'ANCH_MUZ_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, -1.0, 0.0), 'extras': {'kind': 'muzzle'}})
     return {'objects': out_body + out_hi, 'sockets': socks}
