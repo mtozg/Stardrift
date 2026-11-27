@@ -11,7 +11,7 @@ from families.ship.yuk_fused import loft_bm, box_bm, cyl_bm, tbox_bm, ring_bm, b
 MATS = ['sahin_hull', 'sahin_white', 'sahin_mid', 'sahin_dark', 'sahin_red', 'sahin_glass', 'yuk_rubber', 'steel_dark', 'gunmetal', 'yuk_soot', 'emit_redhot', 'emit_blue', 'emit_red', 'emit_cyan']
 SLOT = {m: i for i, m in enumerate(MATS)}
 S = 9.0
-SECS = [(-0.30, 0.20, 0.070, 0.060, 0.025, 0.0), (-0.15, 0.28, 0.085, 0.065, 0.032, 0.0), (0.05, 0.30, 0.085, 0.062, 0.032, 0.0), (0.20, 0.24, 0.065, 0.050, 0.028, 0.0),
+SECS = [(-0.30, 0.20, 0.070, 0.060, 0.016, 0.0), (-0.15, 0.28, 0.085, 0.065, 0.020, 0.0), (0.05, 0.30, 0.085, 0.062, 0.020, 0.0), (0.20, 0.24, 0.065, 0.050, 0.018, 0.0),
         (0.34, 0.144, 0.042, 0.034, 0.018, 0.0), (0.46, 0.048, 0.020, 0.018, 0.008, 0.0), (0.50, 0.016, 0.010, 0.010, 0.004, 0.0)]
 
 
@@ -46,10 +46,10 @@ def wing_bm(sx):
         return bm.verts.new((sx * x, y, z))
     r = [(0.05, 0.10, -0.085), (0.05, -0.080, -0.085)]
     # kök (x=0.05): LE z=0.11, TE z=-0.08, y üst +0.012 alt -0.040
-    rt = [V(0.05, 0.016, 0.11), V(0.05, 0.016, -0.08)]
-    rb = [V(0.05, -0.042, 0.11), V(0.05, -0.042, -0.08)]
-    tt = [V(0.40, -0.080, -0.22), V(0.40, -0.080, -0.38)]
-    tb = [V(0.40, -0.094, -0.22), V(0.40, -0.094, -0.38)]
+    rt = [V(0.05, 0.008, 0.11), V(0.05, 0.008, -0.08)]
+    rb = [V(0.05, -0.030, 0.11), V(0.05, -0.030, -0.08)]
+    tt = [V(0.40, -0.076, -0.22), V(0.40, -0.076, -0.38)]
+    tb = [V(0.40, -0.086, -0.22), V(0.40, -0.086, -0.38)]
     quads = [(rt[0], rt[1], tt[1], tt[0]), (rb[1], rb[0], tb[0], tb[1]), (rt[0], tt[0], tb[0], rb[0]), (rt[1], rb[1], tb[1], tt[1]),
              (rt[0], rb[0], rb[1], rt[1]), (tt[0], tt[1], tb[1], tb[0])]
     for q in quads:
@@ -113,7 +113,7 @@ def build(spec, mats):
     # ---------------- hi-poly oluk + kabartma
     hi_core = core.copy(); hi_core.data = core.data.copy(); geo.collection('Asset').objects.link(hi_core); hi_core.name = 'hi_core'; hi_core['sd_role'] = 'hi'
     grv = []
-    for z in (-0.28, -0.22, -0.16, -0.10, -0.04, 0.02, 0.08, 0.14, 0.20, 0.26):
+    for z in (-0.28, -0.24, -0.20, -0.16, -0.12, -0.08, -0.04, 0.0, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28):
         w, hu, hd, ch = secat(z)
         grv.append(_obj('ring', ring_bm(z, 0.0045, w, hu, hd, ch, D), 'sahin_dark', mats))
     for x in (-0.07, -0.035, 0.035, 0.07):
@@ -126,7 +126,7 @@ def build(spec, mats):
     diff_all(hi_core, grv)
     # ---------------- ızgara bölme + renk bölgeleri
     bm = bmesh.new(); bm.from_mesh(core.data)
-    cl = P.get('split_len', 0.075)
+    cl = P.get('split_len', 0.065)
     for _ in range(2):
         groups = {}
         for e in bm.edges:

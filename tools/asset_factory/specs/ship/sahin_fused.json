@@ -31,7 +31,7 @@
  "params": {
   "layout": "sahin_fused",
   "scale_m": 9.0,
-  "split_len": 0.075,
+  "split_len": 0.065,
   "bevel_m": 0.012
  },
  "prepare": {
@@ -50,21 +50,21 @@
   "ao_samples": 48,
   "hipoly": {
    "extra": true,
-   "panel": 0.4,
-   "frac": 0.95,
+   "panel": 0.3,
+   "frac": 1.0,
    "relief": [
     0.006,
-    0.018
+    0.02
    ],
    "inset": 0.04,
    "bevel": 0.005,
    "rivet_r": 0.02,
    "rivet_h": 0.012,
-   "rivet_p": 0.6,
+   "rivet_p": 0.7,
    "k_edge": 4.0,
    "k_cav": 4.0,
    "cav_dark": 0.4,
-   "edge_light": 0.55,
+   "edge_light": 0.6,
    "edge_metal": 0.8,
    "cage": 0.06,
    "ray": 0.2
