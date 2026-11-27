@@ -82,6 +82,11 @@ def build(spec, mats):
     # ------------------------------------------------------------ kapsül (kokpit + reaktör)
     pod_s = [(-1.45, 0.50, 0.40, 0.38, 2.8), (-1.0, 0.72, 0.54, 0.46, 3.0), (-0.2, 0.84, 0.62, 0.52, 3.2), (1.0, 0.80, 0.60, 0.50, 3.2), (2.0, 0.64, 0.50, 0.42, 3.0), (2.9, 0.42, 0.34, 0.30, 2.7), (3.5, 0.20, 0.17, 0.16, 2.4), (3.85, 0.09, 0.08, 0.08, 2.1)]
     pod_s = [(t[0], t[1] * 1.06, t[2] * 1.06, t[3] * 1.06) + t[4:] for t in pod_s]
+    def pod_w(z):
+        for a, b in zip(pod_s, pod_s[1:]):
+            if a[0] <= z <= b[0]:
+                return a[1] + (b[1] - a[1]) * (z - a[0]) / (b[0] - a[0])
+        return pod_s[0][1]
     pod = _obj('pod', loft(pod_s), 'cat_ceramic', mats)
     parts = []
     # kirişler (süperelips, uca doğru incelir) + motor bölümü kalınlaşması
@@ -313,6 +318,28 @@ def build(spec, mats):
         small('ncol2', tube((sx * BX, 0.0, 2.2), (sx * BX, 0.0, 2.28), 0.40, None, 32, cap=False), 'cat_red')
         small('podstripe', box_bm((sx * 0.80, 0.02, 0.9), (0.014, 0.07, 1.6)), 'cat_red')                         # kapsül yan kimlik şeridi
     small('tailnav', box_bm((0.0, 0.62, -1.45), (0.06, 0.04, 0.05)), 'emit_red')
+    # ------------------------------------------------------------ insan ölçeği ipuçları: pencere sırası, bakım kapakları + tutamak, korkuluk, stencil
+    for sx in (-1, 1):
+        for k in range(6):
+            zz = -0.15 + k * 0.2
+            wx = pod_w(zz) - 0.004
+            small('win', box_bm((sx * wx, 0.20, zz), (0.03, 0.085, 0.12)), 'emit_blue')
+        for z in (0.1, 0.55, 1.0):                                                      # kapsül yan bakım kapakları
+            wx = pod_w(z)
+            small('hatchp', box_bm((sx * (wx - 0.005), -0.08, z), (0.035, 0.30, 0.34)), 'cat_titan')
+            small('hatchh', box_bm((sx * (wx + 0.012), -0.08, z), (0.02, 0.10, 0.02)), 'cat_gun')
+        cx = sx * BX
+        for z in (-0.3, -3.0):                                                          # kiriş üstü kapaklar (el tutamaklı)
+            small('bhatch', box_bm((cx, 0.50, z), (0.34, 0.035, 0.44)), 'cat_titan')
+            small('bhandle', box_bm((cx, 0.525, z), (0.20, 0.02, 0.03)), 'cat_gun')
+        for q in range(4):                                                              # bağlantı kirişi üstü korkuluk
+            xx = sx * (0.85 + q * 0.28)
+            small('post', tube((xx, 0.30, 0.05), (xx, 0.46, 0.05), 0.014, None, 6), 'cat_gun')
+        small('rail', tube((sx * 0.85, 0.46, 0.05), (sx * 1.69, 0.46, 0.05), 0.012, None, 6), 'cat_gun')
+        for q in range(5):                                                              # kiriş yanı merdiven basamakları
+            small('rung', box_bm((cx - sx * 0.61, -0.1 + q * 0.15 - 0.15, -1.9), (0.03, 0.02, 0.22)), 'cat_gun')
+    small('stencil1', box_bm((0.0, 0.59, 0.7), (0.34, 0.01, 0.05)), 'cat_red')
+    small('stencil2', box_bm((0.0, 0.59, 0.82), (0.20, 0.01, 0.03)), 'cat_ceramic')
     # ------------------------------------------------------------ soketler
     socks = []
     for i, (x, y) in enumerate(ENG, 1):
