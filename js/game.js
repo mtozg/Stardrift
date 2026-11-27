@@ -4075,13 +4075,15 @@ function hgFree(root){
 }
 function hgSet(id){
   if (!hgS || hgId === id) return; hgId = id; if (hgM){ hgS.remove(hgM); try { hgFree(hgM); } catch (e) { console.warn(e); } }
-  hgM = mkShip(id); hgS.add(hgM);
+  hgM = mkShip(id); hgS.add(hgM); hgShadeN = -1;
 }
+let hgShadeN = -1;
+function hgShade(){ if (!hgR || !hgR.__lux || !hgM) return; let n = 0; hgM.traverse(o => { n++; }); if (n === hgShadeN) return; hgShadeN = n; hgM.traverse(o => { if (o.isMesh && o.material && !(o.material.transparent && o.material.opacity < 0.5)){ o.castShadow = true; o.receiveShadow = true; } }); }
 function hgLoop(){
   if (!hgR || !docked || !isHome() || dockEl.classList.contains('hidden')){ hgRun = false; return; } { const stg = $('hgStage'); if (stg){ const w = Math.max(200, stg.clientWidth), h = Math.max(160, stg.clientHeight); if (hgR.__w !== w || hgR.__h !== h){ hgR.__w = w; hgR.__h = h; hgR.setSize(w, h, false); hgC.aspect = w / h; hgC.updateProjectionMatrix(); } } } /*hgResize*/
   { const nw = performance.now(), dts = Math.min(0.05, (nw - (hgLast || nw)) / 1000); hgLast = nw; hgDt = dts * 60; }   /* 1.59.0: kare hızından bağımsız (60 Hz = 1) */
-  hgT += 0.008 * hgDt; if (hgM){ if (hgM.userData.hull){ hgM.rotation.y = hgT * 0.7 + hgYo; hgM.rotation.x = 0.2 + hgRo; hgM.rotation.z = 0; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } else if (hgM.userData.art){ hgM.rotation.y = 0.07 * Math.sin(hgT * 0.9) + hgYo * 0.25; hgM.rotation.x = 0; hgM.rotation.z = 0.015 * Math.sin(hgT * 1.3); hgM.position.y = Math.sin(hgT * 2.2) * 0.09; const pa = hgM.userData.pa.material, pb = hgM.userData.pb.material; pa.opacity += ((hgVM === 'side' ? 1 : 0) - pa.opacity) * 0.14; pb.opacity += ((hgVM === 'top' ? 1 : 0) - pb.opacity) * 0.14; } else { hgM.rotation.y = hgT; hgM.rotation.x = 0.16; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } }
-  hgOdd = !hgOdd; if (hgOdd || !window.matchMedia('(pointer: coarse)').matches) hgR.render(hgS, hgC); requestAnimationFrame(hgLoop);   /* telefonda hangar gemisi saniyede 30 kare: akıcı görünür, yarı yük */
+  hgT += 0.008 * hgDt; if (window.__hgFix !== undefined) hgT = window.__hgFix; if (hgM){ if (hgM.userData.hull){ hgM.rotation.y = hgT * 0.7 + hgYo; hgM.rotation.x = 0.2 + hgRo; hgM.rotation.z = 0; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } else if (hgM.userData.art){ hgM.rotation.y = 0.07 * Math.sin(hgT * 0.9) + hgYo * 0.25; hgM.rotation.x = 0; hgM.rotation.z = 0.015 * Math.sin(hgT * 1.3); hgM.position.y = Math.sin(hgT * 2.2) * 0.09; const pa = hgM.userData.pa.material, pb = hgM.userData.pb.material; pa.opacity += ((hgVM === 'side' ? 1 : 0) - pa.opacity) * 0.14; pb.opacity += ((hgVM === 'top' ? 1 : 0) - pb.opacity) * 0.14; } else { hgM.rotation.y = hgT; hgM.rotation.x = 0.16; hgM.position.y = Math.sin(hgT * 2.2) * 0.07; } }
+  hgShade(); hgOdd = !hgOdd; if (hgOdd || !window.matchMedia('(pointer: coarse)').matches) hgR.render(hgS, hgC); requestAnimationFrame(hgLoop);   /* telefonda hangar gemisi saniyede 30 kare: akıcı görünür, yarı yük */
 }
 let hgOdd = false, hgLast = 0, hgDt = 1;
 const _rxH = renderExtras; renderExtras = function(){
@@ -4175,8 +4177,17 @@ function hgStart(){
     try { hgR = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return; }
     hgR.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.__qCap(), 1.5));
     hgR.outputEncoding = THREE.sRGBEncoding; hgR.toneMapping = THREE.ACESFilmicToneMapping; hgR.toneMappingExposure = 0.62; hgS = new THREE.Scene(); hgC = new THREE.PerspectiveCamera(34, 1.4, 0.1, 60); hgC.position.set(0, 0.9, 14); hgC.lookAt(0, 0, 0);
-    hgS.add(new THREE.AmbientLight(0x9aa8c4, 0.95)); const dl = new THREE.DirectionalLight(0xfff1dd, 1.7); dl.position.set(4, 7, 5); hgS.add(dl);
-    const rl = new THREE.PointLight(0x58a8ff, 1.6, 40); rl.position.set(-6, 1, -4); hgS.add(rl);
+    const lux = !window.matchMedia('(pointer: coarse)').matches && window.__hgLux !== 0;   /* masaüstü: gölgeli üç noktalı ışık + ortam yansıması (panel derinliği okunur); dokunmatikte eski sade ışık */
+    hgS.add(new THREE.AmbientLight(0x9aa8c4, lux ? 0.55 : 0.95)); const dl = new THREE.DirectionalLight(0xfff1dd, lux ? 2.3 : 1.7); dl.position.set(4, 7, 5); hgS.add(dl);
+    const rl = new THREE.PointLight(0x58a8ff, lux ? 2.4 : 1.6, 40); rl.position.set(-6, 1, -4); hgS.add(rl);
+    if (lux){
+      hgR.shadowMap.enabled = true; hgR.shadowMap.type = THREE.PCFSoftShadowMap; dl.castShadow = true; dl.shadow.mapSize.set(2048, 2048); dl.shadow.bias = -0.0004; dl.shadow.normalBias = 0.02;
+      const sc = dl.shadow.camera; sc.left = -7; sc.right = 7; sc.top = 7; sc.bottom = -7; sc.near = 0.5; sc.far = 30; sc.updateProjectionMatrix();
+      const fl = new THREE.DirectionalLight(0xffb27a, 0.7); fl.position.set(-4, -3, 5); hgS.add(fl);   /* alttan sıcak dolgu */
+      const rm = new THREE.DirectionalLight(0x9fd0ff, 1.3); rm.position.set(-3, 4, -7); hgS.add(rm);   /* arkadan soğuk kenar ışığı */
+      try { const en = spaceEnv(); if (en) hgS.environment = en; } catch (e) {}
+      hgR.__lux = true;
+    }
     hgR.domElement.style.cssText = 'display:block;width:100%;height:100%';
   }
   if (hgR.domElement.parentNode !== stg) stg.insertBefore(hgR.domElement, stg.firstChild); hgYo = 0; hgRo = 0;
