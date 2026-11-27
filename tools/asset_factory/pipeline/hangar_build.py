@@ -116,23 +116,27 @@ def steel_tile(seed, base_rgb, plates=(4, 3), dark=0.55):
         else:
             x = rng.randint(0, n); y0 = rng.randint(0, n - 60); img[y0:y0 + rng.randint(20, 60), x] *= rng.uniform(0.75, 1.25)
     img *= (1.0 + rng.normal(0, 0.012, (n, n, 1))).astype(np.float32)
-    g = img.mean(-1, keepdims=True); img = g + (img - g) * 0.8      # nötre yakın
+    g = img.mean(-1, keepdims=True); img = g + (img - g) * (0.8 if ST == 'ankora' else 2.2)      # ankora nötre yakın; diğer istasyonlar paletini belli eder
     return Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8))
 
 
-if ST == 'ankora':
-    atlas.paste(steel_tile(1, (118, 124, 130), (4, 3)), (T, 0))           # 1: duvar (gri-çelik)
-    atlas.paste(steel_tile(2, (62, 66, 70), (3, 3), 0.7), (0, T))         # 2: zemin (koyu panel)
-    atlas.paste(steel_tile(3, (96, 102, 108), (4, 4)), (T, T))            # 3: tavan
-else:
-    atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.0, 0.10, 0.30, 0.90), (T, T)), door_src), (T, 0))
-    atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.70, 0.75, 1.0), (T, T)), door_src), (0, T))
-    atlas.paste(recolor(crop('assets/img/ximg_in.webp', (0.25, 0.0, 0.75, 0.25), (T, T)), door_src), (T, T))
+PAL = {      # r7: istasyon paleti (duvar, zemin, tavan, şerit rengi)
+    'ankora': ((118, 124, 130), (62, 66, 70), (96, 102, 108), (232, 178, 22)),
+    'demirhan': ((128, 118, 108), (66, 62, 58), (104, 98, 92), (238, 120, 22)),
+    'ice': ((122, 134, 150), (66, 74, 86), (104, 114, 128), (80, 170, 235)),
+    'kristal': ((120, 112, 136), (64, 60, 76), (100, 94, 118), (170, 110, 235)),
+    'kara': ((118, 108, 108), (60, 54, 54), (92, 82, 82), (215, 45, 40)),
+    'lonca': ((132, 126, 108), (70, 66, 54), (108, 102, 86), (240, 190, 40)),
+}
+_pw, _pf, _pc, HAZC = PAL.get(ST, PAL['ankora'])
+atlas.paste(steel_tile(1, _pw, (4, 3)), (T, 0))
+atlas.paste(steel_tile(2, _pf, (3, 3), 0.7), (0, T))
+atlas.paste(steel_tile(3, _pc, (4, 4)), (T, T))
 from PIL import ImageDraw
 SY0, SY1 = int(T + 0.92 * T), int(T + 0.99 * T)      # şerit satırları (tile 2/3 alt kenarı)
 haz = Image.new('RGB', (T, SY1 - SY0), (18, 18, 15)); hd = ImageDraw.Draw(haz); hh = SY1 - SY0
 for k in range(-hh, T + hh, 2 * hh // 1):
-    hd.polygon([(k, hh), (k + hh // 1, 0), (k + hh * 3 // 2, 0), (k + hh // 2, hh)], fill=(232, 178, 22))
+    hd.polygon([(k, hh), (k + hh // 1, 0), (k + hh * 3 // 2, 0), (k + hh // 2, hh)], fill=HAZC)
 ImageDraw.Draw(haz).rectangle([T - 44, 0, T - 1, hh], fill=(26, 24, 21))
 atlas.paste(haz, (0, SY0))
 lit = Image.new('RGB', (T, SY1 - SY0), (255, 232, 180)); ld = ImageDraw.Draw(lit)

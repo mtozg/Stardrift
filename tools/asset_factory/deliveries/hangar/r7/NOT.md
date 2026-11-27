@@ -5,3 +5,6 @@
 - Korunan: tavan armatürleri + emissive, zemin sarı-siyah şeritler, iniş yastığı, kapı (aynı). 820 + 1272 üçgen.
 - Dosya adları aynı (hangar_koridor_ankora.glb, hangar_kapi_ankora.glb). Diğer istasyonlar değişmedi.
 - Dürüst: Blender nötr ışıkta doğrulandı; oyun içi ton/ışık Lead tarafında.
+
+## Diğer istasyonlar (Lead: r7 stilinde)
+demirhan (turuncu-gri), ice (mavi-beyaz), kristal (mor-gri), kara (kırmızı-siyah), lonca (sarı-turuncu): aynı kompozisyon (820 tri koridor, 1272 tri kapı), yalnız panel tonu + şerit rengi istasyona göre; kapı = istasyonun kendi kapı çizimi. Önizleme: onizleme_istasyonlar.png. Tek tek ayarsızdır (Blender nötr ışık); oyun içi ton Lead'de.
