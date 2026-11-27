@@ -14,7 +14,8 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')
 out = sys.argv[1]
 ST = sys.argv[2] if len(sys.argv) > 2 else 'ankora'      # istasyon: ankora, demirhan, ice, kara, kristal, lonca
 os.makedirs(out, exist_ok=True)
-OW, OH, XSEG = 9.0, 5.2, 7.6
+IC = len(sys.argv) > 3 and sys.argv[3] == 'ic'      # iç hangar kabuğu + iç kapı (Parti 2 / I3)
+OW, OH, XSEG = 9.0, 5.2, (15.0 if IC else 7.6)
 TEX = 1024
 T = TEX // 2      # 4 karo 512²: 0 kapı, 1 duvar, 2 zemin, 3 tavan
 t_start = time.time()
@@ -291,6 +292,11 @@ dorF = finish(door_frame(), 'FRAME')
 dorL = finish(door_leaf(-1), 'DOOR_L')
 dorR = finish(door_leaf(1), 'DOOR_R')
 dor = dorF
+if IC:      # iç kapı koridor/kabuk sonunda (z = XSEG)
+    for ob_ in (dorF, dorL, dorR):
+        for v_ in ob_.data.vertices:
+            v_.co.z += XSEG
+        ob_.data.update()
 # doku türetme (npc_build ile aynı mantık)
 rgb = base
 lum = 0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2]
@@ -353,7 +359,7 @@ for nm, obs in parts.items():
     for o in objs:
         for k in [k for k in o.keys() if k.startswith('sd_')]:
             del o[k]
-    glb = os.path.join(out, 'hangar_%s_%s.glb' % (nm, ST))
+    glb = os.path.join(out, 'hangar_%s%s_%s.glb' % ('ic_' if IC else '', nm, ST))
     export.export_glb(glb, objs, quality=90)
     sz, rec = glbpack.recompress_textures(glb)
     metas[nm] = {'bytes': sz, 'tris': tris[nm]}
