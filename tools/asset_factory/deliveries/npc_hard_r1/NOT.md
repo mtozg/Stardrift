@@ -8,3 +8,7 @@ Zayıf: çekirdek üstündeki düz radyatör plakası "masa" gibi; NPC oyun içi
 # KURT (brute) — sd_npc_brute.glb (STD)
 Mimari (referansa uygun, AF seçimi): geniş kama zırhlı gambot gövdesi, katmanlı üst zırh, iki yan sponson + taretli ağır silah, arkada 3 kafes motor kulesi (büyük merkez + 2 yan), sırtta iki kayışlı yakıt tankı (turuncu-kahve), ram pruva + kancalar, alçak gömülü köprü kanopisi, turuncu X hatch panelleri, pencere sıraları, korkuluk, iniş ayakları, alt ısı kalkanı plakaları.
 (a–g) puanı: 4/4/3,5/3,5/4,5/4/3,5 = 27/35. Zayıf: pruva turuncu koni radyal çizgili; tanklar biraz büyük/baskın; NPC oyun içi kıyası Lead.
+
+# YAĞMACI (reaver) — sd_npc_reaver.glb (STD)
+Mimari (referansa uygun, AF seçimi): asimetrik kurtarma mavnası: iki farklı gövde bölümü (ön koni köprü + arka blok), ortada açık kafes çerçevede yüklü turuncu konteyner, sancakta katlı vinç kolu + 3 pençeli kıskaç, arkada eşit olmayan 2 kafes motor kulesi, kayışlı tank kümesi, turuncu X hatch panelleri, gömülü köprü kanopisi, pencere/hatch/korkuluk/iniş ayakları, alt ısı kalkanı.
+(a–g) puanı: 4/4/3,5/3,5/4,5/4/3,5 = 27/35. Not: ilk denemede iskele kesici kol üstten "kolları kalkmış figür" gibi okunduğu için kaldırıldı. Zayıf: ön koni uzun/sade, vinç kolu ince (uzakta kaybolur).
