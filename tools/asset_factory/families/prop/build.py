@@ -295,6 +295,81 @@ def L_debris(spec, mats):
     return b
 
 
+def torus_bm(R, r, N=64, n=12, bands=None):
+    """halka: ana yarıçap R, tüp r; bands: [(açı0, açı1, r_ek)] kalınlaşan panel bantları"""
+    bm = bmesh.new()
+    rings = []
+    for i in range(N):
+        a = 2 * math.pi * i / N
+        ex = 0.0
+        for a0, a1, e in (bands or []):
+            if a0 <= (a % (2 * math.pi)) <= a1:
+                ex = e
+        ring = []
+        for j in range(n):
+            t = 2 * math.pi * j / n
+            rr = R + (r + ex) * math.cos(t)
+            ring.append(bm.verts.new((math.cos(a) * rr, math.sin(a) * rr, (r + ex) * math.sin(t))))
+        rings.append(ring)
+    for i in range(N):
+        i2 = (i + 1) % N
+        for j in range(n):
+            j2 = (j + 1) % n
+            bm.faces.new([rings[i][j], rings[i2][j], rings[i2][j2], rings[i][j2]])
+    return bm
+
+
+def L_gate(spec, mats):
+    P = ['frame', 'band', 'dark', 'glow', 'deco', 'lamp']
+    pal = spec['params'].get('palette', 'ankora')
+    PM = {'ankora': ('gunmetal', 'steel_dark', 'yuk_dark', 'emit_cyan', 'steel_dark', 'emit_cyan'),
+          'kizil': ('rock_dark', 'yuk_cont_rust', 'lava_rock', 'emit_lava', 'yuk_cont_rust', 'emit_lava'),
+          'buzul': ('ice_white', 'ice_blue', 'steel_dark', 'emit_cyan', 'ice_blue', 'emit_cyan'),
+          'zumrut': ('steel_dark', 'crystal_green', 'yuk_dark', 'emit_green', 'crystal_green', 'emit_green'),
+          'kadim': ('rock_dark', 'yuk_hazard', 'steel_dark', 'emit_amber', 'yuk_hazard', 'emit_amber'),
+          'lonca': ('yuk_paint', 'yuk_orange', 'yuk_dark', 'emit_amber', 'yuk_hazard', 'emit_amber'),
+          'korsan': ('rock_dark', 'red_paint', 'yuk_dark', 'emit_red', 'yuk_cont_rust', 'emit_red')}[pal]
+    M = dict(zip(P, PM))
+    b = Bld({k: mats[v] for k, v in M.items()}, P)
+    R, r = 1.16, 0.20
+    bands = [(k * math.pi / 4 + math.pi / 8 - 0.12, k * math.pi / 4 + math.pi / 8 + 0.12, 0.05) for k in range(8)]
+    b.bm['frame'] = torus_bm(R, r, 64, 12, bands)
+    b.bm['band'] = torus_bm(R + r * 1.05, r * 0.32, 64, 8)
+    for v in b.bm['band'].verts:
+        v.co.z -= r * 0.45
+    for k in range(8):                                                              # 8 payanda bloğu (oyundaki gibi) + üstlerinde ışık/ayrıntı
+        a = k * math.pi / 4 + math.pi / 8
+        c = (math.cos(a) * (R + r * 1.15), math.sin(a) * (R + r * 1.15), 0)
+        b.box(c, (r * 1.2, r * 2.4, r * 1.7), 'dark', (0, 0, a + math.pi / 2))
+        b.box((math.cos(a) * (R + r * 2.4), math.sin(a) * (R + r * 2.4), 0), (0.05, 0.12, 0.10), 'lamp', (0, 0, a + math.pi / 2))
+    for k in range(16):                                                             # iç kenarda ışık şeritleri
+        a = k * math.pi / 8
+        b.box((math.cos(a) * (R - r * 0.92), math.sin(a) * (R - r * 0.92), 0), (0.05, 0.16, 0.05), 'glow', (0, 0, a))
+    if pal == 'buzul':
+        for k in range(14):
+            a = math.pi * (1.08 + 0.84 * k / 13)
+            L = 0.28 + 0.18 * ((k * 7) % 5) / 5
+            b.cone((math.cos(a) * (R + r * 0.7), math.sin(a) * (R + r * 0.7) - 0.02, 0.0), (math.cos(a) * (R + r * 0.7), math.sin(a) * (R + r * 0.7) - L, 0.0), 0.06, 'deco', 6)
+    elif pal == 'zumrut':
+        for k in range(9):
+            a = k / 9 * 2 * math.pi
+            b.spire((math.cos(a) * (R + r * 0.9), math.sin(a) * (R + r * 0.9), -0.05), 0.55 + 0.1 * (k % 3), 0.07, 'deco', 5, k, lean=(0, 0))
+    elif pal == 'kadim':
+        for k in range(12):
+            a = k * math.pi / 6
+            b.box((math.cos(a) * (R + r * 1.9), math.sin(a) * (R + r * 1.9), 0.0), (0.08, 0.30, 0.16), 'deco', (0, 0, a + math.pi / 2))
+    objs = []
+    for key, bm in b.bm.items():
+        if not bm.verts:
+            continue
+        for v in bm.verts:
+            v.co = geo.g2b(Vector(v.co) * 8.0)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bmesh.ops.triangulate(bm, faces=bm.faces)
+        objs.append(geo.mesh_object('P_' + key, bm, b.mats[key], role='body', smooth_angle=35))
+    return {'objects': objs, 'sockets': []}
+
+
 def build(spec, mats):
     P = spec['params']
     lay = P['layout']
@@ -308,6 +383,7 @@ def build(spec, mats):
     elif lay == 'sat': b = L_sat(spec, mats)
     elif lay == 'lava': b = L_lava(spec, mats)
     elif lay == 'debris': b = L_debris(spec, mats)
+    elif lay == 'gate': return L_gate(spec, mats)
     else: raise ValueError(lay)
     objs = b.finish(P.get('scale_m', 10.0), up_z=lay in ('ice', 'monolith', 'lair', 'lava'))
     return {'objects': objs, 'sockets': []}
