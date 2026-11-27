@@ -1,0 +1,40 @@
+{
+ "kind": "dielectric",
+ "metallic": 0.0,
+ "base": [
+  0.5,
+  0.51,
+  0.51
+ ],
+ "rough": [
+  0.5,
+  0.78
+ ],
+ "tone_var": [
+  0.8,
+  1.1
+ ],
+ "cloud_scale": 2.0,
+ "scratch": 0.7,
+ "wear": 2.0,
+ "wear_color": [
+  0.62,
+  0.62,
+  0.6
+ ],
+ "wear_radius": 0.014,
+ "dirt": 1.0,
+ "dirt_distance": 0.2,
+ "bump": 0.03,
+ "chips": 1.4,
+ "chip_scale": 16.0,
+ "chip_color": [
+  0.28,
+  0.26,
+  0.24
+ ],
+ "grime": 1.4,
+ "streaks": 1.5,
+ "panels": 0.7,
+ "panel_scale": 3.0
+}
