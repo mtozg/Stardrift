@@ -2,9 +2,9 @@
  "kind": "metal",
  "metallic": 0.5,
  "base": [
-  0.26,
-  0.27,
-  0.3
+  0.2,
+  0.21,
+  0.24
  ],
  "rough": [
   0.34,
@@ -16,8 +16,8 @@
  ],
  "brush": 0.55,
  "brush_scale": 160.0,
- "scratch": 0.45,
- "wear": 1.2,
+ "scratch": 0.8,
+ "wear": 1.8,
  "wear_color": [
   0.55,
   0.56,
@@ -25,9 +25,9 @@
  ],
  "dirt": 0.5,
  "bump": 0.03,
- "chips": 0.5,
+ "chips": 0.9,
  "chip_scale": 14.0,
- "grime": 0.5,
+ "grime": 0.9,
  "streaks": 0.5,
  "panels": 0.3,
  "panel_scale": 3.0

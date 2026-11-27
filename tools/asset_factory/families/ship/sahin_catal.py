@@ -10,7 +10,7 @@ from core import geo
 from families.ship.yuk_ext import orient_outward
 from families.ship.yuk_fused import box_bm, cyl_bm, boolean, union_all, diff_all, ring_bm
 
-MATS = ['cat_ceramic', 'cat_ceramic2', 'cat_titan', 'cat_gun', 'cat_heat', 'cat_red', 'sahin_glass', 'emit_redhot', 'emit_blue', 'emit_red']
+MATS = ['cat_ceramic', 'cat_ceramic2', 'cat_ceramic3', 'cat_titan', 'cat_gun', 'cat_heat', 'cat_red', 'sahin_glass', 'emit_redhot', 'emit_blue', 'emit_red']
 SLOT = {m: i for i, m in enumerate(MATS)}
 BX = 2.1          # kiriş yarı açıklığı
 D = 0.012         # hi-poly oluk derinliği (m)
@@ -96,10 +96,13 @@ def build(spec, mats):
         # ön silah kovanı (kiriş burnunda) ve sensör
         parts.append(_obj('pcase', loft([(2.55, 0.18, 0.17, 0.17, 2.6, cx, -0.02), (3.1, 0.22, 0.20, 0.20, 2.8, cx, -0.02), (3.7, 0.14, 0.13, 0.13, 2.4, cx, -0.02)]), 'cat_gun', mats))
         # bağlantı kirişi (kapsül ↔ kiriş): kanat kesitli, öne eğik
-        parts.append(_obj('strutL', loft_x([(sx * 0.55, 1.15, 0.17, 0.15, 3.0, -0.35, 0.0), (sx * 1.3, 0.95, 0.16, 0.14, 3.0, -0.25, 0.0), (sx * 1.8, 0.70, 0.18, 0.16, 3.0, -0.10, 0.0)]), 'cat_titan', mats))
+        parts.append(_obj('strutL', loft_x([(sx * 0.55, 1.15, 0.32, 0.28, 3.0, -0.35, 0.0), (sx * 1.3, 1.00, 0.29, 0.25, 3.0, -0.25, 0.0), (sx * 1.8, 0.80, 0.30, 0.26, 3.0, -0.10, 0.0)]), 'cat_titan', mats))
+        parts.append(_obj('collar', loft_x([(sx * 1.55, 0.90, 0.36, 0.32, 2.6, -0.10, 0.0), (sx * 1.78, 0.90, 0.36, 0.32, 2.6, -0.10, 0.0)]), 'cat_gun', mats))
     # arka enine kiriş (yapısal), ön ince sensör/silah rayı
-    parts.append(_obj('xbeam', loft_x([(-2.0, 0.45, 0.20, 0.18, 3.0, -2.85, 0.0), (0.0, 0.52, 0.22, 0.20, 3.2, -2.85, 0.0), (2.0, 0.45, 0.20, 0.18, 3.0, -2.85, 0.0)]), 'cat_titan', mats))
-    parts.append(_obj('spar', tube((-BX, 0.0, 2.35), (BX, 0.0, 2.35), 0.065, None, 14), 'cat_titan', mats))
+    parts.append(_obj('xbeam', loft_x([(-2.0, 0.48, 0.30, 0.28, 3.0, -2.85, 0.0), (0.0, 0.58, 0.34, 0.32, 3.2, -2.85, 0.0), (2.0, 0.48, 0.30, 0.28, 3.0, -2.85, 0.0)]), 'cat_titan', mats))
+    parts.append(_obj('spar', tube((-BX, 0.0, 2.35), (BX, 0.0, 2.35), 0.075, None, 14), 'cat_titan', mats))
+    for sx in (-1, 1):      # sensör rayı destek çaprazları
+        parts.append(_obj('brace', tube((sx * 0.50, 0.0, 1.9), (sx * 1.45, 0.0, 2.35), 0.05, None, 10), 'cat_titan', mats))
     # kapsül altı reaktör kaportası
     parts.append(_obj('reactor', loft([(-1.35, 0.40, 0.0, 0.40, 2.6, 0, -0.34), (-0.6, 0.60, 0.0, 0.62, 3.0, 0, -0.30), (0.5, 0.56, 0.0, 0.52, 3.0, 0, -0.28), (1.2, 0.30, 0.0, 0.30, 2.6, 0, -0.26)]), 'cat_gun', mats))
     # kokpit kasası (titanyum pah) — cam bu kasanın içine oturur
@@ -167,6 +170,8 @@ def build(spec, mats):
         cur = MATS[f.material_index]
         if cur not in ('cat_ceramic', 'cat_titan'):
             continue
+        if cur == 'cat_titan' and gy > 0.1:
+            continue
         in_boom = abs(abs(gx) - BX) < 0.75
         if gz < -3.45 and in_boom:                                          # motor bölümü: ısıya dayanıklı koyu
             f.material_index = SLOT['cat_heat']
@@ -174,13 +179,17 @@ def build(spec, mats):
             f.material_index = SLOT['cat_gun']
         elif gz > 3.35 and not in_boom:                                     # kapsül burnu
             f.material_index = SLOT['cat_gun']
-        elif cur == 'cat_ceramic' and gy < (-0.06 if in_boom else -0.10):  # alt yarı titanyum
+        elif cur == 'cat_ceramic' and gy < (0.05 if in_boom else 0.12) - (0.0 if False else 0.0) and gy < (0.05 if in_boom else 0.05):  # alt yarı titanyum
             f.material_index = SLOT['cat_titan']
         elif cur == 'cat_ceramic':
             # ince, düzenli karo kuşağı farkı: 0,6 m bantlarda iki seramik tonu (rastgele değil, yapısal)
-            band = int((gz + 5.0) / 0.6) % 2
-            if band:
+            h = (int((gx + 4.0) / 0.55) * 73856093 ^ int((gz + 6.0) / 0.5) * 19349663 ^ int((gy + 2.0) / 0.4) * 83492791) % 16
+            if h in (0, 1, 2, 3):
                 f.material_index = SLOT['cat_ceramic2']
+            elif h in (4, 5):
+                f.material_index = SLOT['cat_ceramic3']
+            elif h == 6:
+                f.material_index = SLOT['cat_titan']                         # bakım kapağı (titanyum)
     bm.to_mesh(core.data); bm.free()
     if P.get('bevel_m', 0) > 0:
         mb = core.modifiers.new('bev', 'BEVEL'); mb.width = P['bevel_m']; mb.segments = 2; mb.limit_method = 'ANGLE'; mb.angle_limit = math.radians(30)
@@ -196,30 +205,64 @@ def build(spec, mats):
         out_body.append(o)
         h = o.copy(); h.data = o.data.copy(); geo.collection('Asset').objects.link(h); h['sd_role'] = 'hi'; out_hi.append(h)
         return o
-    # ------------------------------------------------------------ radyatör plakaları (kiriş dış yüzü): çerçeve + soğutma kanalları + mafsal
+    # ------------------------------------------------------------ radyatör plakaları: hacimli çekirdek + titanyum çerçeve + nervür + ısı boruları + manifold + mafsal
+    outline = [(-3.9, -0.55), (-3.9, 0.55), (-1.9, 1.55), (0.1, 1.05), (0.4, 0.2), (0.0, -0.8), (-2.4, -1.15)]
+
+    def yspan(z):
+        ys = []
+        for (za, ya), (zb, yb) in zip(outline, outline[1:] + outline[:1]):
+            if (za <= z < zb) or (zb <= z < za):
+                ys.append(ya + (yb - ya) * (z - za) / (zb - za))
+        ys.sort()
+        return (ys[0], ys[-1]) if len(ys) >= 2 else None
+
+    def zspan(y):
+        zs = []
+        for (za, ya), (zb, yb) in zip(outline, outline[1:] + outline[:1]):
+            if (ya <= y < yb) or (yb <= y < ya):
+                zs.append(za + (zb - za) * (y - ya) / (yb - ya))
+        zs.sort()
+        return (zs[0], zs[-1]) if len(zs) >= 2 else None
     for sx in (-1, 1):
         ox = sx * (BX + 0.74)
-        outline = [(-3.9, -0.55), (-3.9, 0.55), (-1.9, 1.55), (0.1, 1.05), (0.4, 0.2), (0.0, -0.8), (-2.4, -1.15)]
-        small('rad', plate(outline, ox, 0.05), 'cat_ceramic')
-        small('radframe', plate(outline, ox + sx * 0.028, 0.012), 'cat_titan')
-        for (za, ya), (zb, yb) in zip(outline, outline[1:] + outline[:1]):        # çerçeve profili: kenar boyunca titanyum kuşak
-            zc, yc = (za + zb) / 2, (ya + yb) / 2; ln = math.hypot(zb - za, yb - ya); ang = math.atan2(yb - yc, zb - zc)
-            bmf = box_bm((0, 0, 0), (0.03, 0.045, ln))
-            for v in bmf.verts:
-                z_, y_ = v.co.z, v.co.y
-                v.co.z = z_ * math.cos(ang) - y_ * math.sin(ang) + zc
-                v.co.y = z_ * math.sin(ang) + y_ * math.cos(ang) + yc
-                v.co.x += ox + sx * 0.03
-            small('radedge', bmf, 'cat_titan')
-        # serpantin soğutma kanalı: 4 yatay şerit + bağlantı
-        for k, y in enumerate((-0.45, -0.1, 0.25, 0.6)):
-            z0, z1 = (-3.6, -0.4 - 0.1 * k)
-            small('radch', box_bm((ox + sx * 0.03, y, (z0 + z1) / 2), (0.014, 0.05, abs(z1 - z0))), 'cat_gun')
-        small('radrib', box_bm((ox + sx * 0.03, 0.05, -1.2), (0.014, 1.3, 0.05)), 'cat_gun')
-        small('radtip', plate([(-3.9, -0.55), (-3.9, 0.55), (-3.8, 0.55), (-3.8, -0.55)], ox, 0.07), 'cat_red')
-        for z in (-3.2, -1.8, -0.4):          # mafsal: kirişe bağlanan 3 destek
-            small('hing', tube((sx * (BX + 0.46), 0.0, z), (ox - sx * 0.02, 0.0, z), 0.045, None, 12), 'cat_titan')
-            small('hingk', box_bm((ox - sx * 0.05, 0.0, z), (0.07, 0.10, 0.12)), 'cat_gun')
+        small('rad', plate(outline, ox, 0.11), 'cat_ceramic')
+        for face in (1, -1):                               # dış (sx) ve iç yüz
+            fx = ox + sx * face * 0.07
+            for (za, ya), (zb, yb) in zip(outline, outline[1:] + outline[:1]):       # titanyum kenar kuşağı (kalınlık görünsün)
+                zc, yc = (za + zb) / 2, (ya + yb) / 2; ln = math.hypot(zb - za, yb - ya); ang = math.atan2(yb - ya, zb - za)
+                bmf = box_bm((0, 0, 0), (0.05, 0.09, ln))
+                for v in bmf.verts:
+                    z_, y_ = v.co.z, v.co.y
+                    v.co.z = z_ * math.cos(ang) - y_ * math.sin(ang) + zc
+                    v.co.y = z_ * math.sin(ang) + y_ * math.cos(ang) + yc
+                    v.co.x += fx
+                small('radedge', bmf, 'cat_titan')
+            for z in (-3.55, -3.0, -2.45, -1.9, -1.35, -0.8, -0.25):                # dikey nervürler
+                ys = yspan(z)
+                if ys and ys[1] - ys[0] > 0.3:
+                    small('radrib', box_bm((fx, (ys[0] + ys[1]) / 2, z), (0.04, ys[1] - ys[0] - 0.18, 0.055)), 'cat_titan')
+        fx = ox + sx * 0.12
+        for y in (-0.7, -0.4, -0.1, 0.2, 0.5, 0.8, 1.1):                            # ısı boruları (dış yüzde) + kelepçe
+            zs = zspan(y)
+            if zs and zs[1] - zs[0] > 0.6:
+                small('hpipe', tube((fx, y, zs[0] + 0.14), (fx, y, zs[1] - 0.14), 0.034, None, 10), 'cat_gun')
+                n = max(2, int((zs[1] - zs[0]) / 0.7))
+                for k in range(n + 1):
+                    zc = zs[0] + 0.14 + k * (zs[1] - zs[0] - 0.28) / n
+                    small('hclamp', box_bm((fx + sx * 0.012, y, zc), (0.07, 0.10, 0.10)), 'cat_titan')
+        small('manifold', tube((fx, -0.5, -3.72), (fx, 0.5, -3.72), 0.07, None, 14), 'cat_titan')
+        for z, y in ((-2.7, -0.25), (-1.6, 0.1), (-0.7, -0.2)):                      # servis kapağı ve havalandırma yarıkları
+            small('rvent', box_bm((fx, y, z), (0.02, 0.34, 0.14)), 'cat_gun')
+        small('radtip', plate([(-3.92, -0.58), (-3.92, 0.58), (-3.78, 0.58), (-3.78, -0.58)], ox, 0.13), 'cat_red')
+        for z in (-3.2, -1.8, -0.4):                                                  # mafsal: kirişe bağlanan 3 destek
+            small('hing', tube((sx * (BX + 0.46), 0.0, z), (ox - sx * 0.02, 0.0, z), 0.06, None, 12), 'cat_titan')
+            small('hingk', box_bm((ox - sx * 0.07, 0.0, z), (0.10, 0.16, 0.18)), 'cat_gun')
+            small('hingb', tube((ox - sx * 0.14, 0.0, z), (ox - sx * 0.07, 0.0, z), 0.085, None, 12), 'cat_titan')
+        # bağlantı kirişi üst nervür ve kablo kanalı (yapısal donanım)
+        for k in range(3):
+            small('srib', box_bm((sx * (0.95 + 0.34 * k), 0.34 - 0.02 * k, -0.3 - 0.05 * k), (0.045, 0.07, 1.3 - 0.1 * k)), 'cat_titan')
+        small('tray', tube((sx * 0.75, 0.0, 0.52), (sx * 1.72, 0.0, 0.52), 0.045, None, 10), 'cat_gun')
+        small('jbox', box_bm((sx * 1.2, 0.0, 0.52), (0.18, 0.12, 0.16)), 'cat_gun')
     # ------------------------------------------------------------ motor ayrıntıları (iki motor aynı): çan, kalkan, vernier, parlayan çekirdek
     for x, y in ENG:
         small('bell', tube((x, y, -4.7), (x, y, -4.2), 0.43, 0.36, 36, cap=False), 'cat_heat')
