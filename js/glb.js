@@ -44,7 +44,7 @@
   }
   /* kaya: metal değil (ORM haritasındaki metal kanalı yüzünden koyu/siyah çıkıyordu): metalik 0, mat; doku (renk) aynen kalır */
   function kayaMat(root){
-    root.traverse(function(o){ if (!o.isMesh || !o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ if (!m.isMeshStandardMaterial) return; m.metalness = 0.02; m.metalnessMap = null; m.roughness = 1; m.envMapIntensity = 3.0; m.emissiveMap = null; m.emissive.setHex(0x262b34); m.emissiveIntensity = 1; m.needsUpdate = true; }); });
+    root.traverse(function(o){ if (!o.isMesh || !o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ if (!m.isMeshStandardMaterial) return; m.metalness = 0.02; m.metalnessMap = null; m.roughness = 1; m.envMapIntensity = 3.0; m.emissiveMap = null; m.emissive.setHex(0x1e222b); m.emissiveIntensity = 1; m.needsUpdate = true; }); });
   }
   G.load = function(key){
     return G.ready.then(function(){
