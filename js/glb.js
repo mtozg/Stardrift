@@ -38,6 +38,15 @@
     return { key: key, root: root, lod0: lod0, lod1: lod1, anch: anch, rot: m.rot || null, s: m.s || 1, gltf: gltf };
   }
   /* karanlık görünüm düzeltmesi: GLB malzemelerine oyunun uzay yansıma haritası verilir (yalnız bu modeller; sahne ortamı değişmez). Dosyada kendi haritası varsa dokunulmaz. Metallik yalnız metalik doku yoksa düşürülür. */
+  /* gemi/NPC malzeme ayrıntı geçişi: normal harita ×1,5 (panel derinliği), AO ×1,4, anizotropik filtre 8 (açılı bakışta doku netliği); önbellekteki malzemede bir kez */
+  function detayMat(root){
+    root.traverse(function(o){ if (!o.isMesh || !o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){
+      if (!m.isMeshStandardMaterial || m.userData.sdDetay) return; m.userData.sdDetay = 1;
+      if (m.normalMap && m.normalScale) m.normalScale.multiplyScalar(1.5);
+      if (m.aoMap) m.aoMapIntensity = 1.4;
+      ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'].forEach(function(k){ if (m[k]) m[k].anisotropy = 8; });
+      m.needsUpdate = true; }); });
+  }
   function envVer(root){
     var env = window.__spaceEnv && window.__spaceEnv(); if (!env) return;
     root.traverse(function(o){ if (!o.isMesh || !o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ if (m.isMeshStandardMaterial && !m.envMap){ m.envMap = env; m.envMapIntensity = 1.2; if (!m.metalnessMap) m.metalness = Math.min(m.metalness, 0.4); m.needsUpdate = true; } }); });   /* tam metal (1,0) + koyu uzay haritası = simsiyah: yansıma haritası + metalliği 0,4'e indirme (oyun içi 4 değişken denemesinde okunur biçim veren en sade ayar) */
@@ -52,7 +61,7 @@
       var c = cache[key];
       if (c){ if (c.p) return c.p; if (c.fail && performance.now() - c.fail < RETRY) return Promise.reject(c.err); }
       c = cache[key] = {};
-      c.p = loader().then(function(L){ return new Promise(function(res, rej){ L.load(url(key), function(g){ try { var p = prep(key, g); envVer(p.root); if (/^ast_/.test(key)) kayaMat(p.root); G.stats.yuklenen++; res(p); } catch (e) { rej(e); } }, undefined, rej); }); })
+      c.p = loader().then(function(L){ return new Promise(function(res, rej){ L.load(url(key), function(g){ try { var p = prep(key, g); envVer(p.root); if (/^(ship|npc)_/.test(key)) detayMat(p.root); if (/^ast_/.test(key)) kayaMat(p.root); G.stats.yuklenen++; res(p); } catch (e) { rej(e); } }, undefined, rej); }); })
         .catch(function(e){ G.stats.basarisiz++; c.p = null; c.fail = performance.now(); c.err = e; try { console.warn('[glb] ' + key + ': ' + ((e && e.message) || e)); } catch (x) {} throw e; });
       return c.p;
     });
