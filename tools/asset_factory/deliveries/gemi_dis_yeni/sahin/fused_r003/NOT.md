@@ -1,0 +1,4 @@
+# Şahin fused_r003 — kanat siluet turu (Lead 2026-11-22/27)
+Değişen: kanat süpürmesi artırıldı (uç kordu 0,20 L, uç x=0,52, uç aşağı sarkık y=-0,10), gövde ≈%15 daraltıldı, aşınma/çip/kir artırıldı (şimdiki dokuya yaklaşma), kopuk çubuk parçaları (hücum kenarı şeridi, flap, pylon) kaldırıldı. Bütünleşik gövde + hi-poly bake aynı.
+Sayılar: LOD0 ≈6,9k / LOD1 ≈2,1k üçgen, GLB ≈1,2 MB (+ _m mobil), UV %66.
+Oyun içi karşılaştırma (karsilastirma/hangar_sahin_fused_r003.png, sol şimdiki / sağ yeni): kanatlar artık geri süpürmeli ve sarkık, kırmızı uç kapakları okunuyor, gövde tek kütle; ama şimdiki Şahin hâlâ üstün: uzun ok biçimli kanat alanı, kıvrımlı kanat-gövde birleşimi ve zengin aşınmış metal doku; yeni gövde kutumsu 'bıçak', kanat düz levha, doku daha temiz/beyaz. KARAR: ADAY, 'şimdikinden iyi' DEĞİL. Başka tur önerilmez (Lead: tek tur).

@@ -11,7 +11,7 @@ from families.ship.yuk_fused import loft_bm, box_bm, cyl_bm, tbox_bm, ring_bm, b
 MATS = ['sahin_hull', 'sahin_white', 'sahin_mid', 'sahin_dark', 'sahin_red', 'sahin_glass', 'yuk_rubber', 'steel_dark', 'gunmetal', 'yuk_soot', 'emit_redhot', 'emit_blue', 'emit_red', 'emit_cyan']
 SLOT = {m: i for i, m in enumerate(MATS)}
 S = 9.0
-SECS = [(-0.30, 0.24, 0.070, 0.060, 0.025, 0.0), (-0.15, 0.34, 0.085, 0.065, 0.035, 0.0), (0.05, 0.36, 0.085, 0.062, 0.035, 0.0), (0.20, 0.28, 0.065, 0.050, 0.030, 0.0),
+SECS = [(-0.30, 0.20, 0.070, 0.060, 0.025, 0.0), (-0.15, 0.28, 0.085, 0.065, 0.032, 0.0), (0.05, 0.30, 0.085, 0.062, 0.032, 0.0), (0.20, 0.24, 0.065, 0.050, 0.028, 0.0),
         (0.34, 0.144, 0.042, 0.034, 0.018, 0.0), (0.46, 0.048, 0.020, 0.018, 0.008, 0.0), (0.50, 0.016, 0.010, 0.010, 0.004, 0.0)]
 
 
@@ -48,8 +48,8 @@ def wing_bm(sx):
     # kök (x=0.05): LE z=0.11, TE z=-0.08, y üst +0.012 alt -0.040
     rt = [V(0.05, 0.016, 0.11), V(0.05, 0.016, -0.08)]
     rb = [V(0.05, -0.042, 0.11), V(0.05, -0.042, -0.08)]
-    tt = [V(0.50, -0.040, -0.14), V(0.50, -0.040, -0.27)]
-    tb = [V(0.50, -0.056, -0.14), V(0.50, -0.056, -0.27)]
+    tt = [V(0.52, -0.095, -0.24), V(0.52, -0.095, -0.44)]
+    tb = [V(0.52, -0.111, -0.24), V(0.52, -0.111, -0.44)]
     quads = [(rt[0], rt[1], tt[1], tt[0]), (rb[1], rb[0], tb[0], tb[1]), (rt[0], tt[0], tb[0], rb[0]), (rt[1], rb[1], tb[1], tt[1]),
              (rt[0], rb[0], rb[1], rt[1]), (tt[0], tt[1], tb[1], tb[0])]
     for q in quads:
@@ -92,10 +92,7 @@ def build(spec, mats):
     for sx in (-1, 1):
         parts.append(_obj('wing', wing_bm(sx), 'sahin_hull', mats))
         parts.append(_obj('stab', stab_bm(sx), 'sahin_mid', mats))
-        parts.append(_obj('wle', box_bm((sx * 0.30, -0.026, -0.05), (0.42, 0.016, 0.040)), 'sahin_white', mats))                # hücum kenarı beyaz şerit (kanat içine gömülü)
-        parts.append(_obj('wtip', box_bm((sx * 0.485, -0.049, -0.205), (0.060, 0.022, 0.150)), 'sahin_red', mats))               # kırmızı uç kapağı
-        parts.append(_obj('wfl', box_bm((sx * 0.28, -0.020, -0.19), (0.34, 0.012, 0.050)), 'sahin_mid', mats))                    # flap/aileron
-        parts.append(_obj('pyl', tbox_bm((sx * 0.30, -0.066), 0.030, 0.020, 0.038, 0.020, -0.12, -0.01), 'steel_dark', mats))     # silah pylonu/kapsül
+        parts.append(_obj('wtip', box_bm((sx * 0.495, -0.103, -0.34), (0.075, 0.024, 0.200)), 'sahin_red', mats))               # kırmızı uç kapağı
         parts.append(_obj('wroot', tbox_bm((sx * 0.13, -0.010), 0.14, 0.10, 0.060, 0.034, -0.08, 0.10), 'sahin_hull', mats))      # kanat kökü kaplaması (gövdeye akıtır)
         parts.append(_obj('inl', tbox_bm((sx * 0.094, 0.012), 0.020, 0.012, 0.050, 0.040, -0.12, 0.00), 'sahin_dark', mats))     # yan hava girişi
     parts.append(_obj('tail', fin_bm([(0.07, -0.26), (0.07, -0.46), (0.19, -0.49), (0.19, -0.43)]), 'sahin_hull', mats))
@@ -124,7 +121,7 @@ def build(spec, mats):
         for y in (-0.03, 0.01, 0.045):
             grv.append(_obj('ls', box_bm((sx * (0.175 - D + 0.02), y, -0.05), (0.04, 0.0045, 0.50)), 'sahin_dark', mats))
         for t in (0.3, 0.55, 0.8):                                                             # kanat üstü/alt panel olukları (kanat boyunca)
-            grv.append(_obj('wg', box_bm((sx * (0.05 + 0.45 * t), 0.0 - 0.056 * t + 0.016 * (1 - t), -0.05 - 0.10 * t), (0.0045, 0.05, 0.16)), 'sahin_dark', mats))
+            grv.append(_obj('wg', box_bm((sx * (0.05 + 0.45 * t), 0.0 - 0.10 * t + 0.016 * (1 - t), -0.05 - 0.20 * t), (0.0045, 0.05, 0.18)), 'sahin_dark', mats))
     diff_all(hi_core, grv)
     # ---------------- ızgara bölme + renk bölgeleri
     bm = bmesh.new(); bm.from_mesh(core.data)
@@ -191,7 +188,7 @@ def build(spec, mats):
     socks = []
     for i, (x, y) in enumerate(ENG, 1):
         socks.append({'name': 'ANCH_ENG_%d' % i, 'loc': tuple(geo.g2b(Vector((x, y, -0.466)) * S)), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}})
-    for i, p in enumerate(((0.495, -0.049, -0.205), (-0.495, -0.049, -0.205), (0.0, 0.185, -0.485)), 1):
+    for i, p in enumerate(((0.51, -0.103, -0.34), (-0.51, -0.103, -0.34), (0.0, 0.185, -0.485)), 1):
         socks.append({'name': 'ANCH_NAV_%d' % i, 'loc': tuple(geo.g2b(Vector(p) * S)), 'dir': (0.0, 0.0, 1.0), 'extras': {'kind': 'nav'}})
     for i, sx in enumerate((-1, 1), 1):
         socks.append({'name': 'ANCH_MUZ_%d' % i, 'loc': tuple(geo.g2b(Vector((sx * 0.016, -0.030, 0.52)) * S)), 'dir': (0.0, -1.0, 0.0), 'extras': {'kind': 'muzzle'}})
