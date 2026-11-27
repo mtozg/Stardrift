@@ -1,0 +1,1 @@
+# Hayalet r003 — cam entegrasyonu: cam alçaltıldı/inceltildi (gövde hattına yakın), kemerler ince (r 0,0018), kalın cam arka çerçeve bloğu kaldırıldı. Oyun içi (aynı karşılaştırma görseli): kanopi gövdeden kutu gibi çıkmıyor, alçak; ancak gövdeye gerçek UNION değil (ayrı nesne), kenarda ince boşluk/ayrık görünebilir. Mobil: _m var.

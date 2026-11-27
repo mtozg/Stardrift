@@ -48,8 +48,8 @@ def wing_bm(sx):
     # kök (x=0.05): LE z=0.11, TE z=-0.08, y üst +0.012 alt -0.040
     rt = [V(0.05, 0.016, 0.11), V(0.05, 0.016, -0.08)]
     rb = [V(0.05, -0.042, 0.11), V(0.05, -0.042, -0.08)]
-    tt = [V(0.52, -0.095, -0.24), V(0.52, -0.095, -0.44)]
-    tb = [V(0.52, -0.111, -0.24), V(0.52, -0.111, -0.44)]
+    tt = [V(0.40, -0.080, -0.22), V(0.40, -0.080, -0.38)]
+    tb = [V(0.40, -0.094, -0.22), V(0.40, -0.094, -0.38)]
     quads = [(rt[0], rt[1], tt[1], tt[0]), (rb[1], rb[0], tb[0], tb[1]), (rt[0], tt[0], tb[0], rb[0]), (rt[1], rb[1], tb[1], tt[1]),
              (rt[0], rb[0], rb[1], rt[1]), (tt[0], tt[1], tb[1], tb[0])]
     for q in quads:
@@ -92,9 +92,10 @@ def build(spec, mats):
     for sx in (-1, 1):
         parts.append(_obj('wing', wing_bm(sx), 'sahin_hull', mats))
         parts.append(_obj('stab', stab_bm(sx), 'sahin_mid', mats))
-        parts.append(_obj('wtip', box_bm((sx * 0.495, -0.103, -0.34), (0.075, 0.024, 0.200)), 'sahin_red', mats))               # kırmızı uç kapağı
+        parts.append(_obj('wtip', box_bm((sx * 0.385, -0.087, -0.30), (0.060, 0.022, 0.185)), 'sahin_red', mats))               # kırmızı uç kapağı
         parts.append(_obj('wroot', tbox_bm((sx * 0.13, -0.010), 0.14, 0.10, 0.060, 0.034, -0.08, 0.10), 'sahin_hull', mats))      # kanat kökü kaplaması (gövdeye akıtır)
         parts.append(_obj('inl', tbox_bm((sx * 0.094, 0.012), 0.020, 0.012, 0.050, 0.040, -0.12, 0.00), 'sahin_dark', mats))     # yan hava girişi
+    parts.append(_obj('glass', loft_bm([(-0.02, 0.070, 0.030, 0.004, 0.015, 0.075), (0.04, 0.108, 0.044, 0.004, 0.022, 0.075), (0.12, 0.104, 0.042, 0.004, 0.022, 0.075), (0.20, 0.060, 0.028, 0.004, 0.014, 0.075)]), 'sahin_glass', mats))
     parts.append(_obj('tail', fin_bm([(0.07, -0.26), (0.07, -0.46), (0.19, -0.49), (0.19, -0.43)]), 'sahin_hull', mats))
     parts.append(_obj('tailr', fin_bm([(0.14, -0.445), (0.19, -0.47), (0.19, -0.43)], 0.022), 'sahin_red', mats))
     ENG = [(-0.058, -0.002), (0.058, -0.002)]
@@ -121,11 +122,11 @@ def build(spec, mats):
         for y in (-0.03, 0.01, 0.045):
             grv.append(_obj('ls', box_bm((sx * (0.175 - D + 0.02), y, -0.05), (0.04, 0.0045, 0.50)), 'sahin_dark', mats))
         for t in (0.3, 0.55, 0.8):                                                             # kanat üstü/alt panel olukları (kanat boyunca)
-            grv.append(_obj('wg', box_bm((sx * (0.05 + 0.45 * t), 0.0 - 0.10 * t + 0.016 * (1 - t), -0.05 - 0.20 * t), (0.0045, 0.05, 0.18)), 'sahin_dark', mats))
+            grv.append(_obj('wg', box_bm((sx * (0.05 + 0.35 * t), 0.0 - 0.09 * t + 0.016 * (1 - t), -0.05 - 0.17 * t), (0.0045, 0.05, 0.18)), 'sahin_dark', mats))
     diff_all(hi_core, grv)
     # ---------------- ızgara bölme + renk bölgeleri
     bm = bmesh.new(); bm.from_mesh(core.data)
-    cl = P.get('split_len', 0.09)
+    cl = P.get('split_len', 0.075)
     for _ in range(2):
         groups = {}
         for e in bm.edges:
@@ -169,17 +170,15 @@ def build(spec, mats):
         h = o.copy(); h.data = o.data.copy(); geo.collection('Asset').objects.link(h); h['sd_role'] = 'hi'; out_hi.append(h)
         return o
     # kanopi: damla cam + 3 enine kemer + boyuna kemer + kırmızı kenar şeridi + taban contası
-    small('glass', loft_bm([(-0.02, 0.070, 0.040, 0.004, 0.020, 0.075), (0.04, 0.108, 0.062, 0.004, 0.030, 0.075), (0.12, 0.104, 0.060, 0.004, 0.030, 0.075), (0.20, 0.060, 0.040, 0.004, 0.020, 0.075)]), 'sahin_glass')
+
     for z, w, hu in ((0.012, 0.086, 0.054), (0.08, 0.108, 0.064), (0.155, 0.086, 0.054)):
-        pts = [(math.cos(t) * (w / 2 + 0.002), 0.075 + math.sin(t) * hu) for t in [math.pi * i / 8 for i in range(9)]]
+        pts = [(math.cos(t) * (w / 2), 0.075 + math.sin(t) * hu * 0.7) for t in [math.pi * i / 8 for i in range(9)]]
         for p, q in zip(pts, pts[1:]):
-            small('arch', cyl_bm((p[0], p[1], z), (q[0], q[1], z), 0.0036, None, 6), 'steel_dark')
+            small('arch', cyl_bm((p[0], p[1], z), (q[0], q[1], z), 0.0022, None, 6), 'steel_dark')
     for p, q in (((0, 0.139, -0.01), (0, 0.143, 0.09)), ((0, 0.143, 0.09), (0, 0.124, 0.2))):
         small('arch2', cyl_bm(p, q, 0.0032, None, 6), 'steel_dark')
     for sx in (-1, 1):
-        small('rstrip', box_bm((sx * 0.0505, 0.077, 0.095), (0.006, 0.006, 0.235)), 'sahin_red')
-        small('gask', box_bm((sx * 0.0495, 0.073, 0.095), (0.009, 0.006, 0.238)), 'yuk_rubber')
-    small('gaskb', box_bm((0, 0.071, -0.027), (0.104, 0.006, 0.009)), 'yuk_rubber')
+        small('rstrip', box_bm((sx * 0.047, 0.076, 0.095), (0.003, 0.003, 0.235)), 'sahin_red')
     for x, y in ENG:
         small('core', cyl_bm((x, y, -0.462), (x, y, -0.468), 0.032, None, 16), 'emit_redhot')
         small('blue', cyl_bm((x, y, -0.4625), (x, y, -0.4655), 0.014, None, 12), 'emit_blue')
@@ -188,7 +187,7 @@ def build(spec, mats):
     socks = []
     for i, (x, y) in enumerate(ENG, 1):
         socks.append({'name': 'ANCH_ENG_%d' % i, 'loc': tuple(geo.g2b(Vector((x, y, -0.466)) * S)), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}})
-    for i, p in enumerate(((0.51, -0.103, -0.34), (-0.51, -0.103, -0.34), (0.0, 0.185, -0.485)), 1):
+    for i, p in enumerate(((0.40, -0.087, -0.30), (-0.40, -0.087, -0.30), (0.0, 0.185, -0.485)), 1):
         socks.append({'name': 'ANCH_NAV_%d' % i, 'loc': tuple(geo.g2b(Vector(p) * S)), 'dir': (0.0, 0.0, 1.0), 'extras': {'kind': 'nav'}})
     for i, sx in enumerate((-1, 1), 1):
         socks.append({'name': 'ANCH_MUZ_%d' % i, 'loc': tuple(geo.g2b(Vector((sx * 0.016, -0.030, 0.52)) * S)), 'dir': (0.0, -1.0, 0.0), 'extras': {'kind': 'muzzle'}})
