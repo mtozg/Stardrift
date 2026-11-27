@@ -4359,8 +4359,8 @@ function stationAnim(kind, st, cb){
     const tex = (c, rx, ry) => { const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping; t.encoding = THREE.sRGBEncoding; t.repeat.set(rx, ry); t.anisotropy = 4; mk(t); return t; };
     const smat = (t, e) => new THREE.MeshStandardMaterial({ map: t, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: e, roughness: 0.75, metalness: 0.25 });
     window.__curXK = SK[0]; const hx = XTT[SK[0]] || null, TN = SK[0] === 'ankora' ? [1.22, 0.95, 0.8] : [1, 1, 1];
-    if (window.__xProps) window.__xProps(xs, mk, SK, OW, OH, LEN);
-    const corr = [];   /* koridor kabuğu parçaları: GLB koridor (?glb=1) hazırsa gizlenir */
+    const xp0 = xs.children.length; if (window.__xProps) window.__xProps(xs, mk, SK, OW, OH, LEN); const xpAdded = xs.children.slice(xp0);
+    const corr = xpAdded.slice();   /* koridor kabuğu + iç donanım (boru, kasa): GLB koridor (?glb=1) hazırsa gizlenir */   /* koridor kabuğu parçaları: GLB koridor (?glb=1) hazırsa gizlenir */
     corr.push(box(LEN + 3, 0.6, OW + 1.2, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, -OH / 2 - 0.3, 0));
     corr.push(box(LEN + 3, 0.6, OW + 1.2, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, OH / 2 + 0.3, 0));
     corr.push(box(LEN + 3, OH + 1.2, 0.6, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, 0, OW / 2 + 0.3)); corr.push(box(LEN + 3, OH + 1.2, 0.6, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, 0, -OW / 2 - 0.3));

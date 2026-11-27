@@ -39,5 +39,41 @@
  "ship_hayalet": {
   "url": "models/glb/ship_hayalet.glb",
   "urlM": "models/glb/ship_hayalet_m.glb"
+ },
+ "hangar_koridor_ankora": {
+  "url": "models/glb/hangar_koridor_ankora.glb"
+ },
+ "hangar_kapi_ankora": {
+  "url": "models/glb/hangar_kapi_ankora.glb"
+ },
+ "hangar_koridor_demirhan": {
+  "url": "models/glb/hangar_koridor_demirhan.glb"
+ },
+ "hangar_kapi_demirhan": {
+  "url": "models/glb/hangar_kapi_demirhan.glb"
+ },
+ "hangar_koridor_ice": {
+  "url": "models/glb/hangar_koridor_ice.glb"
+ },
+ "hangar_kapi_ice": {
+  "url": "models/glb/hangar_kapi_ice.glb"
+ },
+ "hangar_koridor_kristal": {
+  "url": "models/glb/hangar_koridor_kristal.glb"
+ },
+ "hangar_kapi_kristal": {
+  "url": "models/glb/hangar_kapi_kristal.glb"
+ },
+ "hangar_koridor_kara": {
+  "url": "models/glb/hangar_koridor_kara.glb"
+ },
+ "hangar_kapi_kara": {
+  "url": "models/glb/hangar_kapi_kara.glb"
+ },
+ "hangar_koridor_lonca": {
+  "url": "models/glb/hangar_koridor_lonca.glb"
+ },
+ "hangar_kapi_lonca": {
+  "url": "models/glb/hangar_kapi_lonca.glb"
  }
 }
