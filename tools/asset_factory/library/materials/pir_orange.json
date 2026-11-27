@@ -2,8 +2,8 @@
  "kind": "dielectric",
  "metallic": 0.0,
  "base": [
-  0.8,
-  0.38,
+  0.88,
+  0.42,
   0.09
  ],
  "rough": [

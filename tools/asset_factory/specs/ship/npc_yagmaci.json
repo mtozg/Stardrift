@@ -16,7 +16,10 @@
   "pir_glass",
   "emit_redhot",
   "emit_blue",
-  "emit_red"
+  "emit_red",
+  "pir_white",
+  "pir_blue",
+  "pir_yellow"
  ],
  "texture_mode": "unique",
  "texture_size": 1024,

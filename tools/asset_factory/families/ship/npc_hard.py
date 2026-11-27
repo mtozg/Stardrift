@@ -10,7 +10,7 @@ from families.ship.yuk_ext import orient_outward
 from families.ship.yuk_fused import box_bm, boolean, union_all, diff_all, ring_bm
 from families.ship.sahin_catal import loft, loft_x, plate, tube
 
-MATS = ['pir_gray', 'pir_gray2', 'pir_orange', 'pir_titan', 'pir_gun', 'pir_heat', 'pir_glass', 'emit_redhot', 'emit_blue', 'emit_red']
+MATS = ['pir_gray', 'pir_gray2', 'pir_orange', 'pir_titan', 'pir_gun', 'pir_heat', 'pir_glass', 'emit_redhot', 'emit_blue', 'emit_red', 'pir_white', 'pir_blue', 'pir_yellow']
 SLOT = {m: i for i, m in enumerate(MATS)}
 
 
@@ -62,9 +62,6 @@ def build_akbaba(spec, mats):
     parts.append(_obj('tankmnt', box_bm((-0.62, -0.30, 0.0), (0.7, 0.14, 0.9)), 'pir_titan', mats))
     parts.append(_obj('eng2', loft([(-2.9, 0.38, 0.38, 0.38, 2.0, -1.55, -0.20), (-1.6, 0.42, 0.42, 0.42, 2.0, -1.55, -0.20), (-0.9, 0.26, 0.26, 0.26, 2.0, -1.55, -0.20)], 28), 'pir_titan', mats))
     parts.append(_obj('eng2mnt', box_bm((-0.95, -0.18, -1.4), (1.0, 0.18, 1.0)), 'pir_titan', mats))
-    # yamalı zırh levhaları (çekirdek çevresi, asimetrik; kalın)
-    for (x, y, z, sx_, sy_, sz_, a, key) in ((-0.95, 0.60, -1.2, 0.12, 0.9, 1.5, 0.20, 'pir_gray2'), (1.55, 0.45, -1.0, 0.12, 0.95, 1.3, -0.25, 'pir_gray'), (1.1, -0.70, -1.3, 0.12, 0.8, 1.4, 0.30, 'pir_gray2')):
-        parts.append(_obj('armor', _rot_z(box_bm((x, y, z), (sx_, sy_, sz_)), a, (x, y, z)), key, mats))
     union_all(cap, parts)
     core = cap
     diff_all(core, [_obj('noz', tube((CX, 0.0, -4.4), (CX, 0.0, -3.85), 0.55, 0.50, 36), 'pir_heat', mats), _obj('noz2', tube((-1.55, -0.20, -3.5), (-1.55, -0.20, -2.95), 0.30, 0.27, 28), 'pir_heat', mats)])
@@ -146,21 +143,17 @@ def build_akbaba(spec, mats):
     small('nlip', tube((CX, 0.0, -4.50), (CX, 0.0, -4.42), 0.66, 0.64, 40, cap=False), 'pir_titan')
     for k in range(6):                                                                   # kafes kule çubukları: çekirdek arkasından nozul halkasına
         a = k * math.pi / 3
-        small('lat', tube((CX + math.cos(a) * 1.0, math.sin(a) * 1.0, -3.4), (CX + math.cos(a) * 0.80, math.sin(a) * 0.80, -4.45), 0.04, None, 8), 'pir_gun')
+        small('lat', tube((CX + math.cos(a) * 1.0, math.sin(a) * 1.0, -3.4), (CX + math.cos(a) * 0.80, math.sin(a) * 0.80, -4.45), 0.075, None, 8), 'pir_gun')
     for z in (-3.75, -4.1):
         small('latr', tube((CX, 0.0, z), (CX, 0.0, z + 0.03), 0.92 - (z + 3.75) * -0.2, None, 36, cap=False), 'pir_gun')
-    for k in range(8):                                                                   # çaprazlar
-        a = k * math.pi / 4
-        a2 = a + math.pi / 6
-        small('latx', tube((CX + math.cos(a) * 0.95, math.sin(a) * 0.95, -3.55), (CX + math.cos(a2) * 0.85, math.sin(a2) * 0.85, -4.2), 0.025, None, 6), 'pir_gun')
     # çekirdek kuşakları (halka bantları) + soğutma levhaları
     for k in range(8):
         small('band', tube((CX, 0.0, -3.35 + k * 0.28), (CX, 0.0, -3.35 + k * 0.28 + 0.06), 1.20, None, 48, cap=False), 'pir_gun')
     for sy in (-1, 1):                                                                   # radyatör: çekirdek üstü/altı dikey kanatçıklar (masa değil)
         small('radbase', box_bm((CX, sy * 1.17, -2.2), (1.5, 0.05, 2.2)), 'pir_gun')
-        for q in range(5):
-            small('radfin', box_bm((CX - 0.56 + q * 0.28, sy * 1.42, -2.2), (0.045, 0.5, 2.0)), 'pir_gray2')
-            small('radfint', box_bm((CX - 0.56 + q * 0.28, sy * 1.69, -2.2), (0.06, 0.04, 2.0)), 'pir_orange')
+        for q in range(3):
+            small('radfin', box_bm((CX - 0.42 + q * 0.42, sy * 1.42, -2.2), (0.07, 0.5, 2.0)), 'pir_gray2')
+            small('radfint', box_bm((CX - 0.42 + q * 0.42, sy * 1.69, -2.2), (0.09, 0.05, 2.0)), 'pir_orange')
         small('radpipe', tube((CX - 0.7, sy * 1.2, -3.15), (CX + 0.7, sy * 1.2, -3.15), 0.05, None, 10), 'pir_gun')
     # yama motor nozulu ve kafes
     small('bell2', tube((-1.55, -0.20, -3.5), (-1.55, -0.20, -3.0), 0.36, 0.30, 32, cap=False), 'pir_heat')
@@ -205,8 +198,8 @@ def build_akbaba(spec, mats):
     small('ant2', tube((CX, 1.18, -1.0), (CX + 0.1, 1.7, -1.1), 0.016, 0.008, 6), 'pir_gun')
     for z in (1.5, 2.5):
         small('mark', box_bm((0.0, 0.40 + (z - 1.5) * -0.04, z), (0.50, 0.012, 0.12)), 'pir_orange')
-    small('nav1', box_bm((0.0, 0.58, 4.2), (0.14, 0.14, 0.14)), 'emit_red')
-    small('nav2', box_bm((-1.55, 0.35, -2.9), (0.14, 0.14, 0.14)), 'emit_red')
+    small('nav1', box_bm((0.0, 0.18, 4.2), (0.14, 0.14, 0.14)), 'emit_red')
+    small('nav2', box_bm((-1.55, 0.17, -2.9), (0.14, 0.14, 0.14)), 'emit_red')
     # alt gövde: ısı kalkanı plakaları, iniş ayağı yuvaları, kablo kanalı
     for z in (0.6, 1.6, 2.6):
         small('bplate', box_bm((0.0, 0.10 - 0.36 - 0.0, z), (0.52, 0.03, 0.8)), 'pir_heat')
@@ -222,7 +215,7 @@ def build_akbaba(spec, mats):
         small('lstrip2', box_bm((CX + sx * 1.152, 0.0, -2.2), (0.035, 0.03, 2.2)), 'emit_blue')
     socks = [{'name': 'ANCH_ENG_1', 'loc': tuple(geo.g2b(Vector((CX, 0.0, -4.30)))), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}},
              {'name': 'ANCH_ENG_2', 'loc': tuple(geo.g2b(Vector((-1.55, -0.20, -3.42)))), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}}]
-    for i, p in enumerate(((0.0, 0.58, 4.2), (-1.55, 0.35, -2.9), (CX, 1.34, -1.4)), 1):
+    for i, p in enumerate(((0.0, 0.18, 4.2), (-1.55, 0.17, -2.9), (CX, 1.34, -1.4)), 1):
         socks.append({'name': 'ANCH_NAV_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, 0.0, 1.0), 'extras': {'kind': 'nav'}})
     for i, p in enumerate(((-0.4, -0.35, 4.35), (0.4, -0.35, 4.35)), 1):
         socks.append({'name': 'ANCH_MUZ_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, -1.0, 0.0), 'extras': {'kind': 'muzzle'}})
@@ -371,16 +364,16 @@ def build_kurt(spec, mats):
     small('ant2', tube((-0.5, 1.0, -0.6), (-0.6, 1.5, -0.7), 0.016, 0.008, 6), 'pir_gun')
     for z in (-0.2, 0.5):
         small('mark', box_bm((0.0, 1.03, z), (1.0, 0.012, 0.14)), 'pir_orange')
-    small('nav1', box_bm((-2.6, 0.3, 1.8), (0.14, 0.14, 0.14)), 'emit_red')
-    small('nav2', box_bm((2.6, 0.3, 1.8), (0.14, 0.14, 0.14)), 'emit_blue')
-    small('nav3', box_bm((0.0, 1.0, -3.0), (0.14, 0.14, 0.14)), 'emit_red')
+    small('nav1', box_bm((-2.5, 0.3, 1.8), (0.14, 0.14, 0.14)), 'emit_red')
+    small('nav2', box_bm((2.5, 0.3, 1.8), (0.14, 0.14, 0.14)), 'emit_blue')
+    small('nav3', box_bm((0.0, 0.85, -3.0), (0.14, 0.14, 0.14)), 'emit_red')
     for sx in (-1, 1):
         small('lstrip', box_bm((sx * (hw(0.8)[0] - 0.01), 0.35, 0.3), (0.035, 0.03, 3.4)), 'emit_blue')
         small('lstrip2', box_bm((sx * 2.6, -0.1, -1.0), (0.035, 0.03, 3.0)), 'emit_blue')
     socks = []
     for i, (x, y, r) in enumerate(ENG, 1):
         socks.append({'name': 'ANCH_ENG_%d' % i, 'loc': tuple(geo.g2b(Vector((x, y, -4.43)))), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}})
-    for i, p in enumerate(((-2.6, 0.3, 1.8), (2.6, 0.3, 1.8), (0.0, 1.0, -3.0)), 1):
+    for i, p in enumerate(((-2.5, 0.3, 1.8), (2.5, 0.3, 1.8), (0.0, 0.85, -3.0)), 1):
         socks.append({'name': 'ANCH_NAV_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, 0.0, 1.0), 'extras': {'kind': 'nav'}})
     for i, p in enumerate(((-2.0, 0.55, 2.7), (2.0, 0.55, 2.7)), 1):
         socks.append({'name': 'ANCH_MUZ_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, -1.0, 0.0), 'extras': {'kind': 'muzzle'}})
@@ -446,7 +439,7 @@ def build_yagmaci(spec, mats):
         cur = MATS[f.material_index]
         if cur in ('pir_gray', 'pir_gray2'):
             if gz > 4.2:
-                f.material_index = SLOT['pir_orange']
+                f.material_index = SLOT['pir_gray']
             elif gz < -4.1:
                 f.material_index = SLOT['pir_heat']
             elif gy < -0.15:
@@ -543,14 +536,14 @@ def build_yagmaci(spec, mats):
         small('mark', box_bm((0.0, 0.71, z), (0.6, 0.012, 0.12)), 'pir_orange')
     small('nav1', box_bm((2.15, 1.55, 2.0), (0.14, 0.14, 0.14)), 'emit_blue')
     small('nav2', box_bm((-2.1, 0.5, -3.5), (0.14, 0.14, 0.14)), 'emit_red')
-    small('nav3', box_bm((0.0, 0.8, 4.4), (0.14, 0.14, 0.14)), 'emit_red')
+    small('nav3', box_bm((0.0, 0.18, 4.4), (0.14, 0.14, 0.14)), 'emit_red')
     for sx in (-1, 1):
         small('lstrip', box_bm((sx * (fw(2.6) - 0.003), 0.15, 2.6), (0.035, 0.03, 2.2)), 'emit_blue')
         small('lstrip2', box_bm((sx * 2.1 - 0.15, 0.3, -2.4), (0.035, 0.03, 3.4)), 'emit_blue')
     socks = []
     for i, (x, y, r) in enumerate(ENG, 1):
         socks.append({'name': 'ANCH_ENG_%d' % i, 'loc': tuple(geo.g2b(Vector((x, y, -4.83)))), 'dir': (0.0, 1.0, 0.0), 'extras': {'kind': 'engine'}})
-    for i, p in enumerate(((2.15, 1.55, 2.0), (-2.1, 0.5, -3.5), (0.0, 0.8, 4.4)), 1):
+    for i, p in enumerate(((2.15, 1.55, 2.0), (-2.1, 0.5, -3.5), (0.0, 0.18, 4.4)), 1):
         socks.append({'name': 'ANCH_NAV_%d' % i, 'loc': tuple(geo.g2b(Vector(p))), 'dir': (0.0, 0.0, 1.0), 'extras': {'kind': 'nav'}})
     socks.append({'name': 'ANCH_MUZ_1', 'loc': tuple(geo.g2b(Vector((0.0, 0.4, 5.55)))), 'dir': (0.0, -1.0, 0.0), 'extras': {'kind': 'muzzle'}})
     return {'objects': out_body + out_hi, 'sockets': socks}
@@ -623,24 +616,24 @@ def build_generic(spec, mats, C):
             es = [e for e in es if e.is_valid]
             if es:
                 bmesh.ops.subdivide_edges(bm, edges=es, cuts=c, use_grid_fill=True)
-    alt = C.get('alt', 'pir_gray2'); mainm = C.get('main', 'pir_gray')
+    alt = C.get('alt', 'pir_gray2'); mainm = C.get('main', 'pir_gray'); acc = C.get('accent', 'pir_orange'); plain_nose = C.get('nose') == 'plain'
     for f in bm.faces:
         cb = f.calc_center_median(); gx, gy, gz = cb.x, cb.z, -cb.y
         cur = MATS[f.material_index]
-        if cur in ('pir_gray', 'pir_gray2'):
+        if cur == mainm or cur == alt:
             if gz > C['nose_z']:
-                f.material_index = SLOT['pir_orange']
+                f.material_index = SLOT[alt] if plain_nose else SLOT[acc]
             elif gz < C['tail_z']:
                 f.material_index = SLOT['pir_heat']
             elif gy < -0.1:
-                f.material_index = SLOT['pir_titan'] if int((gz + 8) / 0.8) % 2 else SLOT['pir_gray2']
+                f.material_index = SLOT['pir_titan'] if int((gz + 8) / 0.8) % 2 else SLOT[alt]
             else:
-                h = (int((gx + 4.0) / 0.55) * 73856093 ^ int((gz + 8.0) / 0.5) * 19349663 ^ int((gy + 2.0) / 0.4) * 83492791) % 14
+                h = (int((gx + 4.0) / 0.55) * 73856093 ^ int((gz + 8.0) / 0.5) * 19349663 ^ int((gy + 2.0) / 0.4) * 83492791) % 12
                 if h in (0, 1, 2):
                     f.material_index = SLOT[alt] if cur == mainm else SLOT[mainm]
-                elif h == 3:
-                    f.material_index = SLOT['pir_orange']
-                elif h == 4:
+                elif h in (3, 4):
+                    f.material_index = SLOT[acc]                                       # büyük renk blokları (100–170 m okunur)
+                elif h == 5:
                     f.material_index = SLOT['pir_titan']
     bm.to_mesh(core.data); bm.free()
     if P.get('bevel_m', 0) > 0:
@@ -667,7 +660,7 @@ def build_generic(spec, mats, C):
     cues(small, lambda z: hw(z)[0], C['win_z'], C['ytop'])
     small('ant1', tube((0.2, C['ytop'], C['ant_z']), (0.3, C['ytop'] + 0.7, C['ant_z'] - 0.1), 0.02, 0.01, 6), 'pir_gun')
     for z in C['mark_z']:
-        small('mark', box_bm((0.0, hw(z)[1] * 1.0 + 0.005, z), (0.6, 0.012, 0.12)), 'pir_orange')
+        small('mark', box_bm((0.0, hw(z)[1] * 1.0 + 0.005, z), (0.6, 0.012, 0.12)), acc)
     for (x, z) in C['gear']:
         small('gleg', tube((x, -hw(z)[1] * 0.8, z), (x, -hw(z)[1] * 0.8 - 0.3, z), 0.07, 0.08, 10), 'pir_titan')
         small('gfoot', box_bm((x, -hw(z)[1] * 0.8 - 0.32, z), (0.32, 0.04, 0.38)), 'pir_gun')
@@ -675,7 +668,20 @@ def build_generic(spec, mats, C):
         small('bplate', box_bm((0.0, -hw(z)[1] * 0.85, z), (1.4, 0.03, 1.1)), 'pir_heat')
     if 'details' in C:
         C['details'](small, hw)
-    nav = C['nav']
+    nav = []
+    for i, p in enumerate(C['nav']):                                                     # nav ışıkları gövde yüzeyine otursun
+        w_, h_ = hw(p[2])
+        if i < 2:
+            nav.append((math.copysign(w_ - 0.03, p[0]), 0.25 * h_, p[2]))
+        else:
+            nav.append((p[0], h_ - 0.02, p[2]))
+    if plain_nose:                                                                       # düz burun: vurgu renginde kuşaklar
+        for z in C.get('nose_bands', (C['nose_z'] + 0.3, C['nose_z'] + 0.8)):
+            w_, h_ = hw(z)
+            small('nband', box_bm((0.0, 0.0, z), (w_ * 2.04, h_ * 2.0 * 0.96, 0.07)), acc.replace('pir_gray2', 'pir_gray')) if False else small('nband', tube((0.0, 0.0, z), (0.0, 0.0, z + 0.07), min(w_, h_) * 1.02, None, 24, cap=False), acc)
+    for sx in (-1, 1):
+        pass
+    small('tstrip', box_bm((0.0, hw(C['win_z'][0])[1] + 0.002, (C['win_z'][0] + C['win_z'][-1]) / 2), (0.05, 0.012, abs(C['win_z'][-1] - C['win_z'][0]) + 0.8)), 'emit_blue')
     for i, p in enumerate(nav):
         small('nav', box_bm(p, (0.14, 0.14, 0.14)), 'emit_red' if i % 2 == 0 else 'emit_blue')
     socks = []
@@ -693,7 +699,7 @@ def _cfg_corvette():
 
     def union(O, mats, loft, box, tube, rz):
         parts = []
-        parts.append(O('hangar', box((-1.35, -0.05, -1.4), (0.5, 0.9, 2.6)), 'pir_gray2', mats))      # iskele hangar çıkıntısı
+        parts.append(O('hangar', box((-1.35, -0.05, -1.4), (0.5, 0.9, 2.6)), 'pir_gray', mats))      # iskele hangar çıkıntısı
         parts.append(O('tur1', tube((0.0, 0.78, 2.2), (0.0, 1.0, 2.2), 0.4, 0.34, 24), 'pir_titan', mats))
         parts.append(O('mastb', tube((0.0, 0.8, -1.0), (0.0, 1.0, -1.0), 0.45, 0.4, 24), 'pir_titan', mats))
         return parts
@@ -709,20 +715,20 @@ def _cfg_corvette():
         small('tbar', tube((0.0, 1.0, 2.2), (0.0, 1.0, 3.5), 0.07, 0.06, 12), 'pir_gun')
         small('tbar2', tube((0.0, 1.02, 2.2), (0.0, 1.02, 3.0), 0.16, 0.14, 16), 'pir_titan')
         for z in (-1.5, -2.7):
-            small('doorh', box_bm((-1.62, -0.05, z), (0.04, 0.8, 1.1)), 'pir_orange')                  # hangar kapıları
+            small('doorh', box_bm((-1.62, -0.05, z), (0.04, 0.8, 1.1)), 'pir_blue')                  # hangar kapıları
         small('hangarline', box_bm((-1.62, 0.36, -1.4), (0.03, 0.03, 2.4)), 'pir_gun')
         small('sdome', tube((0.0, -0.55, 3.0), (0.0, -0.72, 3.0), 0.22, 0.16, 20), 'pir_gun')
     return {'hs': hs, 'union': union, 'engs': [(-0.62, 0.0, 0.44), (0.62, 0.0, 0.44)], 'zend': -5.0, 'hatch_z': [-3.0, 0.4], 'ring_z': [-3.2, -2.2, -1.2, -0.2, 0.8, 1.8, 2.8],
             'nose_z': 4.4, 'tail_z': -4.35, 'canopy': (2.6, 4.3, 0.78, 0.42), 'win_z': [-2.6, -2.2, -1.8, 0.2, 0.6, 1.0, 1.4], 'ytop': 0.78, 'ant_z': -3.4, 'mark_z': [-3.2, -2.6], 'gear': [(-0.8, -2.8), (0.8, -2.8), (0.0, 2.0)],
-            'bplate_z': [-2.8, -1.0, 0.8], 'details': details, 'nav': [(-1.4, 0.2, -1.5), (1.34, 0.2, -1.5), (0.0, 1.0, -4.2)], 'muz': [(0.0, 1.0, 3.5)], 'main': 'pir_gray', 'alt': 'pir_gray2'}
+            'bplate_z': [-2.8, -1.0, 0.8], 'details': details, 'nav': [(-1.4, 0.2, -1.5), (1.34, 0.2, -1.5), (0.0, 1.0, -4.2)], 'muz': [(0.0, 1.0, 3.5)], 'main': 'pir_white', 'alt': 'pir_gray', 'accent': 'pir_blue', 'nose': 'plain'}
 
 
 def _cfg_courier():
     hs = [(-3.0, 0.55, 0.40, 0.34, 3.2), (-2.0, 0.80, 0.50, 0.40, 3.4), (0.0, 0.75, 0.48, 0.38, 3.4), (1.8, 0.50, 0.34, 0.28, 3.0), (3.0, 0.22, 0.17, 0.15, 2.6), (3.5, 0.06, 0.06, 0.05, 2.2)]
 
     def union(O, mats, loft, box, tube, rz):
-        return [O('nacL', loft([(-3.0, 0.22, 0.22, 0.22, 2.0, -0.85, -0.1), (-1.6, 0.28, 0.28, 0.28, 2.0, -0.85, -0.1), (-0.6, 0.18, 0.18, 0.18, 2.0, -0.85, -0.1)], 24), 'pir_gray2', mats),
-                O('nacR', loft([(-3.0, 0.22, 0.22, 0.22, 2.0, 0.85, -0.1), (-1.6, 0.28, 0.28, 0.28, 2.0, 0.85, -0.1), (-0.6, 0.18, 0.18, 0.18, 2.0, 0.85, -0.1)], 24), 'pir_gray2', mats),
+        return [O('nacL', loft([(-3.0, 0.22, 0.22, 0.22, 2.0, -0.85, -0.1), (-1.6, 0.28, 0.28, 0.28, 2.0, -0.85, -0.1), (-0.6, 0.18, 0.18, 0.18, 2.0, -0.85, -0.1)], 24), 'pir_gray', mats),
+                O('nacR', loft([(-3.0, 0.22, 0.22, 0.22, 2.0, 0.85, -0.1), (-1.6, 0.28, 0.28, 0.28, 2.0, 0.85, -0.1), (-0.6, 0.18, 0.18, 0.18, 2.0, 0.85, -0.1)], 24), 'pir_gray', mats),
                 O('str', box((0.0, -0.05, -1.5), (1.8, 0.14, 0.5)), 'pir_titan', mats)]
 
     def details(small, hw):
@@ -730,10 +736,10 @@ def _cfg_courier():
         small('dstem', tube((0.0, 0.48, -0.8), (0.0, 0.54, -0.8), 0.06, None, 10), 'pir_gun')
         small('dishrib', tube((0.0, 0.52, -0.8), (0.0, 0.90, -0.8), 0.015, None, 6), 'pir_gun')
         for k in range(3):
-            small('cargopod', box_bm((0.0, -0.40, -1.0 + k * 0.6), (0.7, 0.14, 0.5)), 'pir_orange')
+            small('cargopod', box_bm((0.0, -0.40, -1.0 + k * 0.6), (0.7, 0.14, 0.5)), 'pir_blue')
     return {'hs': hs, 'union': union, 'engs': [(0.0, 0.0, 0.34), (-0.85, -0.1, 0.22), (0.85, -0.1, 0.22)], 'zend': -3.3, 'hatch_z': [-0.2], 'ring_z': [-2.0, -1.4, -0.8, -0.2, 0.4, 1.0],
             'nose_z': 2.6, 'tail_z': -2.9, 'canopy': (1.0, 2.4, 0.46, 0.34), 'win_z': [-1.2, -0.9, 0.5, 0.8], 'ytop': 0.5, 'ant_z': -1.8, 'mark_z': [-1.2, -0.5], 'gear': [(-0.5, -1.4), (0.5, -1.4), (0.0, 1.2)],
-            'bplate_z': [-1.2, 0.2], 'details': details, 'nav': [(-1.1, -0.1, -1.0), (1.1, -0.1, -1.0), (0.0, 0.5, -2.8)], 'muz': [(0.0, 0.0, 3.4)], 'main': 'pir_gray', 'alt': 'pir_gray2'}
+            'bplate_z': [-1.2, 0.2], 'details': details, 'nav': [(-1.1, -0.1, -1.0), (1.1, -0.1, -1.0), (0.0, 0.5, -2.8)], 'muz': [(0.0, 0.0, 3.4)], 'main': 'pir_white', 'alt': 'pir_gray', 'accent': 'pir_blue', 'nose': 'plain'}
 
 
 def _cfg_cargo():
@@ -747,20 +753,22 @@ def _cfg_cargo():
         for iz, z in enumerate((-1.8, -0.2, 1.4, 3.0)):
             for sx in (-1, 1):
                 for sy in (0, 1):
-                    key = 'pir_orange' if (iz + (1 if sx > 0 else 0) + sy) % 3 == 0 else ('pir_gray' if (iz + sy) % 2 else 'pir_gray2')
+                    key = 'pir_orange' if (iz + (1 if sx > 0 else 0) + sy) % 2 == 0 else ('pir_gray' if (iz + sy) % 2 else 'pir_gray2')
                     small('cnt', box_bm((sx * 1.15, 0.25 + sy * 0.95 - 0.35, z), (1.0, 0.85, 1.4)), key)
                     small('cntrib', box_bm((sx * 1.15, 0.25 + sy * 0.95 - 0.35, z + 0.72), (1.04, 0.89, 0.05)), 'pir_titan')
         for sx in (-1, 1):
             for k in range(5):
                 zz = -2.6 + k * 1.6
-                small('frame', tube((sx * 1.7, -0.8, zz), (sx * 1.7, 1.55, zz), 0.045, None, 8), 'pir_gun')
-            small('flon', tube((sx * 1.7, 1.55, -2.6), (sx * 1.7, 1.55, 3.8), 0.045, None, 8), 'pir_gun')
-            small('flon2', tube((sx * 1.7, -0.8, -2.6), (sx * 1.7, -0.8, 3.8), 0.045, None, 8), 'pir_gun')
+                small('frame', tube((sx * 1.7, -0.8, zz), (sx * 1.7, 1.55, zz), 0.055, None, 6), 'pir_gun')
+            for q in range(6):                                                    # uzun tüpleri kısa parçalara böl (UV doluluğu)
+                za, zb = -2.6 + q * 1.07, -2.6 + (q + 1) * 1.07
+                small('flon', tube((sx * 1.7, 1.55, za), (sx * 1.7, 1.55, zb), 0.055, None, 6), 'pir_gun')
+                small('flon2', tube((sx * 1.7, -0.8, za), (sx * 1.7, -0.8, zb), 0.055, None, 6), 'pir_gun')
         small('crane', tube((0.0, 0.5, -3.5), (0.0, 2.2, -3.2), 0.1, 0.08, 12), 'pir_titan')
         small('crane2', tube((0.0, 2.2, -3.2), (0.0, 2.0, -1.2), 0.07, 0.06, 10), 'pir_gun')
     return {'hs': hs, 'union': union, 'engs': [(-0.55, 0.0, 0.40), (0.55, 0.0, 0.40)], 'zend': -5.6, 'hatch_z': [-4.0], 'ring_z': [-4.6, -3.4, -2.2, 3.8, 4.6, 5.4],
             'nose_z': 5.8, 'tail_z': -4.95, 'canopy': (4.6, 6.2, 0.72, 0.4), 'win_z': [-4.2, -3.8, -3.4, 4.4, 4.7, 5.0], 'ytop': 0.72, 'ant_z': -4.2, 'mark_z': [-4.4, -3.6], 'gear': [(-0.8, -4.0), (0.8, -4.0), (0.0, 5.0)],
-            'bplate_z': [-4.0, 4.0], 'details': details, 'nav': [(-1.3, 0.3, -4.6), (1.3, 0.3, -4.6), (0.0, 0.7, -3.4)], 'muz': [(0.0, 0.0, 6.7)], 'main': 'pir_gray', 'alt': 'pir_gray2'}
+            'bplate_z': [-4.0, 4.0], 'details': details, 'nav': [(-1.3, 0.3, -4.6), (1.3, 0.3, -4.6), (0.0, 0.7, -3.4)], 'muz': [(0.0, 0.0, 6.7)], 'main': 'pir_gray', 'alt': 'pir_gray2', 'accent': 'pir_orange', 'nose': 'plain'}
 
 
 def _cfg_tanker():
@@ -769,7 +777,7 @@ def _cfg_tanker():
     def union(O, mats, loft, box, tube, rz):
         parts = [O('keel', box((0.0, 0.0, 0.8), (0.8, 0.7, 9.4)), 'pir_titan', mats)]
         for (x, y) in ((-1.15, 0.85), (1.15, 0.85), (-1.15, -0.85), (1.15, -0.85)):
-            parts.append(O('tank', loft([(-3.3, 0.55, 0.55, 0.55, 2.0, x, y), (-3.0, 0.78, 0.78, 0.78, 2.0, x, y), (4.0, 0.78, 0.78, 0.78, 2.0, x, y), (4.3, 0.55, 0.55, 0.55, 2.0, x, y)], 32), 'pir_gray2' if (x > 0) == (y > 0) else 'pir_orange', mats))
+            parts.append(O('tank', loft([(-3.3, 0.55, 0.55, 0.55, 2.0, x, y), (-3.0, 0.78, 0.78, 0.78, 2.0, x, y), (4.0, 0.78, 0.78, 0.78, 2.0, x, y), (4.3, 0.55, 0.55, 0.55, 2.0, x, y)], 32), 'pir_gray' if (x > 0) == (y > 0) else 'pir_yellow', mats))
         return parts
 
     def details(small, hw):
@@ -786,7 +794,7 @@ def _cfg_tanker():
             small('rung', tube((1.95, -0.7 + q * 0.3, 0.0), (1.99, -0.7 + q * 0.3, 0.3), 0.012, None, 5), 'pir_gun')
     return {'hs': hs, 'union': union, 'engs': [(-0.55, 0.0, 0.42), (0.55, 0.0, 0.42)], 'zend': -6.6, 'hatch_z': [-5.0], 'ring_z': [-5.6, -4.6, 5.4, 6.2, 7.0],
             'nose_z': 7.0, 'tail_z': -5.95, 'canopy': (6.0, 7.6, 0.74, 0.4), 'win_z': [-5.2, -4.8, -4.4, 5.6, 5.9, 6.2], 'ytop': 0.74, 'ant_z': -5.2, 'mark_z': [-5.4, -4.6], 'gear': [(-0.8, -5.0), (0.8, -5.0), (0.0, 6.2)],
-            'bplate_z': [-5.0, 5.0], 'details': details, 'nav': [(-1.3, 0.3, -5.4), (1.3, 0.3, -5.4), (0.0, 0.8, -4.4)], 'muz': [(0.0, 0.0, 8.1)], 'main': 'pir_gray', 'alt': 'pir_gray2'}
+            'bplate_z': [-5.0, 5.0], 'details': details, 'nav': [(-1.3, 0.3, -5.4), (1.3, 0.3, -5.4), (0.0, 0.8, -4.4)], 'muz': [(0.0, 0.0, 8.1)], 'main': 'pir_gray', 'alt': 'pir_gray2', 'accent': 'pir_yellow', 'nose': 'plain'}
 
 
 def _cfg_mining():
@@ -804,7 +812,7 @@ def _cfg_mining():
             small('armsh', tube((sx * 1.0, -0.2, 3.0), (sx * 1.0, -0.2, 4.2), 0.40, 0.34, 20), 'pir_gun')
             for k in range(5):
                 small('drill', tube((sx * 1.1, -0.25, 4.6 + k * 0.32), (sx * 1.1, -0.25, 4.6 + k * 0.32 + 0.12), 0.34 - k * 0.04, None, 20, cap=False), 'pir_gun')
-            small('bit', tube((sx * 1.1, -0.25, 6.4), (sx * 1.1, -0.25, 7.0), 0.22, 0.03, 16), 'pir_orange')
+            small('bit', tube((sx * 1.1, -0.25, 6.4), (sx * 1.1, -0.25, 7.0), 0.22, 0.03, 16), 'pir_yellow')
             small('hyd', tube((sx * 1.4, 0.2, 2.6), (sx * 1.3, -0.1, 4.8), 0.05, None, 8), 'pir_gun')
         for k in range(3):
             small('hrib', box_bm((0.0, 1.0 + 0.0, -3.0 + k * 1.0), (2.2, 0.06, 0.08)), 'pir_titan')
@@ -812,7 +820,7 @@ def _cfg_mining():
         small('strut', tube((-1.3, 0.8, -1.8), (-1.3, 0.3, -0.2), 0.05, None, 8), 'pir_gun')
     return {'hs': hs, 'union': union, 'engs': [(-0.85, 0.0, 0.5), (0.85, 0.0, 0.5)], 'zend': -4.6, 'hatch_z': [-3.0, -1.0], 'ring_z': [-3.2, -2.2, -1.2, -0.2, 0.8, 1.6],
             'nose_z': 3.4, 'tail_z': -3.9, 'canopy': (1.2, 2.7, 0.8, 0.5), 'win_z': [-2.6, -2.2, -1.8, 0.6, 0.9, 1.2], 'ytop': 0.8, 'ant_z': -2.6, 'mark_z': [-3.2, -2.5], 'gear': [(-1.0, -2.6), (1.0, -2.6), (0.0, 1.8)],
-            'bplate_z': [-2.8, -0.6], 'details': details, 'nav': [(-1.8, 0.2, -2.0), (1.8, 0.2, -2.0), (0.0, 1.0, -3.8)], 'muz': [(0.0, 0.0, 4.0)], 'main': 'pir_gray', 'alt': 'pir_gray2'}
+            'bplate_z': [-2.8, -0.6], 'details': details, 'nav': [(-1.8, 0.2, -2.0), (1.8, 0.2, -2.0), (0.0, 1.0, -3.8)], 'muz': [(0.0, 0.0, 4.0)], 'main': 'pir_orange', 'alt': 'pir_gray2', 'accent': 'pir_yellow', 'nose': 'plain'}
 
 
 CFG = {}
