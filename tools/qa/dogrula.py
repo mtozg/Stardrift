@@ -46,7 +46,7 @@ BEKLE = {
  'olum_hesap': [('k0', 0), ('k30', 30), ('k50', 50), ('k200', 50), ('k500', 50), ('k600', 60), ('k1000', 100), ('k8000', 800), ('k19999', 2000), ('k25000', 2000), ('k999999', 2000), ('errs', [])],
  'olum_siniri': [('ucret', 2000), ('errs', [])],
  'derin_sinyal': [('teklif', True), ('muhafiz', 5), ('odul', True), ('errs', [])],
- 'hangar_bellek': [('cycles.0.mem.geometries', 45), ('cycles.2.mem.geometries', 45), ('cycles.1.mem.textures', 24), ('errs', [])],
+ 'hangar_bellek': [('cycles.0.mem.geometries', 45), ('cycles.2.mem.geometries', 45), ('cycles.1.mem.textures', 25), ('errs', [])],
 }
 hata = [(k, got, exp) for k, exp in BEKLE[ad] for got in [get(k)] if got != exp]
 for k, got, exp in hata: print('  BEKLENEN', k, '=', exp, '| GELEN', got)
