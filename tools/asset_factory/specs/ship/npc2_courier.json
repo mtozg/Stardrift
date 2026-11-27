@@ -37,7 +37,7 @@
    "normal": 2048
   },
   "ao_distance": 0.2,
-  "ao_into_base": 0.25,
+  "ao_into_base": 0.1,
   "normalize_length": true,
   "cull": "exterior",
   "uv_angle": 88,
@@ -59,8 +59,8 @@
    "rivet_p": 0.8,
    "k_edge": 4.0,
    "k_cav": 4.0,
-   "cav_dark": 0.45,
-   "edge_light": 0.6,
+   "cav_dark": 0.25,
+   "edge_light": 0.7,
    "edge_metal": 0.5,
    "cage": 0.08,
    "ray": 0.25

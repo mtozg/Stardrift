@@ -231,6 +231,17 @@ def build(spec, mats):
     union_all(hull, parts)
     core = hull
     diff_all(core, [obj('noz', cyl_bm((x, y, -0.62), (x, y, -0.47), 0.042, 0.036, 14), 'dark') for x, y in ENG])
+    # r4: BÜYÜK ölçekli kontrast bantları (uzaktan okunur): gövde enine renk bantları + orta şerit
+    bmz = bmesh.new(); bmz.from_mesh(core.data)
+    for f in bmz.faces:
+        if f.material_index != slot['hull']:
+            continue
+        cb = f.calc_center_median(); gx, gy, gz = cb.x / S, cb.z / S, -cb.y / S
+        if int((gz + 0.6) / 0.16) % 3 == 0:
+            f.material_index = slot['acc2']
+        elif abs(gx) < 0.035 and gy > 0:
+            f.material_index = slot['acc']
+    bmz.to_mesh(core.data); bmz.free()
     # hi-poly: oluklar
     hi = core.copy(); hi.data = core.data.copy(); geo.collection('Asset').objects.link(hi); hi.name = 'hi_core'; hi['sd_role'] = 'hi'
     geo.set_smooth_by_angle(core, 38); geo.set_smooth_by_angle(hi, 38)
@@ -241,10 +252,14 @@ def build(spec, mats):
         o = obj(name, bm_, key); geo.set_smooth_by_angle(o, 35); out_body.append(o)
         h = o.copy(); h.data = o.data.copy(); geo.collection('Asset').objects.link(h); h['sd_role'] = 'hi'; out_hi.append(h)
     for x, y in ENG:
-        small('core', cyl_bm((x, y, -0.475), (x, y, -0.482), 0.032, None, 12), 'glow')
+        small('core', cyl_bm((x, y, -0.470), (x, y, -0.484), 0.045, None, 14), 'glow')
     navs = [(0.32 if kind != 'tanker' else 0.24, 0.0, 0.2), (-0.32 if kind != 'tanker' else -0.24, 0.0, 0.2), (0.0, 0.1, -0.4)]
     for p in navs:
-        small('nav', box_bm(p, (0.02, 0.02, 0.02)), 'glow')
+        small('nav', box_bm(p, (0.05, 0.05, 0.05)), 'glow')
+    for sx in (-1, 1):                                                              # emissive seyir/gövde ışık şeritleri
+        zc = secs[len(secs) // 2][0]; w_, hu_, hd_, _ = env(zc)
+        small('strip', box_bm((sx * w_ / 2 * 1.01, 0.0, zc), (0.012, 0.022, 0.30)), 'glow')
+        small('strip2', box_bm((sx * w_ * 0.30, hu_ * 1.01, -0.10), (0.02, 0.008, 0.22)), 'glow')
     small('canopy', loft_bm([(0.12, 0.07, 0.03, 0.002, 0.012, 0.06), (0.22, 0.09, 0.04, 0.002, 0.016, 0.06), (0.32, 0.05, 0.025, 0.002, 0.01, 0.06)]), 'glass') if kind not in ('tanker', 'cargo') else None
     socks = []
     for i, (x, y) in enumerate(ENG, 1):
