@@ -181,6 +181,22 @@
     }).catch(function(){});
   };
 
+  // ---------- hangar giriş koridoru ve kapı (stationAnim sineması) ----------
+  // game.js sinema sahnesi kurulurken çağırır: GLB koridor (6 segment) ve kapı hazırsa kabuk parçaları (corr) gizlenir, yerlerine modeller konur.
+  // Koridor modeli: boy +Z (0..XSEG), oyunda boy +X: 90 derece. Kapı: SD_hangar_kapi altında FRAME, DOOR_L, DOOR_R (kayma extras'ta; bu sürümde kapalı konumda sabit).
+  G.hangar = function(scene, key, corr, LEN, SEG){
+    var kk = 'hangar_koridor_' + key, kd = 'hangar_kapi_' + key;
+    G.ready.then(function(){ if (!G.index[kk]) return; return Promise.all([G.load(kk), G.index[kd] ? G.load(kd) : null]); }).then(function(a){
+      if (!a || !a[0] || scene.userData.gone) return;
+      var n = Math.max(1, Math.round(LEN / SEG)), root = new T.Group(); root.userData.glb = true;
+      for (var i = 0; i < n; i++){ var c = inst(a[0]); c.rotation.y = Math.PI / 2; c.position.x = i * SEG; root.add(c); }
+      if (a[1]){ var d = inst(a[1]); d.rotation.y = Math.PI / 2; d.position.x = LEN - 0.34; root.add(d); }
+      root.traverse(function(o){ o.userData.shared = true; });   // sinema temizliği önbellek geometrisini atmasın
+      scene.add(root); corr.forEach(function(o){ if (o) o.visible = false; });
+      G.stats.hangar = (G.stats.hangar || 0) + 1;
+    }).catch(function(){});
+  };
+
   // ---------- istasyon ----------
   var stations = [];
   G.station = function(st, key, w, prev){

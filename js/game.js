@@ -4360,12 +4360,13 @@ function stationAnim(kind, st, cb){
     const smat = (t, e) => new THREE.MeshStandardMaterial({ map: t, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: e, roughness: 0.75, metalness: 0.25 });
     window.__curXK = SK[0]; const hx = XTT[SK[0]] || null, TN = SK[0] === 'ankora' ? [1.22, 0.95, 0.8] : [1, 1, 1];
     if (window.__xProps) window.__xProps(xs, mk, SK, OW, OH, LEN);
-    box(LEN + 3, 0.6, OW + 1.2, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, -OH / 2 - 0.3, 0);
-    box(LEN + 3, 0.6, OW + 1.2, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, OH / 2 + 0.3, 0);
-    box(LEN + 3, OH + 1.2, 0.6, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, 0, OW / 2 + 0.3); box(LEN + 3, OH + 1.2, 0.6, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, 0, -OW / 2 - 0.3);
-    box(0.6, OH + 1.2, OW + 1.2, xMat(true, isIn, hx, TN), LEN, 0, 0);
+    const corr = [];   /* koridor kabuğu parçaları: GLB koridor (?glb=1) hazırsa gizlenir */
+    corr.push(box(LEN + 3, 0.6, OW + 1.2, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, -OH / 2 - 0.3, 0));
+    corr.push(box(LEN + 3, 0.6, OW + 1.2, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, OH / 2 + 0.3, 0));
+    corr.push(box(LEN + 3, OH + 1.2, 0.6, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, 0, OW / 2 + 0.3)); corr.push(box(LEN + 3, OH + 1.2, 0.6, xMat(false, isIn, hx, TN), LEN / 2 - 1.5, 0, -OW / 2 - 0.3));
+    corr.push(box(0.6, OH + 1.2, OW + 1.2, xMat(true, isIn, hx, TN), LEN, 0, 0));
     // büyük demir kapı: istasyonun kendi kapı çizimi
-    { const dm = new THREE.Mesh(new THREE.PlaneGeometry(OW + 1.2, OH + 1.2), new THREE.MeshBasicMaterial({ map: XDT[SK[0]] || XDT.ankora })); dm.material.color.setRGB(1.9, 1.9, 1.9); dm.rotation.y = -Math.PI / 2; dm.position.set(LEN - 0.34, 0, 0); xs.add(dm);
+    { const dm = new THREE.Mesh(new THREE.PlaneGeometry(OW + 1.2, OH + 1.2), new THREE.MeshBasicMaterial({ map: XDT[SK[0]] || XDT.ankora })); dm.material.color.setRGB(1.9, 1.9, 1.9); dm.rotation.y = -Math.PI / 2; dm.position.set(LEN - 0.34, 0, 0); xs.add(dm); corr.push(dm); if (window.__glb && window.__glb.hangar) window.__glb.hangar(xs, SK[0], corr, LEN, XSEG, XR);
       const dl = new THREE.PointLight(SK[1], 2.4, 24); dl.position.set(LEN - 5, 0.5, 0); xs.add(dl); }
     const rib = new THREE.MeshStandardMaterial({ color: 0x2a303b, roughness: 0.5, metalness: 0.8 });
     // tavan ışık şeritleri + zemin kılavuz ışıkları
@@ -4443,7 +4444,7 @@ function stationAnim(kind, st, cb){
   };
   requestAnimationFrame(step);
   if (window.__xt === undefined) setTimeout(() => { x.classList.remove('on'); }, isIn ? DUR - 350 : CBT + 30);
-  const clean = () => { if (window.__xt !== undefined && !window.__xend){ setTimeout(clean, 500); return; } stop = true; if (cv && cv.parentNode === x) x.removeChild(cv); if (xs) xs.traverse(o => { if (o !== ship && o.geometry && o.parent && !(ship && ship.getObjectById(o.id))) o.geometry.dispose(); }); x.style.display = 'none'; x.className = ''; x.innerHTML = ''; }; setTimeout(clean, DUR + 200);
+  const clean = () => { if (window.__xt !== undefined && !window.__xend){ setTimeout(clean, 500); return; } stop = true; if (cv && cv.parentNode === x) x.removeChild(cv); if (xs){ xs.userData.gone = true; xs.traverse(o => { if (o !== ship && o.geometry && o.parent && !o.userData.shared && !(ship && ship.getObjectById(o.id))) o.geometry.dispose(); }); } x.style.display = 'none'; x.className = ''; x.innerHTML = ''; }; setTimeout(clean, DUR + 200);
 }
 const _tryDock = tryDock;
 tryDock = function(){
