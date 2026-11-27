@@ -184,6 +184,8 @@
   // ---------- hangar giriş koridoru ve kapı (stationAnim sineması) ----------
   // game.js sinema sahnesi kurulurken çağırır: GLB koridor (6 segment) ve kapı hazırsa kabuk parçaları (corr) gizlenir, yerlerine modeller konur.
   // Koridor modeli: boy +Z (0..XSEG), oyunda boy +X: 90 derece. Kapı: SD_hangar_kapi altında FRAME, DOOR_L, DOOR_R (kayma extras'ta; bu sürümde kapalı konumda sabit).
+  /* hangar modelleri kenetlenme animasyonu başlamadan hazır olsun (animasyon ~4 sn; ilk yüklemede prosedürel kabuk görünüp sonra değişmesin) */
+  G.ready.then(function(){ setTimeout(function(){ Object.keys(G.index || {}).forEach(function(k){ if (/^hangar_(koridor|kapi)_/.test(k)) G.load(k).catch(function(){}); }); }, 4000); });
   G.hangar = function(scene, key, corr, LEN, SEG){
     var kk = 'hangar_koridor_' + key, kd = 'hangar_kapi_' + key;
     G.ready.then(function(){ if (!G.index[kk]) return; return Promise.all([G.load(kk), G.index[kd] ? G.load(kd) : null]); }).then(function(a){
