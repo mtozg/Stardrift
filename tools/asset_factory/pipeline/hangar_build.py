@@ -137,6 +137,9 @@ class Mesh:
         for f in self.bm.faces:
             if not all(v in r['verts'] for v in f.verts):
                 continue
+            f.normal_update()
+            nrm = f.normal
+            proj = 'x' if abs(nrm.x) >= max(abs(nrm.y), abs(nrm.z)) else ('y' if abs(nrm.y) >= abs(nrm.z) else 'z')      # r6: yüz bazlı üç eksenli izdüşüm (yan yüzlerde doku gerilmesi biter)
             for lp in f.loops:
                 p = lp.vert.co
                 if proj == 'z':
@@ -149,13 +152,14 @@ class Mesh:
 
 
 def cyl_x(m, p0, p1, r, tile, seg=10):
+    c_x, c_y = p0[0], p0[1]
     d = Vector(p1) - Vector(p0)
     M = Matrix.Translation((Vector(p0) + Vector(p1)) / 2) @ d.to_track_quat('Z', 'Y').to_matrix().to_4x4()
     res = bmesh.ops.create_cone(m.bm, cap_ends=True, cap_tris=False, segments=seg, radius1=r, radius2=r, depth=d.length, matrix=M)
     tx, ty = (tile % 2) * 0.5, (tile // 2) * 0.5
     for v in res['verts']:
         for lp in v.link_loops:
-            lp[m.uvl].uv = (tx + 0.02 + 0.46 * ((v.co.x + v.co.z) * 0.2 % 1.0), 1.0 - (ty + 0.02 + 0.46 * (v.co.y * 0.3 % 1.0)))
+            lp[m.uvl].uv = (tx + 0.02 + 0.46 * ((v.co.z / 2.4) % 1.0), 1.0 - (ty + 0.02 + 0.46 * ((math.atan2(v.co.y - c_y, v.co.x - c_x) / (2 * math.pi) * (2 * math.pi * r / 2.4) % 1.0))))
 
 
 def octa_frame(m, z, w, h, th, depth, tile, ch=1.1):
@@ -204,13 +208,13 @@ def corridor():
         for k in range(5):
             m.box((sx * (OW / 2 - 0.17), 0, 0.45 + k * (L - 0.9) / 4), (0.3, OH, 0.28), 1, 'x', (1.0, 5.2))
         # boru demetleri (panel üstüne, 5 hat) + kelepçeler + vana/kontrol blokları
-        for yy, rr in ((-1.5, 0.16), (-0.2, 0.16), (1.1, 0.16), (2.0, 0.16), (-2.1, 0.07), (0.45, 0.10), (1.6, 0.07), (2.35, 0.12)):
+        for yy, rr in ((-1.5, 0.16), (1.1, 0.16), (2.0, 0.12)):
             cyl_x(m, (sx * (OW / 2 - 0.40), yy, 0.2), (sx * (OW / 2 - 0.40), yy, L - 0.2), rr, 1, 8)
         for k in range(10):
             zz = 0.55 + k * (L - 1.1) / 9
-            for yy in (-1.5, -0.2, 1.1):
-                m.box((sx * (OW / 2 - 0.40), yy, zz), (0.34, 0.36, 0.14), 0, 'x', (1.2, 1.2))
-            if k % 3 == 1:
+            for yy in (-1.5, 1.1):
+                m.box((sx * (OW / 2 - 0.40), yy, zz), (0.30, 0.30, 0.12), 0, 'x', (1.2, 1.2))
+            if False:
                 m.box((sx * (OW / 2 - 0.45), 0.65, zz), (0.4, 0.8, 0.5), 1, 'x', (1.0, 1.0))
                 m.box((sx * (OW / 2 - 0.50), 0.65, zz), (0.3, 0.25, 0.3), 0, 'x', (0.5, 0.5))
             if k % 3 == 0:

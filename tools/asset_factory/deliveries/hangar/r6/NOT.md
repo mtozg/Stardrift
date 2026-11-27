@@ -1,0 +1,3 @@
+# Hangar koridor r6 (Lead: UV gerilmesi, dağınık, çok boru)
+Düzeltmeler: (1) doku izdüşümü YÜZ BAZLI üç eksenli (kutu yan yüzleri artık tek eksene gerilmiyor; m/karo sabit 2,4 m); (2) boru UV'leri dünya ölçekli (uzunlukta z/2,4, çevrede açı×yarıçap/2,4) → bakır boru gerilmesi biter; (3) sadeleştirme: duvar başına 8 boru → 3, kelepçe/vana/kontrol paneli bloklarının çoğu kaldırıldı (koridor 2608 → 1944 üçgen); kapı + iniş alanı (koyu sade orta bölge, uyarı şeritleri, tavan armatürleri) korundu. 6 istasyon paleti (Ankora sıcak bronz-gri; diğerleri r2 kaymalı ve ayarsız). Kapı değişmedi.
+Dürüst: Blender nötr ışıkta doğrulandı; oyun içi görünüm senin ışığında. I3 bay tasarımına geçiyorum.
