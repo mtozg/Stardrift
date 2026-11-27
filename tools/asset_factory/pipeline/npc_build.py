@@ -458,6 +458,13 @@ sat = np.where(mx > 1e-4, (mx - mn) / np.maximum(mx, 1e-4), 0)
 ao_strength = spec.get('ao_into_base', 0.35)
 base_o = base.copy()
 base_o[..., :3] = rgb * ((1 - ao_strength) + ao_strength * np.clip(aoa[..., :1], 0, 1))
+_g, _sg, _ct = spec.get('albedo_gain', 1.0), spec.get('sat_gain', 1.0), spec.get('contrast', 1.0)
+if _g != 1.0 or _sg != 1.0 or _ct != 1.0:      # küçük ölçekte okunurluk: parlaklık/doygunluk/kontrast (Lead ek tur)
+    _c = base_o[..., :3]
+    _l = (_c * np.array([0.2126, 0.7152, 0.0722], np.float32)).sum(-1, keepdims=True)
+    _c = _l + (_c - _l) * _sg
+    _c = (_c - 0.35) * _ct + 0.35
+    base_o[..., :3] = np.clip(_c * _g, 0, 1)
 # yalın PBR türetimi: metalik = düşük doygunluk + parlak/orta (boyasız metal), pürüz = 0.78 - 0.30*lum + 0.15*sat
 metal = np.clip((0.55 - sat) * 1.4, 0, 1) * np.clip((lum - 0.12) * 4, 0, 1) * spec.get('metal_gain', 0.55)
 rough = np.clip(0.80 - 0.34 * lum + 0.12 * sat + 0.06 * (1 - metal), 0.30, 0.95)
