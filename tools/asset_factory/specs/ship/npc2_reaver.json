@@ -11,7 +11,13 @@
   "npc_gray",
   "npc_dark",
   "npc_glow",
-  "sahin_glass"
+  "sahin_glass",
+  "npc_steel",
+  "npc_hazard",
+  "npc_red2",
+  "npc_yellow",
+  "npc_orange",
+  "npc_blue"
  ],
  "texture_mode": "unique",
  "texture_size": 1024,
@@ -23,7 +29,7 @@
   "layout": "npc_fused",
   "kind": "reaver",
   "seed": 3,
-  "detail": 1.2
+  "detail": 1.9
  },
  "prepare": {
   "tex": {

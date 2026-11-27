@@ -8,10 +8,11 @@ from families.ship.yuk_ext import orient_outward
 from families.ship.yuk_fused import loft_bm, box_bm, cyl_bm, tbox_bm, boolean, union_all, diff_all
 from families.ship.sahin_fused import wing_bm as _wb
 
-NAMES = ['hull', 'acc', 'dark', 'glow', 'glass']
+NAMES = ['hull', 'acc', 'dark', 'glow', 'glass', 'acc2']
+ACC2 = {'raider': 'npc_yellow', 'brute': 'npc_red2', 'reaver': 'npc_steel', 'corvette': 'npc_orange', 'cargo': 'npc_blue', 'tanker': 'npc_orange', 'courier': 'npc_orange', 'mining': 'npc_steel'}
 PALS = {
     'raider': ('npc_rust', 'npc_orange', 'npc_dark', 'npc_glow'),
-    'brute': ('npc_rust2', 'npc_rust', 'npc_dark', 'npc_glow'),
+    'brute': ('npc_steel', 'npc_hazard', 'npc_dark', 'npc_glow'),
     'reaver': ('npc_rust', 'npc_gray', 'npc_dark', 'npc_glow'),
     'corvette': ('npc_blue', 'npc_white', 'npc_dark', 'npc_glowb'),
     'cargo': ('npc_gray', 'npc_orange', 'npc_dark', 'npc_glow'),
@@ -24,7 +25,7 @@ S = 30.0
 
 def build(spec, mats):
     P = spec['params']; kind = P['kind']
-    pal = PALS[kind] + ('sahin_glass',)
+    pal = PALS[kind] + ('sahin_glass', ACC2[kind])
     M = dict(zip(NAMES, pal)); slot = {n: i for i, n in enumerate(NAMES)}
     rng = random.Random(P.get('seed', 1))
 
@@ -40,7 +41,10 @@ def build(spec, mats):
         ob = bpy.data.objects.new(name, me); geo.collection('Asset').objects.link(ob); ob['sd_role'] = role
         return ob
 
+    WINGS = []
+
     def wing(sx, root, tip, thick=0.03):
+        WINGS.append((sx, root, tip, thick))
         """root=(x,zle,zte), tip=(x,y,zle,zte), kalınlık kökte thick, uçta thick*0.3"""
         bm = bmesh.new()
         def V(x, y, z): return bm.verts.new((sx * x, y, z))
@@ -107,7 +111,7 @@ def build(spec, mats):
         secs = [(-0.40, 0.14, 0.05, 0.04, 0.018, 0), (-0.2, 0.22, 0.06, 0.05, 0.022, 0), (0.0, 0.20, 0.06, 0.05, 0.02, 0), (0.25, 0.10, 0.04, 0.035, 0.014, 0), (0.50, 0.012, 0.008, 0.008, 0.003, 0)]
         hull = obj('hull', loft_bm(secs), 'hull')
         for sx in (-1, 1):
-            parts.append(obj('w', wing(sx, (0.05, 0.12, -0.28), (0.42, -0.02, -0.12, -0.34), 0.05), 'acc'))
+            parts.append(obj('w', wing(sx, (0.05, 0.12, -0.28), (0.42, -0.02, -0.12, -0.34), 0.09), 'acc'))
             parts.append(obj('fin', box_bm((sx * 0.07, 0.06, -0.33), (0.012, 0.11, 0.14)), 'dark'))
         ENG = [(-0.06, 0.0), (0.06, 0.0)]
         for x, y in ENG: parts.append(obj('nac', cyl_bm((x, y, -0.5), (x, y, -0.25), 0.055, 0.05, 14), 'dark'))
@@ -134,7 +138,7 @@ def build(spec, mats):
         secs = [(-0.45, 0.22, 0.08, 0.07, 0.03, 0), (-0.2, 0.32, 0.10, 0.09, 0.04, 0), (0.1, 0.30, 0.10, 0.09, 0.04, 0), (0.35, 0.18, 0.07, 0.06, 0.03, 0), (0.5, 0.05, 0.03, 0.025, 0.01, 0)]
         hull = obj('hull', loft_bm(secs), 'hull')
         for sx in (-1, 1):
-            parts.append(obj('w', wing(sx, (0.10, 0.10, -0.30), (0.36, -0.01, -0.10, -0.34), 0.05), 'acc'))
+            parts.append(obj('w', wing(sx, (0.10, 0.10, -0.30), (0.36, -0.01, -0.10, -0.34), 0.09), 'acc'))
         parts.append(obj('bridge', box_bm((0, 0.115, -0.10), (0.14, 0.07, 0.24)), 'acc'))
         for z in (0.1, 0.28):
             parts.append(obj('tur', cyl_bm((0, 0.10, z), (0, 0.15, z), 0.04, None, 12), 'dark'))
@@ -174,6 +178,16 @@ def build(spec, mats):
         ENG = [(-0.08, 0.0), (0.08, 0.0)]
         for x, y in ENG: parts.append(obj('nac', cyl_bm((x, y, -0.53), (x, y, -0.35), 0.06, 0.055, 12), 'dark'))
     greebles()
+    for (sx, root, tip, th) in WINGS:                                                  # kanat nervürleri + hücum/firar kenarı şeridi
+        chord_r = abs(root[1] - root[2]); chord_t = abs(tip[2] - tip[3])
+        for t in (0.2, 0.4, 0.6, 0.8):
+            x = root[0] + (tip[0] - root[0]) * t
+            zl = root[1] + (tip[2] - root[1]) * t; zt = root[2] + (tip[3] - root[2]) * t
+            ytop = (th / 2) * (1 - t) + tip[1] + th * .15 * t
+            parts.append(obj('rib', box_bm((sx * x, ytop + 0.004, (zl + zt) / 2), (0.014, 0.012, abs(zl - zt) * 0.9)), 'dark'))
+        for t in (0.5,):
+            x = root[0] + (tip[0] - root[0]) * t; zl = root[1] + (tip[2] - root[1]) * t
+            parts.append(obj('le', box_bm((sx * x, tip[1] * t, zl), (abs(tip[0] - root[0]) * 1.0, th * 0.7, 0.014)), 'acc2'))
     if kind == 'brute':
         zs = [-0.30, -0.18, -0.06, 0.06, 0.18]
         for z in zs:                                                                  # ağır zırh kaburga + kaynak izi
@@ -198,7 +212,16 @@ def build(spec, mats):
             parts.append(obj('valve', cyl_bm((sx * 0.11, sy * 0.11 + sy * 0.09, -0.1), (sx * 0.11, sy * 0.11 + sy * 0.13, -0.1), 0.014, None, 8), 'acc'))
         for k in range(8):                                                            # merdiven
             parts.append(obj('ladder', box_bm((0.0, 0.17, -0.2 + k * 0.05), (0.05, 0.004, 0.006)), 'dark'))
+    elif kind == 'corvette':
+        for sx in (-1, 1):
+            parts.append(obj('pod', box_bm((sx * 0.20, 0.13, 0.05), (0.10, 0.08, 0.30)), 'acc'))
+            parts.append(obj('cann', cyl_bm((sx * 0.20, 0.13, 0.20), (sx * 0.20, 0.13, 0.44), 0.022, 0.016, 8), 'dark'))
+            parts.append(obj('radar', cyl_bm((sx * 0.07, 0.20, -0.22), (sx * 0.07, 0.21, -0.22), 0.05, 0.01, 12), 'acc2'))
+            parts.append(obj('mast', cyl_bm((sx * 0.07, 0.15, -0.22), (sx * 0.07, 0.20, -0.22), 0.008, None, 6), 'dark'))
+        parts.append(obj('hangar', box_bm((0, 0.05, -0.38), (0.16, 0.06, 0.12)), 'dark'))
     elif kind == 'cargo':
+        parts.append(obj('crane', cyl_bm((0, 0.09, 0.08), (0, 0.24, 0.08), 0.014, 0.01, 8), 'dark'))
+        parts.append(obj('craneb', box_bm((0, 0.24, -0.02), (0.012, 0.012, 0.2)), 'dark'))
         for i, z in enumerate((-0.28, -0.10, 0.08, 0.26)):
             for sx in (-1, 1):
                 parts.append(obj('door', box_bm((sx * 0.17, 0.0, z + 0.077), (0.14, 0.12, 0.004)), 'dark'))

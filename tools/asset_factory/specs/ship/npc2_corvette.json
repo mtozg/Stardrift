@@ -11,7 +11,12 @@
   "npc_white",
   "npc_dark",
   "npc_glowb",
-  "sahin_glass"
+  "sahin_glass",
+  "npc_steel",
+  "npc_hazard",
+  "npc_red2",
+  "npc_yellow",
+  "npc_orange"
  ],
  "texture_mode": "unique",
  "texture_size": 1024,
@@ -23,7 +28,7 @@
   "layout": "npc_fused",
   "kind": "corvette",
   "seed": 3,
-  "detail": 1.2
+  "detail": 2.2
  },
  "prepare": {
   "tex": {
