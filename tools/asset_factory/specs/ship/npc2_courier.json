@@ -1,0 +1,63 @@
+{
+ "id": "npc2_courier",
+ "family": "ship",
+ "class": "npc",
+ "seed": 9300,
+ "profile": "PRODUCTION",
+ "concept": "NPC yeniden tasarım: courier",
+ "length_m": 16,
+ "materials": [
+  "npc_white",
+  "npc_blue",
+  "npc_dark",
+  "npc_glowb",
+  "sahin_glass"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "npc_fused",
+  "kind": "courier",
+  "seed": 3
+ },
+ "prepare": {
+  "tex": {
+   "base": 1024,
+   "orm": 512,
+   "normal": 1024
+  },
+  "ao_distance": 0.2,
+  "ao_into_base": 0.25,
+  "normalize_length": true,
+  "cull": "exterior",
+  "uv_angle": 88,
+  "uv_margin": 0.0,
+  "bake_samples": 8,
+  "ao_samples": 32,
+  "hipoly": {
+   "extra": true,
+   "panel": 0.9,
+   "frac": 0.9,
+   "relief": [
+    0.01,
+    0.03
+   ],
+   "inset": 0.04,
+   "bevel": 0.006,
+   "rivet_r": 0.03,
+   "rivet_h": 0.016,
+   "rivet_p": 0.5,
+   "k_edge": 4.0,
+   "k_cav": 4.0,
+   "cav_dark": 0.3,
+   "edge_light": 0.5,
+   "edge_metal": 0.5,
+   "cage": 0.08,
+   "ray": 0.25
+  }
+ }
+}
