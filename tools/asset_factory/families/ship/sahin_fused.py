@@ -154,6 +154,16 @@ def build(spec, mats):
             f.material_index = SLOT['sahin_mid']
         elif abs(gx) > 0.0 and gy < -0.03 and gz < -0.05 and abs(gx) > 0.12:     # kanat altı: koyu
             f.material_index = SLOT['sahin_dark']
+        else:                                                   # panel bazlı renk çeşitliliği (değiştirilmiş/boyanmış paneller)
+            h = (int((gx + 1) / 0.085) * 73856093 ^ int((gy + 1) / 0.045) * 19349663 ^ int((gz + 1) / 0.085) * 83492791) % 23
+            if h in (0, 1, 2):
+                f.material_index = SLOT['sahin_white']
+            elif h in (3, 4):
+                f.material_index = SLOT['sahin_mid']
+            elif h == 5:
+                f.material_index = SLOT['sahin_dark']
+            elif h == 6:
+                f.material_index = SLOT['sahin_red']
     bm.to_mesh(core.data); bm.free()
     if P.get('bevel_m', 0) > 0:
         mb = core.modifiers.new('bev', 'BEVEL'); mb.width = P['bevel_m']; mb.segments = 2; mb.limit_method = 'ANGLE'; mb.angle_limit = math.radians(25)
