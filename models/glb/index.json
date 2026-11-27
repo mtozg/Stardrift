@@ -75,5 +75,11 @@
  },
  "hangar_kapi_lonca": {
   "url": "models/glb/hangar_kapi_lonca.glb"
+ },
+ "prop_cache": {
+  "url": "models/glb/prop_cache.glb"
+ },
+ "prop_probe": {
+  "url": "models/glb/prop_probe.glb"
  }
 }

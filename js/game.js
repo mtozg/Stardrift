@@ -3416,8 +3416,8 @@ function spawnEscort(rec){
 function spawnCache(){
   const cand = BELTS.map((b, i) => i).filter(i => !save.calm[i]), bi = cand.length ? cand[(Math.random() * cand.length) | 0] : 0, b = BELTS[bi];
   const pos = b.c.clone().add(V(rand(-1, 1), rand(-0.3, 0.3), rand(-1, 1)).normalize().multiplyScalar(b.r * rand(0.4, 0.9)));
-  const g = new THREE.Group(); g.add(new THREE.Mesh(new THREE.BoxGeometry(9, 7, 9), new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.6, metalness: 0.4, emissive: 0x331a05 }))); g.add(sprite(glowTexture(255, 170, 80), 120, 0.7));
-  g.position.copy(pos); scene.add(g);
+  const g = new THREE.Group(), box0 = new THREE.Mesh(new THREE.BoxGeometry(9, 7, 9), new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.6, metalness: 0.4, emissive: 0x331a05 })); g.add(box0); g.add(sprite(glowTexture(255, 170, 80), 120, 0.7));
+  g.position.copy(pos); scene.add(g); if (window.__glb) window.__glb.prop('cache', g, { size: 10, hide: [box0] });   /* GLB kaçak yük konteyneri (?glb=1) */
   caches.push({ g, pos: g.position, units: 3 + ((Math.random() * 4) | 0), born: time, bi });
   for (let i = 0; i < 2; i++){ const gp = pos.clone().add(V(rand(-1, 1), rand(-0.3, 0.3), rand(-1, 1)).normalize().multiplyScalar(rand(200, 350))), n = spawnNpc(Math.random() < 0.5 ? 'raider' : 'brute', gp, STATION); n.state = 'roam'; n.guard = pos.clone(); }
   eco.radioT = -9; radio('Gizli sinyal', 'Terk edilmiş kaçak yük sinyali: ' + beltAt(bi) + ' içinde. Muhafızlar var.', '#ffb454');
@@ -5753,7 +5753,7 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
   function show(title, text, btns){ card.innerHTML = '<b>' + title + '</b><span id="sigT">' + text + '</span><div class="sb">' + btns.map(([k, l, c]) => '<button data-a="' + k + '"' + (c ? ' class="' + c + '"' : '') + '>' + l + '</button>').join('') + '</div><div class="bar"><i></i></div>'; card.classList.add('on'); }
   const info = t => { const e = $('sigT'); if (e) e.textContent = t; };
   const bar = f => { const e = card.querySelector('.bar i'); if (e) e.style.width = Math.max(0, Math.min(1, f)) * 100 + '%'; };
-  function endEv(msg, col, wait){ if (SG){ if (SG.beacon){ scene.remove(SG.beacon); } if (SG.n) SG.n.sg = null; } SG = null; card.classList.remove('on'); nextT = 240 + (wait || 0) + rand(120, 300); if (msg) toast(msg, 3400); }
+  function endEv(msg, col, wait){ if (SG){ if (SG.beacon){ scene.remove(SG.beacon); if (SG.beacon.userData && SG.beacon.userData.pg) scene.remove(SG.beacon.userData.pg); } if (SG.n) SG.n.sg = null; } SG = null; card.classList.remove('on'); nextT = 240 + (wait || 0) + rand(120, 300); if (msg) toast(msg, 3400); }
   const EV = {
     yardim: { w: 3, noK: 1, title: 'Yardım çağrısı', offer: 'Bir ticaret gemisi korsanlarca kuşatıldı. Yetişebilir misin?',
       go(){ const tp = ahead(rand(650, 900), 150), hm = nearestStationTo(tp), tr = spawnNpc(['cargo', 'tanker', 'courier'][(Math.random() * 3) | 0], tp, hm); tr.sg = 'help'; tr.alertT = 6; tr.evSt = hm;
@@ -5808,8 +5808,8 @@ function givePart(k, n){ if (!save.parts) save.parts = {}; save.parts[k] = (save
       tick(dt){ const b = SG.n; if (npcs.indexOf(b) < 0){ const v = pay(380, 620); save.kredi += v; persist(); radio('Devriye', 'Ödül hesabına yatırıldı. İyi avdı pilot.', '#7be0a4'); return endEv('Aranan korsan düştü: +' + v + ' kredi ödül'); }
         if (time > SG.t1) return endEv('Korsanın izi kayboldu.'); info(b.name + ' · ' + dirTxt(b.pos)); bar(b.hull / b.hullMax); } },
     sonda: { w: 2, title: 'Kayıp sonda', offer: 'Eski bir keşif sondasının zayıf sinyali geliyor. Verisi hâlâ okunabilir olabilir.',
-      go(){ const tp = ahead(rand(700, 1100), 350); SG.tp = tp; SG.t1 = time + 180; const bc = sprite(glowTexture(127, 216, 255), 40, 0.95); bc.position.copy(tp); scene.add(bc); SG.beacon = bc; },
-      tick(dt){ const d = SG.tp.distanceTo(rig.position); SG.beacon.material.opacity = 0.55 + 0.4 * Math.abs(Math.sin(time * 5));
+      go(){ const tp = ahead(rand(700, 1100), 350); SG.tp = tp; SG.t1 = time + 180; const bc = sprite(glowTexture(127, 216, 255), 40, 0.95); bc.position.copy(tp); scene.add(bc); SG.beacon = bc; const pg = new THREE.Group(); pg.position.copy(tp); scene.add(pg); bc.userData.pg = pg; if (window.__glb) window.__glb.prop('probe', pg, { size: 16 }); },   /* GLB sonda (?glb=1) */
+      tick(dt){ const d = SG.tp.distanceTo(rig.position); SG.beacon.material.opacity = 0.55 + 0.4 * Math.abs(Math.sin(time * 5)); if (SG.beacon.userData.pg) SG.beacon.userData.pg.rotation.y += dt * 0.35;
         if (d < 90){ const hid = ruins.filter(r => !r.found && !r.hint && !save.map); let msg;
           if (hid.length){ const r = hid[(Math.random() * hid.length) | 0]; r.hint = true; let nb = PLANET, nd = 1e9; for (const b of [PLANET, GIANT, PLANET2, PLANET3]){ const dd = b.pos.distanceTo(r.group.position); if (dd < nd){ nd = dd; nb = b; } } msg = 'Sonda verisi: ' + nb.ad + ' tarafında ' + (r.gate ? 'bir kapı' : 'bir kalıntı') + ' sinyali. Haritaya işlendi.'; setTimeout(() => radio('Sonda', 'Son kayıt: "Orada bir şey vardı… yayın yapıyordu."', '#5ff0d0'), 1800); }
           else { const v = pay(150, 260); save.kredi += v; persist(); msg = 'Sondanın parçaları satıldı: +' + v + ' kredi'; }
@@ -10857,7 +10857,7 @@ toast('Kokpitesin. Sarı işaret üssü gösteriyor. Kuşakta kaz, geri dön. Ç
   if (TESTM) window.__sdt = { get save(){ return save; }, cargo, persist: () => persist(), hgAct: a => hgAct(a), cargoSum: () => cargoSum(), cargoCap: () => cargoCap(),
     get curSys(){ return curSys; }, get curSt(){ return curSt; }, get docked(){ return docked; }, stations: () => STATIONS, enter: k => enterSystem(k), undock: () => { if (docked) undock(); },
     debris: (p, v, sc, life, type) => addDebris(p, v, sc, life, type),   /* test */
-    faceTo: v => { const m = new THREE.Matrix4().lookAt(rig.position, v, V(0, 1, 0)); rig.quaternion.setFromRotationMatrix(m); },   /* test: bakışı hedefe çevir */
+    cache: () => spawnCache(), faceTo: v => { const m = new THREE.Matrix4().lookAt(rig.position, v, V(0, 1, 0)); rig.quaternion.setFromRotationMatrix(m); },   /* test: bakışı hedefe çevir */
     lookSun: () => { const q = new THREE.Quaternion(), d = sunDir.clone(); const m = new THREE.Matrix4().lookAt(V(0, 0, 0), d.clone().negate(), V(0, 1, 0)); q.setFromRotationMatrix(m); rig.quaternion.copy(q); },
     hgYo: v => { if (v !== undefined) hgYo = v; return hgYo; },
     wreck: () => wreck(),
