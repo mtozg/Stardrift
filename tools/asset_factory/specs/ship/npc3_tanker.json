@@ -1,0 +1,70 @@
+{
+ "id": "npc3_tanker",
+ "family": "ship",
+ "class": "npc",
+ "seed": 9406,
+ "profile": "PRODUCTION",
+ "concept": "NPC bölümlü-loft: tanker",
+ "length_m": 90,
+ "materials": [
+  "npc_rust",
+  "npc_rust2",
+  "npc_steel",
+  "npc_gray",
+  "npc_orange",
+  "npc_yellow",
+  "npc_hazard",
+  "npc_dark",
+  "npc_glow",
+  "sahin_glass"
+ ],
+ "texture_mode": "unique",
+ "texture_size": 1024,
+ "lods": [
+  1.0,
+  0.3
+ ],
+ "params": {
+  "layout": "npc_loft",
+  "kind": "tanker",
+  "seed": 3,
+  "split_len": 0.06,
+  "bevel_m": 0.01
+ },
+ "prepare": {
+  "tex": {
+   "base": 2048,
+   "orm": 1024,
+   "normal": 2048
+  },
+  "ao_distance": 0.2,
+  "ao_into_base": 0.6,
+  "normalize_length": true,
+  "cull": "exterior",
+  "uv_angle": 88,
+  "uv_margin": 0.0,
+  "bake_samples": 10,
+  "ao_samples": 48,
+  "hipoly": {
+   "extra": true,
+   "panel": 0.3,
+   "frac": 1.0,
+   "relief": [
+    0.006,
+    0.02
+   ],
+   "inset": 0.04,
+   "bevel": 0.005,
+   "rivet_r": 0.02,
+   "rivet_h": 0.012,
+   "rivet_p": 0.8,
+   "k_edge": 4.0,
+   "k_cav": 4.0,
+   "cav_dark": 0.5,
+   "edge_light": 0.7,
+   "edge_metal": 0.9,
+   "cage": 0.06,
+   "ray": 0.2
+  }
+ }
+}
