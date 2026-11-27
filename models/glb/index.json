@@ -81,5 +81,8 @@
  },
  "prop_probe": {
   "url": "models/glb/prop_probe.glb"
+ },
+ "ship_sahin": {
+  "url": "models/glb/ship_sahin.glb"
  }
 }
